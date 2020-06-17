@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="CalculateP.cso" />
+    <None Remove="CalculatePEuclidean.cso" />
+    <None Remove="CalculateSumQ.cso" />
+    <None Remove="CreateDistanceCache.cso" />
+    <None Remove="CurrentCost.cso" />
+    <None Remove="CurrentCostLarge.cso" />
+    <None Remove="EuclideanNoCache.cso" />
+    <None Remove="EuclideanNoCacheS.cso" />
+    <None Remove="InitializeP.cso" />
+    <None Remove="InitializeP3.cso" />
+    <None Remove="IterateOneStep.cso" />
+    <None Remove="IterateOneStepNoCache.cso" />
+    <None Remove="IterateOneStepSumUp.cso" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="CalculateP.cso" />
+    <EmbeddedResource Include="CalculatePEuclidean.cso" />
+    <EmbeddedResource Include="CalculateSumQ.cso" />
+    <EmbeddedResource Include="CreateDistanceCache.cso" />
+    <EmbeddedResource Include="CurrentCost.cso" />
+    <EmbeddedResource Include="CurrentCostLarge.cso" />
+    <EmbeddedResource Include="EuclideanNoCache.cso" />
+    <EmbeddedResource Include="EuclideanNoCacheS.cso" />
+    <EmbeddedResource Include="InitializeP.cso" />
+    <EmbeddedResource Include="InitializeP3.cso" />
+    <EmbeddedResource Include="IterateOneStep.cso" />
+    <EmbeddedResource Include="IterateOneStepNoCache.cso" />
+    <EmbeddedResource Include="IterateOneStepSumUp.cso" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="SharpDX">
+      <HintPath>..\..\VisuMap\extern\SharpDX\DirectX11-Signed-net40\SharpDX.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.Direct3D11">
+      <HintPath>..\..\VisuMap\extern\SharpDX\DirectX11-Signed-net40\SharpDX.Direct3D11.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.DXGI">
+      <HintPath>..\..\VisuMap\extern\SharpDX\DirectX11-Signed-net40\SharpDX.DXGI.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="cd $(ProjectDir) &amp;&amp; &quot;C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.15.26726\bin\Hostx64\x64&quot;\nmake /f BuildShaders.mk all" />
+  </Target>
+
+</Project>
