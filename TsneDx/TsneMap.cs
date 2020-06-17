@@ -76,6 +76,26 @@ namespace TsneDx {
         }
         #endregion
 
+        public float[,] Fit32(float[,] X) {
+            int rows = X.GetLength(0);
+            int columns = X.GetLength(1);
+            double[][] X1 = new double[rows][];
+            for (int row = 0; row < rows; row++) {
+                X1[row] = new double[columns];
+                for (int col = 0; col < columns; col++)
+                    X1[row][col] = X[row, col];
+            }
+
+            double[][] Y = Fit(X1);
+
+            float[,] Y1 = new float[rows, outDim];
+            for (int row = 0; row < rows; row++) {
+                for (int col = 0; col < outDim; col++)
+                    Y1[row,col] = (float) Y[row][col];
+            }
+            return Y1;
+        }
+
         public double[][] Fit(double[][] X) {
             GpuDevice gpu = new GpuDevice();
             ConstBuffer<TsneMapConstants> cc = gpu.CreateConstantBuffer<TsneMapConstants>(0);

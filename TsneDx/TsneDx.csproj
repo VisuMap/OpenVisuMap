@@ -79,6 +79,7 @@
   <ItemGroup>
     <Content Include=".gitignore" />
     <Content Include="BuildShaders.mk" />
+    <Content Include="TsneMap.py" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
