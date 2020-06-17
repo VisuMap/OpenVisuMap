@@ -76,16 +76,16 @@ namespace TsneDx {
             srvDesc.Dimension = ShaderResourceViewDimension.Buffer;
 
             using (var srv = new ShaderResourceView(device, buf, srvDesc)) {
-                if (shaders.Contains('C')) {
+                if (shaders.Contains("C")) {
                     ctx.ComputeShader.SetShaderResource(slot, srv);
                 }
-                if (shaders.Contains('V')) {
+                if (shaders.Contains("V")) {
                     ctx.VertexShader.SetShaderResource(slot, srv);
                 }
-                if (shaders.Contains('G')) {
+                if (shaders.Contains("G")) {
                     ctx.GeometryShader.SetShaderResource(slot, srv);
                 }
-                if (shaders.Contains('P')) {
+                if (shaders.Contains("P")) {
                     ctx.PixelShader.SetShaderResource(slot, srv);
                 }
             }
