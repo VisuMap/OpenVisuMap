@@ -4,4 +4,8 @@
     <StartArguments>SP500.csv 0.05 100 2</StartArguments>
     <StartWorkingDirectory>C:\work\OpenVisuMap\TsneDx\</StartWorkingDirectory>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <StartArguments>SP500.csv 0.05 100 2</StartArguments>
+    <StartWorkingDirectory>C:\work\OpenVisuMap\TsneDx\</StartWorkingDirectory>
+  </PropertyGroup>
 </Project>

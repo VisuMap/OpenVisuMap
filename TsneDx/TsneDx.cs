@@ -14,11 +14,16 @@ namespace TsneDx {
             uint outDim = (args.Length == 4) ? uint.Parse(args[3]) : 2;
 
             if ( ! inFile.EndsWith(".csv") ) {
-                Console.WriteLine("Usage:  TsneDx.exe <input-file>.csv");
+                Console.WriteLine("Usage:  TsneDx.exe <input-file>.csv [perplexity-ratio] [epochs] [out dim]");
                 return;
             }
-            
+
+            Console.WriteLine("Loading file " + inFile);
             double[][] X = ReadCsvFile(inFile);
+            Console.WriteLine("Loaded table: " + X.Length + "x" + X[0].Length);
+            Console.WriteLine(string.Format(
+                "Running tSNE: Perpelxity Ratio: {0}, Epochs: {1}, Out Dimension: {2}...",
+                perplexityRatio, epochs, outDim));
             using (TsneMap tsne = new TsneMap() { PerplexityRatio = perplexityRatio, MaxEpochs= epochs, OutDim=outDim }) {
                 double[][] Y = tsne.Fit(X);
                 WriteCsvFile(Y, inFile.Substring(0, inFile.Length - 4) + "_map.csv");
@@ -45,7 +50,7 @@ namespace TsneDx {
                 foreach (double[] R in Y) {
                     for (int col = 0; col < R.Length; col++) {
                         if (col > 0) wt.Write(',');
-                        wt.Write(R[col]);
+                        wt.Write(R[col].ToString("g5"));
                     }
                     wt.WriteLine();
                 }
