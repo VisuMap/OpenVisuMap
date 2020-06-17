@@ -1,13 +1,17 @@
 // File: TsneMap.hlsl
-// Description: shader for the tSNE mapping algorithm.
+// Description: Shaders for the tSNE mapping algorithm.
 //=====================================================================================
-//
+
 #pragma warning( disable : 4714)
 
 //======== Mcros =======================================
+
 #define GROUP_SIZE 1024
+
 #define ForLoop0(gIdx, loopSize, _k, _SZ) for(uint _k=gIdx; _k<(loopSize); _k+=_SZ)
+
 #define ForLoop(gIdx, loopSize, _k) ForLoop0(gIdx, loopSize, _k, GROUP_SIZE)
+
 #define GroupMax0(gIdx, groupMem)  \
 	{for(uint offset2=GROUP_SIZE/2; offset2>0; offset2>>=1) { \
 	    if ( gIdx < offset2 ) { \
@@ -23,7 +27,9 @@
 		} \
 		GroupMemoryBarrierWithGroupSync(); \
 	}}
-#define GroupSum(gIdx, groupMem, result)  GroupSum0(gIdx, groupMem);	if ( gIdx == 0 ) result[0] = groupMem[0];
+
+#define GroupSum(gIdx, groupMem, result)  GroupSum0(gIdx, groupMem); \
+    if ( gIdx == 0 ) result[0] = groupMem[0];
 
 // Sum up a variable value of in threads of a group. The sum will be stored in grShared[0]
 #define GROUP_SUM(grShared, grIdx, grVar, grSize)  \
@@ -36,7 +42,7 @@
 		GroupMemoryBarrierWithGroupSync(); \
 	} \
 
-//============= Structs ====================================================
+//============= structs ====================================================
 
 cbuffer GlobalConstants : register(b0) {
 	float targetH;   // the taget entropy for each point.
@@ -76,7 +82,7 @@ RWStructuredBuffer<float> groupMax : register(u7);
 
 groupshared float groupValue[GROUP_SIZE];	// to store various accumulated by one group thread.
 
-//==========================================================================
+//=========== misc ===========================================================
 
 #define FLT_MAX 1e38
 #define FLT_MIN -1e38
@@ -92,8 +98,6 @@ groupshared float groupValue[GROUP_SIZE];	// to store various accumulated by one
 #define affinityFactor(i) P_[(i<<1)+1]
 #define R(tIdx, j) P_[(2+tIdx)*N + j] // auxilary vector for ToAffinity2().
 
-//=======================================================================================
-
 #define minGain 0.01
 #define UpdateGain0(v, g) (sign(g) == sign(v.dY)) ? (0.8 * v.gain) : (0.2 + v.gain)
 #define UpdateGain2(v, g) v.gain = max(float2(minGain, minGain), UpdateGain0(v, g))
@@ -101,8 +105,7 @@ groupshared float groupValue[GROUP_SIZE];	// to store various accumulated by one
 
 //=======================================================================================
 
-float Distance(uint i, uint j)
-{
+float Distance(uint i, uint j) {
     float sum = 0;
     int kN = 0;
     for (uint k = 0; k < columns; k++)
@@ -114,6 +117,8 @@ float Distance(uint i, uint j)
     return sqrt(sum);
 }
 
+//=======================================================================================
+
 #define G_SIZE_CACHE 64
 [numthreads(G_SIZE_CACHE, 1, 1)]
 void CreateDistanceCache(uint3 gid : SV_GroupId, uint gidx : SV_GroupIndex){
@@ -124,6 +129,7 @@ void CreateDistanceCache(uint3 gid : SV_GroupId, uint gidx : SV_GroupIndex){
             distanceMatrix[offset + j] = Distance(i, j);
     }
 }
+
 //=======================================================================================
 
 // Calculate the the entropy of rowIdx-th row of matrix P.
@@ -489,8 +495,6 @@ void CurrentCost(uint3 id : SV_DispatchThreadId) {
 	GroupSum(id.x, groupValue, result);
 }
 
-
-
 #define G_COST_SZ 32
 [numthreads(G_COST_SZ, 1, 1)]
 void CurrentCostLarge(uint3 gid : SV_GroupId, uint gIdx : SV_GroupIndex) {
@@ -689,8 +693,6 @@ void EuclideanNoCacheS(uint3 id : SV_DispatchThreadId, uint gidx : SV_GroupIndex
 		}
 	}
 }
-
-//=================================================================================================
 
 //=================================================================================================
 #define G_SumUp_SZ 32
