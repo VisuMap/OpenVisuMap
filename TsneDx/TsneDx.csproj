@@ -72,6 +72,7 @@
     <EmbeddedResource Include="IterateOneStep.cso" />
     <EmbeddedResource Include="IterateOneStepNoCache.cso" />
     <EmbeddedResource Include="IterateOneStepSumUp.cso" />
+    <None Include="Package.bat" />
     <None Include="Readme.md" />
   </ItemGroup>
   <ItemGroup>
