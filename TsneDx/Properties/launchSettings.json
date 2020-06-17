@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "TsneDx": {
+      "commandName": "Project",
+      "commandLineArgs": "SP500.csv",
+      "workingDirectory": "C:\\work\\OpenVisuMap\\TsneDx"
+    }
+  }
+}

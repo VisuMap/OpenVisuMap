@@ -8,10 +8,16 @@ namespace TsneDx {
     [ComVisible(true)]
     public class TsneDx {
         static void Main(string[] args) {
-            double[][] X = ReadCsvFile("SP500.csv");
+            string inFile = args[0];
+            if ( ! inFile.EndsWith(".csv") ) {
+                Console.WriteLine("Usage:  TsneDx.exe <input-file>.csv");
+                return;
+            }
+            
+            double[][] X = ReadCsvFile(inFile);
             using (TsneMap tsne = new TsneMap() {OutDim = 3, PerplexityRatio = 0.1}) {
                 double[][] Y = tsne.Fit(X);
-                WriteCsvFile(Y, "SP500Map.csv");
+                WriteCsvFile(Y, inFile.Substring(0, inFile.Length - 4) + "_map.csv");
             }
         }
 
@@ -34,7 +40,7 @@ namespace TsneDx {
             using (var wt = new StreamWriter(fileName)) {
                 foreach (double[] R in Y) {
                     for (int col = 0; col < R.Length; col++) {
-                        if (col > 0) wt.Write('\t');
+                        if (col > 0) wt.Write(',');
                         wt.Write(R[col]);
                     }
                     wt.WriteLine();
