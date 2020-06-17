@@ -14,7 +14,10 @@ This module is an open source implementation of the tSNE algorithm for the Windo
   Result will be stored in the file SP500_map.csv
 
 ### Requirements:
-  Windows 10; DirectX 11 or later; GPU NVIDIA or AMD.
+  Windows 10/64bit; DirectX 11 or higher; GPU NVIDIA or AMD.
+
+### Limitations:
+  The program only supports the Euclidean distance. All numerical calculations are done with float32 precision.
 
 ### Installation:
   Download and unzip TsneDx.zip; Then add the directory to the PATH environment variable. 
