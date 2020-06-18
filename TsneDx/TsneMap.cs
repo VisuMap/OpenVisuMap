@@ -25,19 +25,26 @@ namespace TsneDx {
 
     [ComVisible(true)]
     public class TsneMap : IDisposable {
-        double perplexityRatio = 0.05;
-        uint outDim = 2;
-        int maxEpochs = 500;
-        int exaggerationLength;
-        double exaggerationFactor = 4.0;
-        double exaggerationRatio = 0.2;
         double momentum = 0.5;
         double finalMomentum = 0.8;
         double currentVariation = 0;
         double stopVariation = 0;
         double momentumSwitch = 0.33;
 
-        public TsneMap()  {
+        public TsneMap(
+            double PerplexityRatio = 0.05, 
+            int MaxEpochs = 500, 
+            uint OutDim=2,
+            double ExaggerationRatio = 0.2,
+            int CacheLimit = 23000,
+            double ExaggerationFactor = 4.0
+            )  {
+            this.PerplexityRatio = PerplexityRatio;
+            this.MaxEpochs = MaxEpochs;
+            this.OutDim = OutDim;
+            this.ExaggerationRatio = ExaggerationRatio;
+            this.CacheLimit = CacheLimit;
+            this.ExaggerationFactor = ExaggerationFactor;
         }
 
         public void Dispose() {
@@ -53,36 +60,21 @@ namespace TsneDx {
 
         #region Properties
         public string ErrorMsg { get; set; } = "";
+
         public int CacheLimit { get; set; } = 23000;
-        public double PerplexityRatio { get => perplexityRatio; set => perplexityRatio = value; }
-        public uint OutDim { get => outDim; set => outDim = value; }
 
+        public double PerplexityRatio { get; set; } = 0.05;
 
-        public int MaxEpochs {
-            get { return maxEpochs; }
-            set { maxEpochs = value;
-                exaggerationLength = (int)(maxEpochs * exaggerationRatio);
-            }
-        }
+        public uint OutDim { get; set; } = 2;
 
-        public double ExaggerationFactor {
-            get { return exaggerationFactor; }
-            set { if (exaggerationFactor != value) {
-                    exaggerationFactor = value;
-                }
-            }
-        }
+        public int MaxEpochs { get; set; } = 500;
 
-        public int ExaggerationLength {
-            get { return exaggerationLength; }
-        }
+        public double ExaggerationFactor { get; set; } = 4.0;
 
-        public double ExaggerationRatio {
-            get { return exaggerationRatio; }
-            set {
-                exaggerationRatio = Math.Max(0, Math.Min(1, value));
-                exaggerationLength = (int)(maxEpochs * exaggerationRatio);
-            }
+        public double ExaggerationRatio { get; set; } = 0.2;
+
+        public int ExaggerationLength { 
+            get { return (int) (MaxEpochs* ExaggerationRatio); }
         }
         #endregion
         
@@ -183,14 +175,17 @@ namespace TsneDx {
             }
         }
 
-        public float[][] Fit(float[][] X) {            
+        public float[][] Fit(float[][] X) {
+            int exaggerationLength = (int)(MaxEpochs * ExaggerationRatio);
+
+
             GpuDevice gpu = new GpuDevice();
             var cc = gpu.CreateConstantBuffer<TsneMapConstants>(0);
 
             int N = X.Length;
             cc.c.columns = X[0].Length;
             cc.c.N = N;
-            cc.c.outDim = outDim;
+            cc.c.outDim = OutDim;
 
             #region Initialize Y
             Buffer Y2Buf = null;
@@ -269,7 +264,7 @@ namespace TsneDx {
 
             #region Calculate or Initialize P.
             Buffer PBuf;
-            cc.c.targetH = (float)Math.Log(perplexityRatio * N);
+            cc.c.targetH = (float)Math.Log(PerplexityRatio * N);
             if (CachingDistance()) { // CalculateP()
                 PBuf = gpu.CreateBufferRW(N * N, 4, 1);
                 cc.c.chacedP = true;
@@ -401,7 +396,7 @@ namespace TsneDx {
             int stepCounter = 0;
 
             while (true) {
-                cc.c.PFactor = (stepCounter < exaggerationLength) ? (float)exaggerationFactor : 1.0f;
+                cc.c.PFactor = (stepCounter < exaggerationLength) ? (float)ExaggerationFactor : 1.0f;
                 gpu.SetShader(csOneStep);
 
                 if (CachingDistance()) {
@@ -440,15 +435,16 @@ namespace TsneDx {
 
                 currentVariation = gpu.ReadRange<float>(resultStaging, resultBuf, 3)[2]/N;
 
-                cc.c.mom = (float)((stepCounter < (maxEpochs * momentumSwitch)) ? momentum : finalMomentum);
+                cc.c.mom = (float)((stepCounter < (MaxEpochs * momentumSwitch)) ? momentum : finalMomentum);
                 stepCounter++;
                 if (stepCounter % 10 == 0)  Console.Write('.');
                 if (stepCounter % 500 == 0) Console.WriteLine();
-                if ((stepCounter >= maxEpochs) || ((stepCounter >= (2 + exaggerationLength)) && (currentVariation < stopVariation))) {
+                if ((stepCounter >= MaxEpochs) || ((stepCounter >= (2 + exaggerationLength)) && (currentVariation < stopVariation))) {
                     break;
                 }
             }
-            
+            Console.WriteLine();
+
             float[][] Y = new float[N][];
             using (var rs = gpu.NewReadStream((cc.c.outDim == 3) ? Y3StagingBuf : Y2StagingBuf, (cc.c.outDim == 3) ? Y3Buf : Y2Buf)) {
                 for (int row = 0; row < N; row++) {

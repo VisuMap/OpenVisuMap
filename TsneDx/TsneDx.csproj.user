@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>SP500.csv 0.05 100 2</StartArguments>
+    <StartArguments>SP500.csv 0.05 500 2</StartArguments>
     <StartWorkingDirectory>C:\work\OpenVisuMap\TsneDx\</StartWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <StartArguments>SP500.csv 0.05 100 2</StartArguments>
+    <StartArguments>tasic.csv 0.05 500 2</StartArguments>
     <StartWorkingDirectory>C:\work\OpenVisuMap\TsneDx\</StartWorkingDirectory>
   </PropertyGroup>
 </Project>

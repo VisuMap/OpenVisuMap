@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace TsneDx {
     [ComVisible(true)]
@@ -35,19 +36,23 @@ namespace TsneDx {
             }
         }
 
-        public static float[][] ReadCsvFile(string fileName) {
-            List<float[]> rows = new List<float[]>();
+        public static float[][] ReadCsvFile(string fileName) {            
             using (var rd = new StreamReader(fileName)) {
-                char[] sep = new char[] { '\t', ' ', ',', '|', ';' };
+                List<string> rows = new List<string>();
                 while (!rd.EndOfStream) {
                     string line = rd.ReadLine().TrimStart();
                     if (!char.IsNumber(line[0]))
                         continue;
-                    string[] fs = line.Split(sep);
-                    rows.Add(fs.Select(s => float.Parse(s)).ToArray());
+                    rows.Add(line);
                 }
+
+                float[][] table = new float[rows.Count][];
+                char[] sep = new char[] { '\t', ' ', ',', '|', ';' };
+                Parallel.For(0, rows.Count, row => {
+                    table[row] = rows[row].Split(sep).Select(s => float.Parse(s)).ToArray();
+                });
+                return table;
             }
-            return rows.ToArray();
         }
 
         public static void WriteCsvFile(float[][] Y, string fileName) {
