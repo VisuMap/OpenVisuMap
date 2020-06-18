@@ -3,4 +3,5 @@
 bin
 obj
 *_map.csv
+tmp0123.npy
 TsneDx.csproj.user
