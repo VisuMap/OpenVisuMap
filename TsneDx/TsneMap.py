@@ -18,17 +18,14 @@ def Msg(msg):
 
 tsne = TsneDx.TsneMap(MaxEpochs=1000, OutDim=2)
 
-fn = 'tasic'
-fn = 'SP500'
-
 Msg('Test started')
-X = np.load(fn +'.npy')
+X = np.load('SP500.npy')
 np.save('tmp0123.npy', X)
 Msg('Started fitting %dx%d table...'%(X.shape[0], X.shape[1]))
 Y = tsne.FitNumpy('tmp0123.npy')
 Msg('Completed learning')
 Y = np.reshape(np.fromiter(Y, float), (X.shape[0], -1))
-np.savetxt(fn+'_map.csv', Y)
+np.savetxt('SP500_map.csv', Y)
 Msg('Map saved')
 
 
