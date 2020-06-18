@@ -1,4 +1,4 @@
-﻿// Copyright (C) VisuMap Technologies Inc. 2020
+﻿// Copyright (C) 2020 VisuMap Technologies Inc.
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,7 +13,7 @@ namespace TsneDx {
     [StructLayout(LayoutKind.Explicit)]
     struct TsneMapConstants { 
         [FieldOffset(0)] public float targetH;  // The target entropy for all data points.
-        [FieldOffset(4)] public uint outDim;    // The output dimension.
+        [FieldOffset(4)] public int outDim;    // The output dimension.
         [FieldOffset(8)] public float PFactor;  // The exaggeration factor for the P matrix 
         [FieldOffset(12)] public float mom;     // The momentum.
         [FieldOffset(16)] public bool chacedP;  // Is the matrix P chached?
@@ -35,7 +35,7 @@ namespace TsneDx {
         public TsneMap(
             double PerplexityRatio = 0.05, 
             int MaxEpochs = 500, 
-            uint OutDim=2,
+            int OutDim=2,
             double ExaggerationRatio = 0.2,
             int CacheLimit = 23000,
             double ExaggerationFactor = 4.0
@@ -66,7 +66,7 @@ namespace TsneDx {
 
         public double PerplexityRatio { get; set; } = 0.05;
 
-        public uint OutDim { get; set; } = 2;
+        public int OutDim { get; set; } = 2;
 
         public int MaxEpochs { get; set; } = 500;
 
@@ -78,7 +78,8 @@ namespace TsneDx {
             get { return (int) (MaxEpochs* ExaggerationRatio); }
         }
         #endregion
-        
+
+        #region FitNumpy
         public float[] FitNumpy(string fileName) {
             float[][] Y = Fit(ReadNumpyFile(fileName));
             int columns = Y[0].Length;
@@ -175,6 +176,7 @@ namespace TsneDx {
                 return X;
             }
         }
+        #endregion
 
         public float[][] Fit(float[][] X) {
             int exaggerationLength = (int)(MaxEpochs * ExaggerationRatio);
@@ -232,6 +234,7 @@ namespace TsneDx {
             }
             #endregion
 
+            #region Upload data table and initialize the distance matrix
             const int GpuGroupSize = 1024;   // the GPU thread group size, must match GROUP_SIZE defined in TsneMap.hlsl.
             const int GroupSize = 128;       // Must match GROUP_SZ in TsneMap.hlsl; Used only for IteratOneStep()
             const int MaxGroupNumber = 128;
@@ -262,6 +265,7 @@ namespace TsneDx {
                     }
                 }
             }
+            #endregion
 
             #region Calculate or Initialize P.
             Buffer PBuf;
@@ -361,6 +365,7 @@ namespace TsneDx {
             }
             #endregion
 
+            #region Calculate the initial sume of matrix Q.
             using (var sd = gpu.LoadShader("TsneDx.CalculateSumQ.cso")) {
                 gpu.SetShader(sd);
                 cc.c.groupNumber = 256;
@@ -374,7 +379,9 @@ namespace TsneDx {
                 gpu.Run();
             }
             CmdSynchronize();
+            #endregion
 
+            #region The training loop
             bool fastEuclidean = false;
             const int MaxDimension = 64; // maximal dimension (table columns) for fast EuclideanNoCache shader. Must be the same as MAX_DIMENSION.
             const int MaxDimensionS = 32; // maximal dimension (table columns) for fast EuclideanNoCache shader. Must be the same as MAX_DIMENSIONs.
@@ -445,13 +452,12 @@ namespace TsneDx {
                 }
             }
             Console.WriteLine();
+            #endregion
 
             float[][] Y = new float[N][];
             using (var rs = gpu.NewReadStream((cc.c.outDim == 3) ? Y3StagingBuf : Y2StagingBuf, (cc.c.outDim == 3) ? Y3Buf : Y2Buf)) {
                 for (int row = 0; row < N; row++) {
-                    Y[row] = (cc.c.outDim == 2) 
-                        ? new float[] { rs.Read<float>(), rs.Read<float>() } 
-                        : new float[] { rs.Read<float>(), rs.Read<float>(), rs.Read<float>() };
+                    Y[row] = rs.ReadRange<float>(cc.c.outDim);
                 }
             }
 

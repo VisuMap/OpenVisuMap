@@ -1,4 +1,4 @@
-﻿// Copyright (C) VisuMap Technologies Inc. 2020
+﻿// Copyright (C) 2020 VisuMap Technologies Inc.
 using System.Runtime.InteropServices;
 using System.Reflection;
 using IDisposable = System.IDisposable;
@@ -172,6 +172,12 @@ namespace TsneDx {
 
             public int ReadRange<T>(T[] buffer, int offset, int count) where T : struct {
                 return ds.ReadRange<T>(buffer, offset, count);
+            }
+
+            public T[] ReadRange<T>(int count) where T : struct {
+                T[] buffer = new T[count];
+                ds.ReadRange<T>(buffer, 0, count);
+                return buffer;
             }
 
             public void Dispose() {

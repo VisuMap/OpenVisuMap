@@ -1,4 +1,4 @@
-﻿# Copyright (C) VisuMap Technologies Inc. 2020
+﻿# Copyright (C) 2020 VisuMap Technologies Inc.
 #
 # TsneMap.py: Sample script to access TsneDx from python 
 #
@@ -18,7 +18,7 @@ def Msg(msg):
     print(msg, '  Time:%.2fs'%(t-t0))
     t0 = t
 
-tsne = TsneDx.TsneMap(MaxEpochs=1000, OutDim=2)
+tsne = TsneDx.TsneMap(MaxEpochs=1000, OutDim=3)
 
 Msg('Test started')
 X = np.genfromtxt('SP500.csv')

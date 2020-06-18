@@ -1,4 +1,4 @@
-﻿// Copyright (C) VisuMap Technologies Inc. 2020
+﻿// Copyright (C) 2020 VisuMap Technologies Inc.
 using System;
 using System.IO;
 using System.Linq;
@@ -13,7 +13,7 @@ namespace TsneDx {
             string inFile = (args.Length >= 1) ? args[0] : "";
             double perplexityRatio = (args.Length >= 2) ? double.Parse(args[1]) : 0.05;
             int epochs = (args.Length >= 3) ? int.Parse(args[2]) : 500;
-            uint outDim = (args.Length >= 4) ? uint.Parse(args[3]) : 2;
+            int outDim = (args.Length >= 4) ? int.Parse(args[3]) : 2;
             if ( ! inFile.EndsWith(".csv") ) {
                 Console.WriteLine("Usage:  TsneDx.exe <input-file>.csv [perplexity-ratio] [epochs] [out-dim]");
                 return;
