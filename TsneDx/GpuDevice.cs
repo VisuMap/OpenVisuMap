@@ -7,29 +7,17 @@ using SharpDX.Direct3D11;
 using SharpDX.Direct3D;
 
 namespace TsneDx {
-    public class GpuDevice : System.IDisposable {
-        internal Device device;
-        private DeviceContext ctx;
+    public class GpuDevice : IDisposable {
+        Device device;
+        DeviceContext ctx;
 
-        internal DeviceContext Context {
+        public DeviceContext Context {
             get { return ctx; }
         }
 
         public GpuDevice() {
-            device = new Device(DriverType.Hardware, DeviceFlags);
+            device = new Device(DriverType.Hardware, DeviceCreationFlags.None);
             ctx = device.ImmediateContext;
-        }
-
-        public static DeviceCreationFlags DeviceFlags
-        {
-            get  {
-                return
-#if DEBUG
-                DeviceCreationFlags.Debug;
-#else
-                DeviceCreationFlags.None;
-#endif
-            }
         }
 
         public GpuDevice(Device device, DeviceContext ctx) {
@@ -47,9 +35,31 @@ namespace TsneDx {
             if (device != null) device.Dispose();
         }
 
-
-
         #region Buffer creation.
+
+        public class ConstBuffer<T> : System.IDisposable where T : struct {
+            public Buffer buffer;
+            GpuDevice gpu;
+            public T c;
+            public void Dispose() {
+                if (buffer != null) {
+                    buffer.Dispose();
+                    buffer = null;
+                }
+            }
+
+            public void Upload() {
+                gpu.Context.UpdateSubresource(ref c, buffer);
+            }
+
+            public ConstBuffer(GpuDevice gpu, int slot) {
+                buffer = new Buffer(gpu.device, (Marshal.SizeOf(typeof(T)) / 16 + 1) * 16,
+                    ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0);
+                gpu.Context.ComputeShader.SetConstantBuffer(slot, buffer);
+                this.gpu = gpu;
+            }
+        }
+
         public Buffer CreateBufferRO<T>(T[] buffer, int slot, string shaders = "C") where T : struct {
             Buffer buf = CreateBufferRO(buffer.Length, Marshal.SizeOf(typeof(T)), slot, shaders);
             ctx.UpdateSubresource(buffer, buf, 0);
@@ -127,19 +137,6 @@ namespace TsneDx {
                 SizeInBytes = elements * elementSize,
                 CpuAccessFlags = CpuAccessFlags.Read | CpuAccessFlags.Write
             });
-        }
-
-        // Unlink a RW buffer from the compute shader and link it to the pixel shader as read-only buffer.
-        public void ChangeRW2RO(Buffer bufRW, int slotRW, int slotRO) {
-            ctx.ComputeShader.SetUnorderedAccessView(slotRW, null);  // unlink the RW-buffer from old slot.
-
-            var srvDesc = new ShaderResourceViewDescription();
-            srvDesc.Format = SharpDX.DXGI.Format.Unknown;
-            srvDesc.Buffer.ElementCount =
-            srvDesc.Buffer.ElementWidth = bufRW.Description.SizeInBytes / bufRW.Description.StructureByteStride;
-            srvDesc.Dimension = ShaderResourceViewDimension.Buffer;
-            using (var srv = new ShaderResourceView(device, bufRW, srvDesc)) 
-                ctx.PixelShader.SetShaderResource(slotRO, srv);
         }
 
         public ConstBuffer<T> CreateConstBuffer<T>(int slot) where T : struct {
@@ -249,6 +246,7 @@ namespace TsneDx {
             ctx.UnmapSubresource(stagingBuffer, 0);
             return buf[0];
         }
+
         public T[] ReadRange<T>(Buffer stagingBuffer, Buffer dataBuffer, int count) where T : struct {
             return ReadRange<T>(new T[count], 0, stagingBuffer, dataBuffer, count);
         }
@@ -289,27 +287,5 @@ namespace TsneDx {
         }
         #endregion
     }
-
-    public class ConstBuffer<T> : System.IDisposable where T : struct {
-        public Buffer buffer;
-        GpuDevice gpu;
-        public T c;
-        public void Dispose() {
-            if (buffer != null) {
-                buffer.Dispose();
-                buffer = null;
-            }
-        }
-
-        public void Upload() {
-            gpu.Context.UpdateSubresource(ref c, buffer);
-        }        
-
-        public ConstBuffer(GpuDevice gpu, int slot) {
-            buffer = new Buffer(gpu.device, (Marshal.SizeOf(typeof(T)) / 16 + 1) * 16,
-                ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0);
-            gpu.Context.ComputeShader.SetConstantBuffer(slot, buffer);
-            this.gpu = gpu;
-        }
-    }
+    
 }

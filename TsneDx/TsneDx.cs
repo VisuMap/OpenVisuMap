@@ -8,15 +8,15 @@ namespace TsneDx {
     [ComVisible(true)]
     public class TsneDx {
         static void Main(string[] args) {
-            string inFile = args[0];
+            string inFile = (args.Length == 1) ? args[0] : "";
             double perplexityRatio = (args.Length == 2) ? double.Parse(args[1]) : 0.05;
             int epochs = (args.Length == 3) ? int.Parse(args[2]) : 500;
             uint outDim = (args.Length == 4) ? uint.Parse(args[3]) : 2;
-
             if ( ! inFile.EndsWith(".csv") ) {
-                Console.WriteLine("Usage:  TsneDx.exe <input-file>.csv [perplexity-ratio] [epochs] [out dim]");
+                Console.WriteLine("Usage:  TsneDx.exe <input-file>.csv [perplexity-ratio] [epochs] [out-dim]");
                 return;
             }
+            string outFile = inFile.Substring(0, inFile.Length - 4) + "_map.csv";
 
             Console.WriteLine("Loading file " + inFile);
             double[][] X = ReadCsvFile(inFile);
@@ -24,9 +24,14 @@ namespace TsneDx {
             Console.WriteLine(string.Format(
                 "Running tSNE: Perpelxity Ratio: {0}, Epochs: {1}, Out Dimension: {2}...",
                 perplexityRatio, epochs, outDim));
-            using (TsneMap tsne = new TsneMap() { PerplexityRatio = perplexityRatio, MaxEpochs= epochs, OutDim=outDim }) {
+
+            using (TsneMap tsne = new TsneMap() {
+                PerplexityRatio = perplexityRatio,
+                MaxEpochs = epochs,
+                OutDim = outDim
+            }) {
                 double[][] Y = tsne.Fit(X);
-                WriteCsvFile(Y, inFile.Substring(0, inFile.Length - 4) + "_map.csv");
+                WriteCsvFile(Y, outFile);
             }
         }
 

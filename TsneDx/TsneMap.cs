@@ -8,37 +8,45 @@ using ComputeShader = SharpDX.Direct3D11.ComputeShader;
 
 namespace TsneDx {
     [StructLayout(LayoutKind.Explicit)]
-    struct TsneMapConstants { // Using fxc.exe or fx.bat to get the offset for each variable.
+    struct TsneMapConstants { 
         [FieldOffset(0)] public float targetH;  // The target entropy for all data points.
         [FieldOffset(4)] public uint outDim;    // The output dimension.
         [FieldOffset(8)] public float PFactor;  // The exaggeration factor for the P matrix 
         [FieldOffset(12)] public float mom;     // The momentum.
-        [FieldOffset(16)] public bool chacedP;  // Is the matrix P chached.
+        [FieldOffset(16)] public bool chacedP;  // Is the matrix P chached?
         [FieldOffset(20)] public int blockIdx;  // Help variable to split the calculation of P in multiple batches.
         [FieldOffset(24)] public int cmd;       // optional shader command flag.
         [FieldOffset(28)] public int groupNumber; // optional parameter for the number of dispatched thread groups.
-        [FieldOffset(32)] public int columns; // optional parameter for the number of dispatched thread groups.
-        [FieldOffset(36)] public int N; // optional parameter for the number of dispatched thread groups.
+        [FieldOffset(32)] public int columns; // columns of input data table.
+        [FieldOffset(36)] public int N;       // Rows of the input data table.
     };
 
     [ComVisible(true)]
     public class TsneMap : IDisposable {
+        double perplexityRatio = 0.05;
         uint outDim = 2;
+        int maxEpochs = 500;
         int exaggerationLength;
         double exaggerationFactor = 4.0;
         double exaggerationRatio = 0.2;
         double momentum = 0.5;
         double finalMomentum = 0.8;
-        double perplexityRatio = 0.05;
         double currentVariation = 0;
         double stopVariation = 0;
         double momentumSwitch = 0.33;
-        int maxEpochs = 500;
 
         public TsneMap()  {
         }
 
         public void Dispose() {
+        }
+
+        public static void SafeDispose(params IDisposable[] objList) {
+            foreach (var obj in objList) {
+                if (obj != null) {
+                    obj.Dispose();
+                }
+            }
         }
 
         #region Properties
@@ -98,7 +106,7 @@ namespace TsneDx {
 
         public double[][] Fit(double[][] X) {
             GpuDevice gpu = new GpuDevice();
-            ConstBuffer<TsneMapConstants> cc = gpu.CreateConstantBuffer<TsneMapConstants>(0);
+            var cc = gpu.CreateConstantBuffer<TsneMapConstants>(0);
 
             int N = X.Length;
             cc.c.columns = X[0].Length;
@@ -373,14 +381,5 @@ namespace TsneDx {
 
             return Y;
         }
-
-        public static void SafeDispose(params IDisposable[] objList) {
-            foreach (var obj in objList) {
-                if (obj != null) {
-                    obj.Dispose();
-                }
-            }
-        }
-
     }
 }

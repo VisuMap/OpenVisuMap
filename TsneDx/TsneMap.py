@@ -1,4 +1,4 @@
-﻿import sys,clr
+﻿import sys,clr,time
 import numpy as np
 import System
 sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Debug')
@@ -20,20 +20,31 @@ def ToCsArray(X):
             X1[row, col] = X[row, col]
     return X1
 
+t0 = time.time()
+def Msg(msg):
+    global t0
+    t = time.time()
+    print(msg, '  Time:%.2fs'%(t-t0))
+    t0 = t
+
 tsne = TsneDx.TsneMap()
 tsne.OutDim = 3
 tsne.PerplexityRatio = 0.05
 tsne.MaxEpochs = 2000
 
 fn = 'tasic'
+#fn = 'SP500'
+
+Msg('Test started')
 X = np.genfromtxt(fn +'.csv')
-print('Loaded data table: ', X.shape)
+Msg('Loaded data table ' + str(X.shape))
 X = ToCsArray(X)
-print('Started learning...')
+Msg('Started learning...')
 Y = tsne.Fit32(X)
-print('Completed learning...')
+Msg('Completed learning...')
 Y = ToNumpyArray(Y)
 np.savetxt(fn+'_map.csv', Y)
+Msg('Saved data')
 
 
 
