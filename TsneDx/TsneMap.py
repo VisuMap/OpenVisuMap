@@ -1,9 +1,15 @@
-﻿import sys,clr,time
+﻿# TsneMap.py: Sample script to access TsneDx from python 
+#
+# Before runing the module 'pythonnet' need to be pre-installed; the path
+# to TsneDx directory need to be adjusted.
+#
+import sys, clr, time, System
 import numpy as np
-import System
-sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Debug')
+sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Release')
 td = clr.AddReference('TsneDx')
 import TsneDx
+
+#---------------------------------------------------------------------
 
 def ToNumpyArray(X):
     X1 = np.zeros((X.GetLength(0), X.GetLength(1)), dtype=np.float32)
@@ -18,6 +24,7 @@ def ToCsArray(X):
     for row in range(X.shape[0]):
         for col in range(X.shape[1]):
             X1[row, col] = X[row, col]
+            X1[row, col] = X[row, col]
     return X1
 
 t0 = time.time()
@@ -27,13 +34,15 @@ def Msg(msg):
     print(msg, '  Time:%.2fs'%(t-t0))
     t0 = t
 
+#---------------------------------------------------------------------
+
 tsne = TsneDx.TsneMap()
 tsne.OutDim = 3
 tsne.PerplexityRatio = 0.05
 tsne.MaxEpochs = 2000
 
 fn = 'tasic'
-#fn = 'SP500'
+fn = 'SP500'
 
 Msg('Test started')
 X = np.genfromtxt(fn +'.csv')
@@ -44,7 +53,7 @@ Y = tsne.Fit32(X)
 Msg('Completed learning...')
 Y = ToNumpyArray(Y)
 np.savetxt(fn+'_map.csv', Y)
-Msg('Saved data')
+Msg('Map saved')
 
 
 
