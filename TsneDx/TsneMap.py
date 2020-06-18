@@ -1,4 +1,6 @@
-﻿# TsneMap.py: Sample script to access TsneDx from python 
+﻿# Copyright (C) VisuMap Technologies Inc. 2020
+#
+# TsneMap.py: Sample script to access TsneDx from python 
 #
 # Before runing the module 'pythonnet' need to be pre-installed; the path
 # to TsneDx directory need to be adjusted.

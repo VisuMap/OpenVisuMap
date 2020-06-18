@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright (C) VisuMap Technologies Inc. 2020
+using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;

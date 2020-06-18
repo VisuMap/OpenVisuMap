@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿// Copyright (C) VisuMap Technologies Inc. 2020
+using System.Runtime.InteropServices;
 using System.Reflection;
 using IDisposable = System.IDisposable;
 using Array = System.Array;

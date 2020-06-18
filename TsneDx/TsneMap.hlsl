@@ -1,3 +1,5 @@
+// Copyright (C) VisuMap Technologies Inc. 2020
+//
 // File: TsneMap.hlsl
 // Description: Shaders for the tSNE mapping algorithm.
 //=====================================================================================
