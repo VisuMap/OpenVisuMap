@@ -5,7 +5,7 @@
 #
 import sys, clr, time, System
 import numpy as np
-sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Release')
+sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Debug')
 td = clr.AddReference('TsneDx')
 import TsneDx
 
@@ -42,16 +42,17 @@ tsne.PerplexityRatio = 0.05
 tsne.MaxEpochs = 2000
 
 fn = 'tasic'
-fn = 'SP500'
+#fn = 'SP500'
 
 Msg('Test started')
-X = np.genfromtxt(fn +'.csv')
+X = np.load(fn +'.npy')
 Msg('Loaded data table ' + str(X.shape))
-X = ToCsArray(X)
+np.save('tmp0123.npy', X)
 Msg('Started learning...')
-Y = tsne.Fit32(X)
+Y = tsne.FitNumpy('tmp0123.npy')
+
 Msg('Completed learning...')
-Y = ToNumpyArray(Y)
+Y = np.reshape(np.fromiter(Y, float), (X.shape[0], -1))
 np.savetxt(fn+'_map.csv', Y)
 Msg('Map saved')
 

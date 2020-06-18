@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using ComputeShader = SharpDX.Direct3D11.ComputeShader;
+using System.IO;
+using SysBuffer = System.Buffer;
 
 namespace TsneDx {
     [StructLayout(LayoutKind.Explicit)]
@@ -50,7 +52,7 @@ namespace TsneDx {
         }
 
         #region Properties
-
+        public string ErrorMsg { get; set; } = "";
         public int CacheLimit { get; set; } = 23000;
         public double PerplexityRatio { get => perplexityRatio; set => perplexityRatio = value; }
         public uint OutDim { get => outDim; set => outDim = value; }
@@ -83,28 +85,105 @@ namespace TsneDx {
             }
         }
         #endregion
-
-        public float[,] Fit32(float[,] X) {
-            int rows = X.GetLength(0);
-            int columns = X.GetLength(1);
-            double[][] X1 = new double[rows][];
-            for (int row = 0; row < rows; row++) {
-                X1[row] = new double[columns];
-                for (int col = 0; col < columns; col++)
-                    X1[row][col] = X[row, col];
-            }
-
-            double[][] Y = Fit(X1);
-
-            float[,] Y1 = new float[rows, outDim];
-            for (int row = 0; row < rows; row++) {
-                for (int col = 0; col < outDim; col++)
-                    Y1[row,col] = (float) Y[row][col];
-            }
+        
+        public float[] FitNumpy(string fileName) {
+            float[][] Y = Fit(ReadNumpyFile(fileName));
+            int columns = Y[0].Length;
+            float[] Y1 = new float[Y.Length * columns];
+            for (int row = 0; row < Y.Length; row++)
+                Array.Copy(Y[row], 0, Y1, row * columns, columns);
             return Y1;
         }
+        public enum NumpyDtype {
+            DT_Float32, DT_Int32, DT_Float64, DT_Unknown
+        }
 
-        public double[][] Fit(double[][] X) {
+        float[][] ReadNumpyFile(string fileName) {
+            float[] ReadRow(int columns, BinaryReader br, NumpyDtype dtype) {
+                float[] R = new float[columns];
+                switch (dtype) {
+                    case NumpyDtype.DT_Float32:
+                        SysBuffer.BlockCopy(br.ReadBytes(R.Length * 4), 0, R, 0, R.Length * 4);
+                        break;
+                    case NumpyDtype.DT_Float64:
+                        double[] buf = new double[R.Length];
+                        SysBuffer.BlockCopy(br.ReadBytes(R.Length * 8), 0, buf, 0, R.Length * 8);
+                        for (int i = 0; i < R.Length; i++) R[i] = (float) buf[i];
+                        break;
+                    default:
+                        int[] buff = new int[R.Length];
+                        SysBuffer.BlockCopy(br.ReadBytes(R.Length * 4), 0, buff, 0, R.Length * 4);
+                        for (int i = 0; i < R.Length; i++) R[i] = buff[i];
+                        break;
+                }
+                return R;
+            }
+
+            using (FileStream f = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+            using (BinaryReader br = new BinaryReader(f)) {
+                byte[] magic = br.ReadBytes(6);
+                if (magic[0] != 0x93) {
+                    this.ErrorMsg = "No numpy file";
+                    return null;            
+                }
+                byte[] version = br.ReadBytes(2);
+                int headLen = 0;
+                if (version[0] == 1) {
+                    headLen = br.ReadInt16();
+                } else {
+                    headLen = br.ReadInt32();
+                }
+                byte[] bHead = br.ReadBytes(headLen);
+                string sHead = Encoding.UTF8.GetString(bHead);
+                sHead = sHead.Trim(new char[] { '{', ',', '}' });
+                string[] fs = sHead.Split(new char[] { ' ', ',', ':', '\'', ')', '(' }, StringSplitOptions.RemoveEmptyEntries);
+                NumpyDtype dtype = NumpyDtype.DT_Unknown;
+
+                bool isFortranOrder = false;
+                List<int> dims = new List<int>();
+                for (int i = 0; i < fs.Length; i += 2) {
+                    switch (fs[i]) {
+                        case "descr":
+                            switch (fs[i + 1]) {
+                                case "<f4":
+                                    dtype = NumpyDtype.DT_Float32;
+                                    break;
+                                case "<f8":
+                                    dtype = NumpyDtype.DT_Float64;
+                                    break;
+                                case "<i4":
+                                    dtype = NumpyDtype.DT_Int32;
+                                    break;
+                                default:
+                                    dtype = NumpyDtype.DT_Unknown;
+                                    break;
+                            }
+                            break;
+                        case "fortran_order":
+                            isFortranOrder = (fs[i + 1] == "True");
+                            break;
+                        case "shape":
+                            dims.Add(int.Parse(fs[i + 1]));
+                            for (int j = i + 2; j < fs.Length; j++)
+                                if (char.IsDigit(fs[j][0]))
+                                    dims.Add(int.Parse(fs[j]));
+                            break;
+                    }
+                }
+
+                if ((dtype == NumpyDtype.DT_Unknown) || (dims.Count != 2) || isFortranOrder ) {
+                    this.ErrorMsg = "Invalid Format";
+                    return null;
+                }
+
+                float[][] X = new float[dims[0]][];
+                for (int row = 0; row < dims[0]; row++)
+                    X[row] = ReadRow(dims[1], br, dtype);
+                return X;
+            }
+        }
+
+        public float[][] Fit(float[][] X) {            
             GpuDevice gpu = new GpuDevice();
             var cc = gpu.CreateConstantBuffer<TsneMapConstants>(0);
 
@@ -363,16 +442,19 @@ namespace TsneDx {
 
                 cc.c.mom = (float)((stepCounter < (maxEpochs * momentumSwitch)) ? momentum : finalMomentum);
                 stepCounter++;
+                if (stepCounter % 10 == 0)  Console.Write('.');
+                if (stepCounter % 500 == 0) Console.WriteLine();
                 if ((stepCounter >= maxEpochs) || ((stepCounter >= (2 + exaggerationLength)) && (currentVariation < stopVariation))) {
                     break;
                 }
             }
-
-            double[][] Y = new double[N][];
+            
+            float[][] Y = new float[N][];
             using (var rs = gpu.NewReadStream((cc.c.outDim == 3) ? Y3StagingBuf : Y2StagingBuf, (cc.c.outDim == 3) ? Y3Buf : Y2Buf)) {
                 for (int row = 0; row < N; row++) {
-                    Y[row] = (cc.c.outDim == 2) ? new double[] { rs.Read<float>(), rs.Read<float>() } 
-                        : new double[] { rs.Read<float>(), rs.Read<float>(), rs.Read<float>() };
+                    Y[row] = (cc.c.outDim == 2) 
+                        ? new float[] { rs.Read<float>(), rs.Read<float>() } 
+                        : new float[] { rs.Read<float>(), rs.Read<float>(), rs.Read<float>() };
                 }
             }
 

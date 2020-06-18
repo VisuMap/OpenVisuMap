@@ -8,10 +8,10 @@ namespace TsneDx {
     [ComVisible(true)]
     public class TsneDx {
         static void Main(string[] args) {
-            string inFile = (args.Length == 1) ? args[0] : "";
-            double perplexityRatio = (args.Length == 2) ? double.Parse(args[1]) : 0.05;
-            int epochs = (args.Length == 3) ? int.Parse(args[2]) : 500;
-            uint outDim = (args.Length == 4) ? uint.Parse(args[3]) : 2;
+            string inFile = (args.Length >= 1) ? args[0] : "";
+            double perplexityRatio = (args.Length >= 2) ? double.Parse(args[1]) : 0.05;
+            int epochs = (args.Length >= 3) ? int.Parse(args[2]) : 500;
+            uint outDim = (args.Length >= 4) ? uint.Parse(args[3]) : 2;
             if ( ! inFile.EndsWith(".csv") ) {
                 Console.WriteLine("Usage:  TsneDx.exe <input-file>.csv [perplexity-ratio] [epochs] [out-dim]");
                 return;
@@ -19,7 +19,7 @@ namespace TsneDx {
             string outFile = inFile.Substring(0, inFile.Length - 4) + "_map.csv";
 
             Console.WriteLine("Loading file " + inFile);
-            double[][] X = ReadCsvFile(inFile);
+            float[][] X = ReadCsvFile(inFile);
             Console.WriteLine("Loaded table: " + X.Length + "x" + X[0].Length);
             Console.WriteLine(string.Format(
                 "Running tSNE: Perpelxity Ratio: {0}, Epochs: {1}, Out Dimension: {2}...",
@@ -30,13 +30,13 @@ namespace TsneDx {
                 MaxEpochs = epochs,
                 OutDim = outDim
             }) {
-                double[][] Y = tsne.Fit(X);
+                float[][] Y = tsne.Fit(X);
                 WriteCsvFile(Y, outFile);
             }
         }
 
-        public static double[][] ReadCsvFile(string fileName) {
-            List<double[]> rows = new List<double[]>();
+        public static float[][] ReadCsvFile(string fileName) {
+            List<float[]> rows = new List<float[]>();
             using (var rd = new StreamReader(fileName)) {
                 char[] sep = new char[] { '\t', ' ', ',', '|', ';' };
                 while (!rd.EndOfStream) {
@@ -44,15 +44,15 @@ namespace TsneDx {
                     if (!char.IsNumber(line[0]))
                         continue;
                     string[] fs = line.Split(sep);
-                    rows.Add(fs.Select(s => double.Parse(s)).ToArray());
+                    rows.Add(fs.Select(s => float.Parse(s)).ToArray());
                 }
             }
             return rows.ToArray();
         }
 
-        public static void WriteCsvFile(double[][] Y, string fileName) {
+        public static void WriteCsvFile(float[][] Y, string fileName) {
             using (var wt = new StreamWriter(fileName)) {
-                foreach (double[] R in Y) {
+                foreach (var R in Y) {
                     for (int col = 0; col < R.Length; col++) {
                         if (col > 0) wt.Write(',');
                         wt.Write(R[col].ToString("g5"));

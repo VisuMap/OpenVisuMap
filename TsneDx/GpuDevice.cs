@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Reflection;
 using IDisposable = System.IDisposable;
+using Array = System.Array;
 
 using SharpDX;
 using SharpDX.Direct3D11;
@@ -202,20 +203,19 @@ namespace TsneDx {
             }
         }
 
-        public void WriteMarix(Buffer buffer, double[][] matrix, bool transpose=false) {
+        public void WriteMarix(Buffer buffer, float[][] matrix, bool transpose=false)  {
             using (var ws = NewWriteStream(buffer)) {
                 int rows = matrix.Length;
                 int columns = matrix[0].Length;
                 float[] buf = new float[rows * columns];
-                int idx = 0;
                 if (transpose) {
+                    int idx = 0;
                     for (int col = 0; col < columns; col++)
                         for (int row = 0; row < rows; row++)
-                            buf[idx++] = (float)matrix[row][col];
+                            buf[idx++] = matrix[row][col];
                 } else {
                     for (int row = 0; row < rows; row++)
-                        for (int col = 0; col < columns; col++)
-                            buf[idx++] = (float)matrix[row][col];
+                        Array.Copy(matrix[row], 0, buf, row*columns, columns);
                 }
                 ws.WriteRange(buf);
             }
