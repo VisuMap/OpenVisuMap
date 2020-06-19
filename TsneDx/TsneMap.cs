@@ -88,12 +88,13 @@ namespace TsneDx {
                 Array.Copy(Y[row], 0, Y1, row * columns, columns);
             return Y1;
         }
-        public enum NumpyDtype {
+        enum NumpyDtype {
             DT_Float32, DT_Int32, DT_Float64, DT_Unknown
         }
 
-        float[][] ReadNumpyFile(string fileName) {
-            float[] ReadRow(int columns, BinaryReader br, NumpyDtype dtype) {
+        float[][] ReadNumpyFile(string fileName) {        
+
+        float[] ReadRow(int columns, BinaryReader br, NumpyDtype dtype) {
                 float[] R = new float[columns];
                 switch (dtype) {
                     case NumpyDtype.DT_Float32:
