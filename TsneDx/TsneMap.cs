@@ -31,6 +31,7 @@ namespace TsneDx {
         double currentVariation = 0;
         double stopVariation = 0;
         double momentumSwitch = 0.33;
+        
 
         public TsneMap(
             double PerplexityRatio = 0.05, 
@@ -60,7 +61,7 @@ namespace TsneDx {
         }
 
         #region Properties
-        public string ErrorMsg { get; set; } = "";
+        public static string ErrorMsg { get; set; } = "";
 
         public int CacheLimit { get; set; } = 23000;
 
@@ -92,7 +93,7 @@ namespace TsneDx {
             DT_Float32, DT_Int32, DT_Float64, DT_Unknown
         }
 
-        float[][] ReadNumpyFile(string fileName) {        
+        public static float[][] ReadNumpyFile(string fileName) {        
 
         float[] ReadRow(int columns, BinaryReader br, NumpyDtype dtype) {
                 float[] R = new float[columns];
@@ -118,7 +119,7 @@ namespace TsneDx {
             using (BinaryReader br = new BinaryReader(f)) {
                 byte[] magic = br.ReadBytes(6);
                 if (magic[0] != 0x93) {
-                    this.ErrorMsg = "No numpy file";
+                    TsneMap.ErrorMsg = "No numpy file";
                     return null;            
                 }
                 byte[] version = br.ReadBytes(2);
@@ -167,7 +168,7 @@ namespace TsneDx {
                 }
 
                 if ((dtype == NumpyDtype.DT_Unknown) || (dims.Count != 2) || isFortranOrder ) {
-                    this.ErrorMsg = "Invalid Format";
+                    TsneMap.ErrorMsg = "Invalid Format";
                     return null;
                 }
 
