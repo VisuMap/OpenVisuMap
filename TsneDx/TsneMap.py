@@ -6,7 +6,7 @@
 # need to be added to the PYTHONPATH environment variable.
 #
 import sys, os
-sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Debug')
+sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Release')
 import clr, TsneDx, time
 import numpy as np
 

@@ -4,5 +4,7 @@ for %%f in (TsneDx.exe SharpDX.Direct3D11.dll SharpDX.dll SharpDX.DXGI.dll TsneD
 copy Readme.md TsneDx
 copy SP500.csv TsneDx
 copy TsneMap.py TsneDx
-zip -r TsneDx.zip TsneDx
+cd TsneDx
+zip ..\TsneDx.zip *
+cd ..
 rmdir/s /Q TsneDx
