@@ -78,17 +78,25 @@ namespace TsneDx {
         public int ExaggerationLength { 
             get { return (int) (MaxEpochs* ExaggerationRatio); }
         }
-        #endregion
+        #endregion        
 
         #region FitNumpy
-        public float[] FitNumpy(string fileName) {
-            float[][] Y = Fit(ReadNumpyFile(fileName));
+        float[] Flatten(float[][] Y) {
             int columns = Y[0].Length;
             float[] Y1 = new float[Y.Length * columns];
             for (int row = 0; row < Y.Length; row++)
                 Array.Copy(Y[row], 0, Y1, row * columns, columns);
             return Y1;
         }
+
+        public float[] FitNumpyFile(string fileName) {
+            return Flatten( Fit(ReadNumpyFile(fileName)) );
+        }
+
+        public float[] FitNumpy(float[][] X) {
+            return Flatten( Fit(X) );
+        }
+
         enum NumpyDtype {
             DT_Float32, DT_Int32, DT_Float64, DT_Unknown
         }
@@ -182,7 +190,6 @@ namespace TsneDx {
 
         public float[][] Fit(float[][] X) {
             int exaggerationLength = (int)(MaxEpochs * ExaggerationRatio);
-
 
             GpuDevice gpu = new GpuDevice();
             var cc = gpu.CreateConstantBuffer<TsneMapConstants>(0);
