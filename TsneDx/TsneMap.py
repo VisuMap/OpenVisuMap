@@ -5,29 +5,27 @@
 # Installation: The module 'pythonnet' need to be installed; and this directory
 # need to be added to the PYTHONPATH environment variable.
 #
-import sys
+import sys, os
 sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Release')
 import clr, TsneDx, time
 import numpy as np
+import matplotlib.pyplot as plt
 
-t0 = time.time()
-def Msg(msg):
-    global t0
-    t = time.time()
-    print(msg, '  Time:%.2fs'%(t-t0))
-    t0 = t
+inFile = sys.argv[1]
+X = np.genfromtxt(inFile) if inFile.endswith('.csv') else np.load(inFile)
 
-tsne = TsneDx.TsneMap(MaxEpochs=1000, OutDim=3)
-
-Msg('Test started')
-X = np.genfromtxt('SP500.csv')
+print('Start fitting %dx%d table...'%(X.shape[0], X.shape[1]))
+tsne = TsneDx.TsneMap(PerplexityRatio=0.05, MaxEpochs=1000, OutDim=2)
 np.save('tmp0123.npy', X)
-Msg('Started fitting %dx%d table...'%(X.shape[0], X.shape[1]))
 Y = tsne.FitNumpy('tmp0123.npy')
-Msg('Completed learning')
+os.remove('tmp0123.npy')
 Y = np.fromiter(Y, float).reshape(X.shape[0], -1)
-np.savetxt('SP500_map.csv', Y)
-Msg('Map saved')
+
+size = 3 if Y.shape[0] < 1000 else 1
+plt.scatter(Y[:,0], Y[:,1], size)
+plt.xlabel('tSNE-1')
+plt.ylabel('tSNE-2')
+plt.show()
 
 
 

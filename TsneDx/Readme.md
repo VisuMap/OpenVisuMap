@@ -22,7 +22,7 @@ This GPU based implementation gives a 10x to 40x speedup comparing to CPU implem
   The program only supports the Euclidean distance. All numerical calculations are done with float32 precision.
 
 ### Installation:
-  Download and unzip TsneDx.zip; Then add the directory to the PATH environment variable. 
+  Download and unzip TsneDx.zip; Then add the directory to the PATH environment variable, and to the PYTHONPATH if needed use from python scripts.
 
 ### Programmatical Integration:
   The file TsneDx.exe is a .NET framework assemly, it can be integreted into any .NET project by adding TsneDx.exe to the reference. For ptyhon users, this package inclues a sample program TsneMap.py that shows how to access TsneDx from python programs.
