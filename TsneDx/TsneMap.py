@@ -2,14 +2,13 @@
 #
 # TsneMap.py: Sample script to access TsneDx from python 
 #
-# Before runing the module 'pythonnet' need to be pre-installed; the path
-# to TsneDx directory need to be adjusted.
+# Installation: The module 'pythonnet' need to be installed; and this directory
+# need to be added to the PYTHONPATH environment variable.
 #
-import sys, clr, time, System
-import numpy as np
+import sys
 sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Release')
-td = clr.AddReference('TsneDx')
-import TsneDx
+import clr, TsneDx, time
+import numpy as np
 
 t0 = time.time()
 def Msg(msg):
