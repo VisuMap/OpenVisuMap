@@ -7,10 +7,16 @@ TT = CreateDistanceCache.cso IterateOneStep.cso IterateOneStepNoCache.cso \
  InitializeP.cso InitializeP3.cso CalculateSumQ.cso \
  CurrentCost.cso CurrentCostLarge.cso
 
+TT2 = PcaCreateCovMatrix.cso PcaInitIteration.cso PcaIterateOneStep.cso \
+ PcaCalculateNormal.cso PcaAdjustCovMatrix.cso PcaTransposeEigenvectors.cso
+
 $(TT):	TsneMap.hlsl
 	$(BC)
 
-all:	$(TT)
+$(TT2): FastPca.hlsl
+	$(BC)
+
+all:	$(TT) $(TT2)
 
 clear:
 	del *.cso

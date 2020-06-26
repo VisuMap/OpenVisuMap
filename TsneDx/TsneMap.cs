@@ -52,14 +52,6 @@ namespace TsneDx {
         public void Dispose() {
         }
 
-        public static void SafeDispose(params IDisposable[] objList) {
-            foreach (var obj in objList) {
-                if (obj != null) {
-                    obj.Dispose();
-                }
-            }
-        }
-
         #region Properties
         public static string ErrorMsg { get; set; } = "";
 
@@ -470,7 +462,7 @@ namespace TsneDx {
                 }
             }
 
-            SafeDispose(csSumUp, csOneStep, PBuf, distanceBuf, tableBuf, resultBuf, 
+            TsneDx.SafeDispose(csSumUp, csOneStep, PBuf, distanceBuf, tableBuf, resultBuf, 
                 resultStaging, groupMaxBuf, Y3Buf, Y3StagingBuf, v3Buf, Y2Buf, Y2StagingBuf, v2Buf, cc, gpu);
 
             return Y;

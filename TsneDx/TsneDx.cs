@@ -10,6 +10,27 @@ namespace TsneDx {
     [ComVisible(true)]
     public class TsneDx {
         static void Main(string[] args) {
+            if (char.IsDigit(args[0][0]))
+                DoPca(args);
+            else
+                DoTsne(args);
+        }
+
+        static void DoPca(string[] args) {
+            int outDim = int.Parse(args[0]);
+            string inFile = args[1];
+            string outFile = inFile.Substring(0, inFile.Length - 4) + "_pc.csv";
+            if (!(inFile.EndsWith(".csv") || inFile.EndsWith(".npy"))) {
+                Console.WriteLine("Usage:  PcaDx.exe <out-dim> <input-file>.csv");
+                return;
+            }
+            float[][] X = inFile.EndsWith(".csv") ? ReadCsvFile(inFile) : TsneMap.ReadNumpyFile(inFile);
+            var pca = new FastPca();
+            var B = pca.DoPca(X, outDim);
+            WriteCsvFile(B, outFile);
+        }
+
+        static void DoTsne(string[] args) { 
             string inFile = (args.Length >= 1) ? args[0] : "";
             double perplexityRatio = (args.Length >= 2) ? double.Parse(args[1]) : 0.05;
             int epochs = (args.Length >= 3) ? int.Parse(args[2]) : 500;
@@ -68,5 +89,12 @@ namespace TsneDx {
             }
         }
 
+        public static void SafeDispose(params IDisposable[] objList) {
+            foreach (var obj in objList) {
+                if (obj != null) {
+                    obj.Dispose();
+                }
+            }
+        }
     }
 }

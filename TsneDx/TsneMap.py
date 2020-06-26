@@ -19,7 +19,7 @@ tsne = TsneDx.TsneMap(PerplexityRatio=0.05, MaxEpochs=1000, OutDim=2)
 np.save('tmp0123.npy', X)
 Y = tsne.FitNumpyFile('tmp0123.npy')
 os.remove('tmp0123.npy')
-#Y = tsne.FitNumpy(X)   # slower version for large file
+#Y = tsne.FitNumpy(X)   # simple way, but slow for large file.
 Y = np.fromiter(Y, float).reshape(X.shape[0], -1)
 
 import matplotlib.pyplot as plt

@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FastPca.cs" />
     <Compile Include="GpuDevice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TsneDx.cs" />
@@ -76,11 +77,18 @@
     <EmbeddedResource Include="IterateOneStepNoCache.cso" />
     <EmbeddedResource Include="IterateOneStepSumUp.cso" />
     <None Include="Package.bat" />
+    <EmbeddedResource Include="PcaAdjustCovMatrix.cso" />
+    <EmbeddedResource Include="PcaCalculateNormal.cso" />
+    <EmbeddedResource Include="PcaCreateCovMatrix.cso" />
+    <EmbeddedResource Include="PcaInitIteration.cso" />
+    <EmbeddedResource Include="PcaIterateOneStep.cso" />
+    <EmbeddedResource Include="PcaTransposeEigenvectors.cso" />
     <None Include="Readme.md" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
     <Content Include="BuildShaders.mk" />
+    <Content Include="FastPca.hlsl" />
     <Content Include="TsneMap.hlsl" />
     <Content Include="TsneMap.py" />
   </ItemGroup>
