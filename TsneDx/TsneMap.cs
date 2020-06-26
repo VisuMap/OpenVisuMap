@@ -73,7 +73,7 @@ namespace TsneDx {
         #endregion        
 
         #region FitNumpy
-        float[] Flatten(float[][] Y) {
+        public static float[] Flatten(float[][] Y) {
             int columns = Y[0].Length;
             float[] Y1 = new float[Y.Length * columns];
             for (int row = 0; row < Y.Length; row++)

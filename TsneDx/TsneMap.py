@@ -13,6 +13,13 @@ import numpy as np
 inFile = sys.argv[1]
 X = np.genfromtxt(inFile) if inFile.endswith('.csv') else np.load(inFile)
 
+doPca = False
+if doPca:
+    # Reduce the input data to 25 dimension.
+    pca = TsneDx.FastPca()
+    X = np.fromiter(pca.DoPcaNumpy(X, 25), float).reshape(X.shape[0], -1)
+    print('Reduced data to ', X.shape)    
+
 print('Start fitting %dx%d table...'%(X.shape[0], X.shape[1]))
 tsne = TsneDx.TsneMap(PerplexityRatio=0.05, MaxEpochs=1000, OutDim=2)
 

@@ -192,5 +192,13 @@ namespace TsneDx {
             }
             return B;
         }
+
+        public float[] DoPcaNumpyFile(string fileName, int eigenCount) {
+            return TsneMap.Flatten(DoPca(TsneMap.ReadNumpyFile(fileName), eigenCount));
+        }
+
+        public float[] DoPcaNumpy(float[][] X, int eigenCount) {
+            return TsneMap.Flatten(DoPca(X, eigenCount));
+        }
     }
 }
