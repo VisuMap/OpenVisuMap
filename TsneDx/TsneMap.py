@@ -34,7 +34,7 @@ if pcaNr>0:
     X = ReduceByPca(X, pcaNumber=pcaNr)
     print('Data reduced to: ', X.shape)
 
-print('Fitting %dx%d table...'%(X.shape[0], X.shape[1]))
+print('Fitting ', X.shape, ' table...')
 beginTime = time.time()
 Y = DoTsneMap(X, perplexityRatio=0.05, maxEpochs=1000, outDim=2)
 endTime = time.time()
