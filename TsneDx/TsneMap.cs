@@ -2,12 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using ComputeShader = SharpDX.Direct3D11.ComputeShader;
 using System.IO;
 using SysBuffer = System.Buffer;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace TsneDx {
     [StructLayout(LayoutKind.Explicit)]
@@ -20,8 +21,9 @@ namespace TsneDx {
         [FieldOffset(20)] public int blockIdx;  // Help variable to split the calculation of P in multiple batches.
         [FieldOffset(24)] public int cmd;       // optional shader command flag.
         [FieldOffset(28)] public int groupNumber; // optional parameter for the number of dispatched thread groups.
-        [FieldOffset(32)] public int columns; // columns of input data table.
-        [FieldOffset(36)] public int N;       // Rows of the input data table.
+        [FieldOffset(32)] public int columns;   // columns of input data table.
+        [FieldOffset(36)] public int N;         // Rows of the input data table.
+        [FieldOffset(40)] public int metricType;  // metric type: 0: Euclidean; 1: Correlation.
     };
 
     [ComVisible(true)]
@@ -39,7 +41,8 @@ namespace TsneDx {
             int OutDim=2,
             double ExaggerationRatio = 0.2,
             int CacheLimit = 23000,
-            double ExaggerationFactor = 4.0
+            double ExaggerationFactor = 4.0,
+            int MetricType = 0
             )  {
             this.PerplexityRatio = PerplexityRatio;
             this.MaxEpochs = MaxEpochs;
@@ -47,6 +50,7 @@ namespace TsneDx {
             this.ExaggerationRatio = ExaggerationRatio;
             this.CacheLimit = CacheLimit;
             this.ExaggerationFactor = ExaggerationFactor;
+            this.MetricType = MetricType;
         }
 
         public void Dispose() {
@@ -62,6 +66,8 @@ namespace TsneDx {
         public int OutDim { get; set; } = 2;
 
         public int MaxEpochs { get; set; } = 500;
+
+        public int MetricType { get; set; } = 0;
 
         public double ExaggerationFactor { get; set; } = 4.0;
 
@@ -180,6 +186,25 @@ namespace TsneDx {
         }
         #endregion
 
+        static void NormalizeTable(float[][] matrix) {
+            int rows = matrix.Length;
+            int columns = matrix[0].Length;
+            Parallel.For(0, rows, row => {
+                float[] R = matrix[row];
+                float av = R.Average();
+                double sum = 0.0;
+                for (int col = 0; col < columns; col++) {
+                    R[col] -= av;
+                    sum += R[col] * R[col];
+                }
+                double norm = Math.Sqrt(sum);
+                if (norm != 0) {
+                    for (int col = 0; col < columns; col++)
+                        R[col] = (float)(R[col]/norm);
+                }
+            });
+        }
+
         public float[][] Fit(float[][] X) {
             int exaggerationLength = (int)(MaxEpochs * ExaggerationRatio);
 
@@ -190,6 +215,7 @@ namespace TsneDx {
             cc.c.columns = X[0].Length;
             cc.c.N = N;
             cc.c.outDim = OutDim;
+            cc.c.metricType = MetricType;
 
             #region Initialize Y
             Buffer Y2Buf = null;
@@ -250,6 +276,8 @@ namespace TsneDx {
             void CmdSynchronize() {gpu.ReadFloat(resultStaging, resultBuf); }
 
             Buffer tableBuf = gpu.CreateBufferRO(N * N, 4, 0);
+            if (MetricType == 1)
+                NormalizeTable(X);
             gpu.WriteMarix(tableBuf, X, true);
 
             Buffer distanceBuf = null;
@@ -277,7 +305,7 @@ namespace TsneDx {
                 using (var sd = gpu.LoadShader("TsneDx.CalculateP.cso")) {
                     // Calculate the squared distance matrix in to P
                     if (distanceBuf != null) {
-                        using (var sd2 = gpu.LoadShader("TsneDx.CalculatePEuclidean.cso")) {
+                        using (var sd2 = gpu.LoadShader("TsneDx.CalculatePFromCache.cso")) {
                             gpu.SetShader(sd2);
                             gpu.Run(64);
                         }

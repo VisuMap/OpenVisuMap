@@ -3,7 +3,7 @@ BC = $(FX) /O3 /Tcs_5_0 /E $* /Fo $@ $?
 
 TT = CreateDistanceCache.cso IterateOneStep.cso IterateOneStepNoCache.cso \
  EuclideanNoCache.cso EuclideanNoCacheS.cso \
- IterateOneStepSumUp.cso CalculateP.cso CalculatePEuclidean.cso \
+ IterateOneStepSumUp.cso CalculateP.cso CalculatePFromCache.cso \
  InitializeP.cso InitializeP3.cso CalculateSumQ.cso \
  CurrentCost.cso CurrentCostLarge.cso
 

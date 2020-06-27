@@ -57,6 +57,7 @@ cbuffer GlobalConstants : register(b0) {
 	uint groupNumber; // optional parameter for the number of dispatched thread groups.
     uint columns;
     uint N;
+    int metricType; // 0: Euclidean; 1: correlation;
 }
 
 struct VariableStates3 {
@@ -107,16 +108,26 @@ groupshared float groupValue[GROUP_SIZE];	// to store various accumulated by one
 
 //=======================================================================================
 
-float Distance(uint i, uint j) {
+// returns squared distance between i and j.
+float DistanceSquared(uint i, uint j) {
     float sum = 0;
     int kN = 0;
-    for (uint k = 0; k < columns; k++)
+    if (metricType == 0)
     {
-        float d = dataTable[kN + i] - dataTable[kN + j];
-        sum += d * d;
-        kN += N;
+        for (uint k = 0; k < columns; k++) {
+            float d = dataTable[kN + i] - dataTable[kN + j];
+            sum += d * d;
+            kN += N;
+        }
+        return abs(sum);
+    } else {
+        for (uint k = 0; k < columns; k++) {
+            sum += dataTable[kN + i] * dataTable[kN + j];
+            kN += N;
+        }
+        float d = abs(1 - sum);
+        return d*d;
     }
-    return sqrt(sum);
 }
 
 //=======================================================================================
@@ -128,7 +139,7 @@ void CreateDistanceCache(uint3 gid : SV_GroupId, uint gidx : SV_GroupIndex){
     if (i < N) {
         uint offset = i * (i - 1) / 2;
         for (uint j = gidx; j < i; j += G_SIZE_CACHE)
-            distanceMatrix[offset + j] = Distance(i, j);
+            distanceMatrix[offset + j] = DistanceSquared(i, j);
     }
 }
 
@@ -198,12 +209,11 @@ void ToAffinity(uint rowIdx) {
 }
 
 [numthreads(64, 1, 1)]
-void CalculatePEuclidean(uint3 id : SV_DispatchThreadId) {	
+void CalculatePFromCache(uint3 id : SV_DispatchThreadId) {
 	ForLoop0(id.x, N, i, 64*64) {
 		for(uint j=i+1; j<N; j++) {
-			float v = distanceMatrix[j*(j - 1) / 2 + i];
-			P(i, j) = v;
-		}
+            P(i, j) = distanceMatrix[j * (j - 1) / 2 + i];
+        }
 	}
 }
 
@@ -213,9 +223,8 @@ void CalculateP(uint3 id : SV_DispatchThreadId) {
 	if ( cmd == 1 ) {
 		ForLoop0(id.x, N, i, 2*GROUP_SIZE) {
 			for(uint j=i+1; j<N; j++) {
-				float v = Distance(i, j);
-				P(i, j) = v*v;
-			}
+				P(i, j) = DistanceSquared(i, j);
+            }
 		}
 	}
 
@@ -397,9 +406,8 @@ void InitializeP3(uint3 id : SV_DispatchThreadId, uint3 gid : SV_GroupId, uint g
 		uint i = blockIdx + gid.x;
 		if (i < N) {
 			for (uint j = i + 1; j < N; j += G_P3_SIZE) {
-				float v = Distance(i, j);
-				maxDist2 = max(v*v, maxDist2);
-			}
+                maxDist2 = max(DistanceSquared(i, j), maxDist2);
+            }
 		}
 		groupValue[gIdx] = maxDist2;
 		GroupMemoryBarrierWithGroupSync();
@@ -428,9 +436,8 @@ void InitializeP3(uint3 id : SV_DispatchThreadId, uint3 gid : SV_GroupId, uint g
 			// Initialize the squared distances to the rowIdx-th element in to R vector.
 			for (uint j = gIdx; j < N; j += G_P3_SIZE) {
 				if (j != i) {
-					float v = Distance(i, j);
-					R(gid.x, j) = distanceFactor * v*v;
-				}
+					R(gid.x, j) = distanceFactor * DistanceSquared(i, j);
+                }
 			}
 			groupValue[gIdx] = 1.0;
 			GroupMemoryBarrierWithGroupSync();
@@ -447,8 +454,7 @@ void InitializeP3(uint3 id : SV_DispatchThreadId, uint3 gid : SV_GroupId, uint g
 		if (i < N) {
 			float sum = 0;
 			for (uint j = gIdx; j < i; j+=G_P3_SIZE) {
-				float v = Distance(i, j);
-				v *= v;
+				float v = DistanceSquared(i, j);
 				sum += exp(-v * betaList(i)) * affinityFactor(i) + exp(-v * betaList(j)) * affinityFactor(j);
 			}
 			GROUP_SUM(groupValue, gIdx, sum, G_P3_SIZE);
@@ -465,8 +471,7 @@ void InitializeP3(uint3 id : SV_DispatchThreadId, uint3 gid : SV_GroupId, uint g
 //=================================================================================================
 
 float PP(uint i, uint j) {
-    float d= Distance(i, j); 
-	d *= d;
+    float d = DistanceSquared(i, j);
 	return max(eps, affinityFactor(i) * exp(-d * betaList(i)) + affinityFactor(j) * exp(-d * betaList(j)));
 }
 

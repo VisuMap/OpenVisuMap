@@ -64,7 +64,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <EmbeddedResource Include="CalculateP.cso" />
-    <EmbeddedResource Include="CalculatePEuclidean.cso" />
+    <EmbeddedResource Include="CalculatePFromCache.cso" />
     <EmbeddedResource Include="CalculateSumQ.cso" />
     <EmbeddedResource Include="CreateDistanceCache.cso" />
     <EmbeddedResource Include="CurrentCost.cso" />
