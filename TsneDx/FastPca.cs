@@ -181,15 +181,15 @@ namespace TsneDx {
                     A[row][col] -= (float)colMean[col];
 
             float[][] B = new float[rows][];
-            for(int row=0; row<rows; row++) {
+            Parallel.For(0, rows, row => {
                 B[row] = new float[eigenCount];
-                for(int e=0; e<eigenCount; e++) {
+                for (int e = 0; e < eigenCount; e++) {
                     double v = 0;
                     for (int col = 0; col < columns; col++)
                         v += A[row][col] * eVectors[e][col];
                     B[row][e] = (float)v;
                 }
-            }
+            });
             return B;
         }
 
