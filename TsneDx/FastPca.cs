@@ -36,7 +36,7 @@ namespace TsneDx {
             var resultStaging = gpu.CreateStagingBuffer(resultBuf);
 
             Buffer tableBuf = gpu.CreateBufferRO(cc.c.rows * cc.c.columns, 4, 0);
-            double[] colMean = new double[A.Length];
+            double[] colMean = new double[A[0].Length];
             Parallel.For(0, A[0].Length, col => {
                 colMean[col] = 0.0;
                 for (int row = 0; row < A.Length; row++) {
@@ -92,7 +92,7 @@ namespace TsneDx {
 
             float preEigen = 1e30f;
             float newEigen = 0;
-            double[][] eVectors = new double[eigenCount][];
+            float[][] eVectors = new float[eigenCount][];
             double[] eValues = new double[eigenCount];
 
             for (int eigenIdx = 0; eigenIdx < eigenCount; eigenIdx++) {
@@ -120,7 +120,7 @@ namespace TsneDx {
                     break;
                 }
 
-                eVectors[eigenIdx] = new double[cc.c.rows];
+                eVectors[eigenIdx] = new float[cc.c.rows];
                 Array.Copy(gpu.ReadRange<float>(eVectorStaging, eVectorBuf, cc.c.rows), eVectors[eigenIdx], cc.c.rows);
 
                 if (eigenIdx == (eigenCount - 1)) break;
@@ -161,7 +161,9 @@ namespace TsneDx {
                     gpu.Run(cc.c.groupNumber);
 
                     float[] eVectors2 = gpu.ReadRange<float>(eigenList2, eVectors.Length * cc.c.columns);
-                    eVectors = Enumerable.Range(0, eVectors.Length).Select(i=>new double[cc.c.columns]).ToArray();
+                    eVectors = new float[eVectors.Length][];
+                    for(int row=0; row< eVectors.Length; row++)
+                        eVectors[row] = new float[cc.c.columns];
                     Parallel.For(0, eVectors.Length, row => {
                         Array.Copy(eVectors2, row * cc.c.columns, eVectors[row], 0, cc.c.columns);
                     });
@@ -170,9 +172,41 @@ namespace TsneDx {
                 }
             }
 
+            float[][] B = null;
+            
+            using (var shader = gpu.LoadShader("TsneDx.PcaReduceMatrix.cso")) {
+                cc.c.rows = A.Length;
+                cc.c.columns = A[0].Length;
+                cc.c.eigenCount = eVectors.Length;
+                cc.Upload();
+                TsneDx.SafeDispose(tableBuf, resultBuf);
+                tableBuf = gpu.CreateBufferRO(cc.c.rows * cc.c.columns, 4, 0);
+                resultBuf = gpu.CreateBufferRW(cc.c.rows * cc.c.eigenCount, 4, 1);
+                Buffer eigenTable = gpu.CreateBufferRO(cc.c.eigenCount * cc.c.columns, 4, 1);
+                Parallel.For(0, cc.c.rows, row => {
+                    for (int col = 0; col < cc.c.columns; col++)
+                        A[row][col] -= (float)colMean[col];
+                });
+                gpu.WriteMarix(tableBuf, A);
+                gpu.WriteMarix(eigenTable, eVectors);
+
+                gpu.SetShader(shader);
+                gpu.Run(64);
+
+                float[] buf = gpu.ReadRange<float>(resultBuf, cc.c.rows * cc.c.eigenCount);
+                B = new float[cc.c.rows][];
+                for (int row = 0; row < cc.c.rows; row++)
+                    B[row] = new float[cc.c.eigenCount];
+                Parallel.For(0, cc.c.rows, row => {
+                    Array.Copy(buf, row * cc.c.eigenCount, B[row], 0, cc.c.eigenCount);
+                });
+                TsneDx.SafeDispose(eigenTable);
+            }
+
             TsneDx.SafeDispose(sdInit, sdStep, sdNorm, sdAdjCov, eVectorBuf, 
                 eVectorStaging, eVector2Buf, resultBuf, resultStaging, covBuf, tableBuf, cc, gpu);
 
+            /*
             // Projecting A to eigen-space span by the top PCs, eVectors.
             int rows = A.Length;
             int columns = A[0].Length;
@@ -180,7 +214,7 @@ namespace TsneDx {
                 for (int col = 0; col < columns; col++)
                     A[row][col] -= (float)colMean[col];
 
-            float[][] B = new float[rows][];
+            B = new float[rows][];
             Parallel.For(0, rows, row => {
                 B[row] = new float[eigenCount];
                 for (int e = 0; e < eigenCount; e++) {
@@ -190,6 +224,8 @@ namespace TsneDx {
                     B[row][e] = (float)v;
                 }
             });
+            */
+
             return B;
         }
 

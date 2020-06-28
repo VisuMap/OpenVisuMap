@@ -83,6 +83,7 @@
     <EmbeddedResource Include="PcaInitIteration.cso" />
     <EmbeddedResource Include="PcaIterateOneStep.cso" />
     <EmbeddedResource Include="PcaTransposeEigenvectors.cso" />
+    <EmbeddedResource Include="PcaReduceMatrix.cso" />
     <None Include="Readme.md" />
   </ItemGroup>
   <ItemGroup>
@@ -91,6 +92,7 @@
     <Content Include="FastPca.hlsl" />
     <Content Include="TsneMap.hlsl" />
     <Content Include="TsneMap.py" />
+    <Content Include="TsneMapVM.py" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

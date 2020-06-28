@@ -7,7 +7,7 @@
 # need to be added to the PYTHONPATH environment variable.
 #
 import sys
-sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Release')
+sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Debug')
 import clr, os, TsneDx, time, ModelUtil
 import numpy as np
 
@@ -39,8 +39,9 @@ if (X is None) or (X.shape[0]==0) or (X.shape[1]==0):
         print('No data has been selected')
         time.sleep(4.0)
         quit()
+print('Loaded table ', X.shape)
 
-pcaNr = 0
+pcaNr = 250
 if pcaNr>0:
     X = ReduceByPca(X, pcaNumber=pcaNr)
     print('Data reduced to: ', X.shape)

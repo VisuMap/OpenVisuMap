@@ -144,3 +144,20 @@ void PcaTransposeEigenvectors(uint3 gid : SV_GroupId, uint gidx : SV_GroupIndex)
 		eigenList2[row * columns + col] = v;
 	}
 }
+
+#define A dataTable
+#define E eigenList1
+#define R result
+#define GROUP_NR 64
+[numthreads(G_SIZE, 1, 1)]
+void PcaReduceMatrix(uint3 gid : SV_GroupId, uint gidx : SV_GroupIndex)
+{
+    for (uint e = gid.x; e < eigenCount; e += GROUP_NR)
+        for (uint row = gidx; row < rows; row += G_SIZE) {
+            float v = 0.0;
+            for (uint col = 0; col < columns; col++)
+                v += A[row * columns + col] * E[e * columns + col];
+            R[row * eigenCount + e] = v;
+        }
+}
+

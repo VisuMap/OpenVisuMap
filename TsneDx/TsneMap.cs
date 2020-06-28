@@ -275,7 +275,7 @@ namespace TsneDx {
             Buffer resultStaging = gpu.CreateStagingBuffer(resultBuf);
             void CmdSynchronize() {gpu.ReadFloat(resultStaging, resultBuf); }
 
-            Buffer tableBuf = gpu.CreateBufferRO(N * N, 4, 0);
+            Buffer tableBuf = gpu.CreateBufferRO(N * cc.c.columns, 4, 0);
             if (MetricType == 1)
                 NormalizeTable(X);
             gpu.WriteMarix(tableBuf, X, true);

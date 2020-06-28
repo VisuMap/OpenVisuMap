@@ -6,7 +6,7 @@
 # need to be added to the PYTHONPATH environment variable.
 #
 import sys
-sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Release')
+sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Debug')
 import clr, os, TsneDx, time
 import numpy as np
 
@@ -34,7 +34,7 @@ def ReduceByPca(X, pcaNumber=50):
 inFile = sys.argv[1]
 X = np.genfromtxt(inFile) if inFile.endswith('.csv') else np.load(inFile)
 
-pcaNr = 0
+pcaNr = 50
 if pcaNr>0:
     X = ReduceByPca(X, pcaNumber=pcaNr)
     print('Data reduced to: ', X.shape)

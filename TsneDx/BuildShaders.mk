@@ -8,7 +8,7 @@ TT = CreateDistanceCache.cso IterateOneStep.cso IterateOneStepNoCache.cso \
  CurrentCost.cso CurrentCostLarge.cso
 
 TT2 = PcaCreateCovMatrix.cso PcaInitIteration.cso PcaIterateOneStep.cso \
- PcaCalculateNormal.cso PcaAdjustCovMatrix.cso PcaTransposeEigenvectors.cso
+ PcaCalculateNormal.cso PcaAdjustCovMatrix.cso PcaTransposeEigenvectors.cso PcaReduceMatrix.cso
 
 $(TT):	TsneMap.hlsl
 	$(BC)
