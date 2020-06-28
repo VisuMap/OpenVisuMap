@@ -6,7 +6,7 @@
 # need to be added to the PYTHONPATH environment variable.
 #
 import sys
-sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Debug')
+sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Release')
 import clr, os, TsneDx, time
 import numpy as np
 
@@ -33,17 +33,17 @@ def ReduceByPca(X, pcaNumber=50):
 
 inFile = sys.argv[1]
 X = np.genfromtxt(inFile) if inFile.endswith('.csv') else np.load(inFile)
+print('Loaded table ', X.shape)
 
 pcaNr = 50
 if pcaNr>0:
     X = ReduceByPca(X, pcaNumber=pcaNr)
     print('Data reduced to: ', X.shape)
 
-print('Fitting ', X.shape, ' table...')
-beginTime = time.time()
+print('Fitting table ', X.shape)
+t0 = time.time()
 Y = DoTsneMap(X, metricType=0)
-endTime = time.time()
-print('Fitting finished in %.2f seconds'%(endTime-beginTime))
+print('Fitting finished in %.2f seconds'%(time.time()-t0))
 
 # display the result
 import matplotlib.pyplot as plt

@@ -125,7 +125,7 @@ float DistanceSquared(uint i, uint j) {
             sum += dataTable[kN + i] * dataTable[kN + j];
             kN += N;
         }
-        float d = abs(1 - sum);
+        float d = 1 - sum;
         return d*d;
     }
 }

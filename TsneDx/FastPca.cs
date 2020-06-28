@@ -191,7 +191,8 @@ namespace TsneDx {
                 gpu.WriteMarix(eigenTable, eVectors);
 
                 gpu.SetShader(shader);
-                gpu.Run(64);
+                const int GROUP_NR = 256;
+                gpu.Run(GROUP_NR);
 
                 float[] buf = gpu.ReadRange<float>(resultBuf, cc.c.rows * cc.c.eigenCount);
                 B = new float[cc.c.rows][];
@@ -205,27 +206,6 @@ namespace TsneDx {
 
             TsneDx.SafeDispose(sdInit, sdStep, sdNorm, sdAdjCov, eVectorBuf, 
                 eVectorStaging, eVector2Buf, resultBuf, resultStaging, covBuf, tableBuf, cc, gpu);
-
-            /*
-            // Projecting A to eigen-space span by the top PCs, eVectors.
-            int rows = A.Length;
-            int columns = A[0].Length;
-            for (int row = 0; row < rows; row++)
-                for (int col = 0; col < columns; col++)
-                    A[row][col] -= (float)colMean[col];
-
-            B = new float[rows][];
-            Parallel.For(0, rows, row => {
-                B[row] = new float[eigenCount];
-                for (int e = 0; e < eigenCount; e++) {
-                    double v = 0;
-                    for (int col = 0; col < columns; col++)
-                        v += A[row][col] * eVectors[e][col];
-                    B[row][e] = (float)v;
-                }
-            });
-            */
-
             return B;
         }
 

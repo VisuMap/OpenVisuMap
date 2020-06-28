@@ -7,7 +7,7 @@
 # need to be added to the PYTHONPATH environment variable.
 #
 import sys
-sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Debug')
+sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Release')
 import clr, os, TsneDx, time, ModelUtil
 import numpy as np
 
@@ -25,7 +25,7 @@ def ReduceByPca(X, pcaNumber=50):
     pca = TsneDx.FastPca()
     np.save(tmpFile, X)
     X1 = pca.DoPcaNumpyFile(tmpFile, pcaNumber)
-    os.remove(tmpFile)
+    os.remove(tmpFile)    
     return np.fromiter(X1, float).reshape(X.shape[0], -1)
 #=================================
 
@@ -33,23 +33,18 @@ log = ModelUtil.Logger()
 
 print('Loading data from VisuMap...')
 X = log.LoadTable(dsName='+')
-if (X is None) or (X.shape[0]==0) or (X.shape[1]==0):
-    X = log.LoadTable('@')
-    if (X.shape[0]==0) or (X.shape[1]==0):
-        print('No data has been selected')
-        time.sleep(4.0)
-        quit()
+if len(X) == 0: X = log.LoadTable(dsName='@')
 print('Loaded table ', X.shape)
 
-pcaNr = 250
+pcaNr = 100
 if pcaNr>0:
+    print('Doing PCA-Reduction on table ', X.shape)
     X = ReduceByPca(X, pcaNumber=pcaNr)
     print('Data reduced to: ', X.shape)
 
-print('Fitting ', X.shape, ' table...')
-beginTime = time.time()
-Y = DoTsneMap(X, metricType=1)
-endTime = time.time()
-print('Fitting finished in %.2f seconds'%(endTime-beginTime))
+print('Fitting table ', X.shape)
+t0 = time.time()
+Y = DoTsneMap(X, perplexityRatio=0.01, metricType=0)
+print('Fitting finished in %.2f seconds'%(time.time()-t0))
 
-log.ShowMatrix(Y, view=2)
+log.ShowMatrix(Y, view=4)
