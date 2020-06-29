@@ -163,4 +163,3 @@ void PcaReduceMatrix(uint3 grIdx : SV_GroupId, uint thrIdx : SV_GroupIndex) {
         }
     }
 }
-

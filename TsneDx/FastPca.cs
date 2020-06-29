@@ -46,7 +46,7 @@ namespace TsneDx {
             });
 
             using (var ds = gpu.NewWriteStream(tableBuf)) {
-                float[] buf = new float[cc.c.rows*cc.c.columns];
+                float[] buf = new float[cc.c.rows * cc.c.columns];
                 if (transposing) {
                     Parallel.For(0, cc.c.columns, col => {
                         int offset = col * cc.c.rows;
@@ -173,23 +173,29 @@ namespace TsneDx {
             }
 
             float[][] B = null;
-            
-            using (var shader = gpu.LoadShader("TsneDx.PcaReduceMatrix.cso")) {
-                cc.c.rows = A.Length;
-                cc.c.columns = A[0].Length;
-                cc.c.eigenCount = eVectors.Length;
-                cc.Upload();
-                TsneDx.SafeDispose(tableBuf, resultBuf);
+            cc.c.rows = A.Length;
+            cc.c.columns = A[0].Length;
+            cc.c.eigenCount = eVectors.Length;
+            cc.Upload();
+
+            if (transposing) {
+                // The tableBuf on GPU is in wrong matrix order. We need to upload the tableBuf in needed order here.
+                TsneDx.SafeDispose(tableBuf);
                 tableBuf = gpu.CreateBufferRO(cc.c.rows * cc.c.columns, 4, 0);
-                resultBuf = gpu.CreateBufferRW(cc.c.rows * cc.c.eigenCount, 4, 1);
-                Buffer eigenTable = gpu.CreateBufferRO(cc.c.eigenCount * cc.c.columns, 4, 1);
                 Parallel.For(0, cc.c.rows, row => {
                     for (int col = 0; col < cc.c.columns; col++)
                         A[row][col] -= (float)colMean[col];
                 });
                 gpu.WriteMarix(tableBuf, A);
-                gpu.WriteMarix(eigenTable, eVectors);
+            }
 
+            Buffer eigenTable = gpu.CreateBufferRO(cc.c.eigenCount * cc.c.columns, 4, 1);
+            gpu.WriteMarix(eigenTable, eVectors);
+
+            TsneDx.SafeDispose(resultBuf);
+            resultBuf = gpu.CreateBufferRW(cc.c.rows * cc.c.eigenCount, 4, 1);
+
+            using (var shader = gpu.LoadShader("TsneDx.PcaReduceMatrix.cso")) {
                 gpu.SetShader(shader);
                 const int GROUP_NR = 256;
                 gpu.Run(GROUP_NR);
@@ -201,10 +207,9 @@ namespace TsneDx {
                 Parallel.For(0, cc.c.rows, row => {
                     Array.Copy(buf, row * cc.c.eigenCount, B[row], 0, cc.c.eigenCount);
                 });
-                TsneDx.SafeDispose(eigenTable);
             }
 
-            TsneDx.SafeDispose(sdInit, sdStep, sdNorm, sdAdjCov, eVectorBuf, 
+            TsneDx.SafeDispose(eigenTable, sdInit, sdStep, sdNorm, sdAdjCov, eVectorBuf, 
                 eVectorStaging, eVector2Buf, resultBuf, resultStaging, covBuf, tableBuf, cc, gpu);
             return B;
         }
