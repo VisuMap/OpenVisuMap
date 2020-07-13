@@ -93,6 +93,7 @@ groupshared float groupValue[GROUP_SIZE];	// to store various accumulated by one
 #define eps 2.22e-16f
 #define epsilon 500
 #define newtonRepeats 25
+#define DistanceScale 100.0
 
 #define P(i, j) P_[j*N+i]    // The symmetrical metric P.
 
@@ -240,7 +241,7 @@ void CalculateP(uint3 id : SV_DispatchThreadId) {
 		GroupMax0(id.x, groupValue);
 	
 		// normalize the triangle matrix
-		maxV = 10000/groupValue[0];
+        maxV = DistanceScale / groupValue[0];
 		ForLoop(id.x, N, i) {
 			for(uint j=i+1; j<N; j++) {
 				P(i, j) *= maxV;
@@ -294,7 +295,7 @@ float Entropy2(uint rowIdx, uint tIdx, float beta) {
     return (sumP == 0) ? 0 : (log(sumP) + beta * h / sumP);
 }
 
-float2 ToAffinity2(uint rowIdx, uint gid, float distanceFactor) {
+float2 ToAffinity2(uint rowIdx, uint gid) {
 	float betaLeft = FLT_MIN;
 	float betaRight = FLT_MAX;
 	float fctLeft = 0;   // function's value at left end of the bracket. Always positive.
@@ -422,16 +423,17 @@ void InitializeP3(uint3 id : SV_DispatchThreadId, uint3 gid : SV_GroupId, uint g
 		DeviceMemoryBarrier();
 	} else if (cmd == 2) {
 		if (id.x == 0) {
-			//Calculate the maximal value of groupMax[] into maxV and set result[0] to 10000/maxV.
+			//Calculate the maximal value of groupMax[] into maxV and set result[0] to DistanceScale/maxV.
 			float maxV = eps;
 			for (uint i = 0; i < groupNumber; i++)
 				maxV = max(maxV, groupMax[i]);
-			result[0] = 10000 / maxV;  // save the distanceFactor into result[0] for latter use.
-		}
+            result[0] = DistanceScale / maxV; // save the distanceFactor into result[0] for latter use.
+        }
 		DeviceMemoryBarrier();
 	} else if (cmd == 3) {
 		uint i = blockIdx + gid.x;
 		if (i < N) {
+            // result[0] is the distanceFactor calculated in the initial call.
 			float distanceFactor = result[0];
 			// Initialize the squared distances to the rowIdx-th element in to R vector.
 			for (uint j = gIdx; j < N; j += G_P3_SIZE) {
@@ -443,7 +445,7 @@ void InitializeP3(uint3 id : SV_DispatchThreadId, uint3 gid : SV_GroupId, uint g
 			GroupMemoryBarrierWithGroupSync();
 
 			if (gIdx == 0) {
-				float2 ret = ToAffinity2(i, gid.x, distanceFactor); // result[0] is the distanceFactor calculated in the initial call.
+				float2 ret = ToAffinity2(i, gid.x); 
 				betaList(i) = distanceFactor * ret[0];
 				affinityFactor(i) = 1.0 / ret[1];
 			}

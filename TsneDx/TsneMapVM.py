@@ -36,7 +36,7 @@ X = log.LoadTable(dsName='+')
 if len(X) == 0: X = log.LoadTable(dsName='@')
 print('Loaded table ', X.shape)
 
-pcaNr = 100
+pcaNr = -100
 if pcaNr>0:
     print('Doing PCA-Reduction on table ', X.shape)
     X = ReduceByPca(X, pcaNumber=pcaNr)
