@@ -77,6 +77,8 @@
     <EmbeddedResource Include="OneStepSumUp.cso" />
     <EmbeddedResource Include="FastStep.cso" />
     <EmbeddedResource Include="FastStepS.cso" />
+    <EmbeddedResource Include="Dist2Affinity.cso" />
+    <EmbeddedResource Include="OneStepCpuCache.cso" />
     <None Include="Package.bat" />
     <EmbeddedResource Include="PcaAdjustCovMatrix.cso" />
     <EmbeddedResource Include="PcaCalculateNormal.cso" />
@@ -85,6 +87,7 @@
     <EmbeddedResource Include="PcaIterateOneStep.cso" />
     <EmbeddedResource Include="PcaTransposeEigenvectors.cso" />
     <EmbeddedResource Include="PcaReduceMatrix.cso" />
+    <EmbeddedResource Include="PartialDistance2.cso" />
     <None Include="Readme.md" />
   </ItemGroup>
   <ItemGroup>

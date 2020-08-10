@@ -9,6 +9,7 @@ using System.IO;
 using SysBuffer = System.Buffer;
 using System.Threading.Tasks;
 using System.Linq;
+using MT = System.Threading.Tasks.Parallel;
 
 namespace TsneDx {
     using ConstBuffer = GpuDevice.ConstBuffer<TsneMapConstants>;
@@ -39,15 +40,20 @@ namespace TsneDx {
         const int GpuGroupSize = 1024;   // the GPU thread group size, must match GROUP_SIZE defined in TsneMap.hlsl.
         const int GroupSize = 128;       // Must match GROUP_SZ in TsneMap.hlsl; Used only for IteratOneStep()
         const int MaxGroupNumber = 128;
+        const int GroupSizeHyp = 32;       // Must match GROUP_SZ_HYP in TsneMap.hlsl; Used only for OneStepCpuCache()
+        const int MaxGroupNumberHyp = 32;
 
         GpuDevice gpu;
         Buffer PBuf;
+        Buffer P2Buf;
         ConstBuffer cc;
         Buffer groupMaxBuf;
         Buffer resultBuf;
         Buffer resultStaging;
         Buffer tableBuf;
         Buffer distanceBuf;
+
+        float[][] cpuP;
 
         void CmdSynchronize() { gpu.ReadFloat(resultStaging, resultBuf); }
 
@@ -76,6 +82,8 @@ namespace TsneDx {
         public static string ErrorMsg { get; set; } = "";
 
         public int CacheLimit { get; set; } = 23000;
+
+        public int MaxCpuCacheSize { get; set; } = 26000;
 
         public double PerplexityRatio { get; set; } = 0.05;
 
@@ -321,6 +329,103 @@ namespace TsneDx {
             }
         }
 
+        void InitializePCpu() {
+            int N = cc.c.N;
+            const float DistanceScale = 100.0f;
+            const float eps = 2.22e-16f;
+            int bandSize = Math.Min(N, MaxGroupNumberHyp * GroupSizeHyp);
+            PBuf = gpu.CreateBufferRW(bandSize * N, 4, 1);
+            P2Buf = gpu.CreateBufferDynamic(bandSize * N, 4, 7); // dynamic buffer for fast uploading. Linked to Pcpu[] on HLSL.
+            int blockSize = 128; // Calculate so many rows per dispatch.
+            cpuP = new float[N][];
+            for (int i = 0; i < N; i++) cpuP[i] = new float[N];
+
+            using (var distanceBuf = gpu.CreateBufferRW(blockSize * N, 4, 0))
+            using (var stagingBuf = gpu.CreateStagingBuffer(distanceBuf))
+            using (var sd = gpu.LoadShader("TsneDx.PartialDistance2.cso")) {
+                gpu.SetShader(sd);
+                for (int iBlock = 0; iBlock < N; iBlock += blockSize) {
+                    cc.c.blockIdx = iBlock;
+                    cc.Upload();
+                    gpu.Run(blockSize);
+
+                    int iBlock2 = Math.Min(iBlock + blockSize, N);
+                    int blockLen = (iBlock2 * (iBlock2 - 1) - iBlock * (iBlock - 1)) / 2;
+                    float[] ret = gpu.ReadRange<float>(stagingBuf, distanceBuf, blockLen);
+                    int idx = 0;
+                    for (int row = iBlock; row < iBlock2; row++) {
+                        Array.Copy(ret, idx, cpuP[row], 0, row);
+                        idx += row;
+                    }
+                }
+            }
+
+            double distanceFactor = double.MinValue;
+            MT.For(1, N, i => {
+                float maxV = cpuP[i].Max();
+                lock (this)
+                    distanceFactor = Math.Max(distanceFactor, maxV);
+            });
+
+            if (distanceFactor == 0)
+                throw new System.Exception("Distance metric degenerated: all components are zero.");
+
+            // Scale the distance to managable range [0, 100.0] to avoid degredation 
+            // with exp function.
+            distanceFactor = DistanceScale / distanceFactor;
+            MT.For(1, N, i => {
+                for (int j = 0; j < i; j++)
+                    cpuP[i][j] = (float)(cpuP[i][j] * distanceFactor);
+            });
+        
+            MT.For(0, N, i => {
+                for (int j = 0; j<i; j++)
+                    cpuP[j][i] = cpuP[i][j];
+                cpuP[i][i] = 0;
+            });
+
+            int bSize = MaxGroupNumberHyp * GroupSizeHyp;
+            using (var sd = gpu.LoadShader("TsneDx.Dist2Affinity.cso"))
+            using (var stagingBuf = gpu.CreateStagingBuffer(PBuf)) {
+                gpu.SetShader(sd);
+                for (int iBlock = 0; iBlock < N; iBlock += bSize) {
+                    cc.c.blockIdx = iBlock;
+                    cc.Upload();
+                    int iBlock2 = Math.Min(N, iBlock + bSize);
+                    using (var ws = gpu.NewWriteStream(PBuf))
+                        for (int row = iBlock; row < iBlock2; row++)
+                            ws.WriteRange(cpuP[row]);
+                    gpu.Run(MaxGroupNumberHyp);
+                    using (var rs = gpu.NewReadStream(stagingBuf, PBuf))
+                        for (int row = iBlock; row < iBlock2; row++)
+                            rs.ReadRange(cpuP[row], 0, N);
+                }
+            }
+
+            double sum = 0;
+            MT.For(0, N, i => {
+                double sum2 = 0.0;
+                for (int j = i + 1; j < N; j++) {
+                    cpuP[i][j] += cpuP[j][i];
+                    sum2 += cpuP[i][j];
+                }
+                lock (this)
+                    sum += sum2;
+            });
+
+            if (sum == 0) 
+                throw new System.Exception("Perplexity too small!");
+
+            sum *= 2;
+            MT.For(0, N, i => {
+                for (int j = i + 1; j < N; j++) {
+                    cpuP[i][j] = (float)Math.Max(cpuP[i][j] / sum, eps);
+                    cpuP[j][i] = cpuP[i][j];
+                }
+                cpuP[i][i] = 1.0f;
+            });
+        }
+
         public float[][] Fit(float[][] X) {
             int exaggerationLength = (int)(MaxEpochs * ExaggerationRatio);
 
@@ -382,7 +487,9 @@ namespace TsneDx {
             // Used to aggregate values created by parallel threads.
             // the size of of groupMaxBuf must be large enoght to hold a float value for each thread started in parallel.
             // Notice: gpu.Run(k) will start k*GROUP_SIZE threads.
-            groupMaxBuf = gpu.CreateBufferRW(Math.Max(GpuGroupSize, MaxGroupNumber * GroupSize), 4, 7);
+            int gpSize = Math.Max(GpuGroupSize, MaxGroupNumber * GroupSize);
+            gpSize = Math.Max(gpSize, MaxGroupNumberHyp * GroupSizeHyp);
+            groupMaxBuf = gpu.CreateBufferRW(gpSize, 4, 7);
 
             resultBuf = gpu.CreateBufferRW(3, 4, 2);  // to receive the total changes.
             resultStaging = gpu.CreateStagingBuffer(resultBuf);            
@@ -393,16 +500,22 @@ namespace TsneDx {
             gpu.WriteMarix(tableBuf, X, true);
 
             bool CachingDistance() { return (N <= CacheLimit); }
+            bool CachingOnCpu(int n) { return ((double)n * n * 4) < ((double)MaxCpuCacheSize * 1024.0 * 1024.0); }
+            bool cpuCaching = !CachingDistance() && (cc.c.columns >= 100) && CachingOnCpu(N);
+
             #endregion
 
             #region Calculate or Initialize P.
-            
+
             cc.c.targetH = (float)Math.Log(PerplexityRatio * N);
-            if (CachingDistance()) { // CalculateP()
+            if (CachingDistance()) {
                 CalculateP();
-            } else { // InitializeP()
+            } else if (cpuCaching) {
+                InitializePCpu();
+            } else { 
                 InitializeP();
             }
+
             #endregion
 
             #region Calculate the initial sume of matrix Q.
@@ -430,6 +543,8 @@ namespace TsneDx {
             ComputeShader csOneStep = null;
             if (CachingDistance()) {
                 csOneStep = gpu.LoadShader("TsneDx.OneStep.cso");
+            } else if (cpuCaching) {
+                csOneStep = gpu.LoadShader("TsneDx.OneStepCpuCache.cso");
             } else {
                 if (cc.c.columns <= MaxDimension) {
                     // Using fast implementation by caching data in the group-shared memory.
@@ -456,6 +571,16 @@ namespace TsneDx {
                         gpu.Run(cc.c.groupNumber);
                     }
                     cc.c.groupNumber = MaxGroupNumber * GroupSize;
+                } else if (cpuCaching) {
+                    int bSize = MaxGroupNumberHyp * GroupSizeHyp;
+                    cc.c.groupNumber = MaxGroupNumberHyp;
+                    for (int bIdx = 0; bIdx < N; bIdx += bSize) {
+                        gpu.WriteArray(cpuP, bIdx, Math.Min(N, bIdx + bSize), P2Buf);
+                        cc.c.blockIdx = bIdx;
+                        cc.Upload();
+                        gpu.Run(cc.c.groupNumber);
+                    }
+                    cc.c.groupNumber = Math.Min(N, bSize);
                 } else if (fastEuclidean) {
                     cc.c.groupNumber = MaxGroupNumber;
                     for (int bIdx = 0; bIdx < N; bIdx += cc.c.groupNumber * GrSize) {
@@ -501,7 +626,7 @@ namespace TsneDx {
                 }
             }
 
-            TsneDx.SafeDispose(csSumUp, csOneStep, PBuf, distanceBuf, tableBuf, resultBuf, 
+            TsneDx.SafeDispose(csSumUp, csOneStep, PBuf, P2Buf, distanceBuf, tableBuf, resultBuf, 
                 resultStaging, groupMaxBuf, Y3Buf, Y3StagingBuf, v3Buf, Y2Buf, Y2StagingBuf, v2Buf, cc, gpu);
 
             return Y;

@@ -123,6 +123,38 @@ namespace TsneDx {
             return buf;
         }
 
+        public Buffer CreateBufferDynamic(int elements, int elementSize, int slot) {
+            if (elementSize == 1) { // DirectX doesn't like non-4-byte element size, we here just padd the element size to 4.
+                elementSize = 4;
+                elements = (elements + 3) / 4;
+            }
+
+            if ((elements > (1 << 29)) || (elements < 0))
+                throw new System.Exception(string.Format(
+                    "GPU Dynamic-buffer size limit overflow! Total number of floats {0:n0} must be smaller than {1:n0} ",
+                        elements, 1 << 29));
+
+            Buffer buf = new Buffer(device, new BufferDescription
+            {
+                BindFlags = BindFlags.ShaderResource,
+                OptionFlags = ResourceOptionFlags.BufferStructured,
+                SizeInBytes = elements * elementSize,
+                StructureByteStride = elementSize,
+                Usage = ResourceUsage.Dynamic,
+                CpuAccessFlags = CpuAccessFlags.Write,
+            });
+
+            var srvDesc = new ShaderResourceViewDescription();
+            srvDesc.Format = SharpDX.DXGI.Format.Unknown;
+            srvDesc.Buffer.ElementCount = elements;
+            srvDesc.Buffer.ElementWidth = elements;
+            srvDesc.Dimension = ShaderResourceViewDimension.Buffer;
+            using (var srv = new ShaderResourceView(device, buf, srvDesc))
+                ctx.ComputeShader.SetShaderResource(slot, srv);
+            return buf;
+        }
+
+
         public ConstBuffer<T> CreateConstantBuffer<T>(int slot) where T : struct {
             return new ConstBuffer<T>(this, slot);
         }
@@ -226,6 +258,19 @@ namespace TsneDx {
                 }
                 ws.WriteRange(buf);
             }
+        }
+
+        public void WriteArray(float[][] values, int row0, int row1, Buffer buffer) {
+            if (buffer.Description.Usage != ResourceUsage.Dynamic)
+                throw new System.Exception("Not supported operation: WriteArray()!");
+
+            DataBox db = ctx.MapSubresource(buffer, 0, SharpDX.Direct3D11.MapMode.WriteDiscard, SharpDX.Direct3D11.MapFlags.None);
+            int N = values[0].Length;
+            for (int row = row0; row < row1; row++) {
+                System.IntPtr ptr = new System.IntPtr(db.DataPointer.ToInt64() + (row - row0) * N * 4);
+                Marshal.Copy(values[row], 0, ptr, N);
+            }
+            ctx.UnmapSubresource(buffer, 0);
         }
 
         public WriteDataStream NewWriteStream(Buffer buffer) {

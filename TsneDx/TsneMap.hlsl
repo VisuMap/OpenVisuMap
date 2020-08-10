@@ -82,6 +82,7 @@ RWStructuredBuffer<float3> Y3 : register(u4);
 RWStructuredBuffer<VariableStates2> v2 : register(u5);	
 RWStructuredBuffer<VariableStates3> v3 : register(u6);
 RWStructuredBuffer<float> groupMax : register(u7); 
+StructuredBuffer<float> Pcpu : register(t7);   // Needed to for OnCpu Caching mode.	
 
 groupshared float groupValue[GROUP_SIZE];	// to store various accumulated by one group thread.
 
@@ -140,6 +141,31 @@ void CreateDistanceCache(uint3 gid : SV_GroupId, uint gidx : SV_GroupIndex){
         for (uint j = gidx; j < i; j += G_SIZE_CACHE)
             distanceMatrix[offset + j] = DistanceSquared(i, j);
     }
+}
+
+#define G_SIZE_P 64
+[numthreads(G_SIZE_P, 1, 1)]
+void PartialDistance2(uint3 gid : SV_GroupId, uint gidx : SV_GroupIndex) {
+	uint i = blockIdx + gid.x;
+	if (i < N) {
+		uint offset = (i * (i - 1) - blockIdx * (blockIdx - 1)) / 2;
+		for (uint j = gidx; j < i; j += G_SIZE_P) {
+			if (metricType == 0) { // for squared euclidean distance
+				float s = 0.0;
+				for (uint k = 0; k < columns; k++) {
+					float d = dataTable[k * N + i] - dataTable[k * N + j];
+					s += d * d;
+				}
+				distanceMatrix[offset + j] = s;
+			} else { // for squared correlation distance.
+				float s = 0.0;
+				for (uint k = 0; k < columns; k++) {
+					s += dataTable[k * N + i] * dataTable[k * N + j];
+				}
+				distanceMatrix[offset + j] = (1 - s) * (1 - s);
+			}
+		}
+	}
 }
 
 //=======================================================================================
@@ -818,4 +844,133 @@ void OneStepSumUp(uint gidx : SV_GroupIndex) {
 				sum += groupMax[i];
 			result[1] = sum;  // set sumQ for the next loop.
 		}
+}
+
+// ================================================================================
+#define GROUP_SZ_HYP 32
+
+#define PPtr(i, j) P_[(i)*N + (j)]     // Access P in normal matrix order.
+#define PP2tr(i, j) Pcpu[(i)*N+(j)]    // Used when caching P on CPU.
+
+float Entropy3(uint rowIdx, uint refJ, float beta) {
+	float sumP = 0;
+	float h = 0;
+	for (uint j = 0; j < N; j++) {
+		if (j != refJ) {
+			float Pij = PPtr(rowIdx, j);
+			float aff = exp(-Pij * beta);
+			sumP += aff;
+			h += Pij * aff;
+		}
+	}
+	return (sumP == 0) ? 0 : (log(sumP) + beta * h / sumP);
+}
+
+// Convert a block of symmetrized and scaled distance matrix distanceMatrix[] to affinity.
+[numthreads(GROUP_SZ_HYP, 1, 1)]
+void Dist2Affinity(uint3 id : SV_DispatchThreadId) {
+	uint rowIdx = id.x;
+	uint refJ = blockIdx + id.x;
+	if (refJ < N) {
+		float betaLeft = FLT_MIN;
+		float betaRight = FLT_MAX;
+		float fctLeft = 0; // function's value at left end of the bracket. Always positive.
+		float fctRight = 0; // function's value at right end of the bracket. Always negative;
+		float beta = 1.0;
+		for (int tries = newtonRepeats; tries >= 0; tries--) {
+			float fctZero = Entropy3(rowIdx, refJ, beta) - targetH;
+			if (abs(fctZero) < TOLERANCE)
+				break;
+			if (fctZero > 0) {
+				fctLeft = fctZero;
+				betaLeft = beta;
+				if (betaRight == FLT_MAX) {
+					beta *= 2;
+				}
+				else {
+					float r = fctLeft / (fctLeft - fctRight);
+					beta = (1 - r) * beta + r * betaRight;
+				}
+			}
+			else {
+				fctRight = fctZero;
+				betaRight = beta;
+				if (betaLeft == FLT_MIN) {
+					beta /= 2;
+				}
+				else {
+					float r = fctLeft / (fctLeft - fctRight);
+					beta = (1 - r) * betaLeft + r * beta;
+				}
+			}
+		}
+
+		// Convert rowIdx-th row to affinity with the final beta; and normalize it.
+		float sum = 0;
+		for (uint j = 0; j < N; j++) {
+			if (j != refJ) {
+				float aff = exp(-PPtr(rowIdx, j) * beta);
+				PPtr(rowIdx, j) = aff;
+				sum += aff;
+			}
+		}
+
+		if (sum != 0) {
+			for (uint j = 0; j < N; j++)
+				if (j != refJ)
+					PPtr(rowIdx, j) /= sum;
+		}
+	}
+}
+
+[numthreads(GROUP_SZ_HYP, 1, 1)]
+void OneStepCpuCache(uint3 id : SV_DispatchThreadId) {
+	float sumQ = result[1];
+	float sumQ_next = (blockIdx == 0) ? 0 : groupMax[id.x];
+	uint i = id.x + blockIdx;
+	if (i >= N) return;
+
+	if (outDim == 2) {
+		float2 gradient = float2(0, 0);
+		for (uint j = 0; j < i; j++) {
+			float2 d = Y2[i] - Y2[j];
+			float Qij = 1 / (1 + dot(d, d));
+			sumQ_next += Qij;
+			Qij /= sumQ;
+			gradient += mad(PFactor, PP2tr(id.x, j), -Qij) * Qij * d;
+		}
+		for (j = i + 1; j < N; j++) {
+			float2 d = Y2[i] - Y2[j];
+			float Qij = 1 / (1 + dot(d, d));
+			sumQ_next += Qij;
+			Qij /= sumQ;
+			gradient += mad(PFactor, PP2tr(id.x, j), -Qij) * Qij * d;
+		}
+
+		gradient *= sumQ * 4 * epsilon;
+		UpdateGain2(v2[i], gradient);
+		v2[i].dY = mom * v2[i].dY - v2[i].gain * gradient;
+		groupMax[id.x] = sumQ_next;
+	}
+	else {
+		float3 gradient = float3(0, 0, 0);
+		for (uint j = 0; j < i; j++) {
+			float3 d = Y3[i] - Y3[j];
+			float Qij = 1 / (1 + dot(d, d));
+			sumQ_next += Qij;
+			Qij /= sumQ;
+			gradient += mad(PFactor, PP2tr(id.x, j), -Qij) * Qij * d;
+		}
+		for (j = i + 1; j < N; j++) {
+			float3 d = Y3[i] - Y3[j];
+			float Qij = 1 / (1 + dot(d, d));
+			sumQ_next += Qij;
+			Qij /= sumQ;
+			gradient += mad(PFactor, PP2tr(id.x, j), -Qij) * Qij * d;
+		}
+		gradient *= sumQ * 4 * epsilon;
+		UpdateGain3(v3[i], gradient);
+		v3[i].dY = mom * v3[i].dY - v3[i].gain * gradient;
+		groupMax[id.x] = sumQ_next;
+	}
 }
