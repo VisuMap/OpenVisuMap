@@ -108,30 +108,28 @@ groupshared float groupValue[GROUP_SIZE];	// to store various accumulated by one
 #define UpdateGain3(v, g) v.gain = max(float3(minGain, minGain, minGain), UpdateGain0(v, g))
 
 //=======================================================================================
-
 // returns squared distance between i and j.
 float DistanceSquared(uint i, uint j) {
-    float sum = 0;
-    int kN = 0;
-    if (metricType == 0)
-    {
-        for (uint k = 0; k < columns; k++) {
-            float d = dataTable[kN + i] - dataTable[kN + j];
-            sum += d * d;
-            kN += N;
-        }
-        return abs(sum);
-    } else {
-        for (uint k = 0; k < columns; k++) {
-            sum += dataTable[kN + i] * dataTable[kN + j];
-            kN += N;
-        }
-        float d = 1 - sum;
-        return d*d;
-    }
+	float sum = 0;
+	int kN = 0;
+	if (metricType == 0)
+	{
+		for (uint k = 0; k < columns; k++) {
+			float d = dataTable[kN + i] - dataTable[kN + j];
+			sum += d * d;
+			kN += N;
+		}
+		return abs(sum);
+	}
+	else {
+		for (uint k = 0; k < columns; k++) {
+			sum += dataTable[kN + i] * dataTable[kN + j];
+			kN += N;
+		}
+		float d = 1 - sum;
+		return d * d;
+	}
 }
-
-//=======================================================================================
 
 #define G_SIZE_CACHE 64
 [numthreads(G_SIZE_CACHE, 1, 1)]
@@ -477,6 +475,49 @@ float PP(uint i, uint j) {
 	return max(eps, affinityFactor(i) * exp(-d * betaList(i)) + affinityFactor(j) * exp(-d * betaList(j)));
 }
 
+// Large groupshared dataRow[][] will significantly reduce the performance.
+#define GR_SIZE 64
+#define MAX_DIMENSION  64
+#define MAX_DIMENSIONs 32
+groupshared float dataRow[MAX_DIMENSION][GR_SIZE];
+groupshared float dataRowS[MAX_DIMENSIONs][GR_SIZE];
+
+float PP2(uint gidx, float a_i, float b_i, uint j) {
+	float p = 0;
+	if (metricType == 0) {
+		for (uint k = 0; k < columns; k++) {
+			float d = dataRow[k][gidx] - dataTable[k*N + j];
+			p += d * d;
+		}
+		p = abs(p);
+	} else {
+		for (uint k = 0; k < columns; k++)
+			p += dataRow[k][gidx] * dataTable[k*N + j];
+		p = 1 - p;
+		p *= p;
+	}
+	return max(eps, a_i * exp(-p * b_i) + affinityFactor(j) * exp(-p * betaList(j)));
+}
+
+float PP2s(uint gidx, float a_i, float b_i, uint j) {
+	float p = 0;
+	if (metricType == 0) {
+		for (uint k = 0; k < columns; k++) {
+			float d = dataRowS[k][gidx] - dataTable[k*N + j];
+			p += d * d;
+		}
+		p = abs(p);
+	} else {
+		for (uint k = 0; k < columns; k++)
+			p += dataRowS[k][gidx] * dataTable[k*N + j];
+		p = 1 - p;
+		p *= p;
+	}
+	return max(eps, a_i * exp(-p * b_i) + affinityFactor(j) * exp(-p * betaList(j)));
+}
+
+//==================================================================================================
+
 // Returns the image distance between i and j-th data point.
 float Q(uint i, uint j) {
 	if (outDim == 3) {
@@ -535,10 +576,10 @@ void CurrentCostLarge(uint3 gid : SV_GroupId, uint gIdx : SV_GroupIndex) {
 }
 
 //=======================================================================================
-#define GROUP_SZ 128
 
+#define GROUP_SZ 128
 [numthreads(GROUP_SZ, 1, 1)]
-void IterateOneStep(uint3 id : SV_DispatchThreadId) {   
+void OneStep(uint3 id : SV_DispatchThreadId) {   
 	float sumQ = result[1];
 	float sumQ_next = (blockIdx==0) ? 0 : groupMax[id.x];
 
@@ -578,166 +619,13 @@ void IterateOneStep(uint3 id : SV_DispatchThreadId) {
 	}
 }
 
-//=================================================================================================
-// Too large groupshared dataRow[][] will significantly reduce the performance.
-#define GR_SIZE 64
-#define MAX_DIMENSION  64
-groupshared float dataRow[MAX_DIMENSION][GR_SIZE];
-
-// PP^2() for euclidean metric.
-float PP2(uint gidx, float a_i, float b_i, uint j) {
-	float p= 0; 
-	for(uint k=0; k<columns; k++) {
-		float d = dataRow[k][gidx] - dataTable[k*N+j];
-		p += d*d;
-	}
-	return max(eps, a_i * exp(-p * b_i) + affinityFactor(j) * exp(-p * betaList(j)));
-}
-
-[numthreads(GR_SIZE, 1, 1)]
-void EuclideanNoCache(uint3 id : SV_DispatchThreadId, uint gidx : SV_GroupIndex) {   
-	float sumQ = result[1];
-	float sumQ_next = (blockIdx==0) ? 0 : groupMax[id.x];
-
-	uint i = id.x + blockIdx;
-	if ( i < N ) {
-		for(uint k=0; k<columns; k++) 
-			dataRow[k][gidx] = dataTable[k*N+i];
-		float a_i = affinityFactor(i);  // to save some global memory access.
-		float b_i = betaList(i);
-
-		if (outDim == 3 ) {
-			float3 gradient = float3(0, 0, 0);
-			for (uint j = 0; j < N; j++) {
-				if (j != i ) {
-					float3 d = Y3[i] - Y3[j];
-					float Qij = 1/(1+dot(d,d));
-					sumQ_next += Qij;
-					Qij /= sumQ;
-					gradient += (PFactor * PP2(gidx, a_i, b_i, j) - Qij ) * Qij * d;
-				}
-			}
-			gradient *= sumQ * 4 * epsilon;
-			UpdateGain3(v3[i], gradient);
-			v3[i].dY = mom * v3[i].dY - v3[i].gain * gradient;
-			groupMax[id.x] = sumQ_next;
-		} else {
-			float2 gradient = float2(0, 0);
-			for (uint j = 0; j < N; j++) {
-				if (j != i) {
-					float2 d = Y2[i] - Y2[j];
-					float Qij = 1/(1+dot(d,d));
-					sumQ_next += Qij;
-					Qij /= sumQ;
-					gradient += (PFactor * PP2(gidx, a_i, b_i, j) - Qij) * Qij * d;
-				}
-			}
-			gradient *= sumQ * 4 * epsilon;
-			UpdateGain2(v2[i], gradient);
-			v2[i].dY = mom * v2[i].dY - v2[i].gain * gradient;
-			groupMax[id.x] = sumQ_next;
-		}
-	}
-}
-
-//-----------------------------
-// EuclideanNoCacheS() works as EuclideanNoCache() except that its 
-// group shared memory dataRowS[][] is smaller.
-#define MAX_DIMENSIONs 32
-groupshared float dataRowS[MAX_DIMENSIONs][GR_SIZE];
-
-// PP^2() for euclidean metric.
-float PP2s(uint gidx, float a_i, float b_i, uint j) {
-	float p = 0;
-	for (uint k = 0; k < columns; k++) {
-		float d = dataRowS[k][gidx] - dataTable[k*N + j];
-		p += d * d;
-	}
-	return max(eps, a_i * exp(-p * b_i) + affinityFactor(j) * exp(-p * betaList(j)));
-}
-
-[numthreads(GR_SIZE, 1, 1)]
-void EuclideanNoCacheS(uint3 id : SV_DispatchThreadId, uint gidx : SV_GroupIndex) {
-	float sumQ = result[1];
-	float sumQ_next = (blockIdx == 0) ? 0 : groupMax[id.x];
-
-	uint i = id.x + blockIdx;
-	if (i < N) {
-		for (uint k = 0; k < columns; k++)
-			dataRowS[k][gidx] = dataTable[k*N + i];
-		float a_i = affinityFactor(i);  // to save some global memory access.
-		float b_i = betaList(i);
-
-		if (outDim == 3) {
-			float3 gradient = float3(0, 0, 0);
-			for (uint j = 0; j < N; j++) {
-				if (j != i) {
-					float3 d = Y3[i] - Y3[j];
-					float Qij = 1 / (1 + dot(d, d));
-					sumQ_next += Qij;
-					Qij /= sumQ;
-					gradient += (PFactor * PP2s(gidx, a_i, b_i, j) - Qij) * Qij * d;
-				}
-			}
-			gradient *= sumQ * 4 * epsilon;
-			UpdateGain3(v3[i], gradient);
-			v3[i].dY = mom * v3[i].dY - v3[i].gain * gradient;
-			groupMax[id.x] = sumQ_next;
-		}
-		else {
-			float2 gradient = float2(0, 0);
-			for (uint j = 0; j < N; j++) {
-				if (j != i) {
-					float2 d = Y2[i] - Y2[j];
-					float Qij = 1 / (1 + dot(d, d));
-					sumQ_next += Qij;
-					Qij /= sumQ;
-					gradient += (PFactor * PP2s(gidx, a_i, b_i, j) - Qij) * Qij * d;
-				}
-			}
-			gradient *= sumQ * 4 * epsilon;
-			UpdateGain2(v2[i], gradient);
-			v2[i].dY = mom * v2[i].dY - v2[i].gain * gradient;
-			groupMax[id.x] = sumQ_next;
-		}
-	}
-}
-
-//=================================================================================================
-#define G_SumUp_SZ 32
-[numthreads(G_SumUp_SZ, 1, 1)]
-void IterateOneStepSumUp(uint gidx : SV_GroupIndex) {
-	float changes = 0;
-	if (outDim == 3) {
-		for(uint i=gidx; i<N; i+=G_SumUp_SZ) {
-			Y3[i] += v3[i].dY;
-			changes += length(v3[i].dY);
-		}
-	} else {
-		for (uint i = gidx; i < N; i += G_SumUp_SZ) {
-			Y2[i] += v2[i].dY;
-			changes += length(v2[i].dY);
-		}
-	}
-
-	GROUP_SUM(groupValue, gidx, changes, G_SumUp_SZ)
-	if (gidx == 0) {
-		result[2] = groupValue[0];
-		float sum = 0;
-		for (uint i = 0; i < groupNumber; i++)
-			sum += groupMax[i];
-		result[1] = sum;  // set sumQ for the next loop.
-	}
-}
-
 #define G_SIZE 128
 #define groupSumQ groupValue
 #define groupSumQ_next groupMax
 groupshared float3 groupGradient[G_SIZE];	// to store various accumulated by one group thread.
 
-
 [numthreads(G_SIZE, 1, 1)]
-void IterateOneStepNoCache(uint3 gid : SV_GroupId, uint gIdx : SV_GroupIndex) {
+void OneStepNoCache(uint3 gid : SV_GroupId, uint gIdx : SV_GroupIndex) {
 	uint i = gid.x + blockIdx;
 	float sumQ = result[1];
 	if ((blockIdx == 0) && (gIdx == 0)) {
@@ -806,4 +694,128 @@ void IterateOneStepNoCache(uint3 gid : SV_GroupId, uint gIdx : SV_GroupIndex) {
 			}
 		}
 	}
+}
+
+
+[numthreads(GR_SIZE, 1, 1)]
+void FastStep(uint3 id : SV_DispatchThreadId, uint gidx : SV_GroupIndex) {   
+	float sumQ = result[1];
+	float sumQ_next = (blockIdx==0) ? 0 : groupMax[id.x];
+
+	uint i = id.x + blockIdx;
+	if ( i < N ) {
+		for(uint k=0; k<columns; k++) 
+			dataRow[k][gidx] = dataTable[k*N+i];
+		float a_i = affinityFactor(i);  // to save some global memory access.
+		float b_i = betaList(i);
+
+		if (outDim == 3 ) {
+			float3 gradient = float3(0, 0, 0);
+			for (uint j = 0; j < N; j++) {
+				if (j != i ) {
+					float3 d = Y3[i] - Y3[j];
+					float Qij = 1/(1+dot(d,d));
+					sumQ_next += Qij;
+					Qij /= sumQ;
+					gradient += (PFactor * PP2(gidx, a_i, b_i, j) - Qij ) * Qij * d;
+				}
+			}
+			gradient *= sumQ * 4 * epsilon;
+			UpdateGain3(v3[i], gradient);
+			v3[i].dY = mom * v3[i].dY - v3[i].gain * gradient;
+			groupMax[id.x] = sumQ_next;
+		} else {
+			float2 gradient = float2(0, 0);
+			for (uint j = 0; j < N; j++) {
+				if (j != i) {
+					float2 d = Y2[i] - Y2[j];
+					float Qij = 1/(1+dot(d,d));
+					sumQ_next += Qij;
+					Qij /= sumQ;
+					gradient += (PFactor * PP2(gidx, a_i, b_i, j) - Qij) * Qij * d;
+				}
+			}
+			gradient *= sumQ * 4 * epsilon;
+			UpdateGain2(v2[i], gradient);
+			v2[i].dY = mom * v2[i].dY - v2[i].gain * gradient;
+			groupMax[id.x] = sumQ_next;
+		}
+	}
+}
+
+[numthreads(GR_SIZE, 1, 1)]
+void FastStepS(uint3 id : SV_DispatchThreadId, uint gidx : SV_GroupIndex) {
+	float sumQ = result[1];
+	float sumQ_next = (blockIdx == 0) ? 0 : groupMax[id.x];
+
+	uint i = id.x + blockIdx;
+	if (i < N) {
+		for (uint k = 0; k < columns; k++)
+			dataRowS[k][gidx] = dataTable[k*N + i];
+		float a_i = affinityFactor(i);  // to save some global memory access.
+		float b_i = betaList(i);
+
+		if (outDim == 3) {
+			float3 gradient = float3(0, 0, 0);
+			for (uint j = 0; j < N; j++) {
+				if (j != i) {
+					float3 d = Y3[i] - Y3[j];
+					float Qij = 1 / (1 + dot(d, d));
+					sumQ_next += Qij;
+					Qij /= sumQ;
+					gradient += (PFactor * PP2s(gidx, a_i, b_i, j) - Qij) * Qij * d;
+				}
+			}
+			gradient *= sumQ * 4 * epsilon;
+			UpdateGain3(v3[i], gradient);
+			v3[i].dY = mom * v3[i].dY - v3[i].gain * gradient;
+			groupMax[id.x] = sumQ_next;
+		}
+		else {
+			float2 gradient = float2(0, 0);
+			for (uint j = 0; j < N; j++) {
+				if (j != i) {
+					float2 d = Y2[i] - Y2[j];
+					float Qij = 1 / (1 + dot(d, d));
+					sumQ_next += Qij;
+					Qij /= sumQ;
+					gradient += (PFactor * PP2s(gidx, a_i, b_i, j) - Qij) * Qij * d;
+				}
+			}
+			gradient *= sumQ * 4 * epsilon;
+			UpdateGain2(v2[i], gradient);
+			v2[i].dY = mom * v2[i].dY - v2[i].gain * gradient;
+			groupMax[id.x] = sumQ_next;
+		}
+	}
+}
+
+
+//=================================================================================================
+
+#define G_SumUp_SZ 32
+[numthreads(G_SumUp_SZ, 1, 1)]
+void OneStepSumUp(uint gidx : SV_GroupIndex) {
+	float changes = 0;
+	if (outDim == 3) {
+		for (uint i = gidx; i < N; i += G_SumUp_SZ) {
+			Y3[i] += v3[i].dY;
+			changes += length(v3[i].dY);
+		}
+	}
+	else {
+		for (uint i = gidx; i < N; i += G_SumUp_SZ) {
+			Y2[i] += v2[i].dY;
+			changes += length(v2[i].dY);
+		}
+	}
+
+	GROUP_SUM(groupValue, gidx, changes, G_SumUp_SZ)
+		if (gidx == 0) {
+			result[2] = groupValue[0];
+			float sum = 0;
+			for (uint i = 0; i < groupNumber; i++)
+				sum += groupMax[i];
+			result[1] = sum;  // set sumQ for the next loop.
+		}
 }

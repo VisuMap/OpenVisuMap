@@ -416,18 +416,18 @@ namespace TsneDx {
 
             ComputeShader csOneStep = null;
             if (CachingDistance()) {
-                csOneStep = gpu.LoadShader("TsneDx.IterateOneStep.cso");
+                csOneStep = gpu.LoadShader("TsneDx.OneStep.cso");
             } else {
                 if (cc.c.columns <= MaxDimension) {
                     // Using fast implementation by caching data in the group-shared memory.
-                    string sdName = (cc.c.columns <= MaxDimensionS) ? "TsneDx.EuclideanNoCacheS.cso" : "TsneDx.EuclideanNoCache.cso";
+                    string sdName = (cc.c.columns <= MaxDimensionS) ? "TsneDx.FastStepS.cso" : "TsneDx.FastStep.cso";
                     csOneStep = gpu.LoadShader(sdName);
                     fastEuclidean = true;
                 } else {
-                    csOneStep = gpu.LoadShader("TsneDx.IterateOneStepNoCache.cso");
+                    csOneStep = gpu.LoadShader("TsneDx.OneStepNoCache.cso");
                 }
             }
-            ComputeShader csSumUp = gpu.LoadShader("TsneDx.IterateOneStepSumUp.cso");
+            ComputeShader csSumUp = gpu.LoadShader("TsneDx.OneStepSumUp.cso");
             int stepCounter = 0;
 
             while (true) {
