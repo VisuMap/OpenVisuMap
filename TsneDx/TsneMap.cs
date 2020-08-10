@@ -336,8 +336,6 @@ namespace TsneDx {
                     cc.c.cmd = 3;
                     cc.Upload();
                     gpu.Run();
-
-                    float[] tmp = gpu.ReadRange<float>(PBuf);
                 }
             } else { // InitializeP()
                 const int INIT_THREAD_GROUPS = 256;
@@ -454,8 +452,8 @@ namespace TsneDx {
                     }
                     cc.c.groupNumber = cc.c.groupNumber * GrSize;
                 } else {
-                    // using the IterateOneStepLarge shader. A whole thread group will be assigned
-                    // to calculate a single PP(i,j) and Q(i,j).
+                    // using the IterateOneStep shader. A whole thread group will be assigned
+                    // to calculate a row of PP(i,j) and Q(i,j).
                     cc.c.groupNumber = 128;
                     for (int bIdx = 0; bIdx < N; bIdx += cc.c.groupNumber) {
                         cc.c.blockIdx = bIdx;
