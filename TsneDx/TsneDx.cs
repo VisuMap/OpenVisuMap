@@ -63,7 +63,7 @@ namespace TsneDx {
                 List<string> rows = new List<string>();
                 while (!rd.EndOfStream) {
                     string line = rd.ReadLine().TrimStart();
-                    if (!char.IsNumber(line[0]))
+                    if ( (line[0] == '#') || (line[0] == '%') )
                         continue;
                     rows.Add(line);
                 }
