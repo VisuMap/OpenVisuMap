@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using System.Linq;
 
 namespace TsneDx {
+    using ConstBuffer = GpuDevice.ConstBuffer<TsneMapConstants>;
+
     [StructLayout(LayoutKind.Explicit)]
     struct TsneMapConstants { 
         [FieldOffset(0)] public float targetH;  // The target entropy for all data points.
@@ -33,7 +35,21 @@ namespace TsneDx {
         double currentVariation = 0;
         double stopVariation = 0;
         double momentumSwitch = 0.33;
-        
+
+        const int GpuGroupSize = 1024;   // the GPU thread group size, must match GROUP_SIZE defined in TsneMap.hlsl.
+        const int GroupSize = 128;       // Must match GROUP_SZ in TsneMap.hlsl; Used only for IteratOneStep()
+        const int MaxGroupNumber = 128;
+
+        GpuDevice gpu;
+        Buffer PBuf;
+        ConstBuffer cc;
+        Buffer groupMaxBuf;
+        Buffer resultBuf;
+        Buffer resultStaging;
+        Buffer tableBuf;
+        Buffer distanceBuf;
+
+        void CmdSynchronize() { gpu.ReadFloat(resultStaging, resultBuf); }
 
         public TsneMap(
             double PerplexityRatio = 0.05, 
@@ -205,11 +221,111 @@ namespace TsneDx {
             });
         }
 
+        void CalculateP() {
+            int N = cc.c.N;
+            distanceBuf = gpu.CreateBufferRW((N * N - N) / 2, 4, 0);
+            using (var shader = gpu.LoadShader("TsneDx.CreateDistanceCache.cso")) {
+                gpu.SetShader(shader);
+                int groupNr = 256;
+                for (int i = 0; i < N; i += groupNr) {
+                    cc.c.blockIdx = i;
+                    cc.Upload();
+                    gpu.Run(groupNr);
+                }
+            }
+
+            PBuf = gpu.CreateBufferRW(N * N, 4, 1);
+            cc.c.chacedP = true;
+            using (var sd = gpu.LoadShader("TsneDx.CalculateP.cso")) {
+                // Calculate the squared distance matrix in to P
+                using (var sd2 = gpu.LoadShader("TsneDx.CalculatePFromCache.cso")) {
+                    gpu.SetShader(sd2);
+                    gpu.Run(64);
+                }
+                gpu.SetShader(sd);
+
+                // Normalize and symmetrizing the distance matrix
+                cc.c.cmd = 4;
+                cc.Upload();
+                gpu.Run();
+
+                // Convert the matrix to affinities.
+                cc.c.cmd = 2;
+                cc.c.groupNumber = 4;
+                for (int bIdx = 0; bIdx < N; bIdx += cc.c.groupNumber * GpuGroupSize) {
+                    cc.c.blockIdx = bIdx;
+                    cc.Upload();
+                    gpu.Run(cc.c.groupNumber);
+                }
+
+                // Normalize and symmetrizing the affinity matrix
+                gpu.SetShader(sd);
+                cc.c.cmd = 3;
+                cc.Upload();
+                gpu.Run();
+            }
+        }
+
+        void InitializeP() {
+            int N = cc.c.N;
+            const int INIT_THREAD_GROUPS = 256;
+            PBuf = gpu.CreateBufferRW((2 + INIT_THREAD_GROUPS) * N, 4, 1); // for betaList[] and affinityFactor[]
+            cc.c.chacedP = false;
+
+            using (var sd = gpu.LoadShader("TsneDx.InitializeP.cso"))
+            using (var sd3 = gpu.LoadShader("TsneDx.InitializeP3.cso")) {
+                // Calcualtes the distanceFactor[].
+                gpu.SetShader(sd3);
+                cc.c.cmd = 1;
+                cc.c.groupNumber = 64;
+                for (int bIdx = 0; bIdx < N; bIdx += cc.c.groupNumber) {
+                    cc.c.blockIdx = bIdx;
+                    cc.Upload();
+                    gpu.Run(cc.c.groupNumber);
+                }
+
+                cc.c.cmd = 2;
+                // cc.c.groupNumber, groupMax[0..groupNumber] are the maximal values of matrix sub-section.
+                cc.Upload();
+                gpu.Run();
+                CmdSynchronize();
+
+                // Calculates the betaList[].
+                gpu.SetShader(sd3);
+                cc.c.cmd = 3;
+                cc.c.groupNumber = INIT_THREAD_GROUPS;
+                for (int bIdx = 0; bIdx < N; bIdx += cc.c.groupNumber) {
+                    cc.c.blockIdx = bIdx;
+                    cc.Upload();
+                    gpu.Run(cc.c.groupNumber);
+                    CmdSynchronize();
+                }
+                CmdSynchronize();
+
+                // calculates the affinityFactor[]
+                gpu.SetShader(sd3);
+                cc.c.cmd = 4;
+                cc.c.groupNumber = 128;  // groupNumber must be smaller than GroupSize as required by next command.
+                for (int bIdx = 0; bIdx < N; bIdx += cc.c.groupNumber) {
+                    cc.c.blockIdx = bIdx;
+                    cc.Upload();
+                    gpu.Run(cc.c.groupNumber);
+                    CmdSynchronize();
+                }
+
+                gpu.SetShader(sd);
+                // cc.c.groupNumber must contains the number of partial sumes in groupMax[].
+                cc.Upload();
+                gpu.Run();
+                CmdSynchronize();
+            }
+        }
+
         public float[][] Fit(float[][] X) {
             int exaggerationLength = (int)(MaxEpochs * ExaggerationRatio);
 
-            GpuDevice gpu = new GpuDevice();
-            var cc = gpu.CreateConstantBuffer<TsneMapConstants>(0);
+            gpu = new GpuDevice();
+            cc = gpu.CreateConstantBuffer<TsneMapConstants>(0);
 
             int N = X.Length;
             cc.c.columns = X[0].Length;
@@ -262,133 +378,30 @@ namespace TsneDx {
             #endregion
 
             #region Upload data table and initialize the distance matrix
-            const int GpuGroupSize = 1024;   // the GPU thread group size, must match GROUP_SIZE defined in TsneMap.hlsl.
-            const int GroupSize = 128;       // Must match GROUP_SZ in TsneMap.hlsl; Used only for IteratOneStep()
-            const int MaxGroupNumber = 128;
 
             // Used to aggregate values created by parallel threads.
             // the size of of groupMaxBuf must be large enoght to hold a float value for each thread started in parallel.
             // Notice: gpu.Run(k) will start k*GROUP_SIZE threads.
-            Buffer groupMaxBuf = gpu.CreateBufferRW(Math.Max(GpuGroupSize, MaxGroupNumber * GroupSize), 4, 7);
+            groupMaxBuf = gpu.CreateBufferRW(Math.Max(GpuGroupSize, MaxGroupNumber * GroupSize), 4, 7);
 
-            Buffer resultBuf = gpu.CreateBufferRW(3, 4, 2);  // to receive the total changes.
-            Buffer resultStaging = gpu.CreateStagingBuffer(resultBuf);
-            void CmdSynchronize() {gpu.ReadFloat(resultStaging, resultBuf); }
+            resultBuf = gpu.CreateBufferRW(3, 4, 2);  // to receive the total changes.
+            resultStaging = gpu.CreateStagingBuffer(resultBuf);            
 
-            Buffer tableBuf = gpu.CreateBufferRO(N * cc.c.columns, 4, 0);
+            tableBuf = gpu.CreateBufferRO(N * cc.c.columns, 4, 0);
             if (MetricType == 1)
                 NormalizeTable(X);
             gpu.WriteMarix(tableBuf, X, true);
 
-            Buffer distanceBuf = null;
             bool CachingDistance() { return (N <= CacheLimit); }
-            if (CachingDistance()) {
-                distanceBuf = gpu.CreateBufferRW((N * N - N) / 2, 4, 0);
-                using (var shader = gpu.LoadShader("TsneDx.CreateDistanceCache.cso")) {
-                    gpu.SetShader(shader);
-                    int groupNr = 256;
-                    for (int i = 0; i < N; i += groupNr) {
-                        cc.c.blockIdx = i;
-                        cc.Upload();
-                        gpu.Run(groupNr);
-                    }
-                }
-            }
             #endregion
 
             #region Calculate or Initialize P.
-            Buffer PBuf;
+            
             cc.c.targetH = (float)Math.Log(PerplexityRatio * N);
             if (CachingDistance()) { // CalculateP()
-                PBuf = gpu.CreateBufferRW(N * N, 4, 1);
-                cc.c.chacedP = true;
-                using (var sd = gpu.LoadShader("TsneDx.CalculateP.cso")) {
-                    // Calculate the squared distance matrix in to P
-                    if (distanceBuf != null) {
-                        using (var sd2 = gpu.LoadShader("TsneDx.CalculatePFromCache.cso")) {
-                            gpu.SetShader(sd2);
-                            gpu.Run(64);
-                        }
-                        gpu.SetShader(sd);
-                    } else {
-                        gpu.SetShader(sd);
-                        cc.c.cmd = 1;
-                        cc.Upload();
-                        gpu.Run(2);
-                    }
-
-                    // Normalize and symmetrizing the distance matrix
-                    cc.c.cmd = 4;
-                    cc.Upload();
-                    gpu.Run();
-
-                    // Convert the matrix to affinities.
-                    cc.c.cmd = 2;
-                    cc.c.groupNumber = 4;
-                    for (int bIdx = 0; bIdx < N; bIdx += cc.c.groupNumber * GpuGroupSize) {
-                        cc.c.blockIdx = bIdx;
-                        cc.Upload();
-                        gpu.Run(cc.c.groupNumber);
-                    }
-
-                    // Normalize and symmetrizing the affinity matrix
-                    gpu.SetShader(sd);
-                    cc.c.cmd = 3;
-                    cc.Upload();
-                    gpu.Run();
-                }
+                CalculateP();
             } else { // InitializeP()
-                const int INIT_THREAD_GROUPS = 256;
-                PBuf = gpu.CreateBufferRW((2 + INIT_THREAD_GROUPS) * N, 4, 1); // for betaList[] and affinityFactor[]
-                cc.c.chacedP = false;
-
-                using (var sd = gpu.LoadShader("TsneDx.InitializeP.cso"))
-                using (var sd3 = gpu.LoadShader("TsneDx.InitializeP3.cso")) {
-                    // Calcualtes the distanceFactor[].
-                    gpu.SetShader(sd3);
-                    cc.c.cmd = 1;
-                    cc.c.groupNumber = 64;
-                    for (int bIdx = 0; bIdx < N; bIdx += cc.c.groupNumber) {
-                        cc.c.blockIdx = bIdx;
-                        cc.Upload();
-                        gpu.Run(cc.c.groupNumber);
-                    }
-
-                    cc.c.cmd = 2;
-                    // cc.c.groupNumber, groupMax[0..groupNumber] are the maximal values of matrix sub-section.
-                    cc.Upload();
-                    gpu.Run();
-                    CmdSynchronize();
-
-                    // Calculates the betaList[].
-                    gpu.SetShader(sd3);
-                    cc.c.cmd = 3;
-                    cc.c.groupNumber = INIT_THREAD_GROUPS;
-                    for (int bIdx = 0; bIdx < N; bIdx += cc.c.groupNumber) {
-                        cc.c.blockIdx = bIdx;
-                        cc.Upload();
-                        gpu.Run(cc.c.groupNumber);
-                        CmdSynchronize();
-                    }
-                    CmdSynchronize();
-
-                    // calculates the affinityFactor[]
-                    gpu.SetShader(sd3);
-                    cc.c.cmd = 4;
-                    cc.c.groupNumber = 128;  // groupNumber must be smaller than GroupSize as required by next command.
-                    for (int bIdx = 0; bIdx < N; bIdx += cc.c.groupNumber) {
-                        cc.c.blockIdx = bIdx;
-                        cc.Upload();
-                        gpu.Run(cc.c.groupNumber);
-                        CmdSynchronize();
-                    }
-
-                    gpu.SetShader(sd);
-                    // cc.c.groupNumber must contains the number of partial sumes in groupMax[].
-                    cc.Upload();
-                    gpu.Run();
-                    CmdSynchronize();
-                }
+                InitializeP();
             }
             #endregion
 
