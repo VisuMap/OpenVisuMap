@@ -10,6 +10,11 @@ namespace TsneDx {
     [ComVisible(true)]
     public class TsneDx {
         static void Main(string[] args) {
+            if (args.Length == 0) {
+                Console.WriteLine("Usage:  TsneDx.exe <input-file>.csv [perplexity-ratio] [epochs] [out-dim]");
+                Console.WriteLine("PCA Usage:  TsneDx.exe <out-dim> <input-file>.csv");
+                return;
+            }
             if (char.IsDigit(args[0][0]))
                 DoPca(args);
             else
@@ -21,7 +26,7 @@ namespace TsneDx {
             string inFile = args[1];
             string outFile = inFile.Substring(0, inFile.Length - 4) + "_pc.csv";
             if (!(inFile.EndsWith(".csv") || inFile.EndsWith(".npy"))) {
-                Console.WriteLine("Usage:  PcaDx.exe <out-dim> <input-file>.csv");
+                Console.WriteLine("PCA Usage:  TsneDx.exe <out-dim> <input-file>.csv");
                 return;
             }
             float[][] X = inFile.EndsWith(".csv") ? ReadCsvFile(inFile) : TsneMap.ReadNumpyFile(inFile);
