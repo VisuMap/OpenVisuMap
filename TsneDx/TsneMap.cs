@@ -426,6 +426,15 @@ namespace TsneDx {
             });
         }
 
+        enum CachingMode {  // Caching mode for affinity matrix P.
+            OnGpu,   // fully cached on GPU.
+            OnFly,   // no-caching, calculated on-fly on GPU
+            OnCpu,   // cached on CPU in cpuP[]
+            OnFlySm, // Calculated on-fly with help of GPU shared memory.
+            OnFlySmS,// Calculated on-fly with help of small set of GPU shared memory.
+        }
+        CachingMode cachingMode = CachingMode.OnGpu;
+
         public float[][] Fit(float[][] X) {
             int exaggerationLength = (int)(MaxEpochs * ExaggerationRatio);
 
@@ -499,18 +508,31 @@ namespace TsneDx {
                 NormalizeTable(X);
             gpu.WriteMarix(tableBuf, X, true);
 
-            bool CachingDistance() { return (N <= CacheLimit); }
-            bool CachingOnCpu(int n) { return ((double)n * n * 4) < ((double)MaxCpuCacheSize * 1024.0 * 1024.0); }
-            bool cpuCaching = !CachingDistance() && (cc.c.columns >= 100) && CachingOnCpu(N);
-
+            const int MinCpuDimension = 100; // minimal dimension to trigger CPU caching.
+            const int MaxDimension = 64;     // maximal dimension (table columns) for fast EuclideanNoCache shader. Must be the same as MAX_DIMENSION.
+            const int MaxDimensionS = 32;    // maximal dimension (table columns) for fast EuclideanNoCache shader. Must be the same as MAX_DIMENSIONs.
+            if (N <= CacheLimit) {
+                cachingMode = CachingMode.OnGpu;
+            } else {
+                if( (cc.c.columns > MinCpuDimension) && ((double) N * N * 4) < ((double)MaxCpuCacheSize * 1024.0 * 1024.0)) {
+                    cachingMode = CachingMode.OnCpu;
+                } else {
+                    if (cc.c.columns < MaxDimensionS)
+                        cachingMode = CachingMode.OnFlySmS;
+                    else if (cc.c.columns < MaxDimension)
+                        cachingMode = CachingMode.OnFlySm;
+                    else
+                        cachingMode = CachingMode.OnGpu;
+                }
+            }
             #endregion
 
             #region Calculate or Initialize P.
 
             cc.c.targetH = (float)Math.Log(PerplexityRatio * N);
-            if (CachingDistance()) {
+            if (cachingMode == CachingMode.OnGpu) {
                 CalculateP();
-            } else if (cpuCaching) {
+            } else if (cachingMode == CachingMode.OnCpu) {
                 InitializePCpu();
             } else { 
                 InitializeP();
@@ -535,26 +557,26 @@ namespace TsneDx {
             #endregion
 
             #region The training loop
-            bool fastEuclidean = false;
-            const int MaxDimension = 64; // maximal dimension (table columns) for fast EuclideanNoCache shader. Must be the same as MAX_DIMENSION.
-            const int MaxDimensionS = 32; // maximal dimension (table columns) for fast EuclideanNoCache shader. Must be the same as MAX_DIMENSIONs.
-            const int GrSize = 64;  // This value must match that of GR_SIZE in TsneMap.hlsl.
-
-            ComputeShader csOneStep = null;
-            if (CachingDistance()) {
-                csOneStep = gpu.LoadShader("TsneDx.OneStep.cso");
-            } else if (cpuCaching) {
-                csOneStep = gpu.LoadShader("TsneDx.OneStepCpuCache.cso");
-            } else {
-                if (cc.c.columns <= MaxDimension) {
-                    // Using fast implementation by caching data in the group-shared memory.
-                    string sdName = (cc.c.columns <= MaxDimensionS) ? "TsneDx.FastStepS.cso" : "TsneDx.FastStep.cso";
-                    csOneStep = gpu.LoadShader(sdName);
-                    fastEuclidean = true;
-                } else {
-                    csOneStep = gpu.LoadShader("TsneDx.OneStepNoCache.cso");
-                }
+            
+            string sdName = null;
+            switch(cachingMode){
+                case CachingMode.OnGpu:
+                    sdName = "TsneDx.OneStep.cso";
+                    break;
+                case CachingMode.OnCpu:
+                    sdName = "TsneDx.OneStepCpuCache.cso";
+                    break;
+                case CachingMode.OnFly:
+                    sdName = "TsneDx.OneStepNoCache.cso";
+                    break;
+                case CachingMode.OnFlySm:
+                    sdName = "TsneDx.FastStep.cso";
+                    break;
+                case CachingMode.OnFlySmS:
+                    sdName = "TsneDx.FastStepS.cso";
+                    break;
             }
+            ComputeShader csOneStep = gpu.LoadShader(sdName);
             ComputeShader csSumUp = gpu.LoadShader("TsneDx.OneStepSumUp.cso");
             int stepCounter = 0;
 
@@ -562,7 +584,7 @@ namespace TsneDx {
                 cc.c.PFactor = (stepCounter < exaggerationLength) ? (float)ExaggerationFactor : 1.0f;
                 gpu.SetShader(csOneStep);
 
-                if (CachingDistance()) {
+                if (cachingMode == CachingMode.OnGpu) {
                     cc.c.groupNumber = MaxGroupNumber;
                     // Notice: cc.c.groupNumber*GroupSize must fit into groupMax[].
                     for (int bIdx = 0; bIdx < N; bIdx += cc.c.groupNumber * GroupSize) {
@@ -571,7 +593,7 @@ namespace TsneDx {
                         gpu.Run(cc.c.groupNumber);
                     }
                     cc.c.groupNumber = MaxGroupNumber * GroupSize;
-                } else if (cpuCaching) {
+                } else if (cachingMode == CachingMode.OnCpu) {
                     int bSize = MaxGroupNumberHyp * GroupSizeHyp;
                     cc.c.groupNumber = MaxGroupNumberHyp;
                     for (int bIdx = 0; bIdx < N; bIdx += bSize) {
@@ -581,7 +603,8 @@ namespace TsneDx {
                         gpu.Run(cc.c.groupNumber);
                     }
                     cc.c.groupNumber = Math.Min(N, bSize);
-                } else if (fastEuclidean) {
+                } else if ( (cachingMode==CachingMode.OnFlySm) || (cachingMode == CachingMode.OnFlySmS) ) {
+                    const int GrSize = 64;  // This value must match that of GR_SIZE in TsneMap.hlsl.
                     cc.c.groupNumber = MaxGroupNumber;
                     for (int bIdx = 0; bIdx < N; bIdx += cc.c.groupNumber * GrSize) {
                         cc.c.blockIdx = bIdx;
@@ -589,9 +612,7 @@ namespace TsneDx {
                         gpu.Run(cc.c.groupNumber);
                     }
                     cc.c.groupNumber = cc.c.groupNumber * GrSize;
-                } else {
-                    // using the IterateOneStep shader. A whole thread group will be assigned
-                    // to calculate a row of PP(i,j) and Q(i,j).
+                } else { // cachingMode==CachingMode.OnFly
                     cc.c.groupNumber = 128;
                     for (int bIdx = 0; bIdx < N; bIdx += cc.c.groupNumber) {
                         cc.c.blockIdx = bIdx;

@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>TsneMap.py SP500.cvs</StartArguments>
+    <StartArguments>C:\temp\test4.csv 0.05 500 2</StartArguments>
     <StartWorkingDirectory>C:\work\OpenVisuMap\TsneDx\</StartWorkingDirectory>
-    <StartAction>Program</StartAction>
+    <StartAction>Project</StartAction>
     <StartProgram>C:\Program Files %28x86%29\Microsoft Visual Studio\Shared\Python36_64\python.exe</StartProgram>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <StartArguments>TsneMap.py</StartArguments>
+    <StartArguments>C:\temp\test5.csv 0.05 1000 2</StartArguments>
     <StartWorkingDirectory>C:\work\OpenVisuMap\TsneDx\</StartWorkingDirectory>
-    <StartAction>Program</StartAction>
+    <StartAction>Project</StartAction>
     <StartProgram>python</StartProgram>
   </PropertyGroup>
   <PropertyGroup>
