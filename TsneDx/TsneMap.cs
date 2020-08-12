@@ -55,8 +55,6 @@ namespace TsneDx {
 
         float[][] cpuP;
 
-        void CmdSynchronize() { gpu.ReadFloat(resultStaging, resultBuf); }
-
         public TsneMap(
             double PerplexityRatio = 0.05, 
             int MaxEpochs = 500, 
@@ -296,7 +294,6 @@ namespace TsneDx {
                 // cc.c.groupNumber, groupMax[0..groupNumber] are the maximal values of matrix sub-section.
                 cc.Upload();
                 gpu.Run();
-                CmdSynchronize();
 
                 // Calculates the betaList[].
                 gpu.SetShader(sd3);
@@ -306,9 +303,7 @@ namespace TsneDx {
                     cc.c.blockIdx = bIdx;
                     cc.Upload();
                     gpu.Run(cc.c.groupNumber);
-                    CmdSynchronize();
                 }
-                CmdSynchronize();
 
                 // calculates the affinityFactor[]
                 gpu.SetShader(sd3);
@@ -318,14 +313,12 @@ namespace TsneDx {
                     cc.c.blockIdx = bIdx;
                     cc.Upload();
                     gpu.Run(cc.c.groupNumber);
-                    CmdSynchronize();
                 }
 
                 gpu.SetShader(sd);
                 // cc.c.groupNumber must contains the number of partial sumes in groupMax[].
                 cc.Upload();
                 gpu.Run();
-                CmdSynchronize();
             }
         }
 
@@ -522,25 +515,20 @@ namespace TsneDx {
                     else if (cc.c.columns < MaxDimension)
                         cachingMode = CachingMode.OnFlySm;
                     else
-                        cachingMode = CachingMode.OnGpu;
+                        cachingMode = CachingMode.OnFly;
                 }
             }
             #endregion
-
-            #region Calculate or Initialize P.
 
             cc.c.targetH = (float)Math.Log(PerplexityRatio * N);
             if (cachingMode == CachingMode.OnGpu) {
                 CalculateP();
             } else if (cachingMode == CachingMode.OnCpu) {
                 InitializePCpu();
-            } else { 
+            } else { // (cachingMode == CachingMode.OnFly[Sm,SmS])
                 InitializeP();
             }
 
-            #endregion
-
-            #region Calculate the initial sume of matrix Q.
             using (var sd = gpu.LoadShader("TsneDx.CalculateSumQ.cso")) {
                 gpu.SetShader(sd);
                 cc.c.groupNumber = 256;
@@ -553,30 +541,16 @@ namespace TsneDx {
                 cc.Upload();
                 gpu.Run();
             }
-            CmdSynchronize();
-            #endregion
-
-            #region The training loop
             
-            string sdName = null;
-            switch(cachingMode){
-                case CachingMode.OnGpu:
-                    sdName = "TsneDx.OneStep.cso";
-                    break;
-                case CachingMode.OnCpu:
-                    sdName = "TsneDx.OneStepCpuCache.cso";
-                    break;
-                case CachingMode.OnFly:
-                    sdName = "TsneDx.OneStepNoCache.cso";
-                    break;
-                case CachingMode.OnFlySm:
-                    sdName = "TsneDx.FastStep.cso";
-                    break;
-                case CachingMode.OnFlySmS:
-                    sdName = "TsneDx.FastStepS.cso";
-                    break;
-            }
-            ComputeShader csOneStep = gpu.LoadShader(sdName);
+            var sdNames = new Dictionary<CachingMode, string>() {
+                {CachingMode.OnGpu, "TsneDx.OneStep.cso"},
+                {CachingMode.OnCpu,  "TsneDx.OneStepCpuCache.cso"},
+                {CachingMode.OnFly,  "TsneDx.OneStepNoCache.cso"},
+                {CachingMode.OnFlySm, "TsneDx.FastStep.cso" },
+                {CachingMode.OnFlySmS, "TsneDx.FastStepS.cso"},
+            };
+
+            ComputeShader csOneStep = gpu.LoadShader(sdNames[cachingMode]);
             ComputeShader csSumUp = gpu.LoadShader("TsneDx.OneStepSumUp.cso");
             int stepCounter = 0;
 
@@ -619,7 +593,6 @@ namespace TsneDx {
                         cc.Upload();
                         gpu.Run(cc.c.groupNumber);
                     }
-                    CmdSynchronize();
                 }
 
                 //Notice: cc.c.groupNumber must be number of partial sumQ_next, which add up to sumQ for the next step.
@@ -638,7 +611,6 @@ namespace TsneDx {
                 }
             }
             Console.WriteLine();
-            #endregion
 
             float[][] Y = new float[N][];
             using (var rs = gpu.NewReadStream((cc.c.outDim == 3) ? Y3StagingBuf : Y2StagingBuf, (cc.c.outDim == 3) ? Y3Buf : Y2Buf)) {

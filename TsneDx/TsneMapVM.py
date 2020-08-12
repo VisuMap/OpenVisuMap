@@ -14,7 +14,16 @@ import numpy as np
 #=================================
 tmpFile = 'tmp0123.npy'
 def DoTsneMap(X, perplexityRatio=0.05, maxEpochs=1000, outDim=2, metricType=0):
-    tsne = TsneDx.TsneMap(PerplexityRatio=perplexityRatio, MaxEpochs=maxEpochs, OutDim=outDim, MetricType=metricType)
+    tsne = TsneDx.TsneMap()
+    tsne.PerplexityRatio = perplexityRatio
+    tsne.MaxEpochs = maxEpochs
+    tsne.OutDim = outDim
+    tsne.MetricType = metricType
+    tsne.CacheLimit = 23000
+    tsne.MaxCpuCacheSize = 26000
+    tsne.ExaggerationFactor = 4.0
+    tsne.ExaggerationRatio = 0.2
+
     np.save(tmpFile, X)
     Y = tsne.FitNumpyFile(tmpFile)
     os.remove(tmpFile)
@@ -44,7 +53,7 @@ if pcaNr>0:
 
 print('Fitting table ', X.shape)
 t0 = time.time()
-Y = DoTsneMap(X, perplexityRatio=0.01, metricType=0)
+Y = DoTsneMap(X, perplexityRatio=0.025, maxEpochs=100, metricType=0)
 print('Fitting finished in %.2f seconds'%(time.time()-t0))
 
 log.ShowMatrix(Y, view=4)
