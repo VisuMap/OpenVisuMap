@@ -365,18 +365,6 @@ float2 ToAffinity2(uint rowIdx, uint gid) {
 	return float2(beta, sum);
 }
 
-//Notice: groupNumber must be smaller than GROUP_SIZE.
-[numthreads(GROUP_SIZE, 1, 1)]
-void InitializeP(uint3 id : SV_DispatchThreadId, uint gidx : SV_GroupIndex) {
-	groupValue[id.x] = (id.x < groupNumber) ? groupMax[id.x] : 0.0;
-	GroupMemoryBarrierWithGroupSync();
-	GroupSum0(id.x, groupValue);
-	float fct = 1.0 / (2 * groupValue[0]);
-
-	ForLoop(id.x, N, k) {
-		affinityFactor(k) *= fct;
-	}
-}
 
 //Calculate the sumQ and store it into result[1].
 #define G_P2_SIZE 64
@@ -471,7 +459,8 @@ void InitializeP3(uint3 id : SV_DispatchThreadId, uint3 gid : SV_GroupId, uint g
 			if (gIdx == 0) {
 				float2 ret = ToAffinity2(i, gid.x); 
 				betaList(i) = distanceFactor * ret[0];
-				affinityFactor(i) = 1.0 / ret[1];
+				float v = (ret[1] == 0) ? 1e22 : 1.0 / ret[1];
+				affinityFactor(i) = isinf(v) ? 1e22 : v;
 			}
 		}
 		DeviceMemoryBarrier();
@@ -494,6 +483,20 @@ void InitializeP3(uint3 id : SV_DispatchThreadId, uint3 gid : SV_GroupId, uint g
 		DeviceMemoryBarrier();
 	}
 }
+
+//Notice: groupNumber must be smaller than GROUP_SIZE.
+[numthreads(GROUP_SIZE, 1, 1)]
+void InitializeP(uint3 id : SV_DispatchThreadId, uint gidx : SV_GroupIndex) {
+	groupValue[id.x] = (id.x < groupNumber) ? groupMax[id.x] : 0.0;
+	GroupMemoryBarrierWithGroupSync();
+	GroupSum0(id.x, groupValue);
+	float fct = 1.0 / (2 * groupValue[0]);
+
+	ForLoop(id.x, N, k) {
+		affinityFactor(k) *= fct;
+	}
+}
+
 //=================================================================================================
 
 float PP(uint i, uint j) {
