@@ -30,6 +30,10 @@ namespace TsneDx {
                 return;
             }
             float[][] X = inFile.EndsWith(".csv") ? ReadCsvFile(inFile) : TsneMap.ReadNumpyFile(inFile);
+            if ( X == null) {
+                Console.WriteLine("Cannot load input file: " + TsneMap.ErrorMsg);
+                return;
+            }
             var pca = new FastPca();
             var B = pca.DoPca(X, outDim);
             WriteCsvFile(B, outFile);
