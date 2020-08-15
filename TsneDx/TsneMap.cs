@@ -195,14 +195,25 @@ namespace TsneDx {
                     }
                 }
 
-                if ((dtype == NumpyDtype.DT_Unknown) || (dims.Count != 2) || isFortranOrder ) {
+                if ((dtype == NumpyDtype.DT_Unknown) || (dims.Count != 2) ) {
                     TsneMap.ErrorMsg = "Invalid Format";
                     return null;
                 }
 
                 float[][] X = new float[dims[0]][];
-                for (int row = 0; row < dims[0]; row++)
-                    X[row] = ReadRow(dims[1], br, dtype);
+                if (isFortranOrder) {
+                    float[][] Xtr = new float[dims[1]][];
+                    for (int row = 0; row < dims[1]; row++)
+                        Xtr[row] = ReadRow(dims[0], br, dtype);
+                    for (int row = 0; row < dims[0]; row++) {
+                        X[row] = new float[dims[1]];
+                        for (int col = 0; col < dims[1]; col++)
+                            X[row][col] = Xtr[col][row];
+                    }
+                } else {
+                    for (int row = 0; row < dims[0]; row++)
+                        X[row] = ReadRow(dims[1], br, dtype);
+                }
                 return X;
             }
         }
