@@ -2,8 +2,8 @@
 #
 # TsneMap.py: Sample script to access TsneDx from python 
 #
-# Installation: The module 'pythonnet' need to be installed; and this directory
-# need to be added to the PYTHONPATH environment variable.
+# Installation: The module 'pythonnet' need to be installed via command 'pip install pythonnet'; 
+# and this directory need to be added to the PYTHONPATH environment variable.
 #
 # Usage: 
 #    TsneMap.py  <file-name>
