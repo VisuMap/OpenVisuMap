@@ -223,6 +223,11 @@ namespace TsneDx {
             return TsneMap.Flatten(DoPca(TsneMap.ReadNumpyFile(fileName), eigenCount));
         }
 
+        public float[] DoPcaBuffer(long ptr, int rows, int columns, int eigenCount) {
+            var matrix = TsneMap.NumpyArrayToMatrix(ptr, rows, columns);
+            return TsneMap.Flatten(DoPca(matrix, eigenCount));
+        }
+
         public float[] DoPcaNumpy(float[][] X, int eigenCount) {
             return TsneMap.Flatten(DoPca(X, eigenCount));
         }

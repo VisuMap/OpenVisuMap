@@ -117,6 +117,22 @@ namespace TsneDx {
             return Flatten( Fit(X) );
         }
 
+        unsafe static public float[][] NumpyArrayToMatrix(long ptr, int rows, int columns) {
+            float[][] matrix = new float[rows][];
+            long L = 4 * columns;
+            for (int row = 0; row < rows; row++) {
+                matrix[row] = new float[columns];
+                fixed (void* src = &(matrix[row][0]))
+                    System.Buffer.MemoryCopy((void*)(ptr + row * L), src, L, L);
+            }
+            return matrix;
+        }
+
+        unsafe public float[] FitBuffer(long ptr, int rows, int columns) {
+            float[][] matrix = NumpyArrayToMatrix(ptr, rows, columns);
+            return Flatten(Fit(matrix));
+        }
+
         enum NumpyDtype {
             DT_Float32, DT_Int32, DT_Float64, DT_Unknown
         }

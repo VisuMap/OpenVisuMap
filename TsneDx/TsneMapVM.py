@@ -12,7 +12,6 @@ import clr, os, TsneDx, time, ModelUtil
 import numpy as np
 
 #=================================
-tmpFile = 'tmp0123.npy'
 def DoTsneMap(X, perplexityRatio=0.05, maxEpochs=1000, outDim=2, metricType=0):
     tsne = TsneDx.TsneMap()
     tsne.PerplexityRatio = perplexityRatio
@@ -24,17 +23,15 @@ def DoTsneMap(X, perplexityRatio=0.05, maxEpochs=1000, outDim=2, metricType=0):
     tsne.ExaggerationFactor = 4.0
     tsne.ExaggerationRatio = 0.2
 
-    np.save(tmpFile, X)
-    Y = tsne.FitNumpyFile(tmpFile)
-    os.remove(tmpFile)
+    X = X.astype(np.float32)
+    Y = tsne.FitBuffer(X.__array_interface__['data'][0], X.shape[0], X.shape[1])
     #Y = tsne.FitNumpy(X)   # simple way, but slow for large file.
     return np.fromiter(Y, float).reshape(X.shape[0], -1)
 
 def ReduceByPca(X, pcaNumber=50):
     pca = TsneDx.FastPca()
-    np.save(tmpFile, X)
-    X1 = pca.DoPcaNumpyFile(tmpFile, pcaNumber)
-    os.remove(tmpFile)    
+    X = X.astype(np.float32)
+    X1 = pca.DoPcaBuffer(X.__array_interface__['data'][0], X.shape[0], X.shape[1], pcaNumber)
     return np.fromiter(X1, float).reshape(X.shape[0], -1)
 #=================================
 
@@ -55,5 +52,5 @@ print('Fitting table ', X.shape)
 t0 = time.time()
 Y = DoTsneMap(X, perplexityRatio=0.025, maxEpochs=100, metricType=0)
 print('Fitting finished in %.2f seconds'%(time.time()-t0))
-
+print('Map table: ', Y.shape)
 log.ShowMatrix(Y, view=4)
