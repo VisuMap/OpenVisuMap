@@ -196,17 +196,22 @@ namespace TsneDx {
             resultBuf = gpu.CreateBufferRW(cc.c.rows * cc.c.eigenCount, 4, 1);
 
             using (var shader = gpu.LoadShader("TsneDx.PcaReduceMatrix.cso")) {
-                gpu.SetShader(shader);
-                const int GROUP_NR = 256;
-                gpu.Run(GROUP_NR);
+                try {
+                    gpu.SetShader(shader);
+                    const int GROUP_NR = 256;
+                    gpu.Run(GROUP_NR);
 
-                float[] buf = gpu.ReadRange<float>(resultBuf, cc.c.rows * cc.c.eigenCount);
-                B = new float[cc.c.rows][];
-                for (int row = 0; row < cc.c.rows; row++)
-                    B[row] = new float[cc.c.eigenCount];
-                Parallel.For(0, cc.c.rows, row => {
-                    Array.Copy(buf, row * cc.c.eigenCount, B[row], 0, cc.c.eigenCount);
-                });
+                    float[] buf = gpu.ReadRange<float>(resultBuf, cc.c.rows * cc.c.eigenCount);
+                    B = new float[cc.c.rows][];
+                    for (int row = 0; row < cc.c.rows; row++)
+                        B[row] = new float[cc.c.eigenCount];
+                    Parallel.For(0, cc.c.rows, row => {
+                        Array.Copy(buf, row * cc.c.eigenCount, B[row], 0, cc.c.eigenCount);
+                    });
+                } catch (SharpDX.SharpDXException ex) {
+                    string msg = ex.Message;
+                    Console.WriteLine("GPU operation timeouted: Please try to enlarge the TDR value");
+                }
             }
 
             TsneDx.SafeDispose(eigenTable, sdInit, sdStep, sdNorm, sdAdjCov, eVectorBuf, 
