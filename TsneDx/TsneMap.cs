@@ -59,9 +59,9 @@ namespace TsneDx {
             double PerplexityRatio = 0.05, 
             int MaxEpochs = 500, 
             int OutDim=2,
-            double ExaggerationRatio = 0.2,
+            double ExaggerationRatio = 0.7,
             int CacheLimit = 23000,
-            double ExaggerationFactor = 4.0,
+            double ExaggerationFactor = 12.0,
             int MetricType = 0
             )  {
             this.PerplexityRatio = PerplexityRatio;
@@ -91,13 +91,16 @@ namespace TsneDx {
 
         public int MetricType { get; set; } = 0;
 
-        public double ExaggerationFactor { get; set; } = 4.0;
+        public double ExaggerationFactor { get; set; } = 12.0;
 
-        public double ExaggerationRatio { get; set; } = 0.2;
+        public double ExaggerationRatio { get; set; } = 0.7;
 
         public int ExaggerationLength { 
             get { return (int) (MaxEpochs* ExaggerationRatio); }
         }
+
+        public bool ExaggerationSmoothen { get; set; } = true;
+
         #endregion        
 
         #region FitNumpy
@@ -582,7 +585,15 @@ namespace TsneDx {
             int stepCounter = 0;
 
             while (true) {
-                cc.c.PFactor = (stepCounter < exaggerationLength) ? (float)ExaggerationFactor : 1.0f;
+                if (stepCounter < exaggerationLength) {
+                    if (ExaggerationSmoothen) {
+                        float t = (float)stepCounter / exaggerationLength;
+                        cc.c.PFactor = (float)((1 - t) * ExaggerationFactor + t);
+                    } else
+                        cc.c.PFactor = (float)ExaggerationFactor;
+                } else
+                    cc.c.PFactor = 1.0f;
+
                 gpu.SetShader(csOneStep);
 
                 if (cachingMode == CachingMode.OnGpu) {
