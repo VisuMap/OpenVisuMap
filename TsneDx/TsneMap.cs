@@ -101,6 +101,7 @@ namespace TsneDx {
 
         public bool ExaggerationSmoothen { get; set; } = true;
 
+        public bool AutoNormalize { get; set; } = true;
         #endregion        
 
         #region FitNumpy
@@ -660,7 +661,7 @@ namespace TsneDx {
             TsneDx.SafeDispose(csSumUp, csOneStep, PBuf, P2Buf, distanceBuf, tableBuf, resultBuf, 
                 resultStaging, groupMaxBuf, Y3Buf, Y3StagingBuf, v3Buf, Y2Buf, Y2StagingBuf, v2Buf, cc, gpu);
 
-            return Y;
+            return AutoNormalize ? PcaNormalize.DoNormalize(Y) : Y;
         }
     }
 }

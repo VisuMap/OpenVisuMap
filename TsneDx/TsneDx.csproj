@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="FastPca.cs" />
     <Compile Include="GpuDevice.cs" />
+    <Compile Include="PcaNormalize.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TimeCheck.cs" />
     <Compile Include="TsneDx.cs" />
