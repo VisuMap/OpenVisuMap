@@ -9,17 +9,22 @@ namespace TsneDx {
             int dim = xyz[0].Length;
 
             float[] c = new float[dim];
-            for(int row=0; row < N; row++) {
-                for(int col=0; col<dim; col++)
+            for (int col = 0; col < dim; col++) {
+                for (int row = 0; row < N; row++)
                     c[col] += xyz[row][col];
-            }
-            for (int col = 0; col < dim; col++)
                 c[col] /= N;
+            }
 
-            float[][] M = (dim == 2) ? xyz.Select(v => new float[] { v[0] - c[0], v[1] - c[1] }).ToArray()
-                                     : xyz.Select(v => new float[] { v[0] - c[0], v[1] - c[1], v[2] - c[2] }).ToArray();
+            float[][] M = new float[N][];
+            for (int row = 0; row < N; row++) {
+                M[row] = new float[dim];
+                for (int col = 0; col < dim; col++)
+                    M[row][col] = xyz[row][col] - c[col];
+            }
 
             float MomentFct(float v) {
+                if (float.IsNaN(v))
+                    return 0;
                 return (float)(Math.Sign(v) * Math.Sqrt(Math.Abs(v)));
             }
 
