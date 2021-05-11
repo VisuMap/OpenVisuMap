@@ -50,7 +50,7 @@ if pcaNr>0:
 
 print('Fitting table ', X.shape)
 t0 = time.time()
-Y = DoTsneMap(X, perplexityRatio=0.025, maxEpochs=100, outDim=3, metricType=0)
+Y = DoTsneMap(X, perplexityRatio=0.025, maxEpochs=100, outDim=2, metricType=0)
 print('Fitting finished in %.2f seconds'%(time.time()-t0))
 print('Map table: ', Y.shape)
-log.ShowMatrix(Y, view=13)
+log.ShowMatrix(Y, view=10+Y.shape[1])
