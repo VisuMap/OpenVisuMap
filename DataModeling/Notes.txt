@@ -1,0 +1,49 @@
+1 installed pip by: (1) download get-pip.py file; (2) run the command "python get-pip.py".
+
+2 Download and installed "Microsoft Visual C++ 2015 Redistributable Update 3" from
+  https://www.microsoft.com/en-us/download/confirmation.aspx?id=53587
+
+3 Run command "pip install tensorflow"
+
+4 run "python test.py" to test matmul() reported some error relating to " unknown op: BestSplits "
+
+5 Downloaded tensorflow-1.0.0rc2-cp35-cp35m-win_amd64.whl from 
+   http://ci.tensorflow.org/view/Nightly/job/nightly-win/85/
+  Then installed it with "pip install tensorflow***.whl"
+  After this, the error of (4) disappeared. Just 3 warning related to SSE are reported.
+
+6 python -m pip install Pillow
+
+7 pip install ipython
+
+8 saver = tf.train.Saver(tf.all_variables())
+  saver.save(sess,"checkpoint.data")
+
+9: pip install tensorflow
+   pip install tensorflow-gpu
+   pip uninstall tensorflow
+
+10: downloaded and upgraded to: tensorflow-1.1.0rc1-cp35-cp35m-win_amd64.whl; 
+   The gpu version tensorflow_gpu-1.1.0rc1-cp35-cp35m-win_amd64.whl does not work: some problem with swig.
+   The working gpu version is tensorflow_gpu-1.0.1-cp35-cp35m-win_amd64.whl, but is 
+   30% slower than the CPU version.
+
+11 Installing MxNet:
+   python setup.py install
+    
+12:Installing Lasagne on windows after Theano:
+     pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
+
+13: To use keras with theano: run vcvarsall.bat in the following dir once:
+    C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC
+
+14: Upgrading to tensorflow 1.4 with: pip3 install --upgrade tensorflow
+    Upgrading to tensorflow with GPU: pip3 install --upgrade tensorflow-gpu
+    The gpu version requires upgrading cudnn from v5.0 to v6.0
+
+15: Upgraded to tensorflow 1.5, but the performance degraded for FFClassification.md.py & Pictures.xvmz & 100 epochs
+    from 108 seconds to 208 secons. So, I downgraded 1.4
+
+16: Downloaded and installed tensorflow 1.7. But, tensorflow failed to get imported with some ImportDDL error. Presumbly
+    because the windows desktop computer does support AVX extension. So, I downgraded to tensorflow 1.4
+

@@ -1,0 +1,1 @@
+vv.RemovePlugin("Binary Metrics");

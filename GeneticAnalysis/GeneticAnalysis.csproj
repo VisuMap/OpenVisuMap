@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4E7F46B1-72D8-45C9-B168-55CB2ADCA481}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>GeneticAnalysis</RootNamespace>
+    <AssemblyName>GeneticAnalysis</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>GeneticAnalysis.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>.\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="VisuMapApi">
+      <HintPath>..\..\..\Program Files\VisuMap Technologies\VisuMap5\bin\VisuMapApi.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AcgtMetric.cs" />
+    <Compile Include="Bedgraph.cs" />
+    <Compile Include="SmithWatermanMetric.cs" />
+    <Compile Include="NeedlemanWunschMetric.cs" />
+    <Compile Include="FastQ.cs" />
+    <Compile Include="LevenshteinMetric.cs" />
+    <Compile Include="MotifAffinity.cs" />
+    <Compile Include="SplicingAffinity2.cs" />
+    <Compile Include="FastaNt.cs" />
+    <Compile Include="GeneticAnalysis.cs" />
+    <Compile Include="MultiThreading.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SeqAnalysis.cs" />
+    <Compile Include="SeqBlob.cs" />
+    <Compile Include="SeqView.cs" />
+    <Compile Include="SnpDataReader.cs" />
+    <Compile Include="SplicingAffinity.cs" />
+    <Compile Include="UniqueNameFinder.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Blast.js" />
+    <Content Include="BlastDB.js" />
+    <Content Include="Install.js" />
+    <Content Include="NcbiCdsPost.js" />
+    <Content Include="PatternCount.js" />
+    <Content Include="SequenceOp.js" />
+    <Content Include="ShowChromosome.js" />
+    <Content Include="ShowSeqMap.js" />
+    <Content Include="UnInstall.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="GeneticAnalysis.snk" />
+    <None Include="Package.bat" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

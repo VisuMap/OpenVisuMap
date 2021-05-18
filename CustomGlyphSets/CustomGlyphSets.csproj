@@ -1,0 +1,277 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{1955BBEB-33F3-4E9C-8FEE-AEF1F90F2E7E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CustomGlyphSets</RootNamespace>
+    <AssemblyName>CustomGlyphSets</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <UpgradeBackupLocation />
+    <TargetFrameworkProfile />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="VisuMapApi, Version=4.0.890.0, Culture=neutral, PublicKeyToken=be268d35b7fdc692, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Program Files\VisuMap Technologies\VisuMap5\bin\VisuMapApi.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ColorWheel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ColorWheel.Designer.cs">
+      <DependentUpon>ColorWheel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CustomGlyphSet.cs" />
+    <Compile Include="GlyphSetScript.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ColorWheel128\G000.png" />
+    <Content Include="ColorWheel128\G001.png" />
+    <Content Include="ColorWheel128\G002.png" />
+    <Content Include="ColorWheel128\G003.png" />
+    <Content Include="ColorWheel128\G004.png" />
+    <Content Include="ColorWheel128\G005.png" />
+    <Content Include="ColorWheel128\G006.png" />
+    <Content Include="ColorWheel128\G007.png" />
+    <Content Include="ColorWheel128\G008.png" />
+    <Content Include="ColorWheel128\G009.png" />
+    <Content Include="ColorWheel128\G010.png" />
+    <Content Include="ColorWheel128\G011.png" />
+    <Content Include="ColorWheel128\G012.png" />
+    <Content Include="ColorWheel128\G013.png" />
+    <Content Include="ColorWheel128\G014.png" />
+    <Content Include="ColorWheel128\G015.png" />
+    <Content Include="ColorWheel128\G016.png" />
+    <Content Include="ColorWheel128\G017.png" />
+    <Content Include="ColorWheel128\G018.png" />
+    <Content Include="ColorWheel128\G019.png" />
+    <Content Include="ColorWheel128\G020.png" />
+    <Content Include="ColorWheel128\G021.png" />
+    <Content Include="ColorWheel128\G022.png" />
+    <Content Include="ColorWheel128\G023.png" />
+    <Content Include="ColorWheel128\G024.png" />
+    <Content Include="ColorWheel128\G025.png" />
+    <Content Include="ColorWheel128\G026.png" />
+    <Content Include="ColorWheel128\G027.png" />
+    <Content Include="ColorWheel128\G028.png" />
+    <Content Include="ColorWheel128\G029.png" />
+    <Content Include="ColorWheel128\G030.png" />
+    <Content Include="ColorWheel128\G031.png" />
+    <Content Include="ColorWheel128\G032.png" />
+    <Content Include="ColorWheel128\G033.png" />
+    <Content Include="ColorWheel128\G034.png" />
+    <Content Include="ColorWheel128\G035.png" />
+    <Content Include="ColorWheel128\G036.png" />
+    <Content Include="ColorWheel128\G037.png" />
+    <Content Include="ColorWheel128\G038.png" />
+    <Content Include="ColorWheel128\G039.png" />
+    <Content Include="ColorWheel128\G040.png" />
+    <Content Include="ColorWheel128\G041.png" />
+    <Content Include="ColorWheel128\G042.png" />
+    <Content Include="ColorWheel128\G043.png" />
+    <Content Include="ColorWheel128\G044.png" />
+    <Content Include="ColorWheel128\G045.png" />
+    <Content Include="ColorWheel128\G046.png" />
+    <Content Include="ColorWheel128\G047.png" />
+    <Content Include="ColorWheel128\G048.png" />
+    <Content Include="ColorWheel128\G049.png" />
+    <Content Include="ColorWheel128\G050.png" />
+    <Content Include="ColorWheel128\G051.png" />
+    <Content Include="ColorWheel128\G052.png" />
+    <Content Include="ColorWheel128\G053.png" />
+    <Content Include="ColorWheel128\G054.png" />
+    <Content Include="ColorWheel128\G055.png" />
+    <Content Include="ColorWheel128\G056.png" />
+    <Content Include="ColorWheel128\G057.png" />
+    <Content Include="ColorWheel128\G058.png" />
+    <Content Include="ColorWheel128\G059.png" />
+    <Content Include="ColorWheel128\G060.png" />
+    <Content Include="ColorWheel128\G061.png" />
+    <Content Include="ColorWheel128\G062.png" />
+    <Content Include="ColorWheel128\G063.png" />
+    <Content Include="ColorWheel128\G064.png" />
+    <Content Include="ColorWheel128\G065.png" />
+    <Content Include="ColorWheel128\G066.png" />
+    <Content Include="ColorWheel128\G067.png" />
+    <Content Include="ColorWheel128\G068.png" />
+    <Content Include="ColorWheel128\G069.png" />
+    <Content Include="ColorWheel128\G070.png" />
+    <Content Include="ColorWheel128\G071.png" />
+    <Content Include="ColorWheel128\G072.png" />
+    <Content Include="ColorWheel128\G073.png" />
+    <Content Include="ColorWheel128\G074.png" />
+    <Content Include="ColorWheel128\G075.png" />
+    <Content Include="ColorWheel128\G076.png" />
+    <Content Include="ColorWheel128\G077.png" />
+    <Content Include="ColorWheel128\G078.png" />
+    <Content Include="ColorWheel128\G079.png" />
+    <Content Include="ColorWheel128\G080.png" />
+    <Content Include="ColorWheel128\G081.png" />
+    <Content Include="ColorWheel128\G082.png" />
+    <Content Include="ColorWheel128\G083.png" />
+    <Content Include="ColorWheel128\G084.png" />
+    <Content Include="ColorWheel128\G085.png" />
+    <Content Include="ColorWheel128\G086.png" />
+    <Content Include="ColorWheel128\G087.png" />
+    <Content Include="ColorWheel128\G088.png" />
+    <Content Include="ColorWheel128\G089.png" />
+    <Content Include="ColorWheel128\G090.png" />
+    <Content Include="ColorWheel128\G091.png" />
+    <Content Include="ColorWheel128\G092.png" />
+    <Content Include="ColorWheel128\G093.png" />
+    <Content Include="ColorWheel128\G094.png" />
+    <Content Include="ColorWheel128\G095.png" />
+    <Content Include="ColorWheel128\G096.png" />
+    <Content Include="ColorWheel128\G097.png" />
+    <Content Include="ColorWheel128\G098.png" />
+    <Content Include="ColorWheel128\G099.png" />
+    <Content Include="ColorWheel128\G100.png" />
+    <Content Include="ColorWheel128\G101.png" />
+    <Content Include="ColorWheel128\G102.png" />
+    <Content Include="ColorWheel128\G103.png" />
+    <Content Include="ColorWheel128\G104.png" />
+    <Content Include="ColorWheel128\G105.png" />
+    <Content Include="ColorWheel128\G106.png" />
+    <Content Include="ColorWheel128\G107.png" />
+    <Content Include="ColorWheel128\G108.png" />
+    <Content Include="ColorWheel128\G109.png" />
+    <Content Include="ColorWheel128\G110.png" />
+    <Content Include="ColorWheel128\G111.png" />
+    <Content Include="ColorWheel128\G112.png" />
+    <Content Include="ColorWheel128\G113.png" />
+    <Content Include="ColorWheel128\G114.png" />
+    <Content Include="ColorWheel128\G115.png" />
+    <Content Include="ColorWheel128\G116.png" />
+    <Content Include="ColorWheel128\G117.png" />
+    <Content Include="ColorWheel128\G118.png" />
+    <Content Include="ColorWheel128\G119.png" />
+    <Content Include="ColorWheel128\G120.png" />
+    <Content Include="ColorWheel128\G121.png" />
+    <Content Include="ColorWheel128\G122.png" />
+    <Content Include="ColorWheel128\G123.png" />
+    <Content Include="ColorWheel128\G124.png" />
+    <Content Include="ColorWheel128\G125.png" />
+    <Content Include="ColorWheel128\G126.png" />
+    <Content Include="ColorWheel128\G127.png" />
+    <Content Include="Install.js" />
+    <Content Include="MakeGlyphSets.js" />
+    <Content Include="Phase16\P15.png" />
+    <Content Include="Phase16\P14.png" />
+    <Content Include="Phase16\P13.png" />
+    <Content Include="Phase16\P12.png" />
+    <Content Include="Phase16\P11.png" />
+    <Content Include="Phase16\P10.png" />
+    <Content Include="Phase16\P09.png" />
+    <Content Include="Phase16\P08.png" />
+    <Content Include="Phase16\P07.png" />
+    <Content Include="Phase16\P06.png" />
+    <Content Include="Phase16\P05.png" />
+    <Content Include="Phase16\P04.png" />
+    <Content Include="Phase16\P03.png" />
+    <Content Include="Phase16\P02.png" />
+    <Content Include="Phase16\P01.png" />
+    <Content Include="Phase16\P00.png" />
+    <Content Include="Phase8\P7.png" />
+    <Content Include="Phase8\P6.png" />
+    <Content Include="Phase8\P5.png" />
+    <Content Include="Phase8\P4.png" />
+    <Content Include="Phase8\P3.png" />
+    <Content Include="Phase8\P1.png" />
+    <Content Include="Phase8\P2.png" />
+    <Content Include="Phase8\P0.png" />
+    <Content Include="RedGreenBinary\RG_0.png" />
+    <Content Include="RedGreenBinary\RG_1.png" />
+    <Content Include="RedGreenBinary\RG_2.png" />
+    <Content Include="Trend8\P8.png" />
+    <Content Include="Trend8\P7.png" />
+    <Content Include="Trend8\P6.png" />
+    <Content Include="Trend8\P4.png" />
+    <Content Include="Trend8\P5.png" />
+    <Content Include="Trend8\P3.png" />
+    <Content Include="Trend8\P2.png" />
+    <Content Include="Trend8\P1.png" />
+    <Content Include="Trend8\P0.png" />
+    <Content Include="UnInstall.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Package.bat" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ColorWheel.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ColorWheel.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

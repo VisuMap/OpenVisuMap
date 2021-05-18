@@ -1,0 +1,9 @@
+vv.RemovePlugin("Custom Importer");
+vv.SetProperty("CustomImporter.FCS.ShowResult", null);
+vv.SetProperty("CustomImporter.FCS.SaveMetaInfo", null);
+vv.SetProperty("CustomImporter.FCS.GlyphName", null);
+vv.SetProperty("CustomImporter.Arff.DoPca", null);
+vv.SetProperty("CustomImporter.Logicle.Settings", null);
+vv.SetProperty("CustomImporter.CsvFilter.Extension", null);
+vv.SetProperty("CustomImporter.CsvFilter.CommentPrefix", null);
+vv.SetProperty("CustomImporter.CsvFilter.SkipLines", null);

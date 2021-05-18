@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type"><title>Introduction</title>
+
+</head>
+<body style="font-size: 10pt; font-family: Arial;">
+<strong><span> <br>
+<span style="font-size: 12pt;">Introduction</span></span><br>
+</strong> <br>
+The MultivaraiteAnalysis plugin&nbsp;extends VisuMap with services
+for variouse type of &nbsp;multivariate data analysis. Currently
+the plugin provides&nbsp;the following services:<br>
+<ul>
+<li>Linear Discreminate Analysis (LDA).<br>
+</li>
+<li>Partial Least Squares (PLS) Analysis.<br>
+</li>
+<li>Cannonic Correlation Analysis (CCA).</li>
+</ul>
+All three services are linear data analysis with so called<span style="font-style: italic;"> projection
+pursuit </span>strategy:<span style="font-style: italic;"></span>
+they try to find limited number of directions in the high dimensional
+space, so that the projection of a data set to these directions will
+maximize certain properties. So for instance, the LDA method tries
+to find a set of directions, so that different types of data points
+will have maximal <span style="font-style: italic;">separatation</span>
+after
+the projection. Figure 1 illustrates how LDA find a direction that
+maximally separates two types of data points. Notice that the method of
+princimpal
+component analysis (PCA) is also a projection pursuit method, as it
+finds directions that maximize the variance of the whole dataset.<br>
+<br>
+<img style="border: 1px solid ; width: 600px; height: 341px;" alt="LDA Projection" title="LDA Projection" src="LdaProjection.png"><br>
+<br>
+<div style="text-align: left;"><span style="font-weight: bold;"></span>
+<table style="text-align: left; width: 600px;" border="0" cellpadding="2" cellspacing="2">
+<tbody>
+<tr>
+<td style="text-align: right; vertical-align: top; width: 65px;"><small><span style="font-weight: bold;">Fingure 1:</span></small></td>
+<td style="width: 500px;"><span style="font-weight: bold;"></span><small>LDA
+vs. PCA in projecting 2-dimensional data to 1-dimensional space: LDA
+maximaizes the separation whereas PCA maximizes the variance</small>.
+</td>
+</tr>
+</tbody>
+</table>
+<span style="font-weight: bold;"><br>
+</span></div>
+<br>
+PLS method provides basically&nbsp;opposite service as LDA: whereas
+LDA
+tries to find features (rotation direction) to distinguish groups of
+data points; PLS tries to find common features between data
+groups.&nbsp;More particularily, for two given data
+points set X and Y in a high dimensional space, PLS algorithm finds TWO
+sets of directions, so that the projection of X and Y to these two sets
+of directions will have maximal <span style="font-style: italic;">covariance</span>
+with each other. Figure 2 illustrates how PLS finds a direction for two
+data point sets, so that the projection of the two sets will have
+maximal covariance with each other.<br>
+<br>
+<br>
+<img style="border: 1px solid ; width: 600px; height: 372px;" alt="PLS Projections" title="PLS Projections" src="PlsProjections.PNG"><br>
+<br>
+<table style="text-align: left; width: 600px;" border="0" cellpadding="2" cellspacing="2">
+<tbody>
+<tr>
+<td style="text-align: right; vertical-align: top; width: 65px;"><small><span style="font-weight: bold;">Fingure 2:</span></small></td>
+<td style="width: 500px;"><small>PLS finds two
+directions for two data clusters, so that the projections
+of the clusters to the directions have maximal covariance to each other.</small>
+</td>
+</tr>
+</tbody>
+</table>
+<br>
+The CCA method works very similarly as PLS with the exception that
+CCA&nbsp;maximizes the <span style="font-style: italic;">correlation
+</span>&nbsp;of
+the projected data instead of their covariance. &nbsp;Since, unlike
+the
+covariance, the correlation is in general independent on the scaling
+range of the data, CCA can be applied to data set with different
+scaling range ( by ignoring the scaling information). On the otherside,
+PLS will preserve the scaling information and is therefore normally
+only appropriate to explore data with common&nbsp;scaling range. It
+should&nbsp;be pointed out that &nbsp;CCA, as projection
+method, does
+not perserve the scaling, since its projection base vectors are
+normally not orthogonal.<br>
+<br>
+As common to all projection prusit methods,&nbsp;directions found
+by
+LDA,
+PLS are&nbsp;orthogonal unit vectors, and each direction is
+associated with a factor, &nbsp;called the eigenvalue, that
+indicates how much that direction contributes to the to-be maximized
+property. In practices, it is often sufficient to explore just few
+directions with the largest eigenvalues. Becouse of this
+characteristics,&nbsp;these methods are sometimes used as <span style="font-style: italic;">dimensionality reduction</span>
+methods.<br>
+<span style="font-weight: bold;"><br>
+</span> <span style="font-size: 12pt;"> <strong>Using
+the MultivariateAnalysis plugin<br>
+<br>
+<span style="font-weight: normal;"><small>The
+MultivariateAnalysis plugin is delivered as a zipped directory file
+<code>MultivariateAnalysis.zip</code>. &nbsp;The plugin
+is installed&nbsp;as
+following:</small><br>
+</span></strong></span>
+<ol>
+<li>Decompress MultivariateAnalysis.zip.<br>
+</li>
+<li>Start VisuMap application.<br>
+</li>
+<li>Press F5 in VisuMap; then, when prompt for a script
+file,&nbsp;select the file SetupMva.js.</li>
+</ol>
+After the installation, the plugin will offer its service through the
+plugin object named "MultivariateAnalysis". The user can obtain a
+reference to this object in a script by the statement <code>"var
+mva
+=&nbsp;vv.FindPluginObject("MultivariateAnalysis");"</code>.
+Please see the chapter "VisuMap.MultiVariateAnalysis NameSpace" of this
+document for more information about how to use this plugin object.<br>
+<br>
+For the sake of convienence the installation procedure also
+installs&nbsp;three&nbsp;context menus to enable users to do
+services on selected data. The three context menus are&nbsp;as
+following:<br>
+<br style="font-weight: bold;">
+<ul>
+<li><span style="font-weight: bold;">Do LDA</span>:
+Perform LDA
+analysis on selected data. The selected data points should have at
+least two different types. This operation will display the projected
+data in a 3D view window.&nbsp; You can perform binary LDA by
+marking some
+data points as highlighted (through the common context menu), then
+select another set of data points, and then choose this context menu.
+When doing binary LDA, the algorithm will just find a direction that
+maximally separates the two selected data point sets.<br>
+<br>
+</li>
+<li><span style="font-weight: bold;">Do PLS</span>:
+&nbsp;Perform PLS
+analysis. In order to use this service, first mark a set data points as
+highlighted (through the common context menu); then selec
+another set of data points; then choose this context mneu.
+&nbsp;This operation will display the projections of the two
+selected
+data point sets&nbsp;in two value diagram windows.<br>
+<br>
+</li>
+<li style="font-weight: bold;">Do CCA<span style="font-weight: normal;">:&nbsp;Perform CCA
+analysis. In order to use this service, first marks a set
+of data points as highlighted (through the common context menu);
+then select another set of data points; then choose this context
+mneu. &nbsp;This operation will display the projections of the two
+selected
+data point sets&nbsp;in two value diagram windows.</span></li>
+</ul>
+<br>
+<span style="font-weight: bold;"></span>In order to
+uninstall the MultivariateAnalysis plugin just press F5 in VisuMap,
+then choose the script UninstallMva.js.<br>
+<br>
+<br>
+<span style="font-weight: bold;"></span><br>
+<br>
+</body></html>

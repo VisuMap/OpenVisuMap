@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{3489cad8-9a1c-4723-b35a-0d1753230e0d}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>
+    </StartupFile>
+    <SearchPath>..\DataModeling</SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId />
+    <Name>TensorflowModeling</Name>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Aug2AugVars.md.py" />
+    <Compile Include="Augmented.md.py" />
+    <Compile Include="Augmented2.md.py" />
+    <Compile Include="Augmented3.md.py" />
+    <Compile Include="Autoassociation.ev.py" />
+    <Compile Include="Autoencoder.ev.py" />
+    <Compile Include="Autoencoder.md.py" />
+    <Compile Include="BiModel.md.py" />
+    <Compile Include="ClassifyGraph.md.py" />
+    <Compile Include="CmdLineTest.py" />
+    <Compile Include="Connect2Graph.ev.py" />
+    <Compile Include="Convert2Model.py" />
+    <Compile Include="CustomTarget.md.py" />
+    <Compile Include="DataUtil.py" />
+    <Compile Include="Disc.md.py" />
+    <Compile Include="DR.ev.py" />
+    <Compile Include="Ergodic.md.py" />
+    <Compile Include="Eval.ev.py" />
+    <Compile Include="Eval.py" />
+    <Compile Include="backlog\EvalModel.py" />
+    <Compile Include="Explore.ev.py" />
+    <Compile Include="ExploreGraph.py" />
+    <Compile Include="FCS.md.py" />
+    <Compile Include="FCS_Full.md.py" />
+    <Compile Include="FCS_Shape.md.py" />
+    <Compile Include="backlog\FeedForwardNetwork.py" />
+    <Compile Include="FFClassification.md.py" />
+    <Compile Include="backlog\FFKeras.py" />
+    <Compile Include="backlog\FFMap.py" />
+    <Compile Include="FFModel.md.py" />
+    <Compile Include="FFRegression.md.py" />
+    <Compile Include="backlog\FFTheano.py" />
+    <Compile Include="FullCnn.md.py" />
+    <Compile Include="gan.md.py" />
+    <Compile Include="Keras.ev.py" />
+    <Compile Include="KerasClassification.md.py" />
+    <Compile Include="LinearRegression.md.py" />
+    <Compile Include="MDS.md.py" />
+    <Compile Include="MDSort.md.py" />
+    <Compile Include="MeanPropagation.md.py" />
+    <Compile Include="mlp_param_tsne.py" />
+    <Compile Include="Model.client.py" />
+    <Compile Include="ModelLogger.py" />
+    <Compile Include="ModelPrefix.py" />
+    <Compile Include="ModelServer.py" />
+    <Compile Include="ModelUtil.py" />
+    <Compile Include="backlog\ptsne.py" />
+    <Compile Include="MultiLane.md.py" />
+    <Compile Include="NodeMap.ev.py" />
+    <Compile Include="OpenTsne.ev.py" />
+    <Compile Include="OutputScaling.md.py" />
+    <Compile Include="ParTsne.md.py" />
+    <Compile Include="ParTsne2.md.py" />
+    <Compile Include="PCA.md.py" />
+    <Compile Include="Picture.md.py" />
+    <Compile Include="PictureCls.md.py" />
+    <Compile Include="PictureReg.md.py" />
+    <Compile Include="Profile.ev.py" />
+    <Compile Include="RandomTest.ev.py" />
+    <Compile Include="RBM.md.py" />
+    <Compile Include="Regression0.md.py" />
+    <Compile Include="ReTrain.md.py" />
+    <Compile Include="rpm.md.py" />
+    <Compile Include="rpm2.md.py" />
+    <Compile Include="RR.md.py" />
+    <Compile Include="RRR.md.py" />
+    <Compile Include="Segregated.md.py" />
+    <Compile Include="ServerUtil.py" />
+    <Compile Include="ShapeOfPictures.md.py" />
+    <Compile Include="ShowGraph.py" />
+    <Compile Include="Staged.md.py" />
+    <Compile Include="Staged2.md.py" />
+    <Compile Include="Staged3.md.py" />
+    <Compile Include="t.ev.py" />
+    <Compile Include="t.py" />
+    <Compile Include="Test.ev.py" />
+    <Compile Include="Test.md.py" />
+    <Compile Include="backlog\Util.py" />
+    <Compile Include="Test2.ev.py" />
+    <Compile Include="TsneClient.py" />
+    <Compile Include="UdpCmd.py" />
+    <Compile Include="UMapRun.py" />
+    <Compile Include="UmapTest.ev.py" />
+    <Compile Include="WithPreprocessing.md.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="License.txt" />
+    <Content Include="Notes.txt" />
+    <Content Include="obj\Debug\DataModeling.csproj.FileListAbsolute.txt" />
+    <Content Include="obj\Release\DataModeling.csproj.FileListAbsolute.txt" />
+    <Content Include="Readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="backlog\" />
+    <Folder Include="obj\" />
+    <Folder Include="obj\Debug" />
+    <Folder Include="obj\Release" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>

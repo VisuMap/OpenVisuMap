@@ -1,0 +1,206 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4F225861-6E1B-41DD-9340-F646468CD52B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DataModeling</RootNamespace>
+    <AssemblyName>DataModeling</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CfgSettings.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CfgSettings.Designer.cs">
+      <DependentUpon>CfgSettings.cs</DependentUpon>
+    </Compile>
+    <Compile Include="J8Engine.cs" />
+    <Compile Include="PythonEngine.cs" />
+    <Compile Include="CmdServer.cs" />
+    <Compile Include="DataLink.cs" />
+    <Compile Include="DataModeling.cs" />
+    <Compile Include="DataModelingException.cs" />
+    <Compile Include="FeedforwardNetwork.cs" />
+    <Compile Include="GetScriptName.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GetScriptName.Designer.cs">
+      <DependentUpon>GetScriptName.cs</DependentUpon>
+    </Compile>
+    <Compile Include="InputPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="InputPanel.Designer.cs">
+      <DependentUpon>InputPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LiveModel.cs" />
+    <Compile Include="ModelServer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ModelServer.Designer.cs">
+      <DependentUpon>ModelServer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NumpyFileImport.cs" />
+    <Compile Include="PromptInput.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PromptInput.Designer.cs">
+      <DependentUpon>PromptInput.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ModelingScript.cs" />
+    <Compile Include="ModelManager.cs" />
+    <Compile Include="ModelManager2.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ModelManager2.Designer.cs">
+      <DependentUpon>ModelManager2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ModelTest.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ModelTest.Designer.cs">
+      <DependentUpon>ModelTest.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ModelTraining.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ModelTraining.Designer.cs">
+      <DependentUpon>ModelTraining.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ScriptUtil.cs" />
+    <Compile Include="DropdownEditor.cs" />
+    <Compile Include="VariableListView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="VariableListView.Designer.cs">
+      <DependentUpon>VariableListView.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="CfgSettings.resx">
+      <DependentUpon>CfgSettings.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GetScriptName.resx">
+      <DependentUpon>GetScriptName.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="InputPanel.resx">
+      <DependentUpon>InputPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ModelServer.resx">
+      <DependentUpon>ModelServer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PromptInput.resx">
+      <DependentUpon>PromptInput.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ModelManager2.resx">
+      <DependentUpon>ModelManager2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ModelTest.resx">
+      <DependentUpon>ModelTest.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ModelTraining.resx">
+      <DependentUpon>ModelTraining.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="VariableListView.resx">
+      <DependentUpon>VariableListView.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ApiTest.js" />
+    <Content Include="ApplyModel.js" />
+    <Content Include="BatchJobs.js" />
+    <Content Include="Eval.client.js" />
+    <Content Include="FastProb.client.js" />
+    <Content Include="GraphMap.client.js" />
+    <Content Include="Install.js" />
+    <Content Include="Interpolation.js" />
+    <Content Include="License.txt" />
+    <Content Include="ManagerTest.js" />
+    <None Include="Resources\CfgSettings.png" />
+    <Content Include="ModelClientTest.js" />
+    <Content Include="ProbWeight.client.js" />
+    <Content Include="Readme.txt" />
+    <None Include="Resources\EditScript.png" />
+    <None Include="Resources\Editing1.bmp" />
+    <None Include="Resources\IconStart.ico" />
+    <None Include="Resources\StartServer.png" />
+    <None Include="Resources\ShutdownServer.png" />
+    <Content Include="ReshapeHistory.js" />
+    <Content Include="ScalingTest.js" />
+    <Content Include="Test.client.js" />
+    <Content Include="Test2.client.js" />
+    <Content Include="TestModel.js" />
+    <Content Include="TrainModel.js" />
+    <Content Include="UnInstall.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Package.bat" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\VisuMap\VisuMap.csproj">
+      <Project>{460bf99b-df67-4598-86a7-653bf818ab72}</Project>
+      <Name>VisuMap</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VisuMap\VisuMapApi\VisuMapApi.csproj">
+      <Project>{d18bb735-8e34-4e21-a0d8-bf5a020b2e52}</Project>
+      <Name>VisuMapApi</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

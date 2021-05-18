@@ -1,0 +1,17 @@
+*.whl
+/__pycache__
+/obj
+/bin
+/tf_log
+../x64
+*.dll
+*.xvmz
+*.zip
+*.data-00000-of-00001
+*.md
+*.meta
+*.csv
+*.md.py
+*.ev.py
+*.bin
+*.h5

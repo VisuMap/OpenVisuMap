@@ -1,0 +1,407 @@
+<VisuMap xmlns="urn:VisuMap.Technologies:VisuMap" Version="3.5" xmlns:vm="urn:VisuMap.Technologies:VisuMap">
+  <DatasetList CurrentDataset="Y">
+    <Dataset Name="X" Tag="">
+      <Description>Dataset imported form CSV source C:\Users\JamesLi\Desktop\New Text Document.txt</Description>
+      <DatasetApp />
+      <Table Rows="37" Columns="3">
+        <Column Id="C0" Type="n" />
+        <Column Id="C1" Type="n" />
+        <Column Id="C2" Type="n" />
+        <Row Id="0">49|48|8</Row>
+        <Row Id="1">47|76|13</Row>
+        <Row Id="2">11|40|13</Row>
+        <Row Id="3">9|52|9</Row>
+        <Row Id="4">69|63|15</Row>
+        <Row Id="5">35|82|14</Row>
+        <Row Id="6">6|71|21</Row>
+        <Row Id="7">8|68|8</Row>
+        <Row Id="8">49|74|11</Row>
+        <Row Id="9">8|70|15</Row>
+        <Row Id="10">47|70|15</Row>
+        <Row Id="11">6|61|11</Row>
+        <Row Id="12">14|54|12</Row>
+        <Row Id="13">30|55|13</Row>
+        <Row Id="14">4|54|10</Row>
+        <Row Id="15">24|40|14</Row>
+        <Row Id="16">19|66|13</Row>
+        <Row Id="17">45|54|10</Row>
+        <Row Id="18">22|64|14</Row>
+        <Row Id="19">16|47|16</Row>
+        <Row Id="20">32|48|16</Row>
+        <Row Id="21">37|52|14</Row>
+        <Row Id="22">47|74|19</Row>
+        <Row Id="23">5|57|12</Row>
+        <Row Id="24">6|57|10</Row>
+        <Row Id="25">60|80|11</Row>
+        <Row Id="26">58|78|13</Row>
+        <Row Id="27">6|70|16</Row>
+        <Row Id="28">16|47|14</Row>
+        <Row Id="29">45|94|19</Row>
+        <Row Id="30">9|63|11</Row>
+        <Row Id="31">69|76|16</Row>
+        <Row Id="32">35|59|11</Row>
+        <Row Id="33">19|55|8</Row>
+        <Row Id="34">58|74|14</Row>
+        <Row Id="35">58|71|17</Row>
+        <Row Id="36">79|54|14</Row>
+      </Table>
+      <MapList CurrentMap="map">
+        <Map Name="map">
+          <MethodInfo>
+            <Linear3DView>
+              <UsingGradient>True</UsingGradient>
+              <AnimationFreq>13</AnimationFreq>
+              <ProjectMode>PCA</ProjectMode>
+              <InRotatingMode>True</InRotatingMode>
+              <ShowAxes>True</ShowAxes>
+              <SrcQualifier>3:37</SrcQualifier>
+              <MaxComponents>50</MaxComponents>
+              <Width>1007</Width>
+              <Height>688</Height>
+              <PCA>
+                <Indices>0 1 2</Indices>
+                <Rotation>6.3978599 0 0 0 6.3978599 0 0 0 6.3978599</Rotation>
+                <Shift>-352.523 352.274 54.6116</Shift>
+              </PCA>
+            </Linear3DView>
+          </MethodInfo>
+          <MapInfo Type="Cube">
+            <Glyph Type="BuiltIn" Name="Colored Glyphs" HiddenBodySize="1" DisabledBodySize="0" HiddenBodyColor="-65536" DisabledBodyColor="-8355712" />
+            <Background Type="Gradient" Color="-16777152" />
+            <Description>
+            </Description>
+            <Width>600.0</Width>
+            <Height>400.0</Height>
+            <Depth>500.0</Depth>
+            <XShift>0</XShift>
+            <YShift>0</YShift>
+            <ZShift>0</ZShift>
+            <NameLabelColor>Color [A=255, R=255, G=64, B=64]</NameLabelColor>
+          </MapInfo>
+          <Metric>EuclideanMetric</Metric>
+          <MapMethod>Linear3D</MapMethod>
+          <Position>
+            <P>334.708 340.617 283.156</P>
+            <P>372.613 162.987 266.147</P>
+            <P>88.134 320.089 244.047</P>
+            <P>95.987 244.981 275.829</P>
+            <P>485.542 280.525 248.128</P>
+            <P>309.568 104.529 262.061</P>
+            <P>113.518 117.291 209.291</P>
+            <P>117.667 145.637 290.709</P>
+            <P>380.960 179.766 277.979</P>
+            <P>122.730 129.918 247.158</P>
+            <P>362.538 198.776 250.179</P>
+            <P>93.764 183.530 267.675</P>
+            <P>130.904 240.067 258.165</P>
+            <P>231.263 261.692 253.565</P>
+            <P>68.971 223.400 270.140</P>
+            <P>168.293 342.547 238.679</P>
+            <P>182.910 174.846 258.614</P>
+            <P>321.077 295.789 273.315</P>
+            <P>198.073 191.908 251.399</P>
+            <P>131.818 284.527 229.065</P>
+            <P>231.955 306.647 230.841</P>
+            <P>269.268 291.946 246.123</P>
+            <P>370.440 172.280 226.825</P>
+            <P>80.824 205.788 259.077</P>
+            <P>86.528 208.542 271.904</P>
+            <P>459.118 162.411 282.049</P>
+            <P>443.758 170.150 268.072</P>
+            <P>110.654 125.892 240.628</P>
+            <P>131.374 285.516 241.815</P>
+            <P>393.207 46.159 237.399</P>
+            <P>115.717 176.568 268.980</P>
+            <P>508.556 200.347 248.726</P>
+            <P>268.576 246.991 268.848</P>
+            <P>162.513 244.742 284.588</P>
+            <P>436.967 194.173 259.551</P>
+            <P>432.374 211.079 238.817</P>
+            <P>531.029 353.841 250.449</P>
+          </Position>
+        </Map>
+      </MapList>
+    </Dataset>
+    <Dataset Name="Y" Tag="">
+      <Description>Dataset imported form CSV source C:\Users\JamesLi\Desktop\New Text Document.txt</Description>
+      <DatasetApp />
+      <Table Rows="37" Columns="5">
+        <Column Id="C3" Type="n" />
+        <Column Id="C4" Type="n" />
+        <Column Id="C5" Type="n" />
+        <Column Id="C6" Type="n" />
+        <Column Id="C7" Type="n" />
+        <Row Id="0">1|2|6|12|16</Row>
+        <Row Id="1">5|14|14|30|27</Row>
+        <Row Id="2">0|10|21|16|16</Row>
+        <Row Id="3">0|2|5|17|8</Row>
+        <Row Id="4">2|7|11|26|17</Row>
+        <Row Id="5">2|15|21|34|25</Row>
+        <Row Id="6">0|1|20|23|18</Row>
+        <Row Id="7">0|0|10|19|14</Row>
+        <Row Id="8">0|0|7|16|13</Row>
+        <Row Id="9">3|2|21|26|25</Row>
+        <Row Id="10">8|16|15|35|24</Row>
+        <Row Id="11">5|4|7|15|14</Row>
+        <Row Id="12">1|12|13|27|21</Row>
+        <Row Id="13">2|1|12|20|17</Row>
+        <Row Id="14">3|12|20|26|22</Row>
+        <Row Id="15">0|2|5|14|8</Row>
+        <Row Id="16">7|12|21|35|27</Row>
+        <Row Id="17">0|6|6|14|16</Row>
+        <Row Id="18">12|8|19|27|26</Row>
+        <Row Id="19">3|9|15|18|10</Row>
+        <Row Id="20">0|7|9|14|18</Row>
+        <Row Id="21">4|6|20|26|26</Row>
+        <Row Id="22">4|9|14|23|23</Row>
+        <Row Id="23">0|2|4|11|8</Row>
+        <Row Id="24">0|1|16|15|17</Row>
+        <Row Id="25">3|8|18|28|21</Row>
+        <Row Id="26">1|18|19|34|23</Row>
+        <Row Id="27">2|11|9|23|11</Row>
+        <Row Id="28">0|10|7|12|8</Row>
+        <Row Id="29">8|10|28|32|32</Row>
+        <Row Id="30">2|12|5|25|14</Row>
+        <Row Id="31">7|11|18|29|21</Row>
+        <Row Id="32">2|5|10|23|24</Row>
+        <Row Id="33">0|1|14|19|12</Row>
+        <Row Id="34">1|0|10|18|18</Row>
+        <Row Id="35">6|4|23|31|26</Row>
+        <Row Id="36">0|6|6|15|14</Row>
+      </Table>
+      <MapList CurrentMap="map">
+        <Map Name="map">
+          <MethodInfo>
+            <Linear3DView>
+              <UsingGradient>True</UsingGradient>
+              <AnimationFreq>13</AnimationFreq>
+              <ProjectMode>PCA</ProjectMode>
+              <InRotatingMode>True</InRotatingMode>
+              <ShowAxes>True</ShowAxes>
+              <SrcQualifier>5:37</SrcQualifier>
+              <MaxComponents>50</MaxComponents>
+              <Width>1007</Width>
+              <Height>688</Height>
+              <PCA>
+                <Indices>0 1 2</Indices>
+                <Rotation>12.446957 0 0 0 12.446957 0 0 0 12.446957</Rotation>
+                <Shift>-421.169 7.35706 -14.9934</Shift>
+              </PCA>
+            </Linear3DView>
+          </MethodInfo>
+          <MapInfo Type="Cube">
+            <Glyph Type="BuiltIn" Name="Colored Glyphs" HiddenBodySize="1" DisabledBodySize="0" HiddenBodyColor="-65536" DisabledBodyColor="-8355712" />
+            <Background Type="Gradient" Color="-16777152" />
+            <Description>
+            </Description>
+            <Width>600.0</Width>
+            <Height>400.0</Height>
+            <Depth>500.0</Depth>
+            <XShift>0</XShift>
+            <YShift>0</YShift>
+            <ZShift>0</ZShift>
+            <NameLabelColor>Color [A=255, R=255, G=64, B=64]</NameLabelColor>
+          </MapInfo>
+          <Metric>EuclideanMetric</Metric>
+          <MapMethod>Linear3D</MapMethod>
+          <Position>
+            <P>119.7 239.3 312.2</P>
+            <P>428.6 149.9 320.0</P>
+            <P>267.6 242.7 152.8</P>
+            <P>97.7 187.4 276.9</P>
+            <P>283.4 176.9 290.7</P>
+            <P>485.4 162.9 241.3</P>
+            <P>295.8 304.5 230.0</P>
+            <P>175.1 251.6 286.0</P>
+            <P>127.5 240.0 298.5</P>
+            <P>380.5 315.3 280.0</P>
+            <P>467.5 109.1 304.1</P>
+            <P>152.1 209.2 301.2</P>
+            <P>344.5 152.1 277.8</P>
+            <P>222.4 261.7 292.7</P>
+            <P>390.6 203.1 226.5</P>
+            <P>74.8 198.0 269.6</P>
+            <P>506.9 195.3 285.1</P>
+            <P>146.9 194.0 297.0</P>
+            <P>424.6 246.0 308.9</P>
+            <P>210.9 186.9 184.1</P>
+            <P>181.6 210.2 279.7</P>
+            <P>397.5 274.4 281.6</P>
+            <P>329.3 208.4 294.5</P>
+            <P>45.9 202.3 271.1</P>
+            <P>204.0 304.3 239.2</P>
+            <P>373.0 218.2 259.3</P>
+            <P>468.6 114.7 229.9</P>
+            <P>223.7 115.9 244.2</P>
+            <P>100.1 141.3 213.3</P>
+            <P>554.1 286.3 260.9</P>
+            <P>237.6 84.7 300.0</P>
+            <P>400.5 186.3 261.3</P>
+            <P>292.6 224.8 347.2</P>
+            <P>190.0 260.2 233.3</P>
+            <P>195.6 269.2 313.3</P>
+            <P>451.3 294.7 281.9</P>
+            <P>141.5 183.5 286.2</P>
+          </Position>
+        </Map>
+      </MapList>
+    </Dataset>
+    <Dataset Name="XY" Tag="">
+      <Description>Dataset imported form CSV source C:\Users\JamesLi\Desktop\New Text Document.txt</Description>
+      <DatasetApp />
+      <Table Rows="37" Columns="8">
+        <Column Id="C0" Type="n" />
+        <Column Id="C1" Type="n" />
+        <Column Id="C2" Type="n" />
+        <Column Id="C3" Type="n" />
+        <Column Id="C4" Type="n" />
+        <Column Id="C5" Type="n" />
+        <Column Id="C6" Type="n" />
+        <Column Id="C7" Type="n" />
+        <Row Id="0">49|48|8|1|2|6|12|16</Row>
+        <Row Id="1">47|76|13|5|14|14|30|27</Row>
+        <Row Id="2">11|40|13|0|10|21|16|16</Row>
+        <Row Id="3">9|52|9|0|2|5|17|8</Row>
+        <Row Id="4">69|63|15|2|7|11|26|17</Row>
+        <Row Id="5">35|82|14|2|15|21|34|25</Row>
+        <Row Id="6">6|71|21|0|1|20|23|18</Row>
+        <Row Id="7">8|68|8|0|0|10|19|14</Row>
+        <Row Id="8">49|74|11|0|0|7|16|13</Row>
+        <Row Id="9">8|70|15|3|2|21|26|25</Row>
+        <Row Id="10">47|70|15|8|16|15|35|24</Row>
+        <Row Id="11">6|61|11|5|4|7|15|14</Row>
+        <Row Id="12">14|54|12|1|12|13|27|21</Row>
+        <Row Id="13">30|55|13|2|1|12|20|17</Row>
+        <Row Id="14">4|54|10|3|12|20|26|22</Row>
+        <Row Id="15">24|40|14|0|2|5|14|8</Row>
+        <Row Id="16">19|66|13|7|12|21|35|27</Row>
+        <Row Id="17">45|54|10|0|6|6|14|16</Row>
+        <Row Id="18">22|64|14|12|8|19|27|26</Row>
+        <Row Id="19">16|47|16|3|9|15|18|10</Row>
+        <Row Id="20">32|48|16|0|7|9|14|18</Row>
+        <Row Id="21">37|52|14|4|6|20|26|26</Row>
+        <Row Id="22">47|74|19|4|9|14|23|23</Row>
+        <Row Id="23">5|57|12|0|2|4|11|8</Row>
+        <Row Id="24">6|57|10|0|1|16|15|17</Row>
+        <Row Id="25">60|80|11|3|8|18|28|21</Row>
+        <Row Id="26">58|78|13|1|18|19|34|23</Row>
+        <Row Id="27">6|70|16|2|11|9|23|11</Row>
+        <Row Id="28">16|47|14|0|10|7|12|8</Row>
+        <Row Id="29">45|94|19|8|10|28|32|32</Row>
+        <Row Id="30">9|63|11|2|12|5|25|14</Row>
+        <Row Id="31">69|76|16|7|11|18|29|21</Row>
+        <Row Id="32">35|59|11|2|5|10|23|24</Row>
+        <Row Id="33">19|55|8|0|1|14|19|12</Row>
+        <Row Id="34">58|74|14|1|0|10|18|18</Row>
+        <Row Id="35">58|71|17|6|4|23|31|26</Row>
+        <Row Id="36">79|54|14|0|6|6|15|14</Row>
+      </Table>
+      <MapList CurrentMap="map">
+        <Map Name="map">
+          <MethodInfo>
+            <Linear3DView>
+              <UsingGradient>True</UsingGradient>
+              <AnimationFreq>13</AnimationFreq>
+              <ProjectMode>PCA</ProjectMode>
+              <InRotatingMode>True</InRotatingMode>
+              <ShowAxes>True</ShowAxes>
+              <SrcQualifier>8:37</SrcQualifier>
+              <MaxComponents>50</MaxComponents>
+              <Width>1007</Width>
+              <Height>688</Height>
+              <PCA>
+                <Indices>0 1 2</Indices>
+                <Rotation>8.6439505 0 0 0 8.6439505 0 0 0 8.6439505</Rotation>
+                <Shift>-524.889 -457.62 142.878</Shift>
+              </PCA>
+            </Linear3DView>
+          </MethodInfo>
+          <MapInfo Type="Cube">
+            <Glyph Type="BuiltIn" Name="Colored Glyphs" HiddenBodySize="1" DisabledBodySize="0" HiddenBodyColor="-65536" DisabledBodyColor="-8355712" />
+            <Background Type="Gradient" Color="-16777152" />
+            <Description>
+            </Description>
+            <Width>642.0</Width>
+            <Height>427.0</Height>
+            <Depth>536.0</Depth>
+            <XShift>0</XShift>
+            <YShift>0</YShift>
+            <ZShift>0</ZShift>
+            <NameLabelColor>Color [A=255, R=255, G=64, B=64]</NameLabelColor>
+          </MapInfo>
+          <Metric>EuclideanMetric</Metric>
+          <MapMethod>Linear3D</MapMethod>
+          <Position>
+            <P>341.666 81.758 276.525</P>
+            <P>404.376 268.565 277.795</P>
+            <P>154.791 167.178 348.655</P>
+            <P>150.875 167.665 243.217</P>
+            <P>478.014 144.532 280.718</P>
+            <P>358.951 329.445 272.724</P>
+            <P>184.348 299.596 242.098</P>
+            <P>177.616 247.115 210.649</P>
+            <P>383.488 178.901 187.842</P>
+            <P>199.560 311.756 269.674</P>
+            <P>398.337 258.908 310.096</P>
+            <P>155.832 219.561 231.588</P>
+            <P>200.830 230.589 318.219</P>
+            <P>269.435 173.425 277.578</P>
+            <P>154.356 261.575 331.741</P>
+            <P>203.890 92.067 284.086</P>
+            <P>257.957 308.349 326.863</P>
+            <P>334.408 118.213 265.575</P>
+            <P>262.441 273.859 310.100</P>
+            <P>186.424 169.191 306.135</P>
+            <P>265.521 132.910 296.470</P>
+            <P>313.970 195.870 346.303</P>
+            <P>392.995 238.073 255.944</P>
+            <P>135.258 179.752 212.596</P>
+            <P>152.399 219.923 261.577</P>
+            <P>467.076 244.745 248.266</P>
+            <P>463.063 266.323 288.647</P>
+            <P>176.662 272.831 225.769</P>
+            <P>177.451 137.563 272.874</P>
+            <P>433.017 374.062 256.196</P>
+            <P>181.787 243.110 251.784</P>
+            <P>508.016 222.273 275.700</P>
+            <P>307.217 194.558 286.631</P>
+            <P>210.881 184.487 264.636</P>
+            <P>433.998 181.036 211.727</P>
+            <P>451.092 240.506 301.322</P>
+            <P>500.079 54.352 273.670</P>
+          </Position>
+        </Map>
+      </MapList>
+    </Dataset>
+  </DatasetList>
+  <FilterList />
+  <FolderApp>
+    <Properties>
+      <BodyIdGroupList />
+      <BodyNameGroupList />
+      <NumberPrecision>g6</NumberPrecision>
+    </Properties>
+    <DataInfo>
+      <BgColor>Color [White]</BgColor>
+      <WrapWord>True</WrapWord>
+      <Font>[Font: Name=Microsoft Sans Serif, Size=9.75, Units=3, GdiCharSet=0, GdiVerticalFont=False],0</Font>
+      <Content><![CDATA[{\rtf1\ansi\ansicpg1252\deff0\deflang4105{\fonttbl{\f0\fnil\fcharset0 Microsoft Sans Serif;}}
+\viewkind4\uc1\pard\f0\fs20 Sample test dataset from the following site:\par
+\par
+http://www.philender.com/courses/multivariate/notes2/can1.html\par
+}
+]]></Content>
+    </DataInfo>
+    <ScriptList>
+      <Script Name="CcaTest">var X = vv.Folder.ReadDataset("X").GetNumberTable();
+var Y = vv.Folder.ReadDataset("Y").GetNumberTable();
+vv.LoadPlugin("C:\\work\\VisuMap\\PluginModules\\MultivariateAnalysis\\bin\\Debug\\MultivariateAnalysis.dll");
+var mva = vv.FindPluginObject("MultivariateAnalysis");
+var ret = mva.DoCCA(X, Y);
+
+vv.Echo(Math.sqrt(ret.EigenValuesX[0]));
+vv.Echo(Math.sqrt(ret.EigenValuesX[1]));
+vv.Echo(Math.sqrt(ret.EigenValuesX[2]));</Script>
+    </ScriptList>
+  </FolderApp>
+</VisuMap>

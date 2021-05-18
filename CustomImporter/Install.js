@@ -1,0 +1,12 @@
+var dir = vv.CurrentScriptPath.substr(0, vv.CurrentScriptPath.lastIndexOf("\\") + 1);
+vv.InstallPlugin("Custom Importer", dir +"CustomImporter.dll", true);
+vv.SetProperty("CustomImporter.FCS.ShowResult", "0", "Show the imported FCS data");
+vv.SetProperty("CustomImporter.FCS.SaveMetaInfo", "0", "o: No meta data; 1: Save the parameter attributes; 2: Save additionally the FCS text segment.");
+vv.SetProperty("CustomImporter.FCS.GlyphName", "12 Clusters", "Glyph set name of the initial map.");
+vv.SetProperty("CustomImporter.FCS.LogTransform", "1", "Transform parameters marked for logicle transformation");
+vv.SetProperty("CustomImporter.FCS.AutoCompensation", "1", "Perform compensation when spillover matrix available");
+vv.SetProperty("CustomImporter.Arff.DoPca", "1", "Perform a PCA mapping after import.");
+vv.SetProperty("CustomImporter.Logicle.Settings", "262144; 1.0; 4.5", "The T, W, M parameters for the logicle transformation.");
+vv.SetProperty("CustomImporter.CsvFilter.Extension", "soft sam txt csv tsv", "File extension to filter csv files, e.g. .csv, .txt, ... (.gz for zip files not needed)");
+vv.SetProperty("CustomImporter.CsvFilter.CommentPrefix", "# ! @ ^", "List of space separated comment prefix.");
+vv.SetProperty("CustomImporter.CsvFilter.SkipLines", "0", "Lines to skip at beginning of the input file.");

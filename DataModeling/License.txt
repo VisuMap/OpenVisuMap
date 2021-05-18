@@ -1,0 +1,9 @@
+﻿VisuMap Data Modeling Plugin is licensed under the:
+
+    Apache License 2.0
+
+which is available at:
+
+    http://www.apache.org/licenses/LICENSE-2.0.html.
+
+Copyright 2017 VisuMap Technologies Inc. All rights reserved.
