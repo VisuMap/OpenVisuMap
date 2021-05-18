@@ -1,5 +1,9 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
+﻿/**/bin
+/**/obj
+/**/.vs
+/**/*.suo
+/**/.vs
+/**/*.zip
+/**/x64
+TsneDx/SP500_pc.csv
 
-/TsneDx/SP500_pc.csv
