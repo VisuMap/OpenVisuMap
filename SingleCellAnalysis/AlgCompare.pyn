@@ -1,0 +1,76 @@
+# File: AlgCompare.pyn
+# 
+# Python script to create 2D maps with various algorithms.
+#
+import time
+import numpy as np
+
+alg = ['VMtSNE', 'UMAP', 'BHtSNE', 'FastTsne', 'OpenTsne'][1]
+epochs = 500
+D = pp.GetSelectedNumberTable()
+if D.Rows <= 1:
+    D = pp.GetNumberTable()
+
+t0 = time.time()
+
+if alg == 'VMtSNE':
+    mc = New.MdsCluster(D)
+    mc.MaxLoops = epochs
+    mc.MdsAlgorithm = 2
+    mc.RefreshFreq = 50
+    mc.Show().Reset().Start()
+    map = mc.Show2DView()
+    mc.Close()
+    tm = time.time() - t0
+    map.Title = '%s: Time: %.1f sec'%(alg, tm) 
+    map.NormalizeView()  
+    quit()
+
+ds = ToNumpy(D)
+ds = np.nan_to_num(ds)
+vv.Title = "Loaded table: " + str(ds.shape) + ', ' + str(ds.dtype)
+
+if alg == 'UMAP':
+    import umap
+    nn, md, lc, ns = 1000, 0.15, 5.0, 10
+    um = umap.UMAP(n_neighbors=nn, min_dist=md, local_connectivity=lc, n_components=2, metric='euclidean', 
+        negative_sample_rate=ns, n_epochs=epochs, init='random', learning_rate=1, verbose=False)
+    M = um.fit_transform(ds)
+
+elif alg == 'BHtSNE':
+    from sklearn.manifold import TSNE
+    pPerplexity = 100
+    tsne = TSNE(n_components=2, perplexity=pPerplexity, 
+        learning_rate=200.0, n_iter=epochs, angle=0.5, n_jobs=-1, verbose=2, init='random')
+    M = tsne.fit_transform(ds) 
+
+elif alg == 'FastTsne': 
+   import os, sys
+   pPerplexity = 100
+   fitTsneDir = '/work/VisuMapPlugin/SingleCellAnalysis/rna-seq-tsne/FIt-SNE-master'
+   os.chdir(fitTsneDir)
+   sys.path.append(fitTsneDir)
+   from fast_tsne import fast_tsne
+   M = fast_tsne(ds, perplexity=pPerplexity, max_iter=epochs, stop_early_exag_iter=int(epochs/4))
+
+elif alg == 'OpenTsne': 
+   from openTSNE import TSNE
+   from openTSNE.callbacks import ErrorLogger
+   tsne = TSNE(perplexity=100, metric="euclidean", n_jobs=6, 
+       n_iter=epochs, negative_gradient_method='fft',
+       callbacks=ErrorLogger())
+   M = tsne.fit(ds)
+
+tm = time.time() - t0
+
+B = New.BodyList( CopyToTable(M, New.NumberTable(D, 2)) )
+map = New.MapSnapshot(B)
+map.Title = '%s: Time: %.1f sec'%(alg, tm)
+map.Show()
+map.NormalizeView()
+#vv.Wait(10*1000)
+
+#import matplotlib.pyplot as plt
+#plt.scatter(M[:,0], M[:,1])
+#plt.show()
+

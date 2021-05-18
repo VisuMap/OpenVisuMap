@@ -1,9 +1,11 @@
 ﻿/**/bin
 /**/obj
+/**/x64
 /**/.vs
 /**/*.suo
 /**/.vs
 /**/*.zip
-/**/x64
+/**/*.cso
 TsneDx/SP500_pc.csv
+/packages
 
