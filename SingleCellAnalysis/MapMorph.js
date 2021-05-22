@@ -33,7 +33,6 @@ if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster")) {
     pp.Title = msg;
 } else {
     var initBody = New.BodyListClone(vv.Map.BodyList);
-    vv.Echo(initBody.Count);
     var mpName = vv.Map.Name;
     var mpList = New.StringArray();
     var prefix = mpName.Substring(0, 1);
