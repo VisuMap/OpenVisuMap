@@ -6,14 +6,16 @@
 //Then, activate one map in the main window and run this script.
 //
 function Animation(mp, bodyList) {
-    var moved = mp.MoveBodiesTo(bodyList, 30, 75, 2);
+    var moved = mp.MoveBodiesTo(bodyList, 30, 75, 0);
     vv.Sleep(1000);
     return moved;
 }
 
 var msg = "Moved bodies: ";
+
 if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster")) {
     // Morphing between calling view and other open map snapshots.
+    var initBody = New.BodyListClone(pp.BodyList);
     var vwList = New.ObjectArray();
     var f = pp.TheForm;
     var bsCount = pp.BodyList.Count;
@@ -27,8 +29,11 @@ if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster")) {
         g.SetBounds(f.Left + f.Width - 10, newTop, 0, 0, 3);
         msg += Animation(pp, vw.BodyList) + ", ";
     }
+    Animation(pp, initBody);
     pp.Title = msg;
 } else {
+    var initBody = New.BodyListClone(vv.Map.BodyList);
+    vv.Echo(initBody.Count);
     var mpName = vv.Map.Name;
     var mpList = New.StringArray();
     var prefix = mpName.Substring(0, 1);
@@ -40,4 +45,6 @@ if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster")) {
         msg += Animation(vv.Map, vv.Dataset.ReadMapBodyList(n)) + ", ";
     }
     vv.Title = msg;
+    Animation(vv.Map, initBody);
 }
+
