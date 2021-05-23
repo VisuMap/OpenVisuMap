@@ -59,7 +59,7 @@ namespace TsneDx {
             double PerplexityRatio = 0.05, 
             int MaxEpochs = 500, 
             int OutDim=2,
-            double ExaggerationRatio = 0.7,
+            double ExaggerationRatio = 0.75,
             int CacheLimit = 23000,
             double ExaggerationFactor = 12.0,
             int MetricType = 0
@@ -588,7 +588,8 @@ namespace TsneDx {
             while (true) {
                 if (stepCounter < exaggerationLength) {
                     if (ExaggerationSmoothen) {
-                        float t = (float)stepCounter / exaggerationLength;
+                        double t = (double)stepCounter / exaggerationLength;
+                        t = Math.Sqrt(Math.Sqrt(t));
                         cc.c.PFactor = (float)((1 - t) * ExaggerationFactor + t);
                     } else
                         cc.c.PFactor = (float)ExaggerationFactor;
