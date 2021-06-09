@@ -39,9 +39,11 @@ if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster")) {
     for (var n in vv.Dataset.MapNameList)
         if (n.StartsWith(prefix) && (n != mpName))
             mpList.Add(n);
+    var fromName = mpName;
     for (var n in mpList) {
-        vv.Title = mpName + "<->" + n;
+        vv.Title = fromName + "<->" + n;
         msg += Animation(vv.Map, vv.Dataset.ReadMapBodyList(n)) + ", ";
+        fromName = n;
     }
     vv.Title = msg;
     Animation(vv.Map, initBody);
