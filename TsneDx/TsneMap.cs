@@ -594,7 +594,6 @@ namespace TsneDx {
                     if (ExaggerationSmoothen) {
                         int len = (int)(0.9 * MaxEpochs);
                         if (stepCounter < len) {
-                            //cc.c.PFactor = (float)(exaggerationFactor * Math.Pow(a, stepCounter));
                             double t = (double)stepCounter / len;
                             t = Math.Sqrt(Math.Sqrt(t));
                             cc.c.PFactor = (float)((1 - t) * ExaggerationFactor + t);
