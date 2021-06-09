@@ -101,6 +101,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>cd $(ProjectDir) &amp;&amp; "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.15.26726\bin\Hostx64\x64"\nmake /f BuildShaders.mk all</PreBuildEvent>
+    <PreBuildEvent>cd $(ProjectDir) &amp;&amp; "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.16.27023\bin\Hostx64\x64"\nmake /f BuildShaders.mk all</PreBuildEvent>
   </PropertyGroup>
 </Project>

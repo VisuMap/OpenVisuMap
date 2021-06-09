@@ -376,20 +376,21 @@ void CalculateSumQ(uint3 gid : SV_GroupId, uint gidx : SV_GroupIndex) {
 		uint i = blockIdx + gid.x;
 		if (i < N) {
 			float sum = 0;
-			if (outDim == 2) {
-				float2 Y2i = Y2[i];
-				for (uint j = gidx; j < i; j += G_P2_SIZE) {
-					float2 d = Y2i - Y2[j];
-					sum += 1.0 / (1.0 + dot(d, d));
-				}
+			if (outDim == 3) {
+                float3 Y3i = Y3[i];
+                for (uint j = gidx; j < i; j += G_P2_SIZE) {
+                    float3 d = Y3i - Y3[j];
+                    sum += 1.0 / (1.0 + dot(d, d));
+                }
 			}
 			else {
-				float3 Y3i = Y3[i];
-				for (uint j = gidx; j < i; j += G_P2_SIZE) {
-					float3 d = Y3i - Y3[j];
-					sum += 1.0 / (1.0 + dot(d, d));
-				}
+                float2 Y2i = Y2[i];
+                for (uint j = gidx; j < i; j += G_P2_SIZE) {
+                    float2 d = Y2i - Y2[j];
+                    sum += 1.0 / (1.0 + dot(d, d));
+                }
 			}
+
 			GROUP_SUM(groupValue, gidx, sum, G_P2_SIZE);
 			if (gidx == 0) {
 				if (blockIdx == 0)
@@ -834,7 +835,10 @@ void OneStepSumUp(uint gidx : SV_GroupIndex) {
 	}
 	else {
 		for (uint i = gidx; i < N; i += G_SumUp_SZ) {
-			Y2[i] += v2[i].dY;
+            if (outDim == 1)
+                Y2[i].x += v2[i].dY.x;
+            else
+			    Y2[i] += v2[i].dY;
 			changes += length(v2[i].dY);
 		}
 	}
@@ -933,7 +937,7 @@ void OneStepCpuCache(uint3 id : SV_DispatchThreadId) {
 	uint i = id.x + blockIdx;
 	if (i >= N) return;
 
-	if (outDim == 2) {
+	if (outDim != 3) {
 		float2 gradient = float2(0, 0);
 		for (uint j = 0; j < i; j++) {
 			float2 d = Y2[i] - Y2[j];

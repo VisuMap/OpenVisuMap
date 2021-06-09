@@ -7,7 +7,8 @@ namespace TsneDx {
     public class PcaNormalize {
         public static float[][] DoNormalize(float[][] xyz) {
             int dim = xyz[0].Length;
-            float[][] M = new FastPca().DoPca(xyz, dim);
+
+            float[][] M = (dim == 1) ? xyz : new FastPca().DoPca(xyz, dim);
 
             float Moment(float v) {
                 if (float.IsNaN(v))

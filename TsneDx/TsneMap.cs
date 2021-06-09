@@ -479,7 +479,7 @@ namespace TsneDx {
             Buffer v2Buf = null;
             Buffer v3Buf = null;
 
-            if (cc.c.outDim == 2) {
+            if (cc.c.outDim <= 2) {
                 Y2Buf = gpu.CreateBufferRW(N, 8, 3);
                 Y2StagingBuf = gpu.CreateStagingBuffer(Y2Buf);
                 v2Buf = gpu.CreateBufferRW(N, 2 * 8, 5);
@@ -492,15 +492,19 @@ namespace TsneDx {
             float rang = 0.05f;
             Random rGenerator = new Random(435243);
 
-            if (cc.c.outDim == 2) {
+            if (cc.c.outDim <= 2) {
                 using (var ws = gpu.NewWriteStream(v2Buf)) {
                     for (int row = 0; row < N; row++)
                         ws.Write<float>(0, 1, 0, 1);
                 }
+                
                 using (var ws = gpu.NewWriteStream(Y2Buf)) {
-                    for (int row = 0; row < N; row++)
+                    for (int row = 0; row < N; row++) {
                         for (int col = 0; col < cc.c.outDim; col++)
                             ws.Write((float)(rang * rGenerator.NextDouble() - rang / 2));
+                        if (cc.c.outDim == 1)
+                            ws.Write(0.0f);
+                    }
                 }
             } else {
                 using (var ws = gpu.NewWriteStream(v3Buf)) {
@@ -588,8 +592,14 @@ namespace TsneDx {
             while (true) {
                 if (stepCounter < exaggerationLength) {
                     if (ExaggerationSmoothen) {
-                        float t = (float)stepCounter / exaggerationLength;
-                        cc.c.PFactor = (float)((1 - t) * ExaggerationFactor + t);
+                        int len = (int)(0.9 * MaxEpochs);
+                        if (stepCounter < len) {
+                            //cc.c.PFactor = (float)(exaggerationFactor * Math.Pow(a, stepCounter));
+                            double t = (double)stepCounter / len;
+                            t = Math.Sqrt(Math.Sqrt(t));
+                            cc.c.PFactor = (float)((1 - t) * ExaggerationFactor + t);
+                        } else
+                            cc.c.PFactor = 1.0f;
                     } else
                         cc.c.PFactor = (float)ExaggerationFactor;
                 } else
@@ -653,10 +663,15 @@ namespace TsneDx {
 
             float[][] Y = new float[N][];
             using (var rs = gpu.NewReadStream((cc.c.outDim == 3) ? Y3StagingBuf : Y2StagingBuf, (cc.c.outDim == 3) ? Y3Buf : Y2Buf)) {
+                int outVDim = (cc.c.outDim == 3) ? 3 : 2;
                 for (int row = 0; row < N; row++) {
-                    Y[row] = rs.ReadRange<float>(cc.c.outDim);
+                    Y[row] = rs.ReadRange<float>(outVDim);
                 }
             }
+
+            if ( cc.c.outDim == 1) 
+                for (int i = 0; i < N; i++)
+                    Y[i] = new float[] { Y[i][0] };
 
             TsneDx.SafeDispose(csSumUp, csOneStep, PBuf, P2Buf, distanceBuf, tableBuf, resultBuf, 
                 resultStaging, groupMaxBuf, Y3Buf, Y3StagingBuf, v3Buf, Y2Buf, Y2StagingBuf, v2Buf, cc, gpu);
