@@ -5,10 +5,10 @@ print('Loading libraries...')
 import umap, time, sys, ModelUtil
 import numpy as np
 
-mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['e']
+mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['c']
 initType = ['spectral', 'random'][1]
-repeats, epochs = 1, 1000
-mapDim, nn, md, lc, ns = 2, 750, 0.15, 5.0, 5
+repeats, epochs = 1, 2000
+mapDim, nn, md, lc, ns = 2, 1000, 0.75, 5.0, 25
 log = ModelUtil.Logger()
 
 print('Loading data from VisuMap...')
@@ -55,7 +55,8 @@ for k in range(repeats):
     log = ModelUtil.Logger()
     if mapDim == 2:
         log.ShowMatrix(map, view=12, title=title)
-        log.RunScript('pp.NormalizeView()')
+        log.RunScript('pp.NormalizeView(); pp.ClickContextMenu("Utilities/Capture Map"); pp.Close();')
+	#log.RunScript('pp.NormalizeView()')
     elif mapDim == 3:
         log.ShowMatrix(map, view=13, title=title)
         log.RunScript('pp.DoPcaCentralize()')

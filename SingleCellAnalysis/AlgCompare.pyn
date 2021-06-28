@@ -1,3 +1,4 @@
+#MenuLabels VMtSNE UMAP BHtSNE FastTsne OpenTsne
 # File: AlgCompare.pyn
 # 
 # Python script to create 2D maps with various algorithms.
@@ -5,7 +6,8 @@
 import time
 import numpy as np
 
-alg = ['VMtSNE', 'UMAP', 'BHtSNE', 'FastTsne', 'OpenTsne'][1]
+alg = vv.EventSource.Item
+
 epochs = 500
 D = pp.GetSelectedNumberTable()
 if D.Rows <= 1:
@@ -47,7 +49,7 @@ elif alg == 'BHtSNE':
 elif alg == 'FastTsne': 
    import os, sys
    pPerplexity = 100
-   fitTsneDir = '/work/VisuMapPlugin/SingleCellAnalysis/rna-seq-tsne/FIt-SNE-master'
+   fitTsneDir = '/work/OpenVisuMap/SingleCellAnalysis/rna-seq-tsne/FIt-SNE-master'
    os.chdir(fitTsneDir)
    sys.path.append(fitTsneDir)
    from fast_tsne import fast_tsne
