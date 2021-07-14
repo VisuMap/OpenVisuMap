@@ -28,9 +28,11 @@ if alg == 'VMtSNE':
     map.NormalizeView()  
     quit()
 
-ds = ToNumpy(D)
+ds = mm.ToNumpy(D)
 ds = np.nan_to_num(ds)
 vv.Title = "Loaded table: " + str(ds.shape) + ', ' + str(ds.dtype)
+
+
 
 if alg == 'UMAP':
     import umap
@@ -38,6 +40,7 @@ if alg == 'UMAP':
     um = umap.UMAP(n_neighbors=nn, min_dist=md, local_connectivity=lc, n_components=2, metric='euclidean', 
         negative_sample_rate=ns, n_epochs=epochs, init='random', learning_rate=1, verbose=False)
     M = um.fit_transform(ds)
+
 
 elif alg == 'BHtSNE':
     from sklearn.manifold import TSNE
@@ -65,7 +68,8 @@ elif alg == 'OpenTsne':
 
 tm = time.time() - t0
 
-B = New.BodyList( CopyToTable(M, New.NumberTable(D, 2)) )
+
+B = New.BodyList( mm.CopyToTable(M, New.NumberTable(D, 2)) )
 map = New.MapSnapshot(B)
 map.Title = '%s: Time: %.1f sec'%(alg, tm)
 map.Show()
