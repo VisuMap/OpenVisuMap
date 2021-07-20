@@ -1,5 +1,5 @@
 var dir = vv.CurrentScriptPath.substr(0, vv.CurrentScriptPath.lastIndexOf("\\") + 1);
-vv.InstallPlugin("Data Cleansing", dir +"DataCleansing.dll", true);
+vv.InstallPlugin("Data Cleansing", dir +"DataCleansing.dll");
 for(var nm in New.StringArray("Logicle", "Logarithmic", "Scale Up", "Normalize", "Delete", "Duplicate", "InverseLogicle", "Custom")) {
     vv.GuiManager.SetCustomMenu("Filter/" + nm, true, dir + "TableFilter.js", "<All>");
 }

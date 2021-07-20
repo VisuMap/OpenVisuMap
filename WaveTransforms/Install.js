@@ -8,7 +8,7 @@
 
 var dir = vv.CurrentScriptPath.substr(0, vv.CurrentScriptPath.lastIndexOf("\\") + 1);
 
-vv.InstallPlugin("Wave Transforms", dir +"WaveTransforms.dll", true);
+vv.InstallPlugin("Wave Transforms", dir +"WaveTransforms.dll");
 
 for(var t in New.StringArray("Fourier", "Haar", "Walsh", "WaveletD4", "PCA") ) {
   vv.GuiManager.SetCustomMenu("Band-passing by/" + t, true, dir + "BandPass.js", "ValueDiagram");

@@ -5,10 +5,11 @@ print('Loading libraries...')
 import umap, time, sys, ModelUtil
 import numpy as np
 
-mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['c']
+mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['s']
 initType = ['spectral', 'random'][1]
-repeats, epochs = 1, 2000
-mapDim, nn, md, lc, ns = 2, 1000, 0.75, 5.0, 25
+repeats, epochs = 2, 2000
+mapDim, nn, md, lc, ns = 2, 2000, 0.25, 5.0, 25
+randomizeOrder = True
 log = ModelUtil.Logger()
 
 print('Loading data from VisuMap...')
@@ -25,7 +26,6 @@ else:
 
 ds = np.nan_to_num(ds)
 print("Loaded table: ", ds.shape)
-randomizeOrder = True
 
 print('Fitting data...')
 
@@ -54,6 +54,8 @@ for k in range(repeats):
 
     log = ModelUtil.Logger()
     if mapDim == 2:
+        if k > 0:
+                log.RunScript('vv.Dataset.AddMap()')
         log.ShowMatrix(map, view=12, title=title)
         log.RunScript('pp.NormalizeView(); pp.ClickContextMenu("Utilities/Capture Map"); pp.Close();')
 	#log.RunScript('pp.NormalizeView()')

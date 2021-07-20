@@ -1,5 +1,5 @@
 var dir = vv.CurrentScriptPath.substr(0, vv.CurrentScriptPath.lastIndexOf("\\") + 1);
-vv.InstallPlugin("Custom Importer", dir +"CustomImporter.dll", true);
+vv.InstallPlugin("Custom Importer", dir +"CustomImporter.dll");
 vv.SetProperty("CustomImporter.FCS.ShowResult", "0", "Show the imported FCS data");
 vv.SetProperty("CustomImporter.FCS.SaveMetaInfo", "0", "o: No meta data; 1: Save the parameter attributes; 2: Save additionally the FCS text segment.");
 vv.SetProperty("CustomImporter.FCS.GlyphName", "12 Clusters", "Glyph set name of the initial map.");

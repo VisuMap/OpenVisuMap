@@ -6,7 +6,7 @@
 //
 var dir = vv.CurrentScriptPath.substr(0, vv.CurrentScriptPath.lastIndexOf("\\") + 1);
 
-vv.InstallPlugin("MVA Plugin", dir +"MultivariateAnalysis.dll", true);
+vv.InstallPlugin("MVA Plugin", dir +"MultivariateAnalysis.dll");
 vv.GuiManager.SetCustomMenu("Do LDA", true, dir + "DoLDA.js", "<All>");
 vv.GuiManager.SetCustomMenu("Do PLS", true, dir + "DoPLS.js", "<All>");
 vv.GuiManager.SetCustomMenu("Do CCA", true, dir + "DoPLS.js", "<All>");

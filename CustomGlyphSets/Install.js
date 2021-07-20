@@ -6,5 +6,5 @@ vv.InstallGlyphSet("Alpha Particles", dir +"AlphaParticles",  0, 1.0);
 vv.InstallGlyphSet("ColorWheel 128", dir +"ColorWheel128",  0, 1.0);
 
 var sDir = vv.CurrentScriptPath.substr(0, vv.CurrentScriptPath.lastIndexOf("\\") + 1);
-vv.InstallPlugin("Custom Glyphs", dir +"CustomGlyphSets.dll", true);
+vv.InstallPlugin("Custom Glyphs", dir +"CustomGlyphSets.dll");
 
