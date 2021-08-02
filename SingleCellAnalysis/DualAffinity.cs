@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using VisuMap.Script;
+using DxShader = VisuMap.DxShader;
 
 namespace VisuMap.SingleCell {
     using IMetric = VisuMap.Plugin.IMetric;

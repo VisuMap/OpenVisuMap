@@ -744,7 +744,7 @@ namespace VisuMap.DataModeling {
             //
             var tsne = app.New.TsneMapCore(input);
             tsne.MaxLoops = epochs;
-            tsne.Is3D = (mapDim == 3);
+            tsne.OutDim = mapDim;
             tsne.PerplexityRatio = perpR;
             tsne.StartTraining();
             tsne.WaitForFinish(-1);

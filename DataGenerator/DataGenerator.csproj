@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DataGenerator</RootNamespace>
     <AssemblyName>DataGenerator</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <OldToolsVersion>2.0</OldToolsVersion>
@@ -58,6 +58,14 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="VisuMap, Version=5.0.952.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\VisuMap\bin\Debug\VisuMap.exe</HintPath>
+    </Reference>
+    <Reference Include="VisuMapApi, Version=4.0.890.0, Culture=neutral, PublicKeyToken=be268d35b7fdc692, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\VisuMap\bin\Debug\VisuMapApi.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BodySet.cs" />
@@ -123,16 +131,6 @@
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\VisuMap\VisuMap.csproj">
-      <Project>{460bf99b-df67-4598-86a7-653bf818ab72}</Project>
-      <Name>VisuMap</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\VisuMap\VisuMapApi\VisuMapApi.csproj">
-      <Project>{d18bb735-8e34-4e21-a0d8-bf5a020b2e52}</Project>
-      <Name>VisuMapApi</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

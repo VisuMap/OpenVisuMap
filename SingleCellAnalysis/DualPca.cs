@@ -10,7 +10,7 @@ namespace VisuMap.SingleCell {
     using IMetric = VisuMap.Plugin.IMetric;
     using IDataset = VisuMap.Script.IDataset;
     using IFilterEditor = VisuMap.Plugin.IFilterEditor;
-    using FastPca = VisuMap.LinearAlgebra.FastPca;
+    using FastPca = LinearAlgebra.FastPca;
 
     public class DualPca : IMetric {
         IDataset dataset;
