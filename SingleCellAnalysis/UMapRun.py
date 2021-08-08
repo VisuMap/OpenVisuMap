@@ -55,7 +55,7 @@ for k in range(repeats):
     log = ModelUtil.Logger()
     if mapDim == 2:
         if k > 0:
-                log.RunScript('vv.Dataset.AddMap()')
+                log.RunScript('vv.Dataset.AddMap(null)')
         log.ShowMatrix(map, view=12, title=title)
         log.RunScript('pp.NormalizeView(); pp.ClickContextMenu("Utilities/Capture Map"); pp.Close();')
 	#log.RunScript('pp.NormalizeView()')
