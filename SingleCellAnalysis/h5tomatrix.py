@@ -30,6 +30,6 @@ def get_matrix_from_h5(filename):
          
         return CountMatrix(feature_ref, barcodes, matrix)
  
-filtered_matrix_h5 = sys.argv[1]
-filtered_feature_bc_matrix = get_matrix_from_h5(filtered_matrix_h5)
-print(filtered_feature_bc_matrix)
+h5FileName = sys.argv[1]
+ret = get_matrix_from_h5(h5FileName)
+print(ret)
