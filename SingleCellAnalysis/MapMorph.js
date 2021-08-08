@@ -35,17 +35,16 @@ if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster")) {
     var initBody = New.BodyListClone(vv.Map.BodyList);
     var mpName = vv.Map.Name;
     var mpList = New.StringArray();
-    var prefix = mpName.Substring(0, 1);
-    for (var n in vv.Dataset.MapNameList)
-        if (n.StartsWith(prefix) && (n != mpName))
-            mpList.Add(n);
+    var prefix = mpName.substring(0, 1);
+    for (var nm of vv.Dataset.MapNameList)
+        if (nm.startsWith(prefix) && (nm != mpName))
+            mpList.Add(nm);
     var fromName = mpName;
-    for (var n in mpList) {
-        vv.Title = fromName + "<->" + n;
-        msg += Animation(vv.Map, vv.Dataset.ReadMapBodyList(n)) + ", ";
-        fromName = n;
+    for (var nm of mpList) {
+        vv.Title = fromName + "<->" + nm;
+        msg += Animation(vv.Map, vv.Dataset.ReadMapBodyList(nm)) + ", ";
+        fromName = nm;
     }
     vv.Title = msg;
     Animation(vv.Map, initBody);
 }
-
