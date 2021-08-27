@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using VisuMap.Script;
 using DxShader = VisuMap.DxShader;
+using IPredculated = VisuMap.IPrecalculated;
 
 namespace VisuMap.SingleCell {
     using IMetric = VisuMap.Plugin.IMetric;
@@ -25,7 +26,7 @@ namespace VisuMap.SingleCell {
 
     public enum MetricMode { CorCor, EucEuc, CorEuc, EucCor };
 
-    public class DualAffinity : IMetric {
+    public class DualAffinity : IMetric, IPredculated {
         IDataset dataset;
         float[][] P, dtP, dtQ;
         int[] toIdx = null;  // map a dataset wide index into the range of [0, enabled_bodies-1].
@@ -50,16 +51,7 @@ namespace VisuMap.SingleCell {
         }
 
         public double Distance(int i, int j){
-            if (i == j) {
-                if (i == 0) {
-                    if (dtP == null)
-                        PreCalculate();
-                    else if ( (dataset != null) && (dataset.BodyList.Count(b=>!b.Disabled) != (dtP.Length+dtQ.Length)) )
-                        PreCalculate();
-                } else if (i == 1)
-                    dtP = dtQ = null;
-                return 0;
-            }
+            if (i == j) return 0;         
             i = toIdx[i];
             j = toIdx[j];
             int N = P.Length;
@@ -72,6 +64,17 @@ namespace VisuMap.SingleCell {
             } else
                 return (i < N) ? P[i][j - N] : P[j][i - N];
         }
+
+        public void Precalculate() {
+            if (dtP == null)
+                PreCalculate();
+            else if ((dataset != null) && (dataset.BodyList.Count(b => !b.Disabled) != (dtP.Length + dtQ.Length)))
+                PreCalculate();
+        }
+        public void FreeCache() {
+            dtP = dtQ = null;
+        }
+
 
         #region Calculate the dot product on GPU.
         public static float[][] DotProduct(DxShader.GpuDevice gpu, float[][] M, bool isCorrelation) {

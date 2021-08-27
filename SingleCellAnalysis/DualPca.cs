@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using System.Xml;
-
 using VisuMap.Script;
+using IPredculated = VisuMap.IPrecalculated;
 
 namespace VisuMap.SingleCell {
     using IMetric = VisuMap.Plugin.IMetric;
@@ -12,7 +12,7 @@ namespace VisuMap.SingleCell {
     using IFilterEditor = VisuMap.Plugin.IFilterEditor;
     using FastPca = LinearAlgebra.FastPca;
 
-    public class DualPca : IMetric {
+    public class DualPca : IMetric, IPrecalculated {
         IDataset dataset;
         float[][] P, dtP;
         double stepSize;  // dsitance between two adjucent points on the PCA axis.
@@ -32,16 +32,8 @@ namespace VisuMap.SingleCell {
         }
 
         public double Distance(int i, int j) {
-            if (i == j) {
-                if (i == 0) {
-                    if (dtP == null)
-                        PreCalculate();
-                    else if ((dataset != null) && (dataset.BodyList.Count(b => !b.Disabled) != (dtP.Length + pcaSamples)))
-                        PreCalculate();
-                } else if (i == 1)
-                    dtP = null;
+            if (i == j) 
                 return 0;
-            }
             i = toIdx[i];
             j = toIdx[j];
             int N = P.Length;
@@ -53,7 +45,18 @@ namespace VisuMap.SingleCell {
                 return (i < N) ? P[i][j - N] : P[j][i - N];
         }
 
-        void PreCalculate() {
+        public void Precalculate() {
+            if (dtP == null)
+                PreCalculate0();
+            else if ((dataset != null) && (dataset.BodyList.Count(b => !b.Disabled) != (dtP.Length + pcaSamples)))
+                PreCalculate0();
+        }
+
+        public void FreeCache() {
+            dtP = null;
+        }
+
+        void PreCalculate0() {
             if (dataset == null)
                 return;
 
