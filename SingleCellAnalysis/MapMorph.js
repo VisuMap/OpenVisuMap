@@ -19,14 +19,16 @@ if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster")) {
     var vwList = New.ObjectArray();
     var f = pp.TheForm;
     var bsCount = pp.BodyList.Count;
-    for (var vw in vv.FindFormList("MapSnapshot"))
+
+    for (var vw of vv.FindFormList("MapSnapshot")) {
         if ((vw.TheForm !== f) && (vw.BodyList.Count == bsCount))
             vwList.Add(vw);
-    for (var vw in vwList) {
+    }
+    for (var vw of vwList) {
         var g = vw.TheForm;
         g.BringToFront();
-        var newTop = f.Top - Math.floor((g.Height - f.Height) / 2);
-        g.SetBounds(f.Left + f.Width - 10, newTop, 0, 0, 3);
+        var newTop = host.toInt32(f.Top - Math.floor((g.Height - f.Height) / 2));	 
+        [g.Left, g.Top] = [host.toInt32(f.Left + f.Width - 10), newTop];
         msg += Animation(pp, vw.BodyList) + ", ";
     }
     Animation(pp, initBody);
