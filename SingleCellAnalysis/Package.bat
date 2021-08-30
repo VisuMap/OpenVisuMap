@@ -8,5 +8,4 @@ zip SingleCellAnalysis.zip SingleCellAnalysis.dll Python.Runtime.dll %JsFiles% %
 
 del SingleCellAnalysis.dll 
 del Python.Runtime.dll
-
-rem uploadplugin SingleCellAnalysis.zip
+copy SingleCellAnalysis.zip ..\..\VisuMapWeb\images
