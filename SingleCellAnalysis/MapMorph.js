@@ -12,6 +12,7 @@ function Animation(mp, bodyList) {
 }
 
 var msg = "Moved bodies: ";
+var repeats = 5;
 
 if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster")) {
     // Morphing between calling view and other open map snapshots.
@@ -24,14 +25,16 @@ if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster")) {
         if ((vw.TheForm !== f) && (vw.BodyList.Count == bsCount))
             vwList.Add(vw);
     }
-    for (var vw of vwList) {
-        var g = vw.TheForm;
-        g.BringToFront();
-        var newTop = host.toInt32(f.Top - Math.floor((g.Height - f.Height) / 2));	 
-        [g.Left, g.Top] = [host.toInt32(f.Left + f.Width - 10), newTop];
-        msg += Animation(pp, vw.BodyList) + ", ";
+    for (rep = 0; rep<repeats; rep++) {
+	    for (var vw of vwList) {
+	        var g = vw.TheForm;
+	        g.BringToFront();
+	        var newTop = host.toInt32(f.Top - Math.floor((g.Height - f.Height) / 2));	 
+	        [g.Left, g.Top] = [host.toInt32(f.Left + f.Width - 10), newTop];
+	        msg += Animation(pp, vw.BodyList) + ", ";
+	    }
+	    Animation(pp, initBody);
     }
-    Animation(pp, initBody);
     pp.Title = msg;
 } else {
     var initBody = New.BodyListClone(vv.Map.BodyList);

@@ -956,5 +956,9 @@ namespace ClipRecorder {
 
             return base.ProcessCmdKey(ref msg, keyData);
         }
+
+        public bool AddContextMenu(string label, string scriptPath, object srcObj = null, string iconPath = null, string menuTip = null) {
+            throw new Exception("AddContextMenu() Not supported");
+        }
     }
 }
