@@ -1,6 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Reflection;
 using System.Windows.Forms;
 using System.Drawing;
 
@@ -13,8 +12,12 @@ class ProgressBar : IDisposable {
     public ProgressBar(Panel panel){
         this.panel = panel;
         currentValue = maximum = 0;
-        panel.Paint += new PaintEventHandler(PanelPaint);
+        panel.Paint += new PaintEventHandler(PanelPaint);        
         brush = new TextureBrush(global::ClipRecorder.Properties.Resources.ProgressBar);
+
+        typeof(Panel).InvokeMember("DoubleBuffered",
+            BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.NonPublic,
+            null, panel, new object[] { true });
     }
 
     void PanelPaint(object sender, PaintEventArgs e) {

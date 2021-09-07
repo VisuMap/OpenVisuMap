@@ -13,7 +13,7 @@ using System.Threading;
 using VisuMap.Lib;
 using VisuMap.Plugin;
 using VisuMap.Script;
-
+using MT = VisuMap.MT;
 
 namespace ClipRecorder {
     public partial class RecorderForm : Form, IForm {
@@ -49,10 +49,9 @@ namespace ClipRecorder {
         }
 
         void RecorderForm_MouseWheel(object sender, MouseEventArgs e) {
-            PlaySteps( -e.Delta / 120 );
-
+            int n = e.Delta / 120;
+            PlaySteps( - Math.Sign(n) * ( n * n ) );
         }
-
         void PlaySteps(int steps) { 
             bool needRedraw = false;
             if (steps > 0) {
@@ -165,7 +164,7 @@ namespace ClipRecorder {
             FrameSpec frame = new FrameSpec((short)map.Width, (short)map.Height, (short)map.Depth,
                 (short)map.MapTypeIndex, bodyList.Count);
 
-            for (int i = 0; i < bodyList.Count; i++) {
+            MT.Loop(0, bodyList.Count, i => {
                 BodyInfo b = frame.BodyInfoList[i];
                 IBody body = bodyList[i];
                 b.x = (float)(body.X);
@@ -173,7 +172,7 @@ namespace ClipRecorder {
                 b.z = (float)(body.Z);
                 b.type = body.Type;
                 b.flags = Flags(body);
-            }
+            });
 
             if (trackingTrend) {
                 FrameSpec preFrame = (frameList.Count == 0) ? null : frameList[frameList.Count - 1];
@@ -185,9 +184,10 @@ namespace ClipRecorder {
             return frameList.Count;
         }
 
-        public int AddSnapshot(IList<IBody> bodyList) {
+        FrameSpec NewFrame(IList<IBody> bodyList) {
             FrameSpec frame = new FrameSpec(0, 0, 0, 0, bodyList.Count);
-            for (int i = 0; i < bodyList.Count; i++) {
+            MT.Loop(0, bodyList.Count, i => {
+                //for (int i = 0; i < bodyList.Count; i++) {
                 BodyInfo b = frame.BodyInfoList[i];
                 IBody body = bodyList[i];
                 b.x = (float)(body.X);
@@ -195,10 +195,50 @@ namespace ClipRecorder {
                 b.z = (float)(body.Z);
                 b.type = body.Type;
                 b.flags = Flags(body);
-            }
+            });
+            return frame;
+        }
+
+        public int AddSnapshot(IList<IBody> bodyList) {
+            FrameSpec frame = NewFrame(bodyList);
             frameList.Add(frame);
             SetMaximum(frameList.Count);
             return frameList.Count;
+        }
+
+        public bool InsertSnapshot(int frameIndex, IList<IBody> bodyList) {
+            if ((bodyList == null) || (frameIndex > FrameList.Count))
+                return false;
+            FrameSpec frame = NewFrame(bodyList);
+            frameList.Insert(frameIndex, frame);
+            if (frameIndex <= currentFrame)
+                SetCurrentValue(currentFrame + 1);
+            SetMaximum(frameList.Count);
+            return true;
+        }
+
+        public void DeleteFrame(int frameIndex=-1) {
+            if (frameIndex == -1)
+                frameIndex = currentFrame;
+            frameList.RemoveAt(frameIndex);
+            if (frameIndex < currentFrame)
+                currentFrame -= 1;
+            else if (frameIndex == currentFrame) {
+                currentFrame = Math.Min(currentFrame, frameList.Count - 1);
+                ShowFrame(GetBodyList(), frameList[currentFrame]);
+            }
+            SetCurrentValue(currentFrame);
+            SetMaximum(frameList.Count);
+        }
+
+        public bool ReplaceFrame(int frameIndex, IList<IBody> bodyList) {
+            if ((bodyList == null) || (frameIndex >= FrameList.Count) || (frameIndex<0) )
+                return false;
+            FrameSpec frame = NewFrame(bodyList);
+            frameList[frameIndex] = frame;
+            if ( frameIndex == currentFrame)
+                ShowFrame(GetBodyList(), frameList[currentFrame]);
+            return true;
         }
 
         List<IBody> GetBodyList() {
@@ -442,7 +482,7 @@ namespace ClipRecorder {
 
         void ShowFrame(List<IBody> bodyList, FrameSpec frame) {
             int count = Math.Min(bodyList.Count, frame.BodyInfoList.Length);
-            for (int i = 0; i < count; i++) {
+            MT.Loop(0, count, i => {
                 BodyInfo b = frame.BodyInfoList[i];
                 IBody body = bodyList[i];
 
@@ -451,7 +491,7 @@ namespace ClipRecorder {
                 body.Z = b.z;
                 body.Type = b.type;
                 SetFlags(body, b.flags);
-            }
+            });
 
             if ( playTarget != null) {
                 RedrawTarget();
@@ -959,6 +999,22 @@ namespace ClipRecorder {
 
         public bool AddContextMenu(string label, string scriptPath, object srcObj = null, string iconPath = null, string menuTip = null) {
             throw new Exception("AddContextMenu() Not supported");
+        }
+
+        private void miCaptureFrame_Click(object sender, EventArgs e) {
+            ReplaceFrame(currentFrame, GetBodyList());
+        }
+
+        private void miAppendFrame_Click(object sender, EventArgs e) {
+            AddSnapshot(GetBodyList());
+        }
+
+        private void miDeleteFrame_Click(object sender, EventArgs e) {
+            DeleteFrame(currentFrame);
+        }
+
+        private void miRefreshFrame_Click(object sender, EventArgs e) {
+            ShowFrame(GetBodyList(), frameList[currentFrame]);
         }
     }
 }

@@ -72,6 +72,9 @@
     <Reference Include="System.Drawing.Design" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="VisuMap">
+      <HintPath>..\..\VisuMap\bin\Debug\VisuMap.exe</HintPath>
+    </Reference>
     <Reference Include="VisuMapApi, Version=4.0.890.0, Culture=neutral, PublicKeyToken=be268d35b7fdc692, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Program Files\VisuMap Technologies\VisuMap5\bin\VisuMapApi.dll</HintPath>

@@ -34,13 +34,20 @@ namespace ClipRecorder {
             this.btnRecording = new System.Windows.Forms.Button();
             this.btnClearAll = new System.Windows.Forms.Button();
             this.btnReset = new System.Windows.Forms.Button();
-            this.btnInformation = new System.Windows.Forms.Button();
-            this.btnConfigure = new System.Windows.Forms.Button();
-            this.btnScript = new System.Windows.Forms.Button();
             this.progressPanel = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.labelCurrentFrame = new System.Windows.Forms.Label();
             this.clipTitle = new System.Windows.Forms.Label();
+            this.ctxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.miHelpInfo = new System.Windows.Forms.ToolStripMenuItem();
+            this.miRunScript = new System.Windows.Forms.ToolStripMenuItem();
+            this.miProperties = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.miCaptureFrame = new System.Windows.Forms.ToolStripMenuItem();
+            this.miAppendFrame = new System.Windows.Forms.ToolStripMenuItem();
+            this.miDeleteFrame = new System.Windows.Forms.ToolStripMenuItem();
+            this.miRefreshFrame = new System.Windows.Forms.ToolStripMenuItem();
+            this.ctxMenu.SuspendLayout();
             this.SuspendLayout();
             // 
             // labelMax
@@ -48,7 +55,7 @@ namespace ClipRecorder {
             this.labelMax.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelMax.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelMax.ForeColor = System.Drawing.Color.Navy;
-            this.labelMax.Location = new System.Drawing.Point(337, 7);
+            this.labelMax.Location = new System.Drawing.Point(331, 7);
             this.labelMax.Margin = new System.Windows.Forms.Padding(0);
             this.labelMax.Name = "labelMax";
             this.labelMax.Size = new System.Drawing.Size(44, 14);
@@ -65,7 +72,7 @@ namespace ClipRecorder {
             this.btnLoad.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnLoad.ForeColor = System.Drawing.Color.Transparent;
             this.btnLoad.Image = global::ClipRecorder.Properties.Resources.LoadRecord;
-            this.btnLoad.Location = new System.Drawing.Point(341, 58);
+            this.btnLoad.Location = new System.Drawing.Point(335, 58);
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(16, 16);
             this.btnLoad.TabIndex = 8;
@@ -81,7 +88,7 @@ namespace ClipRecorder {
             this.btnClose.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnClose.ForeColor = System.Drawing.Color.Transparent;
             this.btnClose.Image = global::ClipRecorder.Properties.Resources.CloseWindow;
-            this.btnClose.Location = new System.Drawing.Point(365, 58);
+            this.btnClose.Location = new System.Drawing.Point(359, 58);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(16, 16);
             this.btnClose.TabIndex = 9;
@@ -113,7 +120,7 @@ namespace ClipRecorder {
             this.btnSave.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSave.ForeColor = System.Drawing.Color.Transparent;
             this.btnSave.Image = global::ClipRecorder.Properties.Resources.SaveRecord;
-            this.btnSave.Location = new System.Drawing.Point(317, 58);
+            this.btnSave.Location = new System.Drawing.Point(311, 58);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(16, 16);
             this.btnSave.TabIndex = 7;
@@ -153,13 +160,14 @@ namespace ClipRecorder {
             // 
             // btnClearAll
             // 
+            this.btnClearAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnClearAll.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.btnClearAll.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(96)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
             this.btnClearAll.FlatAppearance.BorderSize = 0;
             this.btnClearAll.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnClearAll.ForeColor = System.Drawing.Color.Transparent;
             this.btnClearAll.Image = global::ClipRecorder.Properties.Resources.ClearAll;
-            this.btnClearAll.Location = new System.Drawing.Point(28, 58);
+            this.btnClearAll.Location = new System.Drawing.Point(287, 58);
             this.btnClearAll.Name = "btnClearAll";
             this.btnClearAll.Size = new System.Drawing.Size(16, 16);
             this.btnClearAll.TabIndex = 1;
@@ -183,55 +191,6 @@ namespace ClipRecorder {
             this.btnReset.UseVisualStyleBackColor = true;
             this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
             // 
-            // btnInformation
-            // 
-            this.btnInformation.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnInformation.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.btnInformation.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(96)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
-            this.btnInformation.FlatAppearance.BorderSize = 0;
-            this.btnInformation.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnInformation.ForeColor = System.Drawing.Color.Transparent;
-            this.btnInformation.Image = global::ClipRecorder.Properties.Resources.Information;
-            this.btnInformation.Location = new System.Drawing.Point(293, 58);
-            this.btnInformation.Name = "btnInformation";
-            this.btnInformation.Size = new System.Drawing.Size(16, 16);
-            this.btnInformation.TabIndex = 6;
-            this.toolTip1.SetToolTip(this.btnInformation, "Help information.");
-            this.btnInformation.UseVisualStyleBackColor = true;
-            this.btnInformation.Click += new System.EventHandler(this.btnInformation_Click);
-            // 
-            // btnConfigure
-            // 
-            this.btnConfigure.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.btnConfigure.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(96)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
-            this.btnConfigure.FlatAppearance.BorderSize = 0;
-            this.btnConfigure.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnConfigure.ForeColor = System.Drawing.Color.Transparent;
-            this.btnConfigure.Image = global::ClipRecorder.Properties.Resources.Configure;
-            this.btnConfigure.Location = new System.Drawing.Point(51, 58);
-            this.btnConfigure.Name = "btnConfigure";
-            this.btnConfigure.Size = new System.Drawing.Size(16, 16);
-            this.btnConfigure.TabIndex = 2;
-            this.toolTip1.SetToolTip(this.btnConfigure, "Configure the clip record.");
-            this.btnConfigure.UseVisualStyleBackColor = true;
-            this.btnConfigure.Click += new System.EventHandler(this.btnConfigure_Click);
-            // 
-            // btnScript
-            // 
-            this.btnScript.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.btnScript.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(96)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
-            this.btnScript.FlatAppearance.BorderSize = 0;
-            this.btnScript.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnScript.ForeColor = System.Drawing.Color.Transparent;
-            this.btnScript.Image = global::ClipRecorder.Properties.Resources.ScriptButton;
-            this.btnScript.Location = new System.Drawing.Point(74, 58);
-            this.btnScript.Name = "btnScript";
-            this.btnScript.Size = new System.Drawing.Size(16, 16);
-            this.btnScript.TabIndex = 15;
-            this.toolTip1.SetToolTip(this.btnScript, "Run/Edit script.");
-            this.btnScript.UseVisualStyleBackColor = true;
-            this.btnScript.Click += new System.EventHandler(this.btnScript_Click);
-            // 
             // progressPanel
             // 
             this.progressPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -239,7 +198,7 @@ namespace ClipRecorder {
             this.progressPanel.BackColor = System.Drawing.Color.PowderBlue;
             this.progressPanel.Location = new System.Drawing.Point(3, 24);
             this.progressPanel.Name = "progressPanel";
-            this.progressPanel.Size = new System.Drawing.Size(379, 20);
+            this.progressPanel.Size = new System.Drawing.Size(373, 20);
             this.progressPanel.TabIndex = 11;
             this.progressPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.progressPanel_MouseDown);
             this.progressPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.progressPanel_MouseMove);
@@ -266,7 +225,7 @@ namespace ClipRecorder {
             this.labelCurrentFrame.Location = new System.Drawing.Point(129, 7);
             this.labelCurrentFrame.Margin = new System.Windows.Forms.Padding(0);
             this.labelCurrentFrame.Name = "labelCurrentFrame";
-            this.labelCurrentFrame.Size = new System.Drawing.Size(74, 14);
+            this.labelCurrentFrame.Size = new System.Drawing.Size(68, 14);
             this.labelCurrentFrame.TabIndex = 13;
             this.labelCurrentFrame.Text = "0";
             this.labelCurrentFrame.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -278,9 +237,80 @@ namespace ClipRecorder {
             this.clipTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.clipTitle.Location = new System.Drawing.Point(12, 82);
             this.clipTitle.Name = "clipTitle";
-            this.clipTitle.Size = new System.Drawing.Size(362, 20);
+            this.clipTitle.Size = new System.Drawing.Size(356, 20);
             this.clipTitle.TabIndex = 14;
             this.clipTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // ctxMenu
+            // 
+            this.ctxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miCaptureFrame,
+            this.miAppendFrame,
+            this.miDeleteFrame,
+            this.miRefreshFrame,
+            this.miHelpInfo,
+            this.miRunScript,
+            this.toolStripSeparator1,
+            this.miProperties});
+            this.ctxMenu.Name = "ctxMenu";
+            this.ctxMenu.Size = new System.Drawing.Size(181, 186);
+            // 
+            // miHelpInfo
+            // 
+            this.miHelpInfo.Name = "miHelpInfo";
+            this.miHelpInfo.Size = new System.Drawing.Size(180, 22);
+            this.miHelpInfo.Text = "Help Info...";
+            this.miHelpInfo.Click += new System.EventHandler(this.btnInformation_Click);
+            // 
+            // miRunScript
+            // 
+            this.miRunScript.Name = "miRunScript";
+            this.miRunScript.Size = new System.Drawing.Size(180, 22);
+            this.miRunScript.Text = "Run Script";
+            this.miRunScript.Click += new System.EventHandler(this.btnScript_Click);
+            // 
+            // miProperties
+            // 
+            this.miProperties.Name = "miProperties";
+            this.miProperties.Size = new System.Drawing.Size(180, 22);
+            this.miProperties.Text = "Properties...";
+            this.miProperties.Click += new System.EventHandler(this.btnConfigure_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
+            // 
+            // miCaptureFrame
+            // 
+            this.miCaptureFrame.Name = "miCaptureFrame";
+            this.miCaptureFrame.Size = new System.Drawing.Size(180, 22);
+            this.miCaptureFrame.Text = "Capture Frame";
+            this.miCaptureFrame.ToolTipText = "Capture the map into current frame.";
+            this.miCaptureFrame.Click += new System.EventHandler(this.miCaptureFrame_Click);
+            // 
+            // miAppendFrame
+            // 
+            this.miAppendFrame.Name = "miAppendFrame";
+            this.miAppendFrame.Size = new System.Drawing.Size(180, 22);
+            this.miAppendFrame.Text = "Append Frame";
+            this.miAppendFrame.Click += new System.EventHandler(this.miAppendFrame_Click);
+            // 
+            // miDeleteFrame
+            // 
+            this.miDeleteFrame.Name = "miDeleteFrame";
+            this.miDeleteFrame.Size = new System.Drawing.Size(180, 22);
+            this.miDeleteFrame.Text = "Delete Frame";
+            this.miDeleteFrame.ToolTipText = "Delete the current frame.";
+            this.miDeleteFrame.Click += new System.EventHandler(this.miDeleteFrame_Click);
+            // 
+            // miRefreshFrame
+            // 
+            this.miRefreshFrame.Name = "miRefreshFrame";
+            this.miRefreshFrame.Size = new System.Drawing.Size(180, 22);
+            this.miRefreshFrame.Text = "Refresh Frame";
+            this.miRefreshFrame.ToolTipText = "Refresh current map with current frame.";
+            this.miRefreshFrame.Click += new System.EventHandler(this.miRefreshFrame_Click);
             // 
             // RecorderForm
             // 
@@ -288,11 +318,9 @@ namespace ClipRecorder {
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(96)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
-            this.ClientSize = new System.Drawing.Size(386, 83);
-            this.Controls.Add(this.btnScript);
+            this.ClientSize = new System.Drawing.Size(380, 79);
+            this.ContextMenuStrip = this.ctxMenu;
             this.Controls.Add(this.clipTitle);
-            this.Controls.Add(this.btnConfigure);
-            this.Controls.Add(this.btnInformation);
             this.Controls.Add(this.labelCurrentFrame);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.progressPanel);
@@ -316,6 +344,7 @@ namespace ClipRecorder {
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.RecorderForm_DragEnter);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.RecorderForm_MouseDown);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.RecorderForm_MouseUp);
+            this.ctxMenu.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -335,9 +364,15 @@ namespace ClipRecorder {
         private System.Windows.Forms.Panel progressPanel;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label labelCurrentFrame;
-        private System.Windows.Forms.Button btnInformation;
-        private System.Windows.Forms.Button btnConfigure;
         private System.Windows.Forms.Label clipTitle;
-        private System.Windows.Forms.Button btnScript;
+        private System.Windows.Forms.ContextMenuStrip ctxMenu;
+        private System.Windows.Forms.ToolStripMenuItem miHelpInfo;
+        private System.Windows.Forms.ToolStripMenuItem miRunScript;
+        private System.Windows.Forms.ToolStripMenuItem miProperties;
+        private System.Windows.Forms.ToolStripMenuItem miCaptureFrame;
+        private System.Windows.Forms.ToolStripMenuItem miAppendFrame;
+        private System.Windows.Forms.ToolStripMenuItem miDeleteFrame;
+        private System.Windows.Forms.ToolStripMenuItem miRefreshFrame;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
     }
 }
