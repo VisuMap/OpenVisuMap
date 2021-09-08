@@ -43,11 +43,11 @@ namespace ClipRecorder {
             this.miAppendFrame = new System.Windows.Forms.ToolStripMenuItem();
             this.miDeleteFrame = new System.Windows.Forms.ToolStripMenuItem();
             this.miRefreshFrame = new System.Windows.Forms.ToolStripMenuItem();
+            this.miInterpolation = new System.Windows.Forms.ToolStripMenuItem();
             this.miHelpInfo = new System.Windows.Forms.ToolStripMenuItem();
             this.miRunScript = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.miProperties = new System.Windows.Forms.ToolStripMenuItem();
-            this.miInterpolation = new System.Windows.Forms.ToolStripMenuItem();
             this.ctxMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -255,12 +255,13 @@ namespace ClipRecorder {
             this.toolStripSeparator1,
             this.miProperties});
             this.ctxMenu.Name = "ctxMenu";
-            this.ctxMenu.Size = new System.Drawing.Size(181, 208);
+            this.ctxMenu.Size = new System.Drawing.Size(205, 208);
             // 
             // miCaptureFrame
             // 
             this.miCaptureFrame.Name = "miCaptureFrame";
-            this.miCaptureFrame.Size = new System.Drawing.Size(180, 22);
+            this.miCaptureFrame.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
+            this.miCaptureFrame.Size = new System.Drawing.Size(204, 22);
             this.miCaptureFrame.Text = "Capture Frame";
             this.miCaptureFrame.ToolTipText = "Capture the map into current frame.";
             this.miCaptureFrame.Click += new System.EventHandler(this.miCaptureFrame_Click);
@@ -268,14 +269,14 @@ namespace ClipRecorder {
             // miAppendFrame
             // 
             this.miAppendFrame.Name = "miAppendFrame";
-            this.miAppendFrame.Size = new System.Drawing.Size(180, 22);
+            this.miAppendFrame.Size = new System.Drawing.Size(204, 22);
             this.miAppendFrame.Text = "Append Frame";
             this.miAppendFrame.Click += new System.EventHandler(this.miAppendFrame_Click);
             // 
             // miDeleteFrame
             // 
             this.miDeleteFrame.Name = "miDeleteFrame";
-            this.miDeleteFrame.Size = new System.Drawing.Size(180, 22);
+            this.miDeleteFrame.Size = new System.Drawing.Size(204, 22);
             this.miDeleteFrame.Text = "Delete Frame";
             this.miDeleteFrame.ToolTipText = "Delete the current frame.";
             this.miDeleteFrame.Click += new System.EventHandler(this.miDeleteFrame_Click);
@@ -283,44 +284,47 @@ namespace ClipRecorder {
             // miRefreshFrame
             // 
             this.miRefreshFrame.Name = "miRefreshFrame";
-            this.miRefreshFrame.Size = new System.Drawing.Size(180, 22);
+            this.miRefreshFrame.Size = new System.Drawing.Size(204, 22);
             this.miRefreshFrame.Text = "Refresh Frame";
             this.miRefreshFrame.ToolTipText = "Refresh current map with current frame.";
             this.miRefreshFrame.Click += new System.EventHandler(this.miRefreshFrame_Click);
             // 
+            // miInterpolation
+            // 
+            this.miInterpolation.Name = "miInterpolation";
+            this.miInterpolation.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.I)));
+            this.miInterpolation.Size = new System.Drawing.Size(204, 22);
+            this.miInterpolation.Text = "Add Interpolation";
+            this.miInterpolation.ToolTipText = "Add Interpolation Frames";
+            this.miInterpolation.Click += new System.EventHandler(this.miInterpolation_Click);
+            // 
             // miHelpInfo
             // 
             this.miHelpInfo.Name = "miHelpInfo";
-            this.miHelpInfo.Size = new System.Drawing.Size(180, 22);
+            this.miHelpInfo.Size = new System.Drawing.Size(204, 22);
             this.miHelpInfo.Text = "Help Info...";
             this.miHelpInfo.Click += new System.EventHandler(this.btnInformation_Click);
             // 
             // miRunScript
             // 
             this.miRunScript.Name = "miRunScript";
-            this.miRunScript.Size = new System.Drawing.Size(180, 22);
+            this.miRunScript.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
+            this.miRunScript.Size = new System.Drawing.Size(204, 22);
             this.miRunScript.Text = "Run Script";
             this.miRunScript.Click += new System.EventHandler(this.btnScript_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(201, 6);
             // 
             // miProperties
             // 
             this.miProperties.Name = "miProperties";
-            this.miProperties.Size = new System.Drawing.Size(180, 22);
+            this.miProperties.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.P)));
+            this.miProperties.Size = new System.Drawing.Size(204, 22);
             this.miProperties.Text = "Properties...";
             this.miProperties.Click += new System.EventHandler(this.btnConfigure_Click);
-            // 
-            // miInterpolation
-            // 
-            this.miInterpolation.Name = "miInterpolation";
-            this.miInterpolation.Size = new System.Drawing.Size(180, 22);
-            this.miInterpolation.Text = "Add Interpolation";
-            this.miInterpolation.ToolTipText = "Add Interpolation Frames";
-            this.miInterpolation.Click += new System.EventHandler(this.miInterpolation_Click);
             // 
             // RecorderForm
             // 
