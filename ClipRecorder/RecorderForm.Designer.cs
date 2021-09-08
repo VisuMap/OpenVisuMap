@@ -39,14 +39,15 @@ namespace ClipRecorder {
             this.labelCurrentFrame = new System.Windows.Forms.Label();
             this.clipTitle = new System.Windows.Forms.Label();
             this.ctxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.miHelpInfo = new System.Windows.Forms.ToolStripMenuItem();
-            this.miRunScript = new System.Windows.Forms.ToolStripMenuItem();
-            this.miProperties = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.miCaptureFrame = new System.Windows.Forms.ToolStripMenuItem();
             this.miAppendFrame = new System.Windows.Forms.ToolStripMenuItem();
             this.miDeleteFrame = new System.Windows.Forms.ToolStripMenuItem();
             this.miRefreshFrame = new System.Windows.Forms.ToolStripMenuItem();
+            this.miHelpInfo = new System.Windows.Forms.ToolStripMenuItem();
+            this.miRunScript = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.miProperties = new System.Windows.Forms.ToolStripMenuItem();
+            this.miInterpolation = new System.Windows.Forms.ToolStripMenuItem();
             this.ctxMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -248,38 +249,13 @@ namespace ClipRecorder {
             this.miAppendFrame,
             this.miDeleteFrame,
             this.miRefreshFrame,
+            this.miInterpolation,
             this.miHelpInfo,
             this.miRunScript,
             this.toolStripSeparator1,
             this.miProperties});
             this.ctxMenu.Name = "ctxMenu";
-            this.ctxMenu.Size = new System.Drawing.Size(181, 186);
-            // 
-            // miHelpInfo
-            // 
-            this.miHelpInfo.Name = "miHelpInfo";
-            this.miHelpInfo.Size = new System.Drawing.Size(180, 22);
-            this.miHelpInfo.Text = "Help Info...";
-            this.miHelpInfo.Click += new System.EventHandler(this.btnInformation_Click);
-            // 
-            // miRunScript
-            // 
-            this.miRunScript.Name = "miRunScript";
-            this.miRunScript.Size = new System.Drawing.Size(180, 22);
-            this.miRunScript.Text = "Run Script";
-            this.miRunScript.Click += new System.EventHandler(this.btnScript_Click);
-            // 
-            // miProperties
-            // 
-            this.miProperties.Name = "miProperties";
-            this.miProperties.Size = new System.Drawing.Size(180, 22);
-            this.miProperties.Text = "Properties...";
-            this.miProperties.Click += new System.EventHandler(this.btnConfigure_Click);
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
+            this.ctxMenu.Size = new System.Drawing.Size(181, 208);
             // 
             // miCaptureFrame
             // 
@@ -311,6 +287,40 @@ namespace ClipRecorder {
             this.miRefreshFrame.Text = "Refresh Frame";
             this.miRefreshFrame.ToolTipText = "Refresh current map with current frame.";
             this.miRefreshFrame.Click += new System.EventHandler(this.miRefreshFrame_Click);
+            // 
+            // miHelpInfo
+            // 
+            this.miHelpInfo.Name = "miHelpInfo";
+            this.miHelpInfo.Size = new System.Drawing.Size(180, 22);
+            this.miHelpInfo.Text = "Help Info...";
+            this.miHelpInfo.Click += new System.EventHandler(this.btnInformation_Click);
+            // 
+            // miRunScript
+            // 
+            this.miRunScript.Name = "miRunScript";
+            this.miRunScript.Size = new System.Drawing.Size(180, 22);
+            this.miRunScript.Text = "Run Script";
+            this.miRunScript.Click += new System.EventHandler(this.btnScript_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
+            // 
+            // miProperties
+            // 
+            this.miProperties.Name = "miProperties";
+            this.miProperties.Size = new System.Drawing.Size(180, 22);
+            this.miProperties.Text = "Properties...";
+            this.miProperties.Click += new System.EventHandler(this.btnConfigure_Click);
+            // 
+            // miInterpolation
+            // 
+            this.miInterpolation.Name = "miInterpolation";
+            this.miInterpolation.Size = new System.Drawing.Size(180, 22);
+            this.miInterpolation.Text = "Add Interpolation";
+            this.miInterpolation.ToolTipText = "Add Interpolation Frames";
+            this.miInterpolation.Click += new System.EventHandler(this.miInterpolation_Click);
             // 
             // RecorderForm
             // 
@@ -374,5 +384,6 @@ namespace ClipRecorder {
         private System.Windows.Forms.ToolStripMenuItem miDeleteFrame;
         private System.Windows.Forms.ToolStripMenuItem miRefreshFrame;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem miInterpolation;
     }
 }

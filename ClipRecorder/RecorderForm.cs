@@ -30,7 +30,6 @@ namespace ClipRecorder {
         bool autoReverse = true;
         VisuMap.Lib.PropertyManager propMan;
         ProgressBar progressBar;
-        bool trackingTrend;
         string scriptPath;
         string clipFilePath = "vmb:ClipRecorder.clip";
         IForm playTarget = null;  // Play to recordered clips into a different window instead of the main window.
@@ -110,31 +109,6 @@ namespace ClipRecorder {
             CreateSnapshot();
         }
 
-
-        void CalculateTrendType(FrameSpec b0, FrameSpec b1) {
-            if ( b0 == null ) {
-                for(int i=0; i<b1.Size; i++)
-                    b1.BodyInfoList[i].type = 0;
-            } else {
-                BodyInfo[] bList0 = b0.BodyInfoList;
-                BodyInfo[] bList1 = b1.BodyInfoList;
-                double[] sizes = new double[bList0.Length];
-                double maxSize = double.MinValue;
-                for(int i=0; i<bList1.Length; i++) {
-                    float dx = bList1[i].x - bList0[i].x;
-                    float dy = bList1[i].y - bList0[i].y;
-                    sizes[i] = Math.Sqrt(dx * dx + dy * dy);
-                    maxSize = Math.Max(sizes[i], maxSize);
-                    double angle = Math.Atan2(dy, dx);
-                    if (angle < 0) angle += 2*Math.PI; 
-                    bList1[i].type = (short)(1 + 32 * angle / (2 * Math.PI));
-                }
-
-                for (int i = 0; i < bList1.Length; i++) 
-                    bList1[i].type += (short)(32 * (int)(sizes[i]/maxSize*3));
-            }
-        }
-
         ushort Flags(IBody body) {
             ushort flags = 0;
             if (body.IsFixed) flags |= 0x0001;
@@ -171,7 +145,6 @@ namespace ClipRecorder {
             MT.Loop(0, bodies.Count, i => {
                 BodyInfo b = frame.BodyInfoList[i];
                 IBody body = bodies[i];
-
                 body.X = b.x;
                 body.Y = b.y;
                 body.Z = b.z;
@@ -186,11 +159,6 @@ namespace ClipRecorder {
             FrameSpec frame = new FrameSpec((short)map.Width, (short)map.Height, (short)map.Depth,
                 (short)map.MapTypeIndex, bodyList.Count);
             CopyBodyToFrame(bodyList, frame);
-
-            if (trackingTrend) {
-                FrameSpec preFrame = (frameList.Count == 0) ? null : frameList[frameList.Count - 1];
-                CalculateTrendType(preFrame, frame);
-            }
 
             frameList.Add(frame);
             SetMaximum(frameList.Count);
@@ -210,7 +178,6 @@ namespace ClipRecorder {
             SetMaximum(frameList.Count);
             if (currentFrame < 0)
                 SetCurrentValue(0);
-
             return frameList.Count;
         }
 
@@ -282,7 +249,6 @@ namespace ClipRecorder {
             SetCurrentValue(frameIndex);
             Application.DoEvents();
             ShowFrame(GetBodyList(), frameList[frameIndex]);
-
             return true;
         }
 
@@ -306,42 +272,6 @@ namespace ClipRecorder {
             isRecording = false;
             isPlaying = true;            
             ReplayFrameList();
-        }
-
-        public bool Transform(float[] matrix) {
-            if (matrix.Length != 16) {
-                return false;
-            }
-
-            int i = 0; 
-            float[] m = matrix;
-            float m11 = m[i++]; float m21 = m[i++]; float m31 = m[i++]; float m41 = m[i++];
-            float m12 = m[i++]; float m22 = m[i++]; float m32 = m[i++]; float m42 = m[i++];
-            float m13 = m[i++]; float m23 = m[i++]; float m33 = m[i++]; float m43 = m[i++];
-            float m14 = m[i++]; float m24 = m[i++]; float m34 = m[i++]; float m44 = m[i++];
-
-            foreach (FrameSpec frame in frameList) {
-                for(int k=0; k<frame.Size; k++) {
-                    ref BodyInfo b = ref frame.BodyInfoList[k];
-                    float x = b.x ;
-                    float y = b.y ;
-                    float z = b.z ;
-
-                    float wr = 1/(m41 * x + m42 * y + m43 * z + m44);
-
-                    b.x = (float)((m11 * x + m12 * y + m13 * z + m14) * wr);
-                    b.y = (float)((m21 * x + m22 * y + m23 * z + m24) * wr);
-                    b.z = (float)((m31 * x + m32 * y + m33 * z + m34) * wr);
-                }
-            }
-
-            if (trackingTrend) {
-                for (int idx = 1; idx < frameList.Count; idx++) {
-                    CalculateTrendType(frameList[idx - 1], frameList[idx]);
-                }
-            }
-
-            return true;
         }
 
         public bool InterpolateClip(int stepSize) {
@@ -389,7 +319,7 @@ namespace ClipRecorder {
                 sum2 /= Rows;
                 sum2 = Math.Sqrt(sum2);
                 int K = (int)(sum2/stepSize);
-                K = Math.Min(100, K);
+                K = Math.Min(100, K); // number of interpolating frames.
 
                 for (int k = 1; k <=K; k++) {
                     float p1 = ((float)k) / (K+1);
@@ -471,7 +401,6 @@ namespace ClipRecorder {
             SetMaximum(frameList.Count);
             return true;
         }
-
         
         void ReplayFrameList() {
             if (currentFrame < 0) return;
@@ -797,12 +726,6 @@ namespace ClipRecorder {
             set { clipTitle.Text = value; }
         }
         
-        [Configurable, Saved, Description("Set the body types to track the movement trend.")]
-        public bool TrackingTrend {
-            get { return trackingTrend; }
-            set { trackingTrend = value; }
-        }
-
         [Configurable, Saved, Description("Script file path."), Editor(typeof(ScriptFileSelector), typeof(UITypeEditor))]
         public string ScriptPath {
             get { return scriptPath; }
@@ -1019,6 +942,10 @@ namespace ClipRecorder {
 
         private void miRefreshFrame_Click(object sender, EventArgs e) {
             ShowFrame(GetBodyList(), frameList[currentFrame]);
+        }
+
+        private void miInterpolation_Click(object sender, EventArgs e) {
+            InterpolateClip(10);
         }
     }
 }
