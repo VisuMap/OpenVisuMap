@@ -274,7 +274,7 @@ namespace ClipRecorder {
             ReplayFrameList();
         }
 
-        public bool InterpolateClip(int stepSize) {
+        public bool InterpolateClip(int interFrames) {
             List<FrameSpec> newList = new List<FrameSpec>();
             newList.Add(frameList[0]);
             int Rows = frameList[0].BodyInfoList.Length;
@@ -285,56 +285,22 @@ namespace ClipRecorder {
 
             for (int i = 1; i < frameList.Count; i++ ) {
                 FrameSpec f0 = frameList[i - 1];
-                FrameSpec f1 = frameList[i];
+                FrameSpec f1 = frameList[i];              
 
-                double sum2 = 0;
-                for (int row = 0; row < Rows; row++) {
-                    ref BodyInfo b0 = ref f0.BodyInfoList[row];
-                    ref BodyInfo b1 = ref f1.BodyInfoList[row];
-                    double dx = 10 * (b0.x - b1.x);
-                    double dy = 10 * (b0.y - b1.y);
-                    double dz = 10 * (b0.z - b1.z);
-
-                    if ((f0.MapType == 100) || (f0.MapType == 101)) {
-                        if (dx > 5 * width) {
-                            dx = 10 * width - dx;
-                        } else if (dx < -5 * width) {
-                            dx = 10 * width + dx;
-                        }
-
-                        if (dy > 5 * height) {
-                            dy = 10 * height - dy;
-                        } else if (dy < -5 * height) {
-                            dy = 10 * height + dy;
-                        }
-
-                        if (dz > 5 * depth) {
-                            dz = 10 * depth - dz;
-                        } else if (dz < -5 * depth) {
-                            dz = 10 * depth + dz;
-                        }
-                    }
-                    sum2 += dx * dx + dy * dy + dz * dz;
-                }
-                sum2 /= Rows;
-                sum2 = Math.Sqrt(sum2);
-                int K = (int)(sum2/stepSize);
-                K = Math.Min(100, K); // number of interpolating frames.
-
-                for (int k = 1; k <=K; k++) {
-                    float p1 = ((float)k) / (K+1);
+                for (int k = 1; k <=interFrames; k++) {
+                    float p1 = ((float)k) / (interFrames + 1);
                     float p0 = 1.0f - p1;
                     FrameSpec f = new FrameSpec(width, height, depth, mapType, Rows);
 
                     if ((f.MapType == 100) || (f.MapType == 101)) {
-                        for (int row = 0; row < Rows; row++) {
+                        MT.Loop(0, Rows, row => {
                             ref BodyInfo b0 = ref f0.BodyInfoList[row];
                             ref BodyInfo b1 = ref f1.BodyInfoList[row];
                             ref BodyInfo b = ref f.BodyInfoList[row];
                             b.type = b1.type;
 
                             double v0, v1;
-                            if (Math.Abs(b0.x - b1.x) > 5 * width ) {
+                            if (Math.Abs(b0.x - b1.x) > 5 * width) {
                                 if (b0.x > b1.x) {
                                     v0 = b0.x;
                                     v1 = b1.x + 10 * width;
@@ -375,10 +341,9 @@ namespace ClipRecorder {
                                 v1 = b1.z;
                             }
                             b.z = (short)(p0 * v0 + p1 * v1);
-
-                        }
+                        });
                     } else {
-                        for (int row = 0; row < Rows; row++) {
+                        MT.Loop(0, Rows, row => {
                             ref BodyInfo b0 = ref f0.BodyInfoList[row];
                             ref BodyInfo b1 = ref f1.BodyInfoList[row];
                             ref BodyInfo b = ref f.BodyInfoList[row];
@@ -386,18 +351,16 @@ namespace ClipRecorder {
                             b.y = (short)(p0 * b0.y + p1 * b1.y);
                             b.z = (short)(p0 * b0.z + p1 * b1.z);
                             b.type = b1.type;
-                        }
+                        });
                     }
-
                     newList.Add(f);
                 }
                 newList.Add(f1);
             }
 
-
             frameList.Clear();
             frameList.AddRange(newList);
-            ShowFrame(currentFrame * ( 1 + stepSize));
+            ShowFrame(0);
             SetMaximum(frameList.Count);
             return true;
         }
@@ -462,7 +425,6 @@ namespace ClipRecorder {
             currentFrame = currentValue;
             progressBar.Value = currentValue + 1;
             labelCurrentFrame.Text = (currentValue+1).ToString();
-            this.Refresh();
         }
 
         void btnRecording_Click(object sender, EventArgs e) {
@@ -945,7 +907,7 @@ namespace ClipRecorder {
         }
 
         private void miInterpolation_Click(object sender, EventArgs e) {
-            InterpolateClip(10);
+            InterpolateClip(4);
         }
     }
 }

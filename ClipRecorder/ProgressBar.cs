@@ -21,15 +21,14 @@ class ProgressBar : IDisposable {
     }
 
     void PanelPaint(object sender, PaintEventArgs e) {
-        e.Graphics.Clear(panel.BackColor);
-        if (maximum > 0) {
-            e.Graphics.FillRectangle(brush, 0, 0, panel.Width * currentValue / maximum, panel.Height);            
-        }
+        if (maximum <= 0) return;
+        int barLen = panel.Width * currentValue / maximum;
+        e.Graphics.FillRectangle(brush, 0, 0, barLen, panel.Height);
     }
 
     public int Value {
         get { return currentValue; }
-        set { currentValue = value; }
+        set { currentValue = value; panel.Refresh(); }
     }
 
     public int Maximum {
