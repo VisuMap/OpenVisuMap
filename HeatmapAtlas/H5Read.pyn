@@ -1,0 +1,77 @@
+# import h5 format files and show it in a heatmap.
+#
+import scanpy, tables, sys, collections
+import scipy.sparse as sp_sparse
+import numpy as np
+
+def PromptFile( filter ):
+	import clr
+	clr.AddReference("System.Windows.Forms")
+	from System.Windows.Forms import OpenFileDialog
+	fd = OpenFileDialog()
+	fd.Filter = filter
+	fd.ShowDialog()
+	return fd.FileName
+
+fileName = PromptFile("H5 Files|*.h5")
+if fileName == "":
+	quit()
+ 
+CountMatrix = collections.namedtuple('CountMatrix', ['feature_ref', 'barcodes', 'matrix'])
+ 
+def get_matrix_from_h5(filename):
+    with tables.open_file(filename, 'r') as f:
+        mat_group = f.get_node(f.root, 'matrix')
+        barcodes = f.get_node(mat_group, 'barcodes').read()
+        data = getattr(mat_group, 'data').read()
+        indices = getattr(mat_group, 'indices').read()
+        indptr = getattr(mat_group, 'indptr').read()
+        shape = getattr(mat_group, 'shape').read()
+        matrix = sp_sparse.csc_matrix((data, indices, indptr), shape=shape)
+         
+        feature_ref = {}
+        feature_group = f.get_node(mat_group, 'features')
+        feature_ids = getattr(feature_group, 'id').read()
+        feature_names = getattr(feature_group, 'name').read()
+        feature_types = getattr(feature_group, 'feature_type').read()
+        feature_ref['id'] = feature_ids
+        feature_ref['name'] = feature_names
+        feature_ref['feature_type'] = feature_types
+        tag_keys = getattr(feature_group, '_all_tag_keys').read()
+        for key in tag_keys:
+            if key is str:
+                feature_ref[key] = getattr(feature_group, key).read()
+         
+        return CountMatrix(feature_ref, barcodes, matrix)
+ 
+CM = get_matrix_from_h5(fileName)
+M = CM.matrix
+MRows, MColumns = M.shape
+minRow, minCol = 0.01*MColumns, 0.01*MRows
+
+# filter out rows and columns with low expression.
+RowSum = np.array(M.sum(axis=1)).reshape(-1)
+iRow = np.where(RowSum>minRow)[0]
+ColSum = np.array(M.sum(axis=0)).reshape(-1)
+iCol = np.where(ColSum>minCol)[0]
+M = M[iRow, :]
+M = M[:, iCol]
+
+# convert M to numpy(float32).
+M = M.todense('C').astype(np.float32)
+nt = mm.ToTable(M)
+
+rowIdList = CM.feature_ref['id'][iRow]
+colIdList = CM.barcodes[iCol]
+uf = New.UniqueNameFinder()
+for row, id in enumerate(rowIdList):
+	nt.RowSpecList[row].Id = uf.LookupName(id.decode('utf-8'))
+uf.Reset()
+for col, id in enumerate(colIdList):
+	nt.ColumnSpecList[col].Id = uf.LookupName(id.decode('utf-8'))
+
+hm = New.HeatMap(nt).Show()
+hm.ClickContextMenu('Utilities/Transpose Table')
+hm.CentralizeColorSpectrum()
+
+

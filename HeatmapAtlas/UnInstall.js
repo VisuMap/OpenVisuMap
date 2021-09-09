@@ -1,0 +1,1 @@
+vv.GuiManager.RemoveCustomMenu("Atlas/");
