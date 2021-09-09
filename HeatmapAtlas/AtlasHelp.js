@@ -16,7 +16,7 @@ var cfg = {
 	gPpr:0.1,   	    
 	cMtr:mtrList.cos, // metric
 	gMtr:mtrList.cos,  
-	gPrShift:0.5,     // gene profile shift
+	gPrShift:1.0,     // gene profile shift
 	cInitExa:6.0,     // initial exaggreation for cell-embedding
 	gInitExa:4.0,
 	cMinPoint:3,
