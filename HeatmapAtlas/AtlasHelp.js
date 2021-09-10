@@ -17,12 +17,13 @@ var cfg = {
 	cMtr:mtrList.cos, // metric
 	gMtr:mtrList.cos,  
 	gPrShift:1.0,     // gene profile shift
+
 	cInitExa:6.0,     // initial exaggreation for cell-embedding
 	gInitExa:4.0,
-	cMinPoint:3,
+	cMinPoint:5,
 	cMinSize:50, 
-	gMinPoint:10,
-	gMinSize:100,
+	gMinPoint:5,
+	gMinSize:50,
 
 	RowSortingKeys:null,
 	ColumnSortingKeys:null,

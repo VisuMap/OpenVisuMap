@@ -20,8 +20,8 @@ function ShowActiveGenes() {
 	geneMap.ShowMarker(false);
 	
 	var sp = NewExpressionMap(geneMap, "Active Genes");
-	sp.Top = pp.Top;
-	sp.Left = pp.Left + pp.TheForm.ClientSize.Width;
+	sp.Top = geneMap.Top;
+	sp.Left = cellMap.Left;
 	
 	var bv = New.BarView(expTable.SelectRows(New.IntArray(0)));
 	bv.Show();
