@@ -28,6 +28,7 @@ var cfg = {
 	RowSortingKeys:null,
 	ColumnSortingKeys:null,
 	hm:null,
+	Is3D:false,
 };
 
 function ValidateHeatMap(parent) {
@@ -35,6 +36,7 @@ function ValidateHeatMap(parent) {
 		vv.Message('Please call this script from the context menu of a heatmap view.');
 		vv.Return(0);
 	}
+	cfg.hm = parent;
 }
 
 function SortTable(T, mt, epochs, ex, pr) {
@@ -57,14 +59,20 @@ function SortTable(T, mt, epochs, ex, pr) {
 
 function NewExpressionMap(parent, winTitle) {
 	vv.SelectedItems = null;
-	var exMap = parent.NewSnapshot();
+	var exMap;
+	if ( cfg.Is3D ) {
+		exMap = parent.NewWindow();
+	} else {
+		exMap = parent.NewSnapshot();
+		exMap.ShowMarker(false);
+	}
+
 	exMap.GlyphSet="Ordered 64";
 	exMap.GlyphOpacity = 0.75;
 	exMap.GlyphSize = 1.0;
 	exMap.Width = parent.Width;
 	exMap.Height = parent.Height;
 	exMap.Title = winTitle;
-	exMap.ShowMarker(false);
 	return exMap;
 }
 
@@ -104,9 +112,8 @@ var cs = New.CsObject(`
               	b.Type = (short)idxMap[b.Type];		
 	}
 
-	public void CopyType(IMapSnapshot map, IHeatMap hm) {
+	public void CopyType(IForm map, IList<IBody> bList, IHeatMap hm) {
 		INumberTable nt = hm.GetNumberTable();
-		IList<IBody> bList = map.BodyList;
 		if ( map.Title == "Cell Map" )
 			for(int i=0; i<bList.Count; i++)
 				nt.RowSpecList[i].Type = bList[i].Type;
@@ -116,15 +123,17 @@ var cs = New.CsObject(`
 		hm.Redraw();
 	}
 
-	public void ShowActiveGenes(IList<string> selectedItems, INumberTable expTable, IMapSnapshot snapshot) {
+	public void ShowActiveGenes(IList<string> selectedItems, INumberTable expTable, IForm map) {
 		if ( (selectedItems==null) || (selectedItems.Count==0) )
 			return;
 		INumberTable selected = expTable.SelectRowsById(selectedItems);
 		if ( selected.Rows == 0 )
 			return;
 		var colMean = selected.ColumnMean().Select(it=>it.Value).ToArray();
-		var bList = snapshot.BodyList;
-		var bv = snapshot.Tag as IBarView;
+
+		bool is2D = (map.Name == "MapSnapshot");
+		var bList = is2D ? (map as IMapSnapshot).BodyList : (map as IMap3DView).BodyList;
+		var bv = map.Tag as IBarView;
 		double minExpr = colMean.Min();
 		double maxExpr = colMean.Max();
 		double stepSize = (maxExpr - minExpr)/64;
@@ -135,17 +144,21 @@ var cs = New.CsObject(`
 			bv.ItemList[i].Value = colMean[i];
 		}
 		bv.Redraw();
-		snapshot.RedrawBodiesType();
+		if ( is2D )
+			(map as IMapSnapshot).RedrawBodiesType();
+		else
+			(map as IMap3DView).Redraw();
 	}
 
-	public void ShowActiveCells(IList<string> selectedItems, INumberTable expTable, IMapSnapshot snapshot) {
+	public void ShowActiveCells(IList<string> selectedItems, INumberTable expTable, IForm map) {
 		if ( (selectedItems==null) || (selectedItems.Count==0) )
 			return;
 		INumberTable selected = expTable.SelectColumnsById(selectedItems);
 		if ( selected.Columns == 0 )
 			return;
-		var bList = snapshot.BodyList;
-		var bv = snapshot.Tag as IBarView;
+		bool is2D = (map.Name == "MapSnapshot");
+		var bList = is2D ? (map as IMapSnapshot).BodyList : (map as IMap3DView).BodyList;
+		var bv = map.Tag as IBarView;
 		var items = bv.ItemList;
 		double overflow = 0;
 		int overCount = 0;
@@ -173,7 +186,10 @@ var cs = New.CsObject(`
 			bList[row].Type = (short) ( (items[row].Value - minExpr)/stepSize);
 
 		bv.Redraw();
-		snapshot.RedrawBodiesType();
+		if ( is2D )
+			(map as IMapSnapshot).RedrawBodiesType();
+		else
+			(map as IMap3DView).Redraw();
 	}
 
 	public void SetRange(INumberTable expTable, IBarView bv) {

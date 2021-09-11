@@ -15,8 +15,10 @@ function ShowActiveCells() {
 		vv.Message("Cell/Gene map not present!\nPlease run DualClustering!");
 		vv.Return();
 	}
-	cellMap.ShowMarker(false);
-	geneMap.ShowMarker(true);
+	if (!cfg.Is3D) {
+		cellMap.ShowMarker(false);
+		geneMap.ShowMarker(true);
+	}
 	
 	var sp = NewExpressionMap(cellMap, "Active Cells");
 	sp.Top = pp.Top - pp.Height + 8;
@@ -36,7 +38,8 @@ function ShowActiveCells() {
 	bv.Redraw();
 	
 	sp.Tag = bv;
-	sp.ShowMarker(false);
+	if ( !cfg.Is3D )
+		sp.ShowMarker(false);
 	pp.SelectionMode = 1;
 	vv.EventManager.OnItemsSelected(
 		"!cs.ShowActiveCells(vv.EventSource.Item, cfg.hm.GetNumberTable(), vv.EventSource.Argument);",

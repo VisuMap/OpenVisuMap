@@ -15,9 +15,11 @@ function ShowActiveGenes() {
 		vv.Message("Cell/Gene map not present!\nPlease run DualClustering!");
 		vv.Return();
 	}
-	
-	cellMap.ShowMarker(true);
-	geneMap.ShowMarker(false);
+
+	if (!cfg.Is3D) {
+		cellMap.ShowMarker(true);
+		geneMap.ShowMarker(false);
+	}
 	
 	var sp = NewExpressionMap(geneMap, "Active Genes");
 	sp.Top = geneMap.Top;

@@ -7,13 +7,14 @@
 ValidateHeatMap(pp);
 
 function RunEmbedding(mds, epochs, mtr, initExa, ppRatio) {
-	mds.Is3D = false;
+	mds.Is3D = cfg.Is3D;
 	mds.Metric = mtr;
 	mds.ClusterAlgorithm = 4;  // for HDBSCAN algorithm
 	mds.AutoClustering = false;
 	mds.AutoNormalizing = false;
 	mds.RefreshFreq = 50;
 	mds.PerplexityRatio = ppRatio;
+	mds.GlyphSet = "36 Clusters";
 	mds.Reset().Start();
 	var mpView = mds.Is3D ? mds.Show3DView() : mds.Show2DView();
 	mpView.NormalizeView();

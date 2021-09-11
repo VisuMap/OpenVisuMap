@@ -8,7 +8,7 @@ ValidateHeatMap(pp);
 
 function DoClustering(map, minSize, minPoint) {
 	// Setup context menu to synchronize clusters with the heatmap.
-	var menuScript = "!cs.CopyType(pp, cfg.hm);";
+	var menuScript = "!cs.CopyType(pp, pp.BodyList, cfg.hm);";
 	var imgPath = "C:\\Program Files\\VisuMap Technologies\\VisuMap5\\resource\\icon\\PartitionA.png";
 	var menuTip = "Push the cluster coloring to the heatmap";
 	var menuLabel = "Capture Coloring";
