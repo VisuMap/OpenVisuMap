@@ -366,7 +366,10 @@ namespace ClipRecorder {
         }
         
         void ReplayFrameList() {
-            if (currentFrame < 0) return;
+            if (frameList.Count <= 1)
+                return;
+            currentFrame = Math.Max(0, currentFrame);
+            currentFrame = Math.Min(frameList.Count - 1, currentFrame);
             List<IBody> bodyList = GetBodyList();
             stopFlag = false;
             for (int frameIdx = currentFrame; frameIdx < frameList.Count; frameIdx+=replayInterval) {
@@ -532,6 +535,7 @@ namespace ClipRecorder {
                     int frames = reader.ReadInt32();
                     int bodies = reader.ReadInt32();
                     if (bodies != app.ScriptApp.Dataset.BodyCount) {
+                        MessageBox.Show("The recorded clip have different body count as the currently loaded map.");
                         return false;
                     }
 
@@ -714,6 +718,7 @@ namespace ClipRecorder {
         void MoveFrame(int x) {
             float delta = 0.5f * progressBar.Width / progressBar.Maximum;
             int clickedIdx = x * frameList.Count / progressBar.Width;
+            clickedIdx = Math.Max(0, Math.Min(frameList.Count - 1, clickedIdx));
             SetCurrentValue(clickedIdx);
             SyncCurrentFrame();
         }

@@ -56,7 +56,7 @@ namespace ClipRecorder {
             this.labelMax.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelMax.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelMax.ForeColor = System.Drawing.Color.Navy;
-            this.labelMax.Location = new System.Drawing.Point(331, 7);
+            this.labelMax.Location = new System.Drawing.Point(390, 7);
             this.labelMax.Margin = new System.Windows.Forms.Padding(0);
             this.labelMax.Name = "labelMax";
             this.labelMax.Size = new System.Drawing.Size(44, 14);
@@ -73,7 +73,7 @@ namespace ClipRecorder {
             this.btnLoad.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnLoad.ForeColor = System.Drawing.Color.Transparent;
             this.btnLoad.Image = global::ClipRecorder.Properties.Resources.LoadRecord;
-            this.btnLoad.Location = new System.Drawing.Point(335, 58);
+            this.btnLoad.Location = new System.Drawing.Point(394, 58);
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(16, 16);
             this.btnLoad.TabIndex = 8;
@@ -89,7 +89,7 @@ namespace ClipRecorder {
             this.btnClose.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnClose.ForeColor = System.Drawing.Color.Transparent;
             this.btnClose.Image = global::ClipRecorder.Properties.Resources.CloseWindow;
-            this.btnClose.Location = new System.Drawing.Point(359, 58);
+            this.btnClose.Location = new System.Drawing.Point(418, 58);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(16, 16);
             this.btnClose.TabIndex = 9;
@@ -104,7 +104,7 @@ namespace ClipRecorder {
             this.btnToEnd.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnToEnd.ForeColor = System.Drawing.Color.Transparent;
             this.btnToEnd.Image = global::ClipRecorder.Properties.Resources.ToEnd;
-            this.btnToEnd.Location = new System.Drawing.Point(203, 50);
+            this.btnToEnd.Location = new System.Drawing.Point(219, 50);
             this.btnToEnd.Name = "btnToEnd";
             this.btnToEnd.Size = new System.Drawing.Size(24, 24);
             this.btnToEnd.TabIndex = 5;
@@ -121,7 +121,7 @@ namespace ClipRecorder {
             this.btnSave.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSave.ForeColor = System.Drawing.Color.Transparent;
             this.btnSave.Image = global::ClipRecorder.Properties.Resources.SaveRecord;
-            this.btnSave.Location = new System.Drawing.Point(311, 58);
+            this.btnSave.Location = new System.Drawing.Point(370, 58);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(16, 16);
             this.btnSave.TabIndex = 7;
@@ -136,7 +136,7 @@ namespace ClipRecorder {
             this.btnPlayStop.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnPlayStop.ForeColor = System.Drawing.Color.Transparent;
             this.btnPlayStop.Image = global::ClipRecorder.Properties.Resources.Play;
-            this.btnPlayStop.Location = new System.Drawing.Point(179, 50);
+            this.btnPlayStop.Location = new System.Drawing.Point(195, 50);
             this.btnPlayStop.Name = "btnPlayStop";
             this.btnPlayStop.Size = new System.Drawing.Size(24, 24);
             this.btnPlayStop.TabIndex = 4;
@@ -168,7 +168,7 @@ namespace ClipRecorder {
             this.btnClearAll.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnClearAll.ForeColor = System.Drawing.Color.Transparent;
             this.btnClearAll.Image = global::ClipRecorder.Properties.Resources.ClearAll;
-            this.btnClearAll.Location = new System.Drawing.Point(287, 58);
+            this.btnClearAll.Location = new System.Drawing.Point(346, 58);
             this.btnClearAll.Name = "btnClearAll";
             this.btnClearAll.Size = new System.Drawing.Size(16, 16);
             this.btnClearAll.TabIndex = 1;
@@ -184,7 +184,7 @@ namespace ClipRecorder {
             this.btnReset.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnReset.ForeColor = System.Drawing.Color.Transparent;
             this.btnReset.Image = global::ClipRecorder.Properties.Resources.Reset;
-            this.btnReset.Location = new System.Drawing.Point(155, 50);
+            this.btnReset.Location = new System.Drawing.Point(171, 50);
             this.btnReset.Name = "btnReset";
             this.btnReset.Size = new System.Drawing.Size(24, 24);
             this.btnReset.TabIndex = 3;
@@ -199,7 +199,7 @@ namespace ClipRecorder {
             this.progressPanel.BackColor = System.Drawing.Color.PowderBlue;
             this.progressPanel.Location = new System.Drawing.Point(3, 24);
             this.progressPanel.Name = "progressPanel";
-            this.progressPanel.Size = new System.Drawing.Size(373, 20);
+            this.progressPanel.Size = new System.Drawing.Size(432, 20);
             this.progressPanel.TabIndex = 11;
             this.progressPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.progressPanel_MouseDown);
             this.progressPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.progressPanel_MouseMove);
@@ -223,10 +223,10 @@ namespace ClipRecorder {
             | System.Windows.Forms.AnchorStyles.Right)));
             this.labelCurrentFrame.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelCurrentFrame.ForeColor = System.Drawing.Color.Navy;
-            this.labelCurrentFrame.Location = new System.Drawing.Point(129, 7);
+            this.labelCurrentFrame.Location = new System.Drawing.Point(169, 9);
             this.labelCurrentFrame.Margin = new System.Windows.Forms.Padding(0);
             this.labelCurrentFrame.Name = "labelCurrentFrame";
-            this.labelCurrentFrame.Size = new System.Drawing.Size(68, 14);
+            this.labelCurrentFrame.Size = new System.Drawing.Size(42, 14);
             this.labelCurrentFrame.TabIndex = 13;
             this.labelCurrentFrame.Text = "0";
             this.labelCurrentFrame.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -238,7 +238,7 @@ namespace ClipRecorder {
             this.clipTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.clipTitle.Location = new System.Drawing.Point(12, 82);
             this.clipTitle.Name = "clipTitle";
-            this.clipTitle.Size = new System.Drawing.Size(356, 20);
+            this.clipTitle.Size = new System.Drawing.Size(415, 20);
             this.clipTitle.TabIndex = 14;
             this.clipTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
@@ -255,7 +255,7 @@ namespace ClipRecorder {
             this.toolStripSeparator1,
             this.miProperties});
             this.ctxMenu.Name = "ctxMenu";
-            this.ctxMenu.Size = new System.Drawing.Size(205, 208);
+            this.ctxMenu.Size = new System.Drawing.Size(205, 186);
             // 
             // miCaptureFrame
             // 
@@ -332,7 +332,7 @@ namespace ClipRecorder {
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(96)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
-            this.ClientSize = new System.Drawing.Size(380, 79);
+            this.ClientSize = new System.Drawing.Size(439, 78);
             this.ContextMenuStrip = this.ctxMenu;
             this.Controls.Add(this.clipTitle);
             this.Controls.Add(this.labelCurrentFrame);
