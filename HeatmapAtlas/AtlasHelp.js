@@ -10,23 +10,15 @@ var mtrList = {
 };
 
 var cfg = {
-	cEpochs:5000, 
-	gEpochs:5000,     // training epochs for cell and gene profiles.
-	cPpr:0.1, 	    // perplexity ratio
-	gPpr:0.1,   	    
-	cMtr:mtrList.cos, // metric
-	gMtr:mtrList.cos,  
-	gPrShift:1.0,     // gene profile shift
+	cEpochs:5000,          gEpochs:5000,       // training epochs for cell and gene profiles.
+	cPpr:0.1,              gPpr:0.1,           // perplexity ratio    
+	cMtr:mtrList.cos,      gMtr: mtrList.cos,  // metric 
+	cInitExa:6.0,          gInitExa: 4.0,      // initial exaggreation for cell-embedding
+	cMinPoint:5,           gMinPoint:5,           
+       cMinSize:50,           gMinSize:50,
+	RowSortingKeys:null,   ColumnSortingKeys:null,
 
-	cInitExa:6.0,     // initial exaggreation for cell-embedding
-	gInitExa:4.0,
-	cMinPoint:5,
-	cMinSize:50, 
-	gMinPoint:5,
-	gMinSize:50,
-
-	RowSortingKeys:null,
-	ColumnSortingKeys:null,
+       gPrShift: 1.0,     // gene profile shift
 	hm:null,
 	Is3D:false,
 };
