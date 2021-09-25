@@ -9,7 +9,8 @@ for(var [label, script, view] of [
 	["Dual Embedding", "DualEmbedding.js", "HeatMap"],
 	["Dual Clustering", "DualClustering.js", "HeatMap"],
 	["Active Genes", "ShowActiveGenes.js", "HeatMap"],
-	["Active Cells", "ShowActiveCells.js", "HeatMap"],
+	["Active Cells", "ShowActiveCells.js", "HeatMap"],	
+	["Compare Maps", "MapMorph.js", "MapSnapshot"],
 ])
 	vv.GuiManager.SetCustomMenu("Atlas/" + label, 
 		true, vv.CurrentScriptDirectory + "/" + script, view);
