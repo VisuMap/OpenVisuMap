@@ -73,5 +73,6 @@ for col, id in enumerate(colIdList):
 hm = New.HeatMap(nt).Show()
 hm.ClickContextMenu('Utilities/Transpose Table')
 hm.CentralizeColorSpectrum()
+hm.Description = 'Data imported from: ' + fileName
 
 

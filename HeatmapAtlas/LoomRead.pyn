@@ -34,3 +34,4 @@ if nt.Columns == len(f.var_names):
 
 hm = New.HeatMap(nt).Show()
 hm.CentralizeColorSpectrum()
+hm.Description = 'Data imported from: ' + fileName

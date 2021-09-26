@@ -39,4 +39,5 @@ if ( len(lines)) == nt.Rows:
 	for i in range(nt.Rows):
 		nt.RowSpecList[i].Id = uf.LookupName(lines[i].decode('utf-8'))
 
-nt.ShowHeatMap()
+hm = nt.ShowHeatMap()
+hm.Description = 'Data imported from: ' + fileName
