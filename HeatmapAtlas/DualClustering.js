@@ -21,13 +21,7 @@ function DoClustering(map, minSize, minPoint) {
 function DCMain() {
 	cfg.hm = pp;
 	var nt = cfg.hm.GetNumberTable();
-	var cellMap = vv.FindWindow("Cell Map");
-	var geneMap = vv.FindWindow("Gene Map");
-	
-	if ( (cellMap==null) || (geneMap==null) ) {
-		vv.Message("Cell/Gene map not present!\nPlease run DualClustering!");
-		vv.Return();
-	}
+	var [cellMap, geneMap] = FindCellGeneMap();
 
 	var rowClusters = DoClustering(cellMap, cfg.cMinSize, cfg.cMinPoint);
 	cs.NormalizeColoring(cellMap.BodyList, cfg.RowSrtKeys, rowClusters);

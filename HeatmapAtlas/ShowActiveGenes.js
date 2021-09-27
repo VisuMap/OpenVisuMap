@@ -8,18 +8,7 @@ ValidateHeatMap(pp);
 
 function ShowActiveGenes() {
 	var expTable = pp.GetNumberTable();
-	var geneMap = vv.FindWindow("Gene Map");
-	var cellMap = vv.FindWindow("Cell Map");
-	
-	if ( (cellMap==null) || (geneMap==null) ) {
-		vv.Message("Cell/Gene map not present!\nPlease run DualClustering!");
-		vv.Return();
-	}
-
-	if (!cfg.Is3D) {
-		cellMap.ShowMarker(true);
-		geneMap.ShowMarker(false);
-	}
+	var [cellMap, geneMap] = FindCellGeneMap();
 	
 	var sp = NewExpressionMap(geneMap, "Active Genes");
 	sp.Top = geneMap.Top;
@@ -36,11 +25,14 @@ function ShowActiveGenes() {
 	bv.Title = "Cell Expression Profile";
 	sp.Tag = bv;
 	bv.Redraw();
-	
+
+
 	pp.SelectionMode = 0;
 	vv.EventManager.OnItemsSelected(
 		"!cs.ShowActiveGenes(vv.EventSource.Item, cfg.hm.GetNumberTable(), vv.EventSource.Argument);",
 		sp, sp);
+
+	FlushMarkers(cellMap, geneMap, sp);	
 }
 
 ShowActiveGenes();

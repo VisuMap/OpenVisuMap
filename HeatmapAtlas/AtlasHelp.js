@@ -3,25 +3,35 @@
 // Help functions.
 //
 
-var mtrList = { 
+var cfg = { 
 	cos:'Correlation.Cosine Distance', 
 	euc:'EuclideanMetric', 
 	cor:'Correlation.Standard Correlation',
 };
-
-var cfg = {
-	cEpochs:5000,      gEpochs:5000,       // training epochs for cell/gene profiles.
-	cPpr:0.1,          gPpr:0.1,           // perplexity ratio    
-	cMtr:mtrList.cos,  gMtr: mtrList.cos,  // metric 
-	cInitExa:6.0,      gInitExa: 4.0,      // initial exaggreation
-	cMinPoint:5,       gMinPoint:5,           
-       cMinSize:50,       gMinSize:50,
+cfg = {
+         cEpochs:5000,      gEpochs:5000,       // training epochs for cell/gene profiles.
+        cPpr:0.1,          gPpr:0.1,           // perplexity ratio    
+        cMtr:cfg.cos,      gMtr:cfg.cos,      // metric 
+        cInitExa:12.0,     gInitExa: 8.0,      // initial exaggreation
+        cMinPoint:5,       gMinPoint:5,           
+        cMinSize:50,       gMinSize:50,
 	RowSrtKeys:null,   ColumnSrtKeys:null,
 
-       gPrShift:0.5,     // gene profile shift
-	hm:null,
-	Is3D:false,
+        gPrShift:0.5,     // gene profile shift
+        hm:null,
+        Is3D:false,
 };
+
+function FindCellGeneMap() {
+	var cellMap = vv.FindLastWindow("Cell Map");
+	var geneMap = vv.FindLastWindow("Gene Map");
+	
+	if ( (cellMap==null) || (geneMap==null) ) {
+		vv.Message("Cell/Gene map not present!\nPlease run DualClustering!");
+		vv.Return();
+	}
+	return [cellMap, geneMap];
+}
 
 function ValidateHeatMap(parent) {
 	if (parent.Name != "HeatMap"){
@@ -66,6 +76,19 @@ function NewExpressionMap(parent, winTitle) {
 	exMap.Height = parent.Height;
 	exMap.Title = winTitle;
 	return exMap;
+}
+
+function FlushMarkers(map1, map2, map3) {
+	if (!cfg.Is3D) {
+		map2.ShowMarker(false);
+		map3.ShowMarker(false);
+		for(var i=0; i<4; i++) {
+			map1.ShowMarker(false);
+			vv.Sleep(250);
+			map1.ShowMarker(true);
+			vv.Sleep(250);
+		}
+	}
 }
 
 

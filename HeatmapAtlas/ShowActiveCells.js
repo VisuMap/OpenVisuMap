@@ -8,17 +8,7 @@ ValidateHeatMap(pp);
 
 function ShowActiveCells() {
 	var expTable = pp.GetNumberTable();
-	var cellMap = vv.FindWindow("Cell Map");
-	var geneMap = vv.FindWindow("Gene Map");
-	
-	if ( (cellMap==null) || (geneMap==null) ) {
-		vv.Message("Cell/Gene map not present!\nPlease run DualClustering!");
-		vv.Return();
-	}
-	if (!cfg.Is3D) {
-		cellMap.ShowMarker(false);
-		geneMap.ShowMarker(true);
-	}
+	var [cellMap, geneMap] = FindCellGeneMap();
 	
 	var sp = NewExpressionMap(cellMap, "Active Cells");
 	sp.Top = pp.Top - pp.Height + 8;
@@ -38,12 +28,12 @@ function ShowActiveCells() {
 	bv.Redraw();
 	
 	sp.Tag = bv;
-	if ( !cfg.Is3D )
-		sp.ShowMarker(false);
 	pp.SelectionMode = 1;
 	vv.EventManager.OnItemsSelected(
 		"!cs.ShowActiveCells(vv.EventSource.Item, cfg.hm.GetNumberTable(), vv.EventSource.Argument);",
 		sp, sp);
+
+	FlushMarkers(geneMap, cellMap, sp);
 }
 
 ShowActiveCells();
