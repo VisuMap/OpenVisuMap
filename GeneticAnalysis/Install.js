@@ -1,4 +1,4 @@
-var dir = vv.CurrentScriptPath.substr(0, vv.CurrentScriptPath.lastIndexOf("\\") + 1);
+var dir = vv.CurrentScriptDirectory + "/";
 vv.InstallPlugin("Genetic Analysis", dir +"GeneticAnalysis.dll");
 vv.GuiManager.SetCustomMenu("SeqUtil/*", true, dir + "SequenceOp.js", "SequenceMap");
 vv.GuiManager.SetCustomMenu("Blast/Blast", true, dir + "Blast.js", "SequenceMap");

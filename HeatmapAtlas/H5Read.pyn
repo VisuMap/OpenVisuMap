@@ -3,19 +3,9 @@
 import scanpy, tables, sys, collections
 import scipy.sparse as sp_sparse
 import numpy as np
-
-def PromptFile( filter ):
-	import clr
-	clr.AddReference("System.Windows.Forms")
-	from System.Windows.Forms import OpenFileDialog
-	fd = OpenFileDialog()
-	fd.Filter = filter
-	fd.ShowDialog()
-	return fd.FileName
+vv.Import('AtlasHelp.pyn')
 
 fileName = PromptFile("H5 Files|*.h5")
-if fileName == "":
-	quit()
  
 CountMatrix = collections.namedtuple('CountMatrix', ['feature_ref', 'barcodes', 'matrix'])
  
@@ -70,9 +60,6 @@ uf.Reset()
 for col, id in enumerate(colIdList):
 	nt.ColumnSpecList[col].Id = uf.LookupName(id.decode('utf-8'))
 
-hm = New.HeatMap(nt).Show()
-hm.ClickContextMenu('Utilities/Transpose Table')
-hm.CentralizeColorSpectrum()
-hm.Description = 'Data imported from: ' + fileName
+ShowHeatmap(nt, fileName).ClickContextMenu('Utilities/Transpose Table')
 
 

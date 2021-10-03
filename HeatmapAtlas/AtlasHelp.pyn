@@ -1,0 +1,19 @@
+# AtlasHelp.pyn
+#
+def PromptFile( filter ):
+	import clr
+	clr.AddReference("System.Windows.Forms")
+	from System.Windows.Forms import OpenFileDialog
+	fd = OpenFileDialog()
+	fd.Filter = filter
+	fd.RestoreDirectory = True
+	fd.ShowDialog()
+	if fd.FileName == "":
+		quit()
+	return fd.FileName
+
+def ShowHeatmap(nt, fileName):
+	hm = New.HeatMap(nt).Show()
+	hm.CentralizeColorSpectrum()
+	hm.Description = 'Data imported from: ' + fileName
+	return hm

@@ -24,6 +24,7 @@ function ShowActiveCells() {
 	bv.Horizontal = true;
 	bv.Title = "Gene Expression Profile";
 	bv.BaseLineType = 4;
+
 	cs.SetRange(expTable, bv);
 	bv.Redraw();
 	

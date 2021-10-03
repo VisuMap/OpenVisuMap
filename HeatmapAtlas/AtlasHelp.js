@@ -209,6 +209,7 @@ var cs = New.CsObject(`
 
 	public void SetRange(INumberTable expTable, IBarView bv) {
 		double[] colMean = expTable.ColumnMean().Select(it=>it.Value).ToArray();
+/*
 		Array.Sort(colMean);
 		Array.Reverse(colMean);
 		int n = (int)(0.15 * colMean.Length);		
@@ -217,5 +218,6 @@ var cs = New.CsObject(`
 			sum += colMean[i] * colMean[i];
 		bv.UpperLimit = 3* Math.Sqrt(sum/n);
 		bv.LowerLimit = 0;
+		*/
 	}
 `);

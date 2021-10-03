@@ -1,19 +1,9 @@
 # Import a loom format file into a heatmap view.
 #
 import scanpy, numpy
-
-def PromptFile( filter ):
-	import clr
-	clr.AddReference("System.Windows.Forms")
-	from System.Windows.Forms import OpenFileDialog
-	fd = OpenFileDialog()
-	fd.Filter = filter
-	fd.ShowDialog()
-	return fd.FileName
+vv.Import('AtlasHelp.pyn')
 
 fileName = PromptFile("Loom Files|*.loom")
-if fileName == "":
-	quit()
 
 f = scanpy.read_loom(fileName, validate=False)
 
@@ -32,6 +22,4 @@ if nt.Columns == len(f.var_names):
 	for col, id in enumerate(f.var_names):
 		nt.ColumnSpecList[col].Id = uf.LookupName(str(id))
 
-hm = New.HeatMap(nt).Show()
-hm.CentralizeColorSpectrum()
-hm.Description = 'Data imported from: ' + fileName
+ShowHeatmap(nt, fileName)
