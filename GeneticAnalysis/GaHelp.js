@@ -185,6 +185,7 @@ var cs = New.CsObject("RandomizeSeq", `
 		}
 		return sList;
 	}
+
 	public float[] FindPattern(byte[] seq, string p) {
 		const string S = \"ACGT\";
 		float[] R = new float[seq.Length-p.Length+1];
@@ -203,6 +204,7 @@ var cs = New.CsObject("RandomizeSeq", `
 		}
 		return R;
 	}
+
 	public double[] GetMoment(byte[] seq) {
 		double[] mem = new double[4];
 		for(int i=0; i<seq.Length; i++) {

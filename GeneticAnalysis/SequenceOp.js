@@ -204,34 +204,35 @@ switch( label ) {
 		tb.ColumnSpecList[1].Id = "SeqBegin";
 		tb.ColumnSpecList[2].Id = "SeqEnd";
 		tb.ColumnSpecList[3].Id = "SeqLength";
-		for(var col=1; col<4; col++) tb.ColumnSpecList[col].DataType = 'n';
+		for(var col=1; col<4; col++) 
+			tb.ColumnSpecList[col].DataType = 'n'.charCodeAt(); 
 		bv.Show();
 		tb.ShowAsTable();
 		break;
 
 	case "CpGDensity":
 		var pList = 
-			"ACG"
+			//"ACG"
 			//"AAA CCC GGG TTT"
-			//"A C G T"
+			"A C G T"
 			//"AA CC GG TT"
 			//"CG GC CC GG"
 			//"AT TA CG GC"
 			//"AC CA AG GA AT TA CG GC CT TC GT TG CC GG AA TT"
 		;
-		pList = pList.Split(' ');
+		pList = pList.split(' ');   
 		var vc = New.ViewContainer();
-		for(var i=0; i<pList.Length; i++) {
+		for(var i=0; i<pList.length; i++) {
 			var p = pList[i];
 			var values = cs.FindPattern(pp.SequenceTable, p);
 			var bv = New.BigBarView(values);
 			bv.ShortName = p;
 			bv.TheForm.FormBorderStyle=0;
-			bv.BaseLocation = pp.BaseLocation - p.Length + 1;
+			bv.BaseLocation = pp.BaseLocation - p.length + 1;
 			vc.Add(bv);
 			bv.Show();
-			bv.TheForm.SetBounds(0,0, vc.Width-28, 16, 12); // 12: only set the size.
-			bv.TheForm.Anchor = 13; // anchor to top,left and right.
+			bv.TheForm.Width = vc.Width-28;
+			bv.TheForm.Height = 226;
 			vc.Title = (i+1) + ": " + p ;
 		}
 		vc.TileWindows()
@@ -240,7 +241,7 @@ switch( label ) {
 	case "ExtSelection": // Extends selections on both end with 500 nb.
 		var L = 500;
 		var nss = New.SequenceIntervalList();
-		for(var s in ss) {
+		for(var s of ss) {
 			nss.Add(New.SequenceInterval(s.Begin-L, s.End+L));
 		}
 		pp.ClearSelection();
