@@ -12,6 +12,7 @@
 //
 //================================================================================
 //
+vv.Import('GaHelp.js')
 
 if ( pp.SelectedItems.Count == 0 ) {
 	vv.Message("No sequence selected");
@@ -24,27 +25,9 @@ var strandColumn = ds.IndexOfColumn("Strand");
 function FlipStrand(rowNr) {
 	return (strandColumn >= 0) && (ds.GetDataAt(rowNr, strandColumn) == "-1");
 }
-var cs = New.CsObject("\
-	public void FlipSeq(byte[] s, int idx0, int idx1) {\
-		idx0 = Math.Min(s.Length-1, Math.Max(0, idx0));\
-		idx1 = Math.Min(s.Length-1, Math.Max(0, idx1));\
-		int N = idx1 - idx0 + 1;\
-		int N2 = N/2;\
-		for(int i=0; i<N2; i++) {\
-			int j = N - 1 - i;\
-			byte tmp = s[idx0+i];\
-			s[idx0+i] = s[idx0+j];\
-			s[idx0+j] = tmp;\
-		}\
-		for(int i=idx0; i<=idx1; i++) {\
-			if ( s[i] < 4 ) s[i] ^= 0x3;\
-		}\
-	}\
-");
-
 
 var maxLen = 0;
-for(var id in pp.SelectedItems) {
+for(var id of pp.SelectedItems) {
 	var row = ds.IndexOfRow(id);
 	maxLen = Math.max(maxLen, ds.GetDataAt(row, 1)-0);
 }
@@ -64,17 +47,19 @@ var sMap;
 if ( MAX_LEN == 0 ) {
 	var rows = 40;
 	var size = 0;
-	for(var id in pp.SelectedItems)size +=ds.GetDataAt(ds.IndexOfRow(id), 1) - 0;
+	for(var id of pp.SelectedItems)
+		size +=ds.GetDataAt(ds.IndexOfRow(id), 1) - 0;
 	var gap = Math.round(size/(rows*150));
 	size += gap*pp.SelectedItems.Count;
 	var seqTable = New.ByteArray(size, 4);
 	var dstIdx = 0;
-	for(var id in pp.SelectedItems) {
+	for(var id of pp.SelectedItems) {
 		var row = ds.IndexOfRow(id);
 		var idx=ds.GetDataAt(row, 0) - 0;
 		var len=ds.GetDataAt(row, 1) - 0;
 		sm.FetchSeqIndex(idx, len, seqTable, dstIdx);
-		if ( FlipStrand(row) ) cs.FlipSeq(seqTable, dstIdx, dstIdx+len-1);
+		if ( FlipStrand(row) ) 
+			cs.FlipSeq(seqTable, dstIdx, dstIdx+len-1);
 		sBegin.Add(dstIdx); 
 		sEnd.Add(dstIdx+len-1);
 		MarkUTR(row, dstIdx);
@@ -86,13 +71,14 @@ if ( MAX_LEN == 0 ) {
 	var rows = pp.SelectedItems.Count;
 	var seqTable = New.ByteArray(rows * maxLen, 4);
 	var seqRow = 0;
-	for(var id in pp.SelectedItems) {
+	for(var id of pp.SelectedItems) {
 		var row = ds.IndexOfRow(id);
 		var idx=ds.GetDataAt(row, 0) - 0;
 		var len=ds.GetDataAt(row, 1) - 0;
 		len = Math.min(len, maxLen);
 		sm.FetchSeqIndex(idx, len, seqTable, seqRow*maxLen);
-		if ( FlipStrand( row ) ) cs.FlipSeq(seqTable, seqRow*maxLen, seqRow*maxLen+len-1);
+		if ( FlipStrand( row ) ) 
+			cs.FlipSeq(seqTable, seqRow*maxLen, seqRow*maxLen+len-1);
 		sBegin.Add(seqRow*maxLen); sEnd.Add(seqRow*maxLen+len-1);
 		seqRow++;
 	}
@@ -105,7 +91,8 @@ sMap.Regions[1].AddRange(UTR3);
 sMap.Title = blobName;
 sMap.Show();
 
-for(var k=0; k<sBegin.Count; k++) sMap.AddItem(pp.SelectedItems[k], sBegin[k], sEnd[k]);
+for(var k=0; k<sBegin.Count; k++) 
+	sMap.AddItem(pp.SelectedItems[k], sBegin[k], sEnd[k]);
 
 seqTable = null;
 

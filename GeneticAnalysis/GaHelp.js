@@ -48,6 +48,22 @@ var cs = New.CsObject("RandomizeSeq", `
 		Revert(s, idx0,idx1);
 	}
 
+	public void FlipSeq(byte[] s, int idx0, int idx1) {
+		idx0 = Math.Min(s.Length-1, Math.Max(0, idx0));
+		idx1 = Math.Min(s.Length-1, Math.Max(0, idx1));
+		int N = idx1 - idx0 + 1;
+		int N2 = N/2;
+		for(int i=0; i<N2; i++) {
+			int j = N - 1 - i;
+			byte tmp = s[idx0+i];
+			s[idx0+i] = s[idx0+j];
+			s[idx0+j] = tmp;
+		}
+		for(int i=idx0; i<=idx1; i++) {
+			if ( s[i] < 4 ) s[i] ^= 0x3;
+		}
+	}
+
 	public int CpGCount(byte[] s, int idx0, int idx1) {
 		int cnt = 0 ;
 		idx0 = Math.Min(s.Length-1, Math.Max(0, idx0));

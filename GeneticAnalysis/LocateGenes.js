@@ -1,11 +1,18 @@
 // LocateGenes.js
-// Locate the range of one or more genes within a chromosome heatmap.
+//
+// show genes embedded in a chromosome sequence map.
+//
+// Usage: Load a dataset with CDS informations (i.e. table with gene-begin-index, gene-length, Strand etc.);
+// The dataset name must also be the name of seq blob that contains the complete chromesome sequences.
+// Then call this script.
 //
 var sa = vv.FindPluginObject("SeqAnalysis");
 var ds = vv.Dataset;
-var hm = OpenSequenceMap();
+var hm = OpenSequenceMap(sa, ds);
 
-for(var i=0; i<3; i++) hm.Regions[i].Clear();
+for(var i=0; i<3; i++) 
+	hm.Regions[i].Clear();
+
 var geneRegions = hm.Regions[0];
 var antiGenes = hm.Regions[2];
 var exomeRegions = hm.Regions[1];
@@ -22,9 +29,11 @@ antiGenes.Color = antiExomes.Color = New.Color("Green");
 exomeRegions.Opacity = antiExomes.Opacity =0.5;
 antiGenes.Opacity = geneRegions.Opacity = 1.0;
 
-geneRegions.RegionStyle = 2;
-antiGenes.RegionStyle = 3;
-exomeRegions.RegionStyle = antiExomes.RegionStyle = 1;
+var rs = New.ClassType("VisuMap.Script.RegionStyle");
+
+geneRegions.RegionStyle = rs.Bar;  
+antiGenes.RegionStyle = rs.BottomLine;
+exomeRegions.RegionStyle = antiExomes.RegionStyle = rs.BottomHalf;
 
 hm.ClearItems();
 hm.Redraw();
@@ -32,7 +41,7 @@ hm.Redraw();
 var selected = vv.AllItems;
 var senseColumnIdx = ds.IndexOfColumn("Strand");
 
-for(var tId in selected) {
+for(var tId of selected) {
 	var antiSense = ( (senseColumnIdx>=0) && ( ds.GetDataAt(ds.IndexOfRow(tId), senseColumnIdx) == "-1" ) );
 	var sec = LocateOneGene(tId, antiSense);
 	hm.AddItem(tId, sec.Begin, sec.End);
@@ -43,15 +52,15 @@ hm.Redraw();
 function LocateOneGene( transId, antiSense ) {
 	var iBegin = New.IntArray();
 	var iEnd = New.IntArray();
-	var rowIdx = ds.IndexOfRow(transId);
+	var rowIdx = ds.IndexOfRow(transId);  
 
 	if ( rowIdx < 0 ) {
 		vv.Message("Invalid Id: " + transId);
 		return;
 	}
 
-	var exBegins = New.IntArray(ds[rowIdx, 3]);
-	var exEnds = New.IntArray(ds[rowIdx, 4]);
+	var exBegins = New.IntArray(ds.GetDataAt(rowIdx, 3));
+	var exEnds = New.IntArray(ds.GetDataAt(rowIdx, 4));
 
 	if ( exBegins.Count == 1 ) {
 		// there is no splicing, we just mark the gene regions
@@ -79,9 +88,9 @@ function LocateOneGene( transId, antiSense ) {
 	return New.SequenceInterval(minIdx, maxIdx);
 }
 
-function OpenSequenceMap() {
+function OpenSequenceMap(sa, ds) {
 	var blobs = vv.Folder.GetBlobList();
-	var nm = ds.Name.Replace(".CDS","").Replace("CDS", "");
+	var nm = ds.Name.replace(".CDS","").replace("CDS", "");
 	var idx = blobs.IndexOf(nm);
 	nm = ( idx < 0 ) ? blobs[0] : blobs[idx];
 	var sv = sa.OpenSequence(nm);
@@ -90,9 +99,7 @@ function OpenSequenceMap() {
 	var N = sv.Length;
 	var columns = parseInt(N / rows, 10) + ( (N%rows > 0) ? 1 : 0 );
 	var NN = rows * columns;
-	var seqTable = New.ByteArray(NN);
-	
-	vv.Echo(N + ":" + NN + ":" + rows + ":" + columns);
+	var seqTable = New.ByteArray(NN);	
 	
 	sv.FetchSeqIndex(0, sv.Length, seqTable, 0);            
 	var sm = New.SequenceMap(seqTable, rows, columns).Show();
