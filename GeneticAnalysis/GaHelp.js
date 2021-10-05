@@ -1,6 +1,27 @@
 // GaHelp.js
 // Help functions for GeneticAnalysis module.
 //
+
+function OpenSequenceMap(sa, ds) {
+	var blobs = vv.Folder.GetBlobList();
+	var nm = ds.Name.replace(".CDS","").replace("CDS", "");
+	var idx = blobs.IndexOf(nm);
+	nm = ( idx < 0 ) ? blobs[0] : blobs[idx];
+	var sv = sa.OpenSequence(nm);
+	
+	var rows = 40;
+	var N = sv.Length;
+	var columns = parseInt(N / rows, 10) + ( (N%rows > 0) ? 1 : 0 );
+	var NN = rows * columns;
+	var seqTable = New.ByteArray(NN);	
+	
+	sv.FetchSeqIndex(0, sv.Length, seqTable, 0);            
+	var sm = New.SequenceMap(seqTable, rows, columns).Show();
+	sm.Title = sm.SequenceName = nm;
+       sm.ReadOnly = true;
+	return sm;
+}
+
 var cs = New.CsObject("RandomizeSeq", `
 	public void Randomize(byte[] s, int idx0, int idx1) {
 		var rg = new Random(321);
@@ -229,6 +250,52 @@ var cs = New.CsObject("RandomizeSeq", `
 			}
 		}
 		return mem;
+	}
+
+	public SequenceInterval LocateOneGene(IDataset ds, ISequenceMap hm, 
+			IList<SequenceInterval> exomeRegions, IList<SequenceInterval> antiExomes, 
+			string transId, bool antiSense) {
+		List<int> iBegin = (List<int>) New.IntArray();
+		List<int> iEnd = (List<int>) New.IntArray();
+		int rowIdx = ds.IndexOfRow(transId); 
+	
+		if ( rowIdx < 0 ) {
+			vv.Message("Invalid Id: " + transId);
+			return New.SequenceInterval(0,0);
+		}
+
+		List<int> exBegins = (List<int>) New.IntArray(ds.GetDataAt(rowIdx, 3));
+		List<int> exEnds = (List<int>) New.IntArray(ds.GetDataAt(rowIdx, 4));
+	
+		if ( exBegins.Count == 1 )
+			return New.SequenceInterval(exBegins[0]-1, exEnds[0]-1);	
+		iBegin.AddRange(exBegins);
+		iEnd.AddRange(exEnds);
+
+
+		for(int exIdx=0; exIdx<exBegins.Count; exIdx++) {
+			var exSec = New.SequenceInterval(exBegins[exIdx]-1, exEnds[exIdx]-1);
+			exSec = exSec.Shift(-hm.BaseLocation);
+			if ( antiSense )
+				antiExomes.Add(exSec);
+			else
+				exomeRegions.Add(exSec);
+		}
+	
+		for(int k=0; k<iBegin.Count; k++) { 
+			iBegin[k]--; 
+			iEnd[k]--; 
+		}
+		
+		int minIdx = 1000 * 1000000;
+		int maxIdx = -1000;
+		for(int n=0; n<iBegin.Count; n++) {
+			minIdx = Math.Min(minIdx, iBegin[n]);
+			maxIdx = Math.Max(maxIdx, iBegin[n]);
+			minIdx = Math.Min(minIdx, iEnd[n]);
+			maxIdx = Math.Max(maxIdx, iEnd[n]);
+		}
+		return New.SequenceInterval(minIdx, maxIdx);
 	}
 `);
 
