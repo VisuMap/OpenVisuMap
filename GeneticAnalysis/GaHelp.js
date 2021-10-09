@@ -272,15 +272,15 @@ var cs = New.CsObject("RandomizeSeq", `
 		iBegin.AddRange(exBegins);
 		iEnd.AddRange(exEnds);
 
-
-		for(int exIdx=0; exIdx<exBegins.Count; exIdx++) {
-			var exSec = New.SequenceInterval(exBegins[exIdx]-1, exEnds[exIdx]-1);
-			exSec = exSec.Shift(-hm.BaseLocation);
-			if ( antiSense )
-				antiExomes.Add(exSec);
-			else
-				exomeRegions.Add(exSec);
-		}
+		if ( (exomeRegions != null) && (antiExomes!=null) )
+			for(int exIdx=0; exIdx<exBegins.Count; exIdx++) {
+				var exSec = New.SequenceInterval(exBegins[exIdx]-1, exEnds[exIdx]-1);
+				exSec = exSec.Shift(-hm.BaseLocation);
+				if ( antiSense )
+					antiExomes.Add(exSec);
+				else
+					exomeRegions.Add(exSec);
+			}
 	
 		for(int k=0; k<iBegin.Count; k++) { 
 			iBegin[k]--; 

@@ -9,6 +9,8 @@
 
 vv.Import("GaHelp.js");
 
+var noExomes = vv.ModifierKeys.ControlPressed;
+
 var sa = vv.FindPluginObject("SeqAnalysis");
 var ds = vv.Dataset;
 var hm = OpenSequenceMap(sa, ds);
@@ -32,15 +34,20 @@ antiExomes.Name = "AntiExomes";
 geneRegions.Color = exomeRegions.Color =New.Color("Blue");
 antiGenes.Color = antiExomes.Color = New.Color("Green");
 
-exomeRegions.Opacity = antiExomes.Opacity = 0.5;
+exomeRegions.Opacity = antiExomes.Opacity = 0.25;
 antiGenes.Opacity = geneRegions.Opacity = 1.0;
 
 var rs = New.ClassType("VisuMap.Script.RegionStyle");
 
-geneRegions.RegionStyle = rs.TopLine;  
-antiGenes.RegionStyle = rs.BottomLine;
-exomeRegions.RegionStyle = rs.TopHalf;
-antiExomes.RegionStyle = rs.BottomHalf;
+if (noExomes) {
+	geneRegions.RegionStyle = rs.TopHalf;  
+	antiGenes.RegionStyle = rs.BottomHalf;
+} else {
+	geneRegions.RegionStyle = rs.TopLine;  
+	antiGenes.RegionStyle = rs.BottomLine;
+	exomeRegions.RegionStyle = rs.TopHalf;
+	antiExomes.RegionStyle = rs.BottomHalf;
+}
 
 hm.ClearItems();
 hm.Redraw();
@@ -49,6 +56,9 @@ hm.Redraw();
 // Extract the genes and exomes specifications.
 //
 var senseColumnIdx = ds.IndexOfColumn("Strand");
+
+if (noExomes) 
+	exomeRegions = antiExomes = null;
 
 for(var tId of vv.AllItems) {
 	var antiSense = ( (senseColumnIdx>=0) && ( ds.GetDataAt(ds.IndexOfRow(tId), senseColumnIdx) == "-1" ) );
