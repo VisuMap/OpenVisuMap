@@ -9,4 +9,5 @@ set MiscFiles=GeneticAnalysis.zip GeneticAnalysis.dll ^
 
 zip %MiscFiles% %JsList%
 rem uploadplugin GeneticAnalysis.zip
+copy GeneticAnalysis.zip ..\..\VisuMapWeb\images
 endlocal
