@@ -1,21 +1,19 @@
 var dir = vv.CurrentScriptDirectory + "/";
 vv.InstallPlugin("Genetic Analysis", dir +"GeneticAnalysis.dll");
 
-
 function AddMenu(label, script, forms) {
-	vv.GuiManager.SetCustomMenu(label, true, dir + script,  forms);
+	vv.GuiManager.SetCustomMenu("SeqUtil/" + label, true, dir + script,  forms);
 }
 function AddMainMenu(label, script) {
-	AddMenu("SeqUtil/" + label, script, "MainForm");
+	AddMenu(label, script, "MainForm");
 }
 
 vv.GuiManager.RemoveCustomMenu("SeqUtil/");
-vv.GuiManager.RemoveCustomMenu("Blast/");
 
-AddMenu("SeqUtil/*", "SequenceOp.js", "SequenceMap");
-AddMenu("Blast/Blast","Blast.js", "SequenceMap");
-AddMenu("Blast/BlastDb", "BlastDb.js", "SequenceMap|MainForm");
-AddMenu("Blast/NCBI-Post", "NcbiCdsPost.js", "SequenceMap|MainForm");
+AddMenu("*", "SequenceOp.js", "SequenceMap");
+AddMenu("Blast","Blast.js", "SequenceMap");
+AddMenu("BlastDb", "BlastDb.js", "SequenceMap|MainForm");
+AddMenu("NCBI-Post", "NcbiCdsPost.js", "SequenceMap|MainForm");
 
 AddMainMenu("ShowMap", "LocateGenes.js");
 AddMainMenu("ShowSeqs", "ShowSeqMap.js");
