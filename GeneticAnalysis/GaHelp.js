@@ -34,16 +34,32 @@ var cs = New.CsObject("RandomizeSeq", `
 			string loc = s.Substring(idx0, idx1-idx0);
 			int strand = 1;
 			if ( loc.StartsWith("complement") ) {
-				loc = loc.Replace("complement", "");
+				loc = loc.Substring("complement".Length);
 				strand = -1;
+				loc = loc.Trim(new char[]{'(', ')'});
 			}
-			loc = loc.Replace("<","");
-			loc = loc.Replace(">","");
-			loc = loc.Replace("(","");
-			loc = loc.Replace(")","");
-			string[] fs = loc.Split('.');
-			ds.SetStringAt(row, 3, fs[0]);
-			ds.SetStringAt(row, 4, fs[2]);
+			if ( loc.StartsWith("join") ) {
+				loc = loc.Substring("join".Length);
+				loc = loc.Trim(new char[]{'(', ')'});
+			}
+			string[] exList = loc.Split(',');
+			char[] prefix = new char[] {'<', '>'};
+			string sBegin = "";
+			string sEnd = "";
+			foreach(string ex in exList) {
+				string[] fs = ex.Split('.');
+				string sB = fs[0].TrimStart(prefix);
+				string sE = (fs.Length == 3) ? fs[2].TrimStart(prefix) : sB;
+				if( sBegin.Length > 0) {
+					sBegin += ",";
+					sEnd += ",";			
+				}
+				sBegin += sB;
+				sEnd += sE;
+			}
+
+			ds.SetStringAt(row, 3, sBegin);
+			ds.SetStringAt(row, 4, sEnd);
 			ds.SetValueAt(row, 5, strand);
 			if (strand == -1)
 				ds.BodyList[row].Type = 1;
