@@ -23,6 +23,33 @@ function OpenSequenceMap(sa, ds) {
 }
 
 var cs = New.CsObject("RandomizeSeq", `
+	public void ExtractGeneInfo(IDataset ds) {
+		for(int row = 0; row<ds.Rows; row++) {
+			string s = ds.GetDataAt(row, 2);
+			int idx0 = s.IndexOf("[gene=") + 6;
+			int idx1 = s.IndexOf(']', idx0);
+			ds.BodyList[row].Name = s.Substring(idx0, idx1-idx0);
+			idx0 = s.IndexOf("location=") + 9;
+			idx1 = s.IndexOf(']', idx0);
+			string loc = s.Substring(idx0, idx1-idx0);
+			int strand = 1;
+			if ( loc.StartsWith("complement") ) {
+				loc = loc.Replace("complement", "");
+				strand = -1;
+			}
+			loc = loc.Replace("<","");
+			loc = loc.Replace(">","");
+			loc = loc.Replace("(","");
+			loc = loc.Replace(")","");
+			string[] fs = loc.Split('.');
+			ds.SetStringAt(row, 3, fs[0]);
+			ds.SetStringAt(row, 4, fs[2]);
+			ds.SetValueAt(row, 5, strand);
+			if (strand == -1)
+				ds.BodyList[row].Type = 1;
+		}
+	}
+
 	public void Randomize(byte[] s, int idx0, int idx1) {
 		var rg = new Random(321);
 		idx0 = Math.Min(s.Length-1, Math.Max(0, idx0));
