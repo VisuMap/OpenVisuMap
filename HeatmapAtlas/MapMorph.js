@@ -11,20 +11,22 @@ function Animation(mp, bodyList) {
     return moved;
 }
 
+
 var msg = "Moved bodies: ";
 var repeats = 2;
 
-if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster")) {
+if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster") || (pp.Name == "D3dRender") ) {
     // Morphing between calling view and other open map snapshots.
     var initBody = New.BodyListClone(pp.BodyList);
     var vwList = New.ObjectArray();
     var f = pp.TheForm;
     var bsCount = pp.BodyList.Count;
 
-    for (var vw of vv.FindFormList("MapSnapshot")) {
+    for (var vw of vv.FindFormList(pp.Name)) {
         if ((vw.TheForm !== f) && (vw.BodyList.Count == bsCount))
             vwList.Add(vw);
     }
+
     for (rep = 0; rep<repeats; rep++) {
 	    for (var vw of vwList) {
 	        var g = vw.TheForm;
