@@ -39,9 +39,11 @@ namespace ClipRecorder {
             this.labelCurrentFrame = new System.Windows.Forms.Label();
             this.clipTitle = new System.Windows.Forms.Label();
             this.ctxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.miNewWindow = new System.Windows.Forms.ToolStripMenuItem();
+            this.miDeleteFrame = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFrameOp = new System.Windows.Forms.ToolStripMenuItem();
             this.miCaptureFrame = new System.Windows.Forms.ToolStripMenuItem();
             this.miAppendFrame = new System.Windows.Forms.ToolStripMenuItem();
-            this.miDeleteFrame = new System.Windows.Forms.ToolStripMenuItem();
             this.miRefreshFrame = new System.Windows.Forms.ToolStripMenuItem();
             this.miInterpolation = new System.Windows.Forms.ToolStripMenuItem();
             this.miHelpInfo = new System.Windows.Forms.ToolStripMenuItem();
@@ -245,10 +247,9 @@ namespace ClipRecorder {
             // ctxMenu
             // 
             this.ctxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miCaptureFrame,
-            this.miAppendFrame,
+            this.miNewWindow,
             this.miDeleteFrame,
-            this.miRefreshFrame,
+            this.miFrameOp,
             this.miInterpolation,
             this.miHelpInfo,
             this.miRunScript,
@@ -257,11 +258,39 @@ namespace ClipRecorder {
             this.ctxMenu.Name = "ctxMenu";
             this.ctxMenu.Size = new System.Drawing.Size(205, 186);
             // 
+            // miNewWindow
+            // 
+            this.miNewWindow.Name = "miNewWindow";
+            this.miNewWindow.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
+            this.miNewWindow.Size = new System.Drawing.Size(204, 22);
+            this.miNewWindow.Text = "New Window";
+            this.miNewWindow.ToolTipText = "Create a new clip-recorder window with selected frames";
+            this.miNewWindow.Click += new System.EventHandler(this.miNewWindow_Click);
+            // 
+            // miDeleteFrame
+            // 
+            this.miDeleteFrame.Name = "miDeleteFrame";
+            this.miDeleteFrame.ShortcutKeys = System.Windows.Forms.Keys.Delete;
+            this.miDeleteFrame.Size = new System.Drawing.Size(204, 22);
+            this.miDeleteFrame.Text = "Delete Frames";
+            this.miDeleteFrame.ToolTipText = "Delete the current frame or selected frames.";
+            this.miDeleteFrame.Click += new System.EventHandler(this.miDeleteFrame_Click);
+            // 
+            // miFrameOp
+            // 
+            this.miFrameOp.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miCaptureFrame,
+            this.miAppendFrame,
+            this.miRefreshFrame});
+            this.miFrameOp.Name = "miFrameOp";
+            this.miFrameOp.Size = new System.Drawing.Size(204, 22);
+            this.miFrameOp.Text = "Utils";
+            // 
             // miCaptureFrame
             // 
             this.miCaptureFrame.Name = "miCaptureFrame";
             this.miCaptureFrame.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
-            this.miCaptureFrame.Size = new System.Drawing.Size(204, 22);
+            this.miCaptureFrame.Size = new System.Drawing.Size(192, 22);
             this.miCaptureFrame.Text = "Capture Frame";
             this.miCaptureFrame.ToolTipText = "Capture the map into current frame.";
             this.miCaptureFrame.Click += new System.EventHandler(this.miCaptureFrame_Click);
@@ -269,22 +298,14 @@ namespace ClipRecorder {
             // miAppendFrame
             // 
             this.miAppendFrame.Name = "miAppendFrame";
-            this.miAppendFrame.Size = new System.Drawing.Size(204, 22);
+            this.miAppendFrame.Size = new System.Drawing.Size(192, 22);
             this.miAppendFrame.Text = "Append Frame";
             this.miAppendFrame.Click += new System.EventHandler(this.miAppendFrame_Click);
-            // 
-            // miDeleteFrame
-            // 
-            this.miDeleteFrame.Name = "miDeleteFrame";
-            this.miDeleteFrame.Size = new System.Drawing.Size(204, 22);
-            this.miDeleteFrame.Text = "Delete Frame";
-            this.miDeleteFrame.ToolTipText = "Delete the current frame.";
-            this.miDeleteFrame.Click += new System.EventHandler(this.miDeleteFrame_Click);
             // 
             // miRefreshFrame
             // 
             this.miRefreshFrame.Name = "miRefreshFrame";
-            this.miRefreshFrame.Size = new System.Drawing.Size(204, 22);
+            this.miRefreshFrame.Size = new System.Drawing.Size(192, 22);
             this.miRefreshFrame.Text = "Refresh Frame";
             this.miRefreshFrame.ToolTipText = "Refresh current map with current frame.";
             this.miRefreshFrame.Click += new System.EventHandler(this.miRefreshFrame_Click);
@@ -383,11 +404,13 @@ namespace ClipRecorder {
         private System.Windows.Forms.ToolStripMenuItem miHelpInfo;
         private System.Windows.Forms.ToolStripMenuItem miRunScript;
         private System.Windows.Forms.ToolStripMenuItem miProperties;
-        private System.Windows.Forms.ToolStripMenuItem miCaptureFrame;
-        private System.Windows.Forms.ToolStripMenuItem miAppendFrame;
         private System.Windows.Forms.ToolStripMenuItem miDeleteFrame;
-        private System.Windows.Forms.ToolStripMenuItem miRefreshFrame;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem miInterpolation;
+        private System.Windows.Forms.ToolStripMenuItem miFrameOp;
+        private System.Windows.Forms.ToolStripMenuItem miCaptureFrame;
+        private System.Windows.Forms.ToolStripMenuItem miRefreshFrame;
+        private System.Windows.Forms.ToolStripMenuItem miAppendFrame;
+        private System.Windows.Forms.ToolStripMenuItem miNewWindow;
     }
 }

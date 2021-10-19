@@ -200,7 +200,8 @@ namespace ClipRecorder {
                 currentFrame -= 1;
             else if (frameIndex == currentFrame) {
                 currentFrame = Math.Min(currentFrame, frameList.Count - 1);
-                ShowFrame(GetBodyList(), frameList[currentFrame]);
+                if ( currentFrame >= 0 )
+                    ShowFrame(GetBodyList(), frameList[currentFrame]);
             }
             SetCurrentValue(currentFrame);
             SetMaximum(frameList.Count);
@@ -726,13 +727,18 @@ namespace ClipRecorder {
         bool mouseDown = false;
 
         void progressPanel_MouseDown(object sender, MouseEventArgs e) {
+            if (e.Button != MouseButtons.Left)
+                return;
             mouseDown = true;
             Cursor.Current = Cursors.Hand;
             StopPlaying();
             MoveFrame(e.X);
+            progressBar.MarkerIndex = Control.ModifierKeys.HasFlag(Keys.Control) ? currentFrame : -1;
         }
 
         void progressPanel_MouseMove(object sender, MouseEventArgs e) {
+            if (e.Button != MouseButtons.Left)
+                return;
             if (!mouseDown) {
                 return;
             }
@@ -740,6 +746,8 @@ namespace ClipRecorder {
         }
 
         void progressPanel_MouseUp(object sender, MouseEventArgs e) {
+            if (e.Button != MouseButtons.Left)
+                return;
             mouseDown = false;
             Cursor.Current = Cursors.Default;
         }
@@ -904,7 +912,18 @@ namespace ClipRecorder {
         }
 
         private void miDeleteFrame_Click(object sender, EventArgs e) {
-            DeleteFrame(currentFrame);
+            int mkIdx = progressBar.MarkerIndex;
+            if ((mkIdx >= 0) && (mkIdx != currentFrame)) {
+                if (mkIdx < currentFrame)
+                    frameList.RemoveRange(mkIdx, currentFrame);
+                else
+                    frameList.RemoveRange(currentFrame, mkIdx);
+                SetCurrentValue(0);
+                SetMaximum(frameList.Count);
+                progressBar.MarkerIndex = -1;
+                this.Refresh();
+            } else
+                DeleteFrame(currentFrame);
         }
 
         private void miRefreshFrame_Click(object sender, EventArgs e) {
@@ -913,6 +932,24 @@ namespace ClipRecorder {
 
         private void miInterpolation_Click(object sender, EventArgs e) {
             InterpolateClip(4);
+        }
+
+        private void miNewWindow_Click(object sender, EventArgs e) {
+            int mkIdx = progressBar.MarkerIndex;
+            if ( (mkIdx<0) || (mkIdx==currentFrame) ) {
+                MessageBox.Show("No frames selected for the new window");
+                return;
+            }
+            var newForm = new RecorderForm(RecorderForm.app);
+            if (mkIdx > currentFrame )
+                for (int i = currentFrame; i <= mkIdx; i++)
+                    newForm.frameList.Add(this.frameList[i]);
+            else
+                for (int i = mkIdx; i <= currentFrame; i++)
+                    newForm.frameList.Add(this.frameList[i]);
+            newForm.SetCurrentValue(0);
+            newForm.SetMaximum(newForm.frameList.Count);
+            newForm.Show();
         }
     }
 }

@@ -8,6 +8,7 @@ class ProgressBar : IDisposable {
     int currentValue;
     int maximum; // maximun reachable value. minimum is zero be default.
     Brush brush;
+    int markerIndex = -1;
 
     public ProgressBar(Panel panel){
         this.panel = panel;
@@ -22,8 +23,17 @@ class ProgressBar : IDisposable {
 
     void PanelPaint(object sender, PaintEventArgs e) {
         if (maximum <= 0) return;
-        int barLen = panel.Width * currentValue / maximum;
+        float barLen = (float)panel.Width * currentValue / maximum;
         e.Graphics.FillRectangle(brush, 0, 0, barLen, panel.Height);
+        if ( (markerIndex >= 0) && (markerIndex != currentValue) ) {
+            using (Brush br = new SolidBrush(Color.FromArgb(64, Color.Green))) {
+                float mkLoc = (float)panel.Width * markerIndex / maximum;
+                if (mkLoc < barLen)
+                    e.Graphics.FillRectangle(br, mkLoc, 0, barLen - mkLoc, panel.Height);
+                else
+                    e.Graphics.FillRectangle(br, barLen, 0, mkLoc - barLen, panel.Height);
+            }
+        }
     }
 
     public int Value {
@@ -38,6 +48,12 @@ class ProgressBar : IDisposable {
 
     public int Width {
         get { return panel.Width; }
+    }
+
+    public int MarkerIndex
+    {
+        get => markerIndex;
+        set => markerIndex = value;
     }
 
     public void Dispose() {
