@@ -154,20 +154,17 @@ namespace ClipRecorder {
         }
 
         public int CreateSnapshot() {
-            IMap map = app.ScriptApp.Map;
-            List<IBody> bodyList = map.BodyList as List<IBody>;
-            FrameSpec frame = new FrameSpec((short)map.Width, (short)map.Height, (short)map.Depth,
-                (short)map.MapTypeIndex, bodyList.Count);
-            CopyBodyToFrame(bodyList, frame);
-
-            frameList.Add(frame);
+            List<IBody> bodyList = app.ScriptApp.Map.BodyList as List<IBody>;
+            frameList.Add(NewFrame(bodyList));
             SetMaximum(frameList.Count);
             return frameList.Count;
         }
 
 
         FrameSpec NewFrame(IList<IBody> bodyList) {
-            FrameSpec frame = new FrameSpec(0, 0, 0, 0, bodyList.Count);
+            IMap map = app.ScriptApp.Map;
+            FrameSpec frame = new FrameSpec(
+                (short)map.Width, (short)map.Height, (short)map.Depth, (short)map.MapTypeIndex, bodyList.Count);
             CopyBodyToFrame(bodyList, frame);
             return frame;
         }
@@ -411,12 +408,10 @@ namespace ClipRecorder {
                         map.Height = frame.MapHeight;
                         map.Depth = frame.MapDepth;
                         map.MapTypeIndex = frame.MapType; // this call will trigger a MapConfigured event.
-                } else {
-                    app.RaiseBodyConfigured(this);
+                    app.RaiseMapConfigured(this);
                 }
-            } else {
-                app.RaiseBodyConfigured(this);
             }
+            app.RaiseBodyConfigured(this);
         }
 
         void SetMaximum(int maxValue) {
@@ -949,7 +944,14 @@ namespace ClipRecorder {
                     newForm.frameList.Add(this.frameList[i]);
             newForm.SetCurrentValue(0);
             newForm.SetMaximum(newForm.frameList.Count);
+            newForm.playTarget = this.playTarget;
             newForm.Show();
+        }
+
+        private void miReverseFrames_Click(object sender, EventArgs e) {
+            frameList.Reverse();
+            if ( (frameList.Count>0) && (currentFrame >= 0) ) 
+                SetCurrentValue(frameList.Count - 1 - currentFrame);
         }
     }
 }

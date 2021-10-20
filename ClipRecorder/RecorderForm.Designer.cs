@@ -35,21 +35,22 @@ namespace ClipRecorder {
             this.btnClearAll = new System.Windows.Forms.Button();
             this.btnReset = new System.Windows.Forms.Button();
             this.progressPanel = new System.Windows.Forms.Panel();
-            this.label1 = new System.Windows.Forms.Label();
-            this.labelCurrentFrame = new System.Windows.Forms.Label();
-            this.clipTitle = new System.Windows.Forms.Label();
             this.ctxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.miNewWindow = new System.Windows.Forms.ToolStripMenuItem();
             this.miDeleteFrame = new System.Windows.Forms.ToolStripMenuItem();
+            this.miInterpolation = new System.Windows.Forms.ToolStripMenuItem();
+            this.miRunScript = new System.Windows.Forms.ToolStripMenuItem();
+            this.miHelpInfo = new System.Windows.Forms.ToolStripMenuItem();
             this.miFrameOp = new System.Windows.Forms.ToolStripMenuItem();
             this.miCaptureFrame = new System.Windows.Forms.ToolStripMenuItem();
             this.miAppendFrame = new System.Windows.Forms.ToolStripMenuItem();
             this.miRefreshFrame = new System.Windows.Forms.ToolStripMenuItem();
-            this.miInterpolation = new System.Windows.Forms.ToolStripMenuItem();
-            this.miHelpInfo = new System.Windows.Forms.ToolStripMenuItem();
-            this.miRunScript = new System.Windows.Forms.ToolStripMenuItem();
+            this.miReverseFrames = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.miProperties = new System.Windows.Forms.ToolStripMenuItem();
+            this.label1 = new System.Windows.Forms.Label();
+            this.labelCurrentFrame = new System.Windows.Forms.Label();
+            this.clipTitle = new System.Windows.Forms.Label();
             this.ctxMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -199,6 +200,7 @@ namespace ClipRecorder {
             this.progressPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.progressPanel.BackColor = System.Drawing.Color.PowderBlue;
+            this.progressPanel.ContextMenuStrip = this.ctxMenu;
             this.progressPanel.Location = new System.Drawing.Point(3, 24);
             this.progressPanel.Name = "progressPanel";
             this.progressPanel.Size = new System.Drawing.Size(432, 20);
@@ -206,6 +208,117 @@ namespace ClipRecorder {
             this.progressPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.progressPanel_MouseDown);
             this.progressPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.progressPanel_MouseMove);
             this.progressPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.progressPanel_MouseUp);
+            // 
+            // ctxMenu
+            // 
+            this.ctxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miNewWindow,
+            this.miDeleteFrame,
+            this.miInterpolation,
+            this.miRunScript,
+            this.miHelpInfo,
+            this.miFrameOp,
+            this.toolStripSeparator1,
+            this.miProperties});
+            this.ctxMenu.Name = "ctxMenu";
+            this.ctxMenu.Size = new System.Drawing.Size(210, 186);
+            // 
+            // miNewWindow
+            // 
+            this.miNewWindow.Name = "miNewWindow";
+            this.miNewWindow.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
+            this.miNewWindow.Size = new System.Drawing.Size(209, 22);
+            this.miNewWindow.Text = "New Window";
+            this.miNewWindow.ToolTipText = "Create a new clip-recorder window with selected frames";
+            this.miNewWindow.Click += new System.EventHandler(this.miNewWindow_Click);
+            // 
+            // miDeleteFrame
+            // 
+            this.miDeleteFrame.Name = "miDeleteFrame";
+            this.miDeleteFrame.ShortcutKeys = System.Windows.Forms.Keys.Delete;
+            this.miDeleteFrame.Size = new System.Drawing.Size(209, 22);
+            this.miDeleteFrame.Text = "Delete Frames";
+            this.miDeleteFrame.ToolTipText = "Delete the current frame or selected frames.";
+            this.miDeleteFrame.Click += new System.EventHandler(this.miDeleteFrame_Click);
+            // 
+            // miInterpolation
+            // 
+            this.miInterpolation.Name = "miInterpolation";
+            this.miInterpolation.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.I)));
+            this.miInterpolation.Size = new System.Drawing.Size(209, 22);
+            this.miInterpolation.Text = "Add Interpolations";
+            this.miInterpolation.ToolTipText = "Add Interpolation Frames";
+            this.miInterpolation.Click += new System.EventHandler(this.miInterpolation_Click);
+            // 
+            // miRunScript
+            // 
+            this.miRunScript.Name = "miRunScript";
+            this.miRunScript.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.J)));
+            this.miRunScript.Size = new System.Drawing.Size(209, 22);
+            this.miRunScript.Text = "Scripting...";
+            this.miRunScript.Click += new System.EventHandler(this.btnScript_Click);
+            // 
+            // miHelpInfo
+            // 
+            this.miHelpInfo.Name = "miHelpInfo";
+            this.miHelpInfo.Size = new System.Drawing.Size(209, 22);
+            this.miHelpInfo.Text = "Help Info...";
+            this.miHelpInfo.Click += new System.EventHandler(this.btnInformation_Click);
+            // 
+            // miFrameOp
+            // 
+            this.miFrameOp.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miCaptureFrame,
+            this.miAppendFrame,
+            this.miRefreshFrame,
+            this.miReverseFrames});
+            this.miFrameOp.Name = "miFrameOp";
+            this.miFrameOp.Size = new System.Drawing.Size(209, 22);
+            this.miFrameOp.Text = "Utils";
+            // 
+            // miCaptureFrame
+            // 
+            this.miCaptureFrame.Name = "miCaptureFrame";
+            this.miCaptureFrame.Size = new System.Drawing.Size(180, 22);
+            this.miCaptureFrame.Text = "Capture Frame";
+            this.miCaptureFrame.ToolTipText = "Capture the map into current frame.";
+            this.miCaptureFrame.Click += new System.EventHandler(this.miCaptureFrame_Click);
+            // 
+            // miAppendFrame
+            // 
+            this.miAppendFrame.Name = "miAppendFrame";
+            this.miAppendFrame.Size = new System.Drawing.Size(180, 22);
+            this.miAppendFrame.Text = "Append Frame";
+            this.miAppendFrame.Click += new System.EventHandler(this.miAppendFrame_Click);
+            // 
+            // miRefreshFrame
+            // 
+            this.miRefreshFrame.Name = "miRefreshFrame";
+            this.miRefreshFrame.Size = new System.Drawing.Size(180, 22);
+            this.miRefreshFrame.Text = "Refresh Frame";
+            this.miRefreshFrame.ToolTipText = "Refresh current map with current frame.";
+            this.miRefreshFrame.Click += new System.EventHandler(this.miRefreshFrame_Click);
+            // 
+            // miReverseFrames
+            // 
+            this.miReverseFrames.Name = "miReverseFrames";
+            this.miReverseFrames.Size = new System.Drawing.Size(180, 22);
+            this.miReverseFrames.Text = "Reverse Frames";
+            this.miReverseFrames.ToolTipText = "Reverse all frames.";
+            this.miReverseFrames.Click += new System.EventHandler(this.miReverseFrames_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(206, 6);
+            // 
+            // miProperties
+            // 
+            this.miProperties.Name = "miProperties";
+            this.miProperties.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.P)));
+            this.miProperties.Size = new System.Drawing.Size(209, 22);
+            this.miProperties.Text = "Properties...";
+            this.miProperties.Click += new System.EventHandler(this.btnConfigure_Click);
             // 
             // label1
             // 
@@ -243,109 +356,6 @@ namespace ClipRecorder {
             this.clipTitle.Size = new System.Drawing.Size(415, 20);
             this.clipTitle.TabIndex = 14;
             this.clipTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // ctxMenu
-            // 
-            this.ctxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miNewWindow,
-            this.miDeleteFrame,
-            this.miFrameOp,
-            this.miInterpolation,
-            this.miHelpInfo,
-            this.miRunScript,
-            this.toolStripSeparator1,
-            this.miProperties});
-            this.ctxMenu.Name = "ctxMenu";
-            this.ctxMenu.Size = new System.Drawing.Size(205, 186);
-            // 
-            // miNewWindow
-            // 
-            this.miNewWindow.Name = "miNewWindow";
-            this.miNewWindow.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.miNewWindow.Size = new System.Drawing.Size(204, 22);
-            this.miNewWindow.Text = "New Window";
-            this.miNewWindow.ToolTipText = "Create a new clip-recorder window with selected frames";
-            this.miNewWindow.Click += new System.EventHandler(this.miNewWindow_Click);
-            // 
-            // miDeleteFrame
-            // 
-            this.miDeleteFrame.Name = "miDeleteFrame";
-            this.miDeleteFrame.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.miDeleteFrame.Size = new System.Drawing.Size(204, 22);
-            this.miDeleteFrame.Text = "Delete Frames";
-            this.miDeleteFrame.ToolTipText = "Delete the current frame or selected frames.";
-            this.miDeleteFrame.Click += new System.EventHandler(this.miDeleteFrame_Click);
-            // 
-            // miFrameOp
-            // 
-            this.miFrameOp.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miCaptureFrame,
-            this.miAppendFrame,
-            this.miRefreshFrame});
-            this.miFrameOp.Name = "miFrameOp";
-            this.miFrameOp.Size = new System.Drawing.Size(204, 22);
-            this.miFrameOp.Text = "Utils";
-            // 
-            // miCaptureFrame
-            // 
-            this.miCaptureFrame.Name = "miCaptureFrame";
-            this.miCaptureFrame.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
-            this.miCaptureFrame.Size = new System.Drawing.Size(192, 22);
-            this.miCaptureFrame.Text = "Capture Frame";
-            this.miCaptureFrame.ToolTipText = "Capture the map into current frame.";
-            this.miCaptureFrame.Click += new System.EventHandler(this.miCaptureFrame_Click);
-            // 
-            // miAppendFrame
-            // 
-            this.miAppendFrame.Name = "miAppendFrame";
-            this.miAppendFrame.Size = new System.Drawing.Size(192, 22);
-            this.miAppendFrame.Text = "Append Frame";
-            this.miAppendFrame.Click += new System.EventHandler(this.miAppendFrame_Click);
-            // 
-            // miRefreshFrame
-            // 
-            this.miRefreshFrame.Name = "miRefreshFrame";
-            this.miRefreshFrame.Size = new System.Drawing.Size(192, 22);
-            this.miRefreshFrame.Text = "Refresh Frame";
-            this.miRefreshFrame.ToolTipText = "Refresh current map with current frame.";
-            this.miRefreshFrame.Click += new System.EventHandler(this.miRefreshFrame_Click);
-            // 
-            // miInterpolation
-            // 
-            this.miInterpolation.Name = "miInterpolation";
-            this.miInterpolation.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.I)));
-            this.miInterpolation.Size = new System.Drawing.Size(204, 22);
-            this.miInterpolation.Text = "Add Interpolation";
-            this.miInterpolation.ToolTipText = "Add Interpolation Frames";
-            this.miInterpolation.Click += new System.EventHandler(this.miInterpolation_Click);
-            // 
-            // miHelpInfo
-            // 
-            this.miHelpInfo.Name = "miHelpInfo";
-            this.miHelpInfo.Size = new System.Drawing.Size(204, 22);
-            this.miHelpInfo.Text = "Help Info...";
-            this.miHelpInfo.Click += new System.EventHandler(this.btnInformation_Click);
-            // 
-            // miRunScript
-            // 
-            this.miRunScript.Name = "miRunScript";
-            this.miRunScript.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.miRunScript.Size = new System.Drawing.Size(204, 22);
-            this.miRunScript.Text = "Run Script";
-            this.miRunScript.Click += new System.EventHandler(this.btnScript_Click);
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(201, 6);
-            // 
-            // miProperties
-            // 
-            this.miProperties.Name = "miProperties";
-            this.miProperties.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.P)));
-            this.miProperties.Size = new System.Drawing.Size(204, 22);
-            this.miProperties.Text = "Properties...";
-            this.miProperties.Click += new System.EventHandler(this.btnConfigure_Click);
             // 
             // RecorderForm
             // 
@@ -412,5 +422,6 @@ namespace ClipRecorder {
         private System.Windows.Forms.ToolStripMenuItem miRefreshFrame;
         private System.Windows.Forms.ToolStripMenuItem miAppendFrame;
         private System.Windows.Forms.ToolStripMenuItem miNewWindow;
+        private System.Windows.Forms.ToolStripMenuItem miReverseFrames;
     }
 }
