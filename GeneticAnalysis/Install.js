@@ -1,8 +1,7 @@
-var dir = vv.CurrentScriptDirectory + "/";
-vv.InstallPlugin("Genetic Analysis", dir +"GeneticAnalysis.dll");
+vv.InstallPlugin("Genetic Analysis", "GeneticAnalysis.dll");
 
 function AddMenu(label, script, forms) {
-	vv.GuiManager.SetCustomMenu("SeqUtil/" + label, true, dir + script,  forms);
+	vv.GuiManager.SetCustomMenu("SeqUtil/" + label, true, script,  forms);
 }
 function AddMainMenu(label, script) {
 	AddMenu(label, script, "MainForm");

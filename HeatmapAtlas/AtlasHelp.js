@@ -6,20 +6,21 @@
 var cfg = { 
 	cos:'Correlation.Cosine Distance', 
 	euc:'EuclideanMetric', 
-	cor:'Correlation.Standard Correlation',
+	cor:'Correlation.Standard Correlation'
 };
 cfg = {
-         cEpochs:5000,      gEpochs:5000,       // training epochs for cell/gene profiles.
+        cEpochs:5000,      gEpochs:5000,       // training epochs for cell/gene profiles.
         cPpr:0.1,          gPpr:0.1,           // perplexity ratio    
-        cMtr:cfg.cos,      gMtr:cfg.cos,      // metric 
+        cMtr:cfg.cos,      gMtr:cfg.cos,       // metric 
         cInitExa:12.0,     gInitExa: 8.0,      // initial exaggreation
         cMinPoint:5,       gMinPoint:5,           
         cMinSize:50,       gMinSize:50,
-	RowSrtKeys:null,   ColumnSrtKeys:null,
-
+	    RowSrtKeys:null,   ColumnSrtKeys:null,
+ 
         gPrShift:0.5,     // gene profile shift
         hm:null,
         Is3D:false,
+	    srtPpr:0.01
 };
 
 function FindCellGeneMap() {

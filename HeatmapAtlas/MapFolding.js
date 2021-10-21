@@ -7,8 +7,11 @@ var cs = New.CsObject(`
 	public List<IValueItem> SortValueList(List<IValueItem> items) {
 		return items.OrderBy(x=>x.Value).ToList();
 	}
-	public List<string> GetSelected(List<IValueItem> items, double lowLimit) {
+	public List<string> GetAboveLimit(List<IValueItem> items, double lowLimit) {
 		return items.Where(x=>x.Value >= lowLimit).Select(x=>x.Id).ToList();
+	}
+	public List<string> GetBelowLimit(List<IValueItem> items, double upperLimit) {
+		return items.Where(x=>x.Value <= upperLimit).Select(x=>x.Id).ToList();
 	}
 	public void ShiftTable(INumberTable nt, double shiftFactor) {
 		double[] cm = nt.ColumnMean().Select(it=>it.Value * shiftFactor).ToArray();
@@ -17,6 +20,8 @@ var cs = New.CsObject(`
 				nt.Matrix[row][col] -= cm[col];
 	}
 `);
+
+//cs.ShiftTable(vv.GetNumberTableView(false), 0.5)
 
 var mtrList = { 
 	cos:'Correlation.Cosine Distance', 
@@ -27,23 +32,26 @@ var mtrList = {
 var cfg = {
 	mtrSrt:mtrList.cos,
 	loopSrt:5000,
-	ExaSrt:10.0,
+	ExaSrt:6.0,
 	ppSrt:0.1,
 
 	mtr:mtrList.euc,
 	pp:0.1,
 	loop0:5000,
-	loop1:1000,
+	loop1:1900,
 	Exa0:6.0,
-	Exa1:1.5,
+	Exa1:2.0,
 	N:50,
 
-	RefFreq:20,
+	RefFreq:50,
+	
 };
+
+// New.MdsCluster(T).Show()
 
 function SortColumns(mtr, epochs, ex, pr) {
 	var T = vv.GetNumberTableView(true).Transpose2();
-	cs.ShiftTable(T, 0.5);
+	cs.ShiftTable(T, 1.0);
 	var tsne = New.TsneSorter(T, mtr);
 	tsne.MaxLoops = epochs;
 	tsne.InitExaggeration = ex;
@@ -77,20 +85,23 @@ function FoldingMap(geneList, tsne) {
 	var mapRec = vv.FindPluginObject("ClipRecorder").NewRecorder();
 	mapRec.Show().CreateSnapshot();
 	
-	var minValue = 770.0; //geneList[0].Value;
-	var maxValue = 820;   //geneList[geneList.Count-1].Value;
-	var stepSize = (maxValue - minValue)/cfg.N;
+	var minValue = geneList[0].Value;
+	var maxValue = geneList[geneList.Count-1].Value;
+	var range = maxValue - minValue;
+	var limitList = [];
+
+	//var stepSize =  range/cfg.N;
+	//for(var k=1; k<cfg.N; k++) limitList.push(minValue + stepSize * k);
+	for(var v=range; v>10.0; v*=0.90) limitList.push(minValue+range-v);
+	//limitList.reverse();
+
 	var nt = vv.GetNumberTableView(true);
 	tsne.ExaggerationFactor = cfg.Exa1;
 	tsne.MaxLoops = cfg.loop1;
 
-	var limitList = [400, 600, 750];
-	for(var k=1; k<cfg.N; k++) limitList.push(minValue + stepSize * k);
-	
-	
 	for(var limit of limitList) {
-		var selected = cs.GetSelected(geneList, limit);
-		barView.SelectItems(selected);
+		var selected = cs.GetAboveLimit(geneList, limit);
+		vv.EventManager.RaiseItemsSelected(selected);
 		var nt2 = nt.SelectColumnsById(selected);
 		tsne.ChangeTrainingData(nt2);
 		tsne.Restart();
@@ -104,4 +115,5 @@ function FoldingMap(geneList, tsne) {
 var geneList = SortColumns(cfg.mtrSrt, cfg.loopSrt, cfg.ExaSrt, cfg.ppSrt);
 var tsne = NewTsne();
 FoldingMap(geneList, tsne);
+tsne.Close();
 
