@@ -7,18 +7,22 @@ var cs = New.CsObject(`
 	public List<IValueItem> SortValueList(List<IValueItem> items) {
 		return items.OrderBy(x=>x.Value).ToList();
 	}
+
 	public List<string> GetAboveLimit(List<IValueItem> items, double lowLimit) {
 		return items.Where(x=>x.Value >= lowLimit).Select(x=>x.Id).ToList();
 	}
+
 	public void ShiftTable(INumberTable nt, double shiftFactor) {
 		double[] cm = nt.ColumnMean().Select(it=>it.Value * shiftFactor).ToArray();
 		for(int row=0; row<nt.Rows; row++)
 			for(int col=0; col<nt.Columns; col++)
 				nt.Matrix[row][col] -= cm[col];
 	}
-`);
 
-//cs.ShiftTable(vv.GetNumberTableView(false), 0.5)
+	public double MaxItemValue(List<IValueItem> items){
+		return items.Max(it=>it.Value);
+	}
+`);
 
 var mtrList = { 
 	cos:'Correlation.Cosine Distance', 
@@ -32,59 +36,80 @@ var cfg = {
 	ExaSrt:6.0,
 	ppSrt:0.01,
 
-	mtr:mtrList.euc,
+	mtr:mtrList.cos,
 	pp:0.1,
 	loop0:5000,
-	loop1:1900,
+	loop1:2000,
 	Exa0:6.0,
-	Exa1:2.0,
+	Exa1:1.5,
 
-	RefFreq:50,
+	reversOrder:false,
 };
 
-function SortColumns(mtr, epochs, ex, pr) {
+function ShiftTable() {
+	cs.ShiftTable(vv.GetNumberTableView(false), 0.5)
+}
+
+function SortColumns(mtr, epochs, ex, pr, reverseOrder) {
 	var T = vv.GetNumberTableView(true).Transpose2();
 	cs.ShiftTable(T, 1.0);
 	var tsne = New.TsneSorter(T, mtr);
 	tsne.MaxLoops = epochs;
 	tsne.InitExaggeration = ex;
 	tsne.PerplexityRatio = pr;
-	tsne.RefreshFreq = cfg.RefFreq;
+	tsne.RefreshFreq = 50;
 	tsne.Show().Start();
 	var ColumnSrtKeys = tsne.ItemList;
 	tsne.Close();
+
+	if ( reverseOrder ) {
+		var maxV = cs.MaxItemValue(ColumnSrtKeys);
+		for(var it of ColumnSrtKeys)
+			it.Value = maxV - it.Value;
+	}
+	
 	return cs.SortValueList(ColumnSrtKeys);
 }
 
-function NewTsne() {
+function NewTsne(mtr, loops, exa, pp) {
 	var tsne = New.TsneMap();
-	tsne.MaxLoops = cfg.loop0;
-	tsne.PerplexityRatio = cfg.pp;
+	tsne.MaxLoops = loops;
+	tsne.PerplexityRatio = pp;
+	vv.Map.Metric = mtr;
 	tsne.ExaggerationSmoothen = true;
-	tsne.ExaggerationFactor = cfg.Exa0
+	tsne.ExaggerationFactor = exa
 	tsne.Repeats = 1;
-	tsne.RefreshFreq = cfg.RefFreq
+	tsne.RefreshFreq = 50;
 	tsne.AutoNormalizing = true;
-	tsne.AutoScaling = false;
+	tsne.AutoScaling = true;
 	tsne.Show();
 	tsne.Reset().Start();
 	tsne.InitializeWithMap();
 	tsne.AutoNormalizing = false;
+	tsne.AutoScaling = false;
 	return tsne;
 }
 
-function FoldingMap(geneList, tsne) {	
+function FoldingMap(geneList, tsne, loops, exa) {	
 	var minValue = geneList[0].Value;
 	var maxValue = geneList[geneList.Count-1].Value;
 	var range = maxValue - minValue;
-
 	var limitList = [];
-	var delta = 0.005*range;
-	var decay = 0.9;
-	for(var rest=range; rest>delta; ) {
-		limitList.push(minValue+range-rest);
-		rest = (rest*(1-decay)>delta) ? (rest*decay) : (rest-delta)
-	} 
+
+	if ( true ) {
+		var delta = 0.0025*range;
+		var decay = 0.95;
+		for(var rest=range; rest>delta; ) {
+			limitList.push(minValue+range-rest);
+			rest = (rest*(1-decay)>delta) ? (rest*decay) : (rest-delta)
+		}
+	} else {
+		var N = 100;
+		var stepSize = range/N;
+		for(var n=1; n<N; n++)
+			limitList.push(minValue + n*stepSize);
+	}
+
 	vv.Title = "Total Steps: " + limitList.length;
 
 	var barView = New.BarView(geneList).Show();
@@ -92,8 +117,8 @@ function FoldingMap(geneList, tsne) {
 	mapRec.Show().CreateSnapshot();
 
 	var nt = vv.GetNumberTableView(true);
-	tsne.ExaggerationFactor = cfg.Exa1;
-	tsne.MaxLoops = cfg.loop1;
+	tsne.ExaggerationFactor = exa;
+	tsne.MaxLoops = loops;
 
 	for(var limit of limitList) {
 		var selected = cs.GetAboveLimit(geneList, limit);
@@ -103,13 +128,13 @@ function FoldingMap(geneList, tsne) {
 		tsne.Restart();
 		mapRec.CreateSnapshot();
 		nt2.FreeRef();
-		if ( tsne.CurrentLoops != cfg.loop1 )
+		if ( tsne.CurrentLoops != loops )
 			break;
 	}
 }
 
-var geneList = SortColumns(cfg.mtrSrt, cfg.loopSrt, cfg.ExaSrt, cfg.ppSrt);
-var tsne = NewTsne();
-FoldingMap(geneList, tsne);
+var geneList = SortColumns(cfg.mtrSrt, cfg.loopSrt, cfg.ExaSrt, cfg.ppSrt, cfg.reversOrder);
+var tsne = NewTsne(cfg.mtr, cfg.loop0, cfg.Exa0, cfg.pp);
+FoldingMap(geneList, tsne, cfg.loop1, cfg.Exa1);
 tsne.Close();
 
