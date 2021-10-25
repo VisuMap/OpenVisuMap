@@ -296,6 +296,7 @@ namespace ClipRecorder {
                             ref BodyInfo b1 = ref f1.BodyInfoList[row];
                             ref BodyInfo b = ref f.BodyInfoList[row];
                             b.type = b1.type;
+                            b.flags = b1.flags;
 
                             double v0, v1;
                             if (Math.Abs(b0.x - b1.x) > 5 * width) {
@@ -349,6 +350,7 @@ namespace ClipRecorder {
                             b.y = (float)(p0 * b0.y + p1 * b1.y);
                             b.z = (float)(p0 * b0.z + p1 * b1.z);
                             b.type = b1.type;
+                            b.flags = b1.flags;
                         });
                     }
                     newList.Add(f);
