@@ -44,6 +44,7 @@ var cfg = {
 	Exa1:1.5,
 
 	reversOrder:false,
+	evenSegmentation:false,
 };
 
 function ShiftTable() {
@@ -90,25 +91,27 @@ function NewTsne(mtr, loops, exa, pp) {
 	return tsne;
 }
 
-function FoldingMap(geneList, tsne, loops, exa) {	
+function FoldingMap(geneList, tsne, loops, exa, evenSegmentation) {	
 	var minValue = geneList[0].Value;
 	var maxValue = geneList[geneList.Count-1].Value;
 	var range = maxValue - minValue;
 	var limitList = [];
 
-	if ( true ) {
+	if ( evenSegmentation ) {
+		var N = 100;
+		var stepSize = range/N;
+		for(var n=1; n<N; n++)
+			limitList.push(minValue + n*stepSize);
+	} else {
 		var delta = 0.0025*range;
 		var decay = 0.95;
 		for(var rest=range; rest>delta; ) {
 			limitList.push(minValue+range-rest);
 			rest = (rest*(1-decay)>delta) ? (rest*decay) : (rest-delta)
 		}
-	} else {
-		var N = 100;
-		var stepSize = range/N;
-		for(var n=1; n<N; n++)
-			limitList.push(minValue + n*stepSize);
 	}
+
+	limitList = limitList.filter((e,i)=>i%2);
 
 	vv.Title = "Total Steps: " + limitList.length;
 
@@ -131,10 +134,19 @@ function FoldingMap(geneList, tsne, loops, exa) {
 		if ( tsne.CurrentLoops != loops )
 			break;
 	}
+
+	return limitList;
+}
+
+function PlaySelections(geneList, limitList) {
+	for(var limit of limitList) {
+		var selected = cs.GetAboveLimit(geneList, limit);
+		vv.EventManager.RaiseItemsSelected(selected);
+	}
 }
 
 var geneList = SortColumns(cfg.mtrSrt, cfg.loopSrt, cfg.ExaSrt, cfg.ppSrt, cfg.reversOrder);
 var tsne = NewTsne(cfg.mtr, cfg.loop0, cfg.Exa0, cfg.pp);
-FoldingMap(geneList, tsne, cfg.loop1, cfg.Exa1);
+var limitList = FoldingMap(geneList, tsne, cfg.loop1, cfg.Exa1, cfg.evenSegmentation);
+PlaySelections(geneList, limitList);
 tsne.Close();
-

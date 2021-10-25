@@ -11,7 +11,6 @@ function Animation(mp, bodyList) {
     return moved;
 }
 
-
 var msg = "Moved bodies: ";
 var repeats = 2;
 
