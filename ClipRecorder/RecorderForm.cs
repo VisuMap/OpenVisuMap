@@ -286,8 +286,8 @@ namespace ClipRecorder {
                 FrameSpec f1 = frameList[i];              
 
                 for (int k = 1; k <=interFrames; k++) {
-                    float p1 = ((float)k) / (interFrames + 1);
-                    float p0 = 1.0f - p1;
+                    double p1 = ((double)k) / (interFrames + 1);
+                    double p0 = 1.0 - p1;
                     FrameSpec f = new FrameSpec(width, height, depth, mapType, Rows);
 
                     if ((f.MapType == 100) || (f.MapType == 101)) {
@@ -310,7 +310,7 @@ namespace ClipRecorder {
                                 v0 = b0.x;
                                 v1 = b1.x;
                             }
-                            b.x = (short)(p0 * v0 + p1 * v1);
+                            b.x = (float)(p0 * v0 + p1 * v1);
 
                             if (Math.Abs(b0.y - b1.y) > 5 * height) {
                                 if (b0.y > b1.y) {
@@ -324,7 +324,7 @@ namespace ClipRecorder {
                                 v0 = b0.y;
                                 v1 = b1.y;
                             }
-                            b.y = (short)(p0 * v0 + p1 * v1);
+                            b.y = (float)(p0 * v0 + p1 * v1);
 
                             if (Math.Abs(b0.z - b1.z) > 5 * depth) {
                                 if (b0.z > b1.z) {
@@ -338,16 +338,16 @@ namespace ClipRecorder {
                                 v0 = b0.z;
                                 v1 = b1.z;
                             }
-                            b.z = (short)(p0 * v0 + p1 * v1);
+                            b.z = (float)(p0 * v0 + p1 * v1);
                         });
                     } else {
                         MT.Loop(0, Rows, row => {
                             ref BodyInfo b0 = ref f0.BodyInfoList[row];
                             ref BodyInfo b1 = ref f1.BodyInfoList[row];
                             ref BodyInfo b = ref f.BodyInfoList[row];
-                            b.x = (short)(p0 * b0.x + p1 * b1.x);
-                            b.y = (short)(p0 * b0.y + p1 * b1.y);
-                            b.z = (short)(p0 * b0.z + p1 * b1.z);
+                            b.x = (float)(p0 * b0.x + p1 * b1.x);
+                            b.y = (float)(p0 * b0.y + p1 * b1.y);
+                            b.z = (float)(p0 * b0.z + p1 * b1.z);
                             b.type = b1.type;
                         });
                     }
