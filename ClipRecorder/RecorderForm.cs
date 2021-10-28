@@ -43,15 +43,15 @@ namespace ClipRecorder {
             app.MapConfigured += new EventHandler<EventArgs>(app_BodyMoved);
             this.MouseWheel += new MouseEventHandler(RecorderForm_MouseWheel);
             propMan = new VisuMap.Lib.PropertyManager(this, "Settings", "ClipRecorderNs");
-            propMan.LoadProperties(PluginRoot);            
+            propMan.LoadProperties(PluginRoot);
             SyncMode();
         }
 
         void RecorderForm_MouseWheel(object sender, MouseEventArgs e) {
             int n = e.Delta / 120;
-            PlaySteps( - Math.Sign(n) * ( n * n ) );
+            PlaySteps(-Math.Sign(n) * (n * n));
         }
-        void PlaySteps(int steps) { 
+        void PlaySteps(int steps) {
             bool needRedraw = false;
             if (steps > 0) {
                 if (currentFrame < (frameList.Count - 1)) {
@@ -75,8 +75,8 @@ namespace ClipRecorder {
             get => playTarget;
             set {
                 playTarget = value;
-                if ( playTarget != null) {
-                    playTarget.TheForm.Disposed += (s,e)=> { playTarget = null; };
+                if (playTarget != null) {
+                    playTarget.TheForm.Disposed += (s, e) => { playTarget = null; };
                 }
             }
         }
@@ -153,9 +153,11 @@ namespace ClipRecorder {
             });
         }
 
-        public int CreateSnapshot() {
+        public int CreateSnapshot(float timestamp = 0) {
             List<IBody> bodyList = app.ScriptApp.Map.BodyList as List<IBody>;
-            frameList.Add(NewFrame(bodyList));
+            var frm = NewFrame(bodyList);
+            frm.Timestamp = timestamp;
+            frameList.Add(frm);
             SetMaximum(frameList.Count);
             return frameList.Count;
         }
@@ -189,7 +191,7 @@ namespace ClipRecorder {
             return true;
         }
 
-        public void DeleteFrame(int frameIndex=-1) {
+        public void DeleteFrame(int frameIndex = -1) {
             if (frameIndex == -1)
                 frameIndex = currentFrame;
             frameList.RemoveAt(frameIndex);
@@ -197,7 +199,7 @@ namespace ClipRecorder {
                 currentFrame -= 1;
             else if (frameIndex == currentFrame) {
                 currentFrame = Math.Min(currentFrame, frameList.Count - 1);
-                if ( currentFrame >= 0 )
+                if (currentFrame >= 0)
                     ShowFrame(GetBodyList(), frameList[currentFrame]);
             }
             SetCurrentValue(currentFrame);
@@ -210,11 +212,11 @@ namespace ClipRecorder {
                 currentFrame = 0;
                 return true;
             }
-            if ((bodyList == null) || (frameIndex >= FrameList.Count) || (frameIndex<0) )
+            if ((bodyList == null) || (frameIndex >= FrameList.Count) || (frameIndex < 0))
                 return false;
             FrameSpec frame = NewFrame(bodyList);
             frameList[frameIndex] = frame;
-            if ( frameIndex == currentFrame)
+            if (frameIndex == currentFrame)
                 ShowFrame(GetBodyList(), frameList[currentFrame]);
             return true;
         }
@@ -252,7 +254,7 @@ namespace ClipRecorder {
 
         void btnPlayStop_Click(object sender, EventArgs e) {
             isRecording = false;
-            isPlaying = ! isPlaying;
+            isPlaying = !isPlaying;
             SyncMode();
 
             if (isPlaying) {
@@ -268,7 +270,7 @@ namespace ClipRecorder {
 
         public void Play() {
             isRecording = false;
-            isPlaying = true;            
+            isPlaying = true;
             ReplayFrameList();
         }
 
@@ -281,11 +283,11 @@ namespace ClipRecorder {
             float depth = frameList[0].MapDepth;
             short mapType = frameList[0].MapType;
 
-            for (int i = 1; i < frameList.Count; i++ ) {
+            for (int i = 1; i < frameList.Count; i++) {
                 FrameSpec f0 = frameList[i - 1];
-                FrameSpec f1 = frameList[i];              
+                FrameSpec f1 = frameList[i];
 
-                for (int k = 1; k <=interFrames; k++) {
+                for (int k = 1; k <= interFrames; k++) {
                     double p1 = ((double)k) / (interFrames + 1);
                     double p0 = 1.0 - p1;
                     FrameSpec f = new FrameSpec(width, height, depth, mapType, Rows);
@@ -353,6 +355,8 @@ namespace ClipRecorder {
                             b.flags = b1.flags;
                         });
                     }
+
+                    f.Timestamp = (float)(p0 * f0.Timestamp + p1 * f1.Timestamp);
                     newList.Add(f);
                 }
                 newList.Add(f1);
@@ -364,7 +368,7 @@ namespace ClipRecorder {
             SetMaximum(frameList.Count);
             return true;
         }
-        
+
         void ReplayFrameList() {
             if (frameList.Count <= 1)
                 return;
@@ -372,7 +376,7 @@ namespace ClipRecorder {
             currentFrame = Math.Min(frameList.Count - 1, currentFrame);
             List<IBody> bodyList = GetBodyList();
             stopFlag = false;
-            for (int frameIdx = currentFrame; frameIdx < frameList.Count; frameIdx+=replayInterval) {
+            for (int frameIdx = currentFrame; frameIdx < frameList.Count; frameIdx += replayInterval) {
                 SetCurrentValue(frameIdx);
                 ShowFrame(bodyList, frameList[frameIdx]);
                 Application.DoEvents();
@@ -381,7 +385,7 @@ namespace ClipRecorder {
                     SyncMode();
                     break;
                 }
-                if (autoReverse && (frameIdx+replayInterval) > (frameList.Count-1)) {
+                if (autoReverse && (frameIdx + replayInterval) > (frameList.Count - 1)) {
                     frameIdx = -replayInterval;
                 }
             }
@@ -393,23 +397,23 @@ namespace ClipRecorder {
             int count = Math.Min(bodyList.Count, frame.BodyInfoList.Length);
             CopyFrameToBody(frame, bodyList);
 
-            if ( playTarget != null) {
+            if (playTarget != null) {
                 RedrawTarget();
                 return;
             }
 
             IMap map = app.ScriptApp.Map;
 
-            if ( (frame.MapWidth * frame.MapHeight) > 0) {
-                    if (
-                   ((int)frame.MapWidth != (int)map.Width)
-                || ((int)frame.MapHeight != (int)map.Height)
-                || ((int)frame.MapDepth != (int)map.Depth)
-                || (frame.MapType != (short)map.MapTypeIndex)) {
-                        map.Width = frame.MapWidth;
-                        map.Height = frame.MapHeight;
-                        map.Depth = frame.MapDepth;
-                        map.MapTypeIndex = frame.MapType; // this call will trigger a MapConfigured event.
+            if ((frame.MapWidth * frame.MapHeight) > 0) {
+                if (
+               ((int)frame.MapWidth != (int)map.Width)
+            || ((int)frame.MapHeight != (int)map.Height)
+            || ((int)frame.MapDepth != (int)map.Depth)
+            || (frame.MapType != (short)map.MapTypeIndex)) {
+                    map.Width = frame.MapWidth;
+                    map.Height = frame.MapHeight;
+                    map.Depth = frame.MapDepth;
+                    map.MapTypeIndex = frame.MapType; // this call will trigger a MapConfigured event.
                     app.RaiseMapConfigured(this);
                 }
             }
@@ -425,11 +429,11 @@ namespace ClipRecorder {
         void SetCurrentValue(int currentValue) {
             currentFrame = currentValue;
             progressBar.Value = currentValue + 1;
-            labelCurrentFrame.Text = (currentValue+1).ToString();
+            labelCurrentFrame.Text = (currentValue + 1).ToString();
         }
 
         void btnRecording_Click(object sender, EventArgs e) {
-            isRecording = ! isRecording;
+            isRecording = !isRecording;
             SyncMode();
         }
 
@@ -446,7 +450,7 @@ namespace ClipRecorder {
         void RecorderForm_MouseDown(object sender, MouseEventArgs e) {
             lastX = e.X;
             lastY = e.Y;
-            this.MouseMove+=new MouseEventHandler(RecorderForm_MouseMove);
+            this.MouseMove += new MouseEventHandler(RecorderForm_MouseMove);
         }
 
         void RecorderForm_MouseMove(object sender, MouseEventArgs e) {
@@ -474,14 +478,14 @@ namespace ClipRecorder {
             if (currentFrame < 0) {
                 return;
             }
-            if ( currentFrame < frameList.Count) {
+            if (currentFrame < frameList.Count) {
                 ShowFrame(GetBodyList(), frameList[currentFrame]);
             }
         }
 
         void btnToEnd_Click(object sender, EventArgs e) {
             StopPlaying();
-            SetCurrentValue(frameList.Count-1);
+            SetCurrentValue(frameList.Count - 1);
             SyncCurrentFrame();
         }
 
@@ -503,7 +507,7 @@ namespace ClipRecorder {
                 } else {
                     writer.Write(frameList[0].BodyInfoList.Length);
                 }
-                
+
                 writer.Write((ClipTitle == null) ? "" : ClipTitle);
 
                 for (int i = 0; i < frameList.Count; i++) {
@@ -513,6 +517,7 @@ namespace ClipRecorder {
                     float mapDepth = (dimension == 3) ? (float)frame.MapDepth : (float)0;
                     writer.Write(mapDepth);
                     writer.Write(frame.MapType);
+                    writer.Write(frame.Timestamp);
 
                     foreach (BodyInfo b in frame.BodyInfoList) {
                         writer.Write(b.x);
@@ -553,6 +558,7 @@ namespace ClipRecorder {
                         float mapDepth = reader.ReadSingle();
                         short mapType = reader.ReadInt16();
                         FrameSpec frame = new FrameSpec(mapWidth, mapHeight, mapDepth, mapType, bodies);
+                        frame.Timestamp = reader.ReadSingle();
                         for (int j = 0; j < bodies; j++) {
                             ref BodyInfo b = ref frame.BodyInfoList[j];
                             b.x = reader.ReadSingle();
@@ -689,7 +695,7 @@ namespace ClipRecorder {
             get { return clipTitle.Text; }
             set { clipTitle.Text = value; }
         }
-        
+
         [Configurable, Saved, Description("Script file path."), Editor(typeof(ScriptFileSelector), typeof(UITypeEditor))]
         public string ScriptPath {
             get { return scriptPath; }
@@ -703,7 +709,6 @@ namespace ClipRecorder {
                 openFileDialog.Title = "Select Clip File";
                 openFileDialog.CheckFileExists = false;
             }
-            
         }
 
         [Configurable, Saved, Description("Clip file path."), Editor(typeof(ClipFileSelector), typeof(UITypeEditor))]
@@ -765,22 +770,22 @@ namespace ClipRecorder {
         void RecorderForm_DragDrop(object sender, DragEventArgs e) {
             string[] fileNames = (string[])e.Data.GetData(DataFormats.FileDrop);
             frameList.Clear();
-            foreach(string fileName in fileNames) {
-                if ( fileName.ToLower().EndsWith(".clip")) {
-                    LoadClipFile(fileName, true );
+            foreach (string fileName in fileNames) {
+                if (fileName.ToLower().EndsWith(".clip")) {
+                    LoadClipFile(fileName, true);
                 }
             }
         }
 
         void btnScript_Click(object sender, EventArgs e) {
             IVisuMap vv = app.ScriptApp;
-            
+
             if (string.IsNullOrEmpty(scriptPath) || (Control.ModifierKeys & Keys.Shift) == Keys.Shift) {
                 if (string.IsNullOrEmpty(scriptPath)) {
                     scriptPath = "!vv.Message(pp.Name);";
                 }
                 IScriptPathEditor editor = vv.New.ScriptPathEditor(scriptPath, this, "");
-                editor.TheForm.FormClosed += new FormClosedEventHandler(delegate(object snd, FormClosedEventArgs args) {
+                editor.TheForm.FormClosed += new FormClosedEventHandler(delegate (object snd, FormClosedEventArgs args) {
                     if (editor.TheForm.DialogResult == DialogResult.OK) {
                         scriptPath = editor.ScriptPath;
                     }
@@ -815,6 +820,22 @@ namespace ClipRecorder {
 
         public int CurrentFrame {
             get { return currentFrame; }
+        }
+
+        public float Timestamp {
+            get {
+                if ((currentFrame >= 0) && (currentFrame < frameList.Count)) {
+                    var frm = frameList[currentFrame];
+                    return frm.Timestamp;
+                } else
+                    return 0;
+            }
+            set {
+                if ((currentFrame >= 0) && (currentFrame < frameList.Count)) {
+                    var frm = frameList[currentFrame];
+                    frm.Timestamp = value;
+                }
+            }
         }
 
         public List<FrameSpec> FrameList {
@@ -861,23 +882,28 @@ namespace ClipRecorder {
             return this.Show();
         }
 
-        public void Detach() { ; }
+        public void Detach() {; }
 
         public bool AddEventHandler(string eventName, string scriptPath) {
-            return true;
+            throw new Exception("AddContextMenu not supported for RecorderForm!");
         }
 
         public bool RemoveEventHandler(string eventName) {
-            return true;
+            throw new Exception("AddContextMenu not supported for RecorderForm!");
         }
 
         public bool ClickContextMenu(string label) {
-            return false;
+            return new FormImp(this).ClickContextMenu(label);
         }
 
-        public Form TheForm {
-            get { return this; }
-            set { ; }
+        public bool AddContextMenu(string label, string scriptPath, object srcObj = null, string iconPath = null, string menuTip = null) {
+            return new FormImp(this).AddContextMenu(label, scriptPath, srcObj, iconPath, menuTip);
+        }
+
+        public Form TheForm
+        {
+            get => this;
+            set {; }
         }
         #endregion
 
@@ -894,10 +920,6 @@ namespace ClipRecorder {
             }
 
             return base.ProcessCmdKey(ref msg, keyData);
-        }
-
-        public bool AddContextMenu(string label, string scriptPath, object srcObj = null, string iconPath = null, string menuTip = null) {
-            throw new Exception("AddContextMenu() Not supported");
         }
 
         private void miCaptureFrame_Click(object sender, EventArgs e) {

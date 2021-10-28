@@ -11,11 +11,13 @@ namespace ClipRecorder {
             MapDepth = depth;
             MapType = mapType;
         }
+
         public int Size { get => BodyInfoList.Length; }
         public float MapWidth;
         public float MapHeight;
         public float MapDepth;
-        public short MapType;
+        public float Timestamp;
         public BodyInfo[] BodyInfoList;
+        public short MapType;
     }
 }

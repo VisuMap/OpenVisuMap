@@ -8,8 +8,12 @@ var cs = New.CsObject(`
 		return items.OrderBy(x=>x.Value).ToList();
 	}
 
-	public List<string> GetAboveLimit(List<IValueItem> items, double lowLimit) {
-		return items.Where(x=>x.Value >= lowLimit).Select(x=>x.Id).ToList();
+	public List<string> GetAboveLimit(List<IValueItem> items, double limit) {
+		return items.Where(x=>x.Value >= limit).Select(x=>x.Id).ToList();
+	}
+
+	public List<string> GetBelowLimit(List<IValueItem> items, double limit) {
+		return items.Where(x=>x.Value <= limit).Select(x=>x.Id).ToList();
 	}
 
 	public void ShiftTable(INumberTable nt, double shiftFactor) {
@@ -39,12 +43,12 @@ var cfg = {
 	mtr:mtrList.cos,
 	pp:0.1,
 	loop0:5000,
-	loop1:2000,
+	loop1:1000,
 	Exa0:6.0,
 	Exa1:1.5,
 
 	reversOrder:false,
-	evenSegmentation:false,
+	accelerated:true,
 };
 
 function ShiftTable() {
@@ -60,6 +64,9 @@ function SortColumns(mtr, epochs, ex, pr, reverseOrder) {
 	tsne.PerplexityRatio = pr;
 	tsne.RefreshFreq = 50;
 	tsne.Show().Start();
+
+	if (tsne.CurrentLoops != tsne.MaxLoops ) vv.Return();
+
 	var ColumnSrtKeys = tsne.ItemList;
 	tsne.Close();
 
@@ -78,75 +85,75 @@ function NewTsne(mtr, loops, exa, pp) {
 	tsne.PerplexityRatio = pp;
 	vv.Map.Metric = mtr;
 	tsne.ExaggerationSmoothen = true;
-	tsne.ExaggerationFactor = exa
 	tsne.Repeats = 1;
 	tsne.RefreshFreq = 50;
-	tsne.AutoNormalizing = true;
-	tsne.AutoScaling = true;
-	tsne.Show();
-	tsne.Reset().Start();
-	tsne.InitializeWithMap();
 	tsne.AutoNormalizing = false;
 	tsne.AutoScaling = false;
+	tsne.GlyphScale = 20.0;
+	tsne.Show();
+	tsne.Reset();
 	return tsne;
 }
 
-function FoldingMap(geneList, tsne, loops, exa, evenSegmentation) {	
+var mapRec;
+
+function FoldingMap(geneList, tsne, loops, exa, accelerated) {	
 	var minValue = geneList[0].Value;
 	var maxValue = geneList[geneList.Count-1].Value;
 	var range = maxValue - minValue;
 	var limitList = [];
+	var N = 50;
+	for(var n=1; n<N; n++) limitList.push(n/N);
 
-	if ( evenSegmentation ) {
-		var N = 100;
-		var stepSize = range/N;
-		for(var n=1; n<N; n++)
-			limitList.push(minValue + n*stepSize);
-	} else {
-		var delta = 0.0025*range;
-		var decay = 0.95;
-		for(var rest=range; rest>delta; ) {
-			limitList.push(minValue+range-rest);
-			rest = (rest*(1-decay)>delta) ? (rest*decay) : (rest-delta)
-		}
-	}
-
-	limitList = limitList.filter((e,i)=>i%2);
+	if (accelerated) limitList = limitList.map(x=>Math.pow(x, 0.3333));
+	limitList = limitList.map(x=>minValue+x*range);
+	//limitList = limitList.slice(5, -1);  // remove some head&tail elements.
+	limitList.push(maxValue);
 
 	vv.Title = "Total Steps: " + limitList.length;
 
 	var barView = New.BarView(geneList).Show();
-	var mapRec = vv.FindPluginObject("ClipRecorder").NewRecorder();
+	mapRec = vv.FindPluginObject("ClipRecorder").NewRecorder();
 	mapRec.Show().CreateSnapshot();
 
 	var nt = vv.GetNumberTableView(true);
 	tsne.ExaggerationFactor = exa;
 	tsne.MaxLoops = loops;
+	var idx = 1;
 
-	for(var limit of limitList) {
-		var selected = cs.GetAboveLimit(geneList, limit);
+	for(var limit of limitList) {		
+		var selected = cs.GetBelowLimit(geneList, limit);
 		vv.EventManager.RaiseItemsSelected(selected);
+		vv.Title = "Step: " + idx + " of " + limitList.length 
+			+ " with " + selected.Count + " features";
+		idx+=1;
 		var nt2 = nt.SelectColumnsById(selected);
 		tsne.ChangeTrainingData(nt2);
 		tsne.Restart();
-		mapRec.CreateSnapshot();
+		mapRec.CreateSnapshot(host.toSingle(limit));
 		nt2.FreeRef();
 		if ( tsne.CurrentLoops != loops )
-			break;
+			vv.Return(0);
 	}
 
 	return limitList;
 }
 
-function PlaySelections(geneList, limitList) {
-	for(var limit of limitList) {
-		var selected = cs.GetAboveLimit(geneList, limit);
-		vv.EventManager.RaiseItemsSelected(selected);
-	}
+function HighlightFeatures() {
+	var HFeatureProc = `!
+		var srcFrm = vv.EventSource.Form;
+		if ( srcFrm == mapRec ) {
+			var selected = cs.GetBelowLimit(geneList, srcFrm.Timestamp);
+			vv.EventManager.RaiseItemsSelected(selected);
+		}
+	`;
+	vv.EventManager.OnBodyConfigured(HFeatureProc, mapRec, null);
 }
+
+// HighlightFeatures();
+
 
 var geneList = SortColumns(cfg.mtrSrt, cfg.loopSrt, cfg.ExaSrt, cfg.ppSrt, cfg.reversOrder);
 var tsne = NewTsne(cfg.mtr, cfg.loop0, cfg.Exa0, cfg.pp);
-var limitList = FoldingMap(geneList, tsne, cfg.loop1, cfg.Exa1, cfg.evenSegmentation);
-PlaySelections(geneList, limitList);
+var limitList = FoldingMap(geneList, tsne, cfg.loop1, cfg.Exa1, cfg.accelerated);
 tsne.Close();
