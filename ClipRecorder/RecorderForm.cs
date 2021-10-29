@@ -497,6 +497,13 @@ namespace ClipRecorder {
             ClearRecorder();
         }
 
+        string GetFolderFileName() {
+            string fn = app.ScriptApp.Folder?.FolderFileName;
+            if (fn == null)
+                return "";
+            return new FileInfo(fn).Name;
+        }
+
         bool SaveClip() {
             using (BlobStream blob = new BlobStream(clipFilePath, true))
             using (BinaryWriter writer = new BinaryWriter(blob.Stream)) {
@@ -508,7 +515,11 @@ namespace ClipRecorder {
                     writer.Write(frameList[0].BodyInfoList.Length);
                 }
 
-                writer.Write((ClipTitle == null) ? "" : ClipTitle);
+                string strHead = (ClipTitle == null) ? "" : ClipTitle;
+                string fileName = GetFolderFileName();
+                string dsName = app.ScriptApp.Dataset?.Name;
+                strHead = strHead + ":" + fileName + ":" + dsName;
+                writer.Write(strHead);
 
                 for (int i = 0; i < frameList.Count; i++) {
                     FrameSpec frame = frameList[i];
@@ -537,20 +548,25 @@ namespace ClipRecorder {
                 using (BinaryReader reader = new BinaryReader(blob.Stream)) {
                     int frames = reader.ReadInt32();
                     int bodies = reader.ReadInt32();
-                    if (bodies != app.ScriptApp.Dataset.BodyCount) {
-                        MessageBox.Show("The recorded clip have different body count as the currently loaded map.");
-                        return false;
+                    string strHead = reader.ReadString();
+
+                    IDataset ds = app.ScriptApp.Dataset;
+                    string[] fs = strHead.Split(':');
+                    ClipTitle = fs[0];
+                    string dsFile = fs[1];
+                    string dsName = fs[2];
+                    if ((dsFile != GetFolderFileName()) || (dsName != ds.Name) || (bodies != ds.BodyCount) ) {
+                        var ret = MessageBox.Show("The origine of the clips (" + dsFile + ":" + dsName + ":" + bodies + ") doesn't match the current dataset!"
+                            + "\nClick Yes to continue or No to cancel.", "Invalid Clip File", MessageBoxButtons.YesNo);
+                        if (ret == DialogResult.No)
+                            return false;
                     }
 
-                    ClipTitle = reader.ReadString();
-
-                    if (frameList == null) {
+                    if (frameList == null)
                         frameList = new List<FrameSpec>(frames);
-                    }
 
-                    if (!append) {
+                    if (!append)
                         frameList.Clear();
-                    }
 
                     for (int i = 0; i < frames; i++) {
                         float mapWidth = reader.ReadSingle();
