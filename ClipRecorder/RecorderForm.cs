@@ -106,7 +106,7 @@ namespace ClipRecorder {
                 return;
             }
 
-            CreateSnapshot();
+            CreateSnapshot((float)0);
         }
 
         ushort Flags(IBody body) {
@@ -162,6 +162,9 @@ namespace ClipRecorder {
             return frameList.Count;
         }
 
+        public int CreateSnapshot(double timestamp = 0) {
+            return CreateSnapshot((float)timestamp);
+        }
 
         FrameSpec NewFrame(IList<IBody> bodyList) {
             IMap map = app.ScriptApp.Map;
@@ -504,10 +507,13 @@ namespace ClipRecorder {
             return new FileInfo(fn).Name;
         }
 
+        const short TypePrefix = 77;
+
         bool SaveClip() {
             using (BlobStream blob = new BlobStream(clipFilePath, true))
             using (BinaryWriter writer = new BinaryWriter(blob.Stream)) {
                 int dimension = app.ScriptApp.Dataset.CurrentMap.Dimension;
+                writer.Write(TypePrefix);
                 writer.Write(frameList.Count);
                 if (frameList.Count == 0) {
                     writer.Write(0);
@@ -546,6 +552,11 @@ namespace ClipRecorder {
             try {
                 using (BlobStream blob = new BlobStream(filePath, false))
                 using (BinaryReader reader = new BinaryReader(blob.Stream)) {
+                    short prefix = reader.ReadInt16();
+                    if ( prefix != TypePrefix) {
+                        MessageBox.Show("Unsupported clip format: " + prefix + "!");
+                        return false;
+                    }
                     int frames = reader.ReadInt32();
                     int bodies = reader.ReadInt32();
                     string strHead = reader.ReadString();

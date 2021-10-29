@@ -43,7 +43,7 @@ var cfg = {
 	mtr:mtrList.cos,
 	pp:0.1,
 	loop0:5000,
-	loop1:1000,
+	loop1:2000,
 	Exa0:6.0,
 	Exa1:1.5,
 
@@ -84,37 +84,40 @@ function NewTsne(mtr, loops, exa, pp) {
 	tsne.MaxLoops = loops;
 	tsne.PerplexityRatio = pp;
 	vv.Map.Metric = mtr;
-	tsne.ExaggerationSmoothen = true;
 	tsne.Repeats = 1;
 	tsne.RefreshFreq = 50;
+	tsne.ExaggerationSmoothen = true;
+
+	tsne.ExaggerationFactor = exa;
+	tsne.AutoNormalizing = true;
+	tsne.AutoScaling = true;
+
+	tsne.Show();
+	tsne.Reset().Start();
+	tsne.InitializeWithMap();
 	tsne.AutoNormalizing = false;
 	tsne.AutoScaling = false;
-	tsne.GlyphScale = 20.0;
-	tsne.Show();
-	tsne.Reset();
 	return tsne;
 }
 
-var mapRec;
 
 function FoldingMap(geneList, tsne, loops, exa, accelerated) {	
 	var minValue = geneList[0].Value;
 	var maxValue = geneList[geneList.Count-1].Value;
 	var range = maxValue - minValue;
 	var limitList = [];
-	var N = 50;
+	var N = 20;
 	for(var n=1; n<N; n++) limitList.push(n/N);
 
 	if (accelerated) limitList = limitList.map(x=>Math.pow(x, 0.3333));
 	limitList = limitList.map(x=>minValue+x*range);
-	//limitList = limitList.slice(5, -1);  // remove some head&tail elements.
-	limitList.push(maxValue);
+	//limitList = limitList.slice(15, -5);  // remove some head&tail elements.
 
 	vv.Title = "Total Steps: " + limitList.length;
 
 	var barView = New.BarView(geneList).Show();
-	mapRec = vv.FindPluginObject("ClipRecorder").NewRecorder();
-	mapRec.Show().CreateSnapshot();
+	var mapRec = vv.FindPluginObject("ClipRecorder").NewRecorder();
+	mapRec.Show().CreateSnapshot(minValue);
 
 	var nt = vv.GetNumberTableView(true);
 	tsne.ExaggerationFactor = exa;
@@ -122,7 +125,7 @@ function FoldingMap(geneList, tsne, loops, exa, accelerated) {
 	var idx = 1;
 
 	for(var limit of limitList) {		
-		var selected = cs.GetBelowLimit(geneList, limit);
+		var selected = cs.GetAboveLimit(geneList, limit);
 		vv.EventManager.RaiseItemsSelected(selected);
 		vv.Title = "Step: " + idx + " of " + limitList.length 
 			+ " with " + selected.Count + " features";
@@ -130,30 +133,31 @@ function FoldingMap(geneList, tsne, loops, exa, accelerated) {
 		var nt2 = nt.SelectColumnsById(selected);
 		tsne.ChangeTrainingData(nt2);
 		tsne.Restart();
-		mapRec.CreateSnapshot(host.toSingle(limit));
+		mapRec.CreateSnapshot(limit);
 		nt2.FreeRef();
 		if ( tsne.CurrentLoops != loops )
 			vv.Return(0);
 	}
 
-	return limitList;
+	return [mapRec, limitList];
 }
 
 function HighlightFeatures() {
 	var HFeatureProc = `!
 		var srcFrm = vv.EventSource.Form;
 		if ( srcFrm == mapRec ) {
-			var selected = cs.GetBelowLimit(geneList, srcFrm.Timestamp);
+			var selected = cs.GetAboveLimit(geneList, srcFrm.Timestamp);
 			vv.EventManager.RaiseItemsSelected(selected);
 		}
 	`;
 	vv.EventManager.OnBodyConfigured(HFeatureProc, mapRec, null);
 }
 
-// HighlightFeatures();
-
+/*
+HighlightFeatures();
+*/
 
 var geneList = SortColumns(cfg.mtrSrt, cfg.loopSrt, cfg.ExaSrt, cfg.ppSrt, cfg.reversOrder);
 var tsne = NewTsne(cfg.mtr, cfg.loop0, cfg.Exa0, cfg.pp);
-var limitList = FoldingMap(geneList, tsne, cfg.loop1, cfg.Exa1, cfg.accelerated);
+var [mapRec, limitList] = FoldingMap(geneList, tsne, cfg.loop1, cfg.Exa1, cfg.accelerated);
 tsne.Close();
