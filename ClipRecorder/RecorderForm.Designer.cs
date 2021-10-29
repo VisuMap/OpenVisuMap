@@ -247,7 +247,7 @@ namespace ClipRecorder {
             this.miInterpolation.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.I)));
             this.miInterpolation.Size = new System.Drawing.Size(209, 22);
             this.miInterpolation.Text = "Add Interpolations";
-            this.miInterpolation.ToolTipText = "Add Interpolation Frames";
+            this.miInterpolation.ToolTipText = "Add 4 frames between selected or all frames";
             this.miInterpolation.Click += new System.EventHandler(this.miInterpolation_Click);
             // 
             // miRunScript

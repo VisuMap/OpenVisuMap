@@ -276,17 +276,23 @@ namespace ClipRecorder {
             isPlaying = true;
             ReplayFrameList();
         }
-
         public bool InterpolateClip(int interFrames) {
-            List<FrameSpec> newList = new List<FrameSpec>();
-            newList.Add(frameList[0]);
-            int Rows = frameList[0].BodyInfoList.Length;
-            float width = frameList[0].MapWidth;
-            float height = frameList[0].MapHeight;
-            float depth = frameList[0].MapDepth;
-            short mapType = frameList[0].MapType;
+            return InterpolateClip(interFrames, 0, frameList.Count);
+        }
 
-            for (int i = 1; i < frameList.Count; i++) {
+        public bool InterpolateClip(int interFrames, int idxBegin, int idxEnd) {
+            if ( (idxBegin<0) || (idxEnd>frameList.Count) || (idxBegin >= idxEnd) )
+                return false;
+
+            List<FrameSpec> newList = new List<FrameSpec>();
+            newList.Add(frameList[idxBegin]);
+            int Rows = frameList[idxBegin].BodyInfoList.Length;
+            float width = frameList[idxBegin].MapWidth;
+            float height = frameList[idxBegin].MapHeight;
+            float depth = frameList[idxBegin].MapDepth;
+            short mapType = frameList[idxBegin].MapType;
+
+            for (int i = idxBegin+1; i < idxEnd; i++) {
                 FrameSpec f0 = frameList[i - 1];
                 FrameSpec f1 = frameList[i];
 
@@ -365,9 +371,13 @@ namespace ClipRecorder {
                 newList.Add(f1);
             }
 
+            var prefix = frameList.GetRange(0, idxBegin);
+            var tail = frameList.GetRange(idxEnd, frameList.Count - idxEnd);
             frameList.Clear();
+            frameList.AddRange(prefix);
             frameList.AddRange(newList);
-            ShowFrame(0);
+            frameList.AddRange(tail);
+            ShowFrame(0);            
             SetMaximum(frameList.Count);
             return true;
         }
@@ -977,7 +987,20 @@ namespace ClipRecorder {
         }
 
         private void miInterpolation_Click(object sender, EventArgs e) {
-            InterpolateClip(4);
+            int mkIdx = progressBar.MarkerIndex;
+            if ((mkIdx < 0) || (mkIdx == currentFrame) || (currentFrame<0) ) {
+                InterpolateClip(4);
+            } else {
+                if (mkIdx > currentFrame)
+                    InterpolateClip(4, currentFrame, mkIdx);
+                else
+                    InterpolateClip(4, mkIdx, currentFrame);
+                          
+            }
+            if (mkIdx >= 0) {
+                progressBar.MarkerIndex = -1;
+                Refresh();
+            }
         }
 
         private void miNewWindow_Click(object sender, EventArgs e) {

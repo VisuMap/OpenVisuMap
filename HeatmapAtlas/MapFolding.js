@@ -106,12 +106,12 @@ function FoldingMap(geneList, tsne, loops, exa, accelerated) {
 	var maxValue = geneList[geneList.Count-1].Value;
 	var range = maxValue - minValue;
 	var limitList = [];
-	var N = 20;
+	var N = 100;
 	for(var n=1; n<N; n++) limitList.push(n/N);
 
 	if (accelerated) limitList = limitList.map(x=>Math.pow(x, 0.3333));
 	limitList = limitList.map(x=>minValue+x*range);
-	//limitList = limitList.slice(15, -5);  // remove some head&tail elements.
+	limitList = limitList.slice(30, -5);  // remove some head&tail elements.
 
 	vv.Title = "Total Steps: " + limitList.length;
 
