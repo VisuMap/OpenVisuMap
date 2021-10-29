@@ -950,13 +950,13 @@ namespace ClipRecorder {
             int mkIdx = progressBar.MarkerIndex;
             if ((mkIdx >= 0) && (mkIdx != currentFrame)) {
                 if (mkIdx < currentFrame)
-                    frameList.RemoveRange(mkIdx, currentFrame);
+                    frameList.RemoveRange(mkIdx, currentFrame-mkIdx + 1);
                 else
-                    frameList.RemoveRange(currentFrame, mkIdx);
+                    frameList.RemoveRange(currentFrame, mkIdx-currentFrame);
                 SetCurrentValue(0);
                 SetMaximum(frameList.Count);
                 progressBar.MarkerIndex = -1;
-                this.Refresh();
+                ShowFrame(GetBodyList(), frameList[currentFrame]);
             } else
                 DeleteFrame(currentFrame);
         }
