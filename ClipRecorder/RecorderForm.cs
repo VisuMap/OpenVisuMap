@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Design;
-using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Xml;
 using System.Threading;
+//using System.IO.Compression;
 
 using VisuMap.Lib;
 using VisuMap.Plugin;
@@ -633,8 +632,10 @@ namespace ClipRecorder {
                 } else {
                     if (forWrite) {
                         stream = File.Create(path);
+                        //stream = new GZipStream(File.Create(path), CompressionMode.Compress);
                     } else {
                         stream = File.OpenRead(path);
+                        //stream = new GZipStream(File.Create(path), CompressionMode.Decompress);
                     }
                 }
             }

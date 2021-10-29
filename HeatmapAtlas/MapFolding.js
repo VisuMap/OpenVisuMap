@@ -45,7 +45,7 @@ var cfg = {
 	loop0:5000,
 	loop1:2000,
 	Exa0:6.0,
-	Exa1:1.5,
+	Exa1:1.25,
 
 	reversOrder:false,
 	accelerated:true,
@@ -100,34 +100,32 @@ function NewTsne(mtr, loops, exa, pp) {
 	return tsne;
 }
 
-
 function FoldingMap(geneList, tsne, loops, exa, accelerated) {	
 	var minValue = geneList[0].Value;
 	var maxValue = geneList[geneList.Count-1].Value;
 	var range = maxValue - minValue;
-	var limitList = [];
+	var L = [];
 	var N = 100;
-	for(var n=1; n<N; n++) limitList.push(n/N);
-
-	if (accelerated) limitList = limitList.map(x=>Math.pow(x, 0.3333));
-	limitList = limitList.map(x=>minValue+x*range);
-	limitList = limitList.slice(30, -5);  // remove some head&tail elements.
-
-	vv.Title = "Total Steps: " + limitList.length;
+	for(var n=1; n<N; n++) 
+		L.push(n/N);
+	if (accelerated) 
+		L = L.map(x=>Math.pow(x, 0.3333));
+	L = L.map(x=>minValue+x*range);
+	L = L.filter((e,i)=>(i%8==1) && (i<64)) . concat(L.slice(64, -2));  
+	vv.Title = "Total Steps: " + L.length;
 
 	var barView = New.BarView(geneList).Show();
 	var mapRec = vv.FindPluginObject("ClipRecorder").NewRecorder();
 	mapRec.Show().CreateSnapshot(minValue);
-
 	var nt = vv.GetNumberTableView(true);
 	tsne.ExaggerationFactor = exa;
 	tsne.MaxLoops = loops;
 	var idx = 1;
 
-	for(var limit of limitList) {		
+	for(var limit of L) {		
 		var selected = cs.GetAboveLimit(geneList, limit);
 		vv.EventManager.RaiseItemsSelected(selected);
-		vv.Title = "Step: " + idx + " of " + limitList.length 
+		vv.Title = "Step: " + idx + " of " + L.length 
 			+ " with " + selected.Count + " features";
 		idx+=1;
 		var nt2 = nt.SelectColumnsById(selected);
@@ -138,8 +136,7 @@ function FoldingMap(geneList, tsne, loops, exa, accelerated) {
 		if ( tsne.CurrentLoops != loops )
 			vv.Return(0);
 	}
-
-	return [mapRec, limitList];
+	return [mapRec, L];
 }
 
 function HighlightFeatures() {
