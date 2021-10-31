@@ -11,3 +11,4 @@ zip DataModeling.zip Readme.txt License.txt DataModeling.dll %JsFiles% %PyFiles%
 
 del DataModeling.dll
 rem uploadplugin DataModeling.zip
+copy DataModeling.zip ..\..\VisuMapWeb\images
