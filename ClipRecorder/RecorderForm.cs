@@ -286,14 +286,14 @@ namespace ClipRecorder {
             List<FrameSpec> newList = new List<FrameSpec>();
             newList.Add(frameList[idxBegin]);
             int Rows = frameList[idxBegin].BodyInfoList.Length;
-            float width = frameList[idxBegin].MapWidth;
-            float height = frameList[idxBegin].MapHeight;
-            float depth = frameList[idxBegin].MapDepth;
-            short mapType = frameList[idxBegin].MapType;
 
             for (int i = idxBegin+1; i < idxEnd; i++) {
-                FrameSpec f0 = frameList[i - 1];
+                FrameSpec f0 = frameList[i-1];
                 FrameSpec f1 = frameList[i];
+                float width = f0.MapWidth;  // map size and type will fixed to the first.
+                float height = f0.MapHeight;
+                float depth = f0.MapDepth;
+                short mapType = f0.MapType;
 
                 for (int k = 1; k <= interFrames; k++) {
                     double p1 = ((double)k) / (interFrames + 1);

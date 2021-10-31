@@ -10,3 +10,6 @@
 TsneDx/SP500_pc.csv
 /packages
 
+/Release/VisuMapCLR.pdb
+/Release/VisuMapCLR.dll.metagen
+/HeatmapAtlas/MapFolding.js.bk
