@@ -5,8 +5,8 @@ print('Loading libraries...')
 import umap, time, sys, ModelUtil
 import numpy as np
 
-mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['e']
-initType = ['spectral', 'random'][1]
+mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['s']
+initType = ['spectral', 'random'][0]
 repeats, epochs = 2, 2000
 mapDim, nn, md, lc, ns = 2, 2000, 0.25, 5.0, 25
 randomizeOrder = True

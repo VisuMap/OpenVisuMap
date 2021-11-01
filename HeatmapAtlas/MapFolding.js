@@ -28,6 +28,7 @@ var cs = New.CsObject(`
 	}
 `);
 
+
 var mtrList = { 
 	cos:'Correlation.Cosine Distance', 
 	euc:'EuclideanMetric', 
@@ -37,11 +38,11 @@ var mtrList = {
 var cfg = {
 	mtrSrt:mtrList.cos,
 	loopSrt:5000,
-	ExaSrt:6.0,
-	ppSrt:0.01,
+	ExaSrt:4.0,
+	ppSrt:0.025,
 
 	mtr:mtrList.cos,
-	pp:0.1,
+	pp:0.15,
 	loop0:5000,
 	loop1:2000,
 	Exa0:6.0,
@@ -82,6 +83,7 @@ function SortColumns(mtr, epochs, ex, pr, reverseOrder) {
 function NewTsne(mtr, loops, exa, pp) {
 	var tsne = New.TsneMap();
 	tsne.MaxLoops = loops;
+	tsne.Is3D = false;
 	tsne.PerplexityRatio = pp;
 	vv.Map.Metric = mtr;
 	tsne.Repeats = 1;
@@ -100,18 +102,19 @@ function NewTsne(mtr, loops, exa, pp) {
 	return tsne;
 }
 
-function FoldingMap(geneList, tsne, loops, exa, accelerated) {	
+function FoldingMap(geneList, tsne, loops, exa, accelerated) {
 	var minValue = geneList[0].Value;
 	var maxValue = geneList[geneList.Count-1].Value;
 	var range = maxValue - minValue;
 	var L = [];
-	var N = 100;
+	var N = 400;
 	for(var n=1; n<N; n++) 
 		L.push(n/N);
 	if (accelerated) 
 		L = L.map(x=>Math.pow(x, 0.3333));
 	L = L.map(x=>minValue+x*range);
-	L = L.filter((e,i)=>(i%8==1) && (i<64)) . concat(L.slice(64, -2));  
+	var K = 200;
+	L = L.filter((e,i)=>(i%8==1) && (i<K)) . concat(L.slice(K, -1));
 	vv.Title = "Total Steps: " + L.length;
 
 	var barView = New.BarView(geneList).Show();
@@ -120,14 +123,19 @@ function FoldingMap(geneList, tsne, loops, exa, accelerated) {
 	var nt = vv.GetNumberTableView(true);
 	tsne.ExaggerationFactor = exa;
 	tsne.MaxLoops = loops;
-	var idx = 1;
 
-	for(var limit of L) {		
+	var preFeatures = 0;
+
+	for(var i in L) {
+		var limit = L[i];
 		var selected = cs.GetAboveLimit(geneList, limit);
-		vv.EventManager.RaiseItemsSelected(selected);
-		vv.Title = "Step: " + idx + " of " + L.length 
+		if ( selected.Count < 2 ) break;
+		if ( selected.Count == preFeatures ) continue;		
+		preFeatures = selected.Count;
+
+		vv.Title = "Step " + i + " of " + L.length 
 			+ " with " + selected.Count + " features";
-		idx+=1;
+		vv.EventManager.RaiseItemsSelected(selected);
 		var nt2 = nt.SelectColumnsById(selected);
 		tsne.ChangeTrainingData(nt2);
 		tsne.Restart();
@@ -137,6 +145,7 @@ function FoldingMap(geneList, tsne, loops, exa, accelerated) {
 			vv.Return(0);
 	}
 	return [mapRec, L];
+
 }
 
 function HighlightFeatures() {
@@ -145,9 +154,10 @@ function HighlightFeatures() {
 		if ( srcFrm == mapRec ) {
 			var selected = cs.GetAboveLimit(geneList, srcFrm.Timestamp);
 			vv.EventManager.RaiseItemsSelected(selected);
+			//vv.Title = "Selected Features: " + select.Count;
 		}
 	`;
-	vv.EventManager.OnBodyConfigured(HFeatureProc, mapRec, null);
+    vv.EventManager.RaiseBodyConfigured(HFeatureProc, mapRec);
 }
 
 /*
@@ -158,3 +168,5 @@ var geneList = SortColumns(cfg.mtrSrt, cfg.loopSrt, cfg.ExaSrt, cfg.ppSrt, cfg.r
 var tsne = NewTsne(cfg.mtr, cfg.loop0, cfg.Exa0, cfg.pp);
 var [mapRec, limitList] = FoldingMap(geneList, tsne, cfg.loop1, cfg.Exa1, cfg.accelerated);
 tsne.Close();
+
+
