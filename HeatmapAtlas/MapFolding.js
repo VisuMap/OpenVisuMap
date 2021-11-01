@@ -44,7 +44,7 @@ var cfg = {
 	mtr:mtrList.cos,
 	pp:0.15,
 	loop0:5000,
-	loop1:2000,
+	loop1:1000,
 	Exa0:6.0,
 	Exa1:1.25,
 
@@ -107,15 +107,14 @@ function FoldingMap(geneList, tsne, loops, exa, accelerated) {
 	var maxValue = geneList[geneList.Count-1].Value;
 	var range = maxValue - minValue;
 	var L = [];
-	var N = 400;
+	var N = 200;
 	for(var n=1; n<N; n++) 
 		L.push(n/N);
 	if (accelerated) 
 		L = L.map(x=>Math.pow(x, 0.3333));
 	L = L.map(x=>minValue+x*range);
-	var K = 200;
+	var K = N/2;
 	L = L.filter((e,i)=>(i%8==1) && (i<K)) . concat(L.slice(K, -1));
-	vv.Title = "Total Steps: " + L.length;
 
 	var barView = New.BarView(geneList).Show();
 	var mapRec = vv.FindPluginObject("ClipRecorder").NewRecorder();
@@ -125,7 +124,6 @@ function FoldingMap(geneList, tsne, loops, exa, accelerated) {
 	tsne.MaxLoops = loops;
 
 	var preFeatures = 0;
-
 	for(var i in L) {
 		var limit = L[i];
 		var selected = cs.GetAboveLimit(geneList, limit);
@@ -133,8 +131,9 @@ function FoldingMap(geneList, tsne, loops, exa, accelerated) {
 		if ( selected.Count == preFeatures ) continue;		
 		preFeatures = selected.Count;
 
-		vv.Title = "Step " + i + " of " + L.length 
-			+ " with " + selected.Count + " features";
+		vv.Title = `Step ${i-0+1} of ${L.length} with ${selected.Count} features`;
+		vv.Echo(vv.Title);
+
 		vv.EventManager.RaiseItemsSelected(selected);
 		var nt2 = nt.SelectColumnsById(selected);
 		tsne.ChangeTrainingData(nt2);
@@ -143,6 +142,7 @@ function FoldingMap(geneList, tsne, loops, exa, accelerated) {
 		nt2.FreeRef();
 		if ( tsne.CurrentLoops != loops )
 			vv.Return(0);
+
 	}
 	return [mapRec, L];
 
@@ -154,19 +154,16 @@ function HighlightFeatures() {
 		if ( srcFrm == mapRec ) {
 			var selected = cs.GetAboveLimit(geneList, srcFrm.Timestamp);
 			vv.EventManager.RaiseItemsSelected(selected);
-			//vv.Title = "Selected Features: " + select.Count;
+			vv.Title = "Selected Features: " + selected.Count;
 		}
 	`;
-    vv.EventManager.RaiseBodyConfigured(HFeatureProc, mapRec);
+    	vv.EventManager.OnBodyConfigured(HFeatureProc, mapRec);
 }
 
-/*
-HighlightFeatures();
-*/
+
 
 var geneList = SortColumns(cfg.mtrSrt, cfg.loopSrt, cfg.ExaSrt, cfg.ppSrt, cfg.reversOrder);
 var tsne = NewTsne(cfg.mtr, cfg.loop0, cfg.Exa0, cfg.pp);
 var [mapRec, limitList] = FoldingMap(geneList, tsne, cfg.loop1, cfg.Exa1, cfg.accelerated);
 tsne.Close();
-
-
+HighlightFeatures();
