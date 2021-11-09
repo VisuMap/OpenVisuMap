@@ -13,9 +13,18 @@ function RunEmbedding(mds, epochs, mtr, initExa, ppRatio) {
 	mds.AutoClustering = false;
 	mds.AutoNormalizing = false;
 	mds.RefreshFreq = 50;
+	mds.GlyphSet = "36 Clusters|36 Clusters";
+
+	mds.MaxLoops = epochs;
 	mds.PerplexityRatio = ppRatio;
-	mds.GlyphSet = "36 Clusters";
+	mds.ExaggerationFactor = initExa;
 	mds.Reset().Start();
+
+	mds.MaxLoops = parseInt(epochs/2);
+	mds.PerplexityRatio = 0.1*ppRatio;
+	mds.ExaggerationFactor = 1.5;
+	mds.Restart();
+
 	var mpView = mds.Is3D ? mds.Show3DView() : mds.Show2DView();
 	mpView.NormalizeView();
 	return mpView;
@@ -24,8 +33,8 @@ function RunEmbedding(mds, epochs, mtr, initExa, ppRatio) {
 function DEmbeddingMain() {
 	var nt = pp.GetNumberTable();
 	var mds = New.MdsCluster(nt);
-	mds.Show();
-		
+	mds.Show();	
+
 	var rowMap = RunEmbedding(mds, cfg.cEpochs, cfg.cMtr, cfg.cInitExa, cfg.cPpr);
 
 	var nt2 = nt.Transpose2();
