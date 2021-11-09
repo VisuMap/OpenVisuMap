@@ -152,11 +152,12 @@ namespace VisuMap.DataModeling {
         double DiffL1(IList<IBody> list1, IList<IBody> list2) {
             double diff = 0;
             for (int i = 0; i < list1.Count; i++) {
-                diff += Math.Abs(list1[i].X - list2[i].X);
-                diff += Math.Abs(list1[i].Y - list2[i].Y);
+                double d = Math.Abs(list1[i].X - list2[i].X) + Math.Abs(list1[i].Y - list2[i].Y);
                 if ( app.Map.Dimension == 3 ) {
-                    diff += Math.Abs(list1[i].Z - list2[i].Z);
+                    d += Math.Abs(list1[i].Z - list2[i].Z);
                 }
+                if (!double.IsNaN(d) && !double.IsInfinity(d))
+                    diff += d;
             }
             return diff;
         }
@@ -893,6 +894,13 @@ namespace VisuMap.DataModeling {
             }
             if (!monitorMap.TheForm.IsDisposed) {
                 double[][] result = (predResult!=null) ? predResult: GetPrediction(jIdx, tcpDataSource);
+
+                for(int row=0; row<result.Length; row++)
+                    for(int col=0; col<result[0].Length; col++) {
+                        double v = result[row][col];
+                        if (double.IsNaN(v) || double.IsInfinity(v))
+                            result[row][col] = 0;
+                    }
 
                 if (monitorMap.BodyList.Count != initBodyList.Count) {
                     // The current dataset has been changed, we re-initialized the body list.

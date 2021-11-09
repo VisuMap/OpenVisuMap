@@ -8,6 +8,7 @@ var cfg = {
 	euc:'EuclideanMetric', 
 	cor:'Correlation.Standard Correlation'
 };
+
 cfg = {
         cEpochs:5000,      gEpochs:5000,       // training epochs for cell/gene profiles.
         cPpr:0.1,          gPpr:0.1,           // perplexity ratio    
@@ -15,12 +16,12 @@ cfg = {
         cInitExa:12.0,     gInitExa: 8.0,      // initial exaggreation
         cMinPoint:5,       gMinPoint:5,           
         cMinSize:50,       gMinSize:50,
-	    RowSrtKeys:null,   ColumnSrtKeys:null,
+	 RowSrtKeys:null,   ColumnSrtKeys:null,
  
         gPrShift:0.5,     // gene profile shift
         hm:null,
         Is3D:false,
-	    srtPpr:0.01
+	 srtPpr:0.1
 };
 
 function FindCellGeneMap() {
@@ -53,6 +54,12 @@ function SortTable(T, mt, epochs, ex, pr) {
 		vv.Message("Training degraded!\nPlease try with smaller initial exaggeration.");
 		vv.Return(1);
 	}
+
+	tsne.MaxLoops = parseInt(epochs/2);
+	tsne.InitExaggeration = 1.1;
+	tsne.PerplexityRatio = 0.1*pr;
+	tsne.Restart();
+
 	if (pp.SelectionMode == 0)
 		cfg.RowSrtKeys = tsne.ItemList;
 	else
