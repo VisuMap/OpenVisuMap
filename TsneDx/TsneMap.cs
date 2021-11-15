@@ -83,7 +83,7 @@ namespace TsneDx {
 
         public int MaxCpuCacheSize { get; set; } = 26000;
 
-        public double PerplexityRatio { get; set; } = 0.05;
+        public double PerplexityRatio { get; set; } = 0.15;
 
         public int OutDim { get; set; } = 2;
 
@@ -102,6 +102,8 @@ namespace TsneDx {
         public bool ExaggerationSmoothen { get; set; } = true;
 
         public bool AutoNormalize { get; set; } = true;
+
+        public bool StagedTraining { get; set; } = true;
         #endregion        
 
         #region FitNumpy
@@ -459,6 +461,17 @@ namespace TsneDx {
         }
         CachingMode cachingMode = CachingMode.OnGpu;
 
+        void ReInitializeP(double perplexity) {
+            cc.c.targetH = (float)Math.Log(perplexity);
+            if (cachingMode == CachingMode.OnGpu) {
+                CalculateP();
+            } else if (cachingMode == CachingMode.OnCpu) {
+                InitializePCpu();
+            } else { // (cachingMode == CachingMode.OnFly[Sm,SmS])
+                InitializeP();
+            }
+        }
+
         public float[][] Fit(float[][] X) {
             int exaggerationLength = (int)(MaxEpochs * ExaggerationRatio);
 
@@ -555,14 +568,7 @@ namespace TsneDx {
             }
             #endregion
 
-            cc.c.targetH = (float)Math.Log(PerplexityRatio * N);
-            if (cachingMode == CachingMode.OnGpu) {
-                CalculateP();
-            } else if (cachingMode == CachingMode.OnCpu) {
-                InitializePCpu();
-            } else { // (cachingMode == CachingMode.OnFly[Sm,SmS])
-                InitializeP();
-            }
+            ReInitializeP(PerplexityRatio * N);
 
             using (var sd = gpu.LoadShader("TsneDx.CalculateSumQ.cso")) {
                 gpu.SetShader(sd);
@@ -588,6 +594,7 @@ namespace TsneDx {
             ComputeShader csOneStep = gpu.LoadShader(sdNames[cachingMode]);
             ComputeShader csSumUp = gpu.LoadShader("TsneDx.OneStepSumUp.cso");
             int stepCounter = 0;
+            List<double> stages = StagedTraining ? new List<double>() { 0.35, 0.7, 0.9 } : new List<double>();
 
             while (true) {
                 if (stepCounter < exaggerationLength) {
@@ -595,7 +602,6 @@ namespace TsneDx {
                         int len = (int)(0.9 * MaxEpochs);
                         if (stepCounter < len) {
                             double t = (double)stepCounter / len;
-                            t = Math.Sqrt(Math.Sqrt(t));
                             cc.c.PFactor = (float)((1 - t) * ExaggerationFactor + t);
                         } else
                             cc.c.PFactor = 1.0f;
@@ -603,6 +609,17 @@ namespace TsneDx {
                         cc.c.PFactor = (float)ExaggerationFactor;
                 } else
                     cc.c.PFactor = 1.0f;
+
+                if (stages.Count > 0) {
+                    double r = stages[0];
+                    if (stepCounter == (int)(r * MaxEpochs)) {
+                        double newPP = PerplexityRatio * N * (1 - r);
+                        if (newPP > 20) {
+                            ReInitializeP(newPP);
+                            stages.RemoveAt(0);
+                        }
+                    }
+                }
 
                 gpu.SetShader(csOneStep);
 

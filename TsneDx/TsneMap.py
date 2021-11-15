@@ -16,8 +16,9 @@ import numpy as np
 
 # ----------------------------------------------
 
-def DoTsneMap(X, perplexityRatio=0.05, maxEpochs=1000, outDim=2, metricType=0):
+def DoTsneMap(X, perplexityRatio=0.15, maxEpochs=1000, outDim=2, metricType=0):
     tsne = TsneDx.TsneMap(PerplexityRatio=perplexityRatio, MaxEpochs=maxEpochs, OutDim=outDim, MetricType=metricType)
+    tsne.StagedTraining = True
     X = X.astype(np.float32)
     Y = tsne.FitBuffer(X.__array_interface__['data'][0], X.shape[0], X.shape[1])
     #Y = tsne.FitNumpy(X)   # simple way, but slow for large file.
