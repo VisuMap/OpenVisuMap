@@ -12,18 +12,14 @@ function RunEmbedding(mds, epochs, mtr, initExa, ppRatio) {
 	mds.ClusterAlgorithm = 4;  // for HDBSCAN algorithm
 	mds.AutoClustering = false;
 	mds.AutoNormalizing = false;
-	mds.RefreshFreq = 50;
-	mds.GlyphSet = "36 Clusters|36 Clusters";
+	mds.StagedTraining = true;
+	mds.RefreshFreq = 10;
+	mds.GlyphSet = "36 Clusters|36 Clusters|36 Clusters";
 
 	mds.MaxLoops = epochs;
 	mds.PerplexityRatio = ppRatio;
 	mds.ExaggerationFactor = initExa;
 	mds.Reset().Start();
-
-	mds.MaxLoops = parseInt(epochs/2);
-	mds.PerplexityRatio = 0.1*ppRatio;
-	mds.ExaggerationFactor = 1.5;
-	mds.Restart();
 
 	var mpView = mds.Is3D ? mds.Show3DView() : mds.Show2DView();
 	mpView.NormalizeView();

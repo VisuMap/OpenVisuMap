@@ -11,7 +11,7 @@ var cfg = {
 
 cfg = {
         cEpochs:5000,      gEpochs:5000,       // training epochs for cell/gene profiles.
-        cPpr:0.1,          gPpr:0.1,           // perplexity ratio    
+        cPpr:0.15,         gPpr:0.15,           // perplexity ratio    
         cMtr:cfg.cos,      gMtr:cfg.cos,       // metric 
         cInitExa:12.0,     gInitExa: 8.0,      // initial exaggreation
         cMinPoint:5,       gMinPoint:5,           
@@ -21,7 +21,7 @@ cfg = {
         gPrShift:0.5,     // gene profile shift
         hm:null,
         Is3D:false,
-	 srtPpr:0.1
+	 srtPpr:0.15
 };
 
 function FindCellGeneMap() {
@@ -49,16 +49,12 @@ function SortTable(T, mt, epochs, ex, pr) {
 	tsne.InitExaggeration = ex;
 	tsne.PerplexityRatio = pr;
 	tsne.RefreshFreq = 50;
+	tsne.StagedTraining = true;
 	tsne.Show().Start();
 	if (isNaN(tsne.ItemList[0].Value)) {
 		vv.Message("Training degraded!\nPlease try with smaller initial exaggeration.");
 		vv.Return(1);
 	}
-
-	tsne.MaxLoops = parseInt(epochs/2);
-	tsne.InitExaggeration = 1.1;
-	tsne.PerplexityRatio = 0.1*pr;
-	tsne.Restart();
 
 	if (pp.SelectionMode == 0)
 		cfg.RowSrtKeys = tsne.ItemList;
@@ -217,7 +213,6 @@ var cs = New.CsObject(`
 
 	public void SetRange(INumberTable expTable, IBarView bv) {
 		double[] colMean = expTable.ColumnMean().Select(it=>it.Value).ToArray();
-/*
 		Array.Sort(colMean);
 		Array.Reverse(colMean);
 		int n = (int)(0.15 * colMean.Length);		
@@ -225,7 +220,6 @@ var cs = New.CsObject(`
 		for(int i=0; i<n; i++)
 			sum += colMean[i] * colMean[i];
 		bv.UpperLimit = 3* Math.Sqrt(sum/n);
-		bv.LowerLimit = 0;
-		*/
+		bv.LowerLimit = 0;		
 	}
 `);

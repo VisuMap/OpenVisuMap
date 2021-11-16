@@ -31,5 +31,5 @@ DSMain();
 if ( doAllService ) {
   cfg.hm.ClickContextMenu("Atlas/Dual Embedding");
   cfg.hm.ClickContextMenu("Atlas/Dual Clustering");
-  cfg.hm.ClickContextMenu("Atlas/Active Cells");
+  //cfg.hm.ClickContextMenu("Atlas/Active Cells");
 }
