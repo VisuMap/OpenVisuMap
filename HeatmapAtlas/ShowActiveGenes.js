@@ -5,14 +5,13 @@
 //
 
 ValidateHeatMap(pp);
+CheckMaps();
 
 function ShowActiveGenes() {
-	var expTable = pp.GetNumberTable();
-	var [cellMap, geneMap] = FindCellGeneMap();
-	
-	var sp = NewExpressionMap(geneMap, "Active Genes");
-	sp.Top = geneMap.Top;
-	sp.Left = cellMap.Left;
+	var expTable = pp.GetNumberTable();	
+	var sp = NewExpressionMap(cfg.geneMap, "Active Genes");
+	sp.Top = cfg.geneMap.Top;
+	sp.Left = cfg.cellMap.Left;
 	
 	var bv = New.BarView(expTable.SelectRows(New.IntArray(0)));
 	bv.Show();
@@ -32,7 +31,7 @@ function ShowActiveGenes() {
 		"!cs.ShowActiveGenes(vv.EventSource.Item, cfg.hm.GetNumberTable(), vv.EventSource.Argument);",
 		sp, sp);
 
-	FlushMarkers(cellMap, geneMap, sp);	
+	FlushMarkers(cfg.cellMap, cfg.geneMap, sp);	
 }
 
 ShowActiveGenes();

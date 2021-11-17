@@ -5,12 +5,13 @@
 //
 
 ValidateHeatMap(pp);
+CheckMaps();
 
 function DoClustering(map, minSize, minPoint) {
 	// Setup context menu to synchronize clusters with the heatmap.
 	map.AddContextMenu("Atlas/Capture Coloring", 
 		"!cs.CopyType(pp, pp.BodyList, cfg.hm)", 
-		null, null, "Push the cluster coloring to the heatmap");
+		(map == cfg.cellMap), null, "Push the cluster coloring to the heatmap");
 	map.ClusterAlgorithm = 1;
 	map.MinClusterSize = minSize;
 	map.MinClusterPoint = minPoint;
@@ -21,15 +22,14 @@ function DoClustering(map, minSize, minPoint) {
 function DCMain() {
 	cfg.hm = pp;
 	var nt = cfg.hm.GetNumberTable();
-	var [cellMap, geneMap] = FindCellGeneMap();
 
-	var rowClusters = DoClustering(cellMap, cfg.cMinSize, cfg.cMinPoint);
-	cs.NormalizeColoring(cellMap.BodyList, cfg.RowSrtKeys, rowClusters);
-	cellMap.ClickContextMenu("Atlas/Capture Coloring");
+	var rowClusters = DoClustering(cfg.cellMap, cfg.cMinSize, cfg.cMinPoint);
+	cs.NormalizeColoring(cfg.cellMap.BodyList, cfg.RowSrtKeys, rowClusters);
+	cfg.cellMap.ClickContextMenu("Atlas/Capture Coloring");
 
-	var colClusters = DoClustering(geneMap, cfg.gMinSize, cfg.gMinSize);
-	cs.NormalizeColoring(geneMap.BodyList, cfg.ColumnSrtKeys, colClusters);
-	geneMap.ClickContextMenu("Atlas/Capture Coloring");
+	var colClusters = DoClustering(cfg.geneMap, cfg.gMinSize, cfg.gMinSize);
+	cs.NormalizeColoring(cfg.geneMap.BodyList, cfg.ColumnSrtKeys, colClusters);
+	cfg.geneMap.ClickContextMenu("Atlas/Capture Coloring");
 
 	cfg.hm.Title = "Row/Column Clusters: " + rowClusters + "/" + colClusters;
 	

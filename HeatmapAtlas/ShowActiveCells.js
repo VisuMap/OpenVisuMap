@@ -5,12 +5,11 @@
 //
 
 ValidateHeatMap(pp);
+CheckMaps();
 
 function ShowActiveCells() {
-	var expTable = pp.GetNumberTable();
-	var [cellMap, geneMap] = FindCellGeneMap();
-	
-	var sp = NewExpressionMap(cellMap, "Active Cells");
+	var expTable = pp.GetNumberTable();	
+	var sp = NewExpressionMap(cfg.cellMap, "Active Cells");
 	sp.Top = pp.Top - pp.Height + 8;
 	sp.Left = pp.Left - pp.TheForm.ClientSize.Width;
 	
@@ -34,7 +33,7 @@ function ShowActiveCells() {
 		"!cs.ShowActiveCells(vv.EventSource.Item, cfg.hm.GetNumberTable(), vv.EventSource.Argument);",
 		sp, sp);
 
-	FlushMarkers(geneMap, cellMap, sp);
+	FlushMarkers(cfg.geneMap, cfg.cellMap, sp);
 }
 
 ShowActiveCells();

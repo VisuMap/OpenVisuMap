@@ -3,7 +3,6 @@
 // DualEmbedding.js
 // Create t-SNE embedding for rows and columns of heatmap.
 //
-
 ValidateHeatMap(pp);
 
 function RunEmbedding(mds, epochs, mtr, initExa, ppRatio) {
@@ -31,12 +30,12 @@ function DEmbeddingMain() {
 	var mds = New.MdsCluster(nt);
 	mds.Show();	
 
-	var rowMap = RunEmbedding(mds, cfg.cEpochs, cfg.cMtr, cfg.cInitExa, cfg.cPpr);
+	cfg.cellMap = RunEmbedding(mds, cfg.cEpochs, cfg.cMtr, cfg.cInitExa, cfg.cPpr);
 
 	var nt2 = nt.Transpose2();
 	cs.ShiftTable(nt2, cfg.gPrShift);
 	mds.SetTrainingData(nt2);
-	var colMap = RunEmbedding(mds, cfg.gEpochs, cfg.gMtr, cfg.gInitExa, cfg.gPpr);
+	cfg.geneMap = RunEmbedding(mds, cfg.gEpochs, cfg.gMtr, cfg.gInitExa, cfg.gPpr);
 	nt2.FreeRef();
 	mds.Close();
 
@@ -44,10 +43,10 @@ function DEmbeddingMain() {
 	var winWidth = sz;
 	var winHeight = sz;
 	pp.TheForm.SetBounds(1000, 700, winWidth, winHeight);
-	rowMap.TheForm.SetBounds(pp.TheForm.Left - sz + 15, pp.TheForm.Top, sz, sz);
-	colMap.TheForm.SetBounds(pp.TheForm.Left, pp.TheForm.Top - sz + 8, sz, sz);
-	rowMap.Title = "Cell Map";
-	colMap.Title = "Gene Map";
+	cfg.cellMap.TheForm.SetBounds(pp.TheForm.Left - sz + 15, pp.TheForm.Top, sz, sz);
+	cfg.geneMap.TheForm.SetBounds(pp.TheForm.Left, pp.TheForm.Top - sz + 8, sz, sz);
+	cfg.cellMap.Title = "Cell Map";
+	cfg.geneMap.Title = "Gene Map";
 }
 
 DEmbeddingMain();

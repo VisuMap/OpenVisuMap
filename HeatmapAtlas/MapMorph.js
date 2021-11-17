@@ -12,7 +12,7 @@ function Animation(mp, bodyList) {
 }
 
 var msg = "Moved bodies: ";
-var repeats = 2;
+var repeats = 1;
 
 if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster") || (pp.Name == "D3dRender") ) {
     // Morphing between calling view and other open map snapshots.
@@ -40,7 +40,7 @@ if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster") || (pp.Name == "D3dR
     var initBody = New.BodyListClone(vv.Map.BodyList);
     var initName = vv.Map.Name;
     var mpList = New.StringArray();
-    var prefix = mpName.substring(0, 1);
+    var prefix = initName.substring(0, 1);
     for (var nm of vv.Dataset.MapNameList)
         if (nm.startsWith(prefix) && (nm != initName))
             mpList.Add(nm);

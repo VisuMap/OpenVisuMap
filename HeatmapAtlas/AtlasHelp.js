@@ -10,29 +10,26 @@ var cfg = {
 };
 
 cfg = {
-        cEpochs:5000,      gEpochs:5000,       // training epochs for cell/gene profiles.
+        cEpochs:2000,      gEpochs:2000,       // training epochs for cell/gene profiles.
         cPpr:0.15,         gPpr:0.15,           // perplexity ratio    
         cMtr:cfg.cos,      gMtr:cfg.cos,       // metric 
         cInitExa:12.0,     gInitExa: 8.0,      // initial exaggreation
         cMinPoint:5,       gMinPoint:5,           
         cMinSize:50,       gMinSize:50,
 	 RowSrtKeys:null,   ColumnSrtKeys:null,
+	 cellMap:null,      geneMap:null,
  
         gPrShift:0.5,     // gene profile shift
         hm:null,
         Is3D:false,
-	 srtPpr:0.15
+	 srtPpr:0.15,
 };
 
-function FindCellGeneMap() {
-	var cellMap = vv.FindLastWindow("Cell Map");
-	var geneMap = vv.FindLastWindow("Gene Map");
-	
-	if ( (cellMap==null) || (geneMap==null) ) {
-		vv.Message("Cell/Gene map not present!\nPlease run DualClustering!");
+function CheckMaps() {
+	if ( (cfg.cellMap==null) || (cfg.geneMap==null) ) {
+		vv.Message("Cell or gene map not created!\nPlease run DualClustering!");
 		vv.Return();
 	}
-	return [cellMap, geneMap];
 }
 
 function ValidateHeatMap(parent) {
@@ -133,10 +130,11 @@ var cs = New.CsObject(`
 
 	public void CopyType(IForm map, IList<IBody> bList, IHeatMap hm) {
 		INumberTable nt = hm.GetNumberTable();
-		if ( map.Title == "Cell Map" )
+		bool isCellMap = (bool) vv.EventSource.Item;
+		if ( isCellMap )
 			for(int i=0; i<bList.Count; i++)
 				nt.RowSpecList[i].Type = bList[i].Type;
-		else if (map.Title == "Gene Map")
+		else
 			for(int i=0; i<bList.Count; i++)
 				nt.ColumnSpecList[i].Type = bList[i].Type;
 		hm.Redraw();
