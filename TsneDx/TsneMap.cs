@@ -594,7 +594,7 @@ namespace TsneDx {
             ComputeShader csOneStep = gpu.LoadShader(sdNames[cachingMode]);
             ComputeShader csSumUp = gpu.LoadShader("TsneDx.OneStepSumUp.cso");
             int stepCounter = 0;
-            List<double> stages = StagedTraining ? new List<double>() { 0.35, 0.7, 0.9 } : new List<double>();
+            List<double> stages = StagedTraining ? new List<double>() { 0.3, 0.6, 0.9 } : new List<double>();
 
             while (true) {
                 if (stepCounter < exaggerationLength) {
