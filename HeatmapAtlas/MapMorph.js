@@ -34,23 +34,27 @@ if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster") || (pp.Name == "D3dR
 	        [g.Left, g.Top] = [host.toInt32(f.Left + f.Width - 15), newTop];
 	        msg += Animation(pp, vw.BodyList) + ", ";
 	    }
-	    Animation(pp, initBody);
+	    msg += Animation(pp, initBody) + ", ";
     }
-    pp.Title = msg;
 } else {
     var initBody = New.BodyListClone(vv.Map.BodyList);
-    var mpName = vv.Map.Name;
+    var initName = vv.Map.Name;
     var mpList = New.StringArray();
     var prefix = mpName.substring(0, 1);
     for (var nm of vv.Dataset.MapNameList)
-        if (nm.startsWith(prefix) && (nm != mpName))
+        if (nm.startsWith(prefix) && (nm != initName))
             mpList.Add(nm);
-    var fromName = mpName;
-    for (var nm of mpList) {
-        vv.Title = fromName + "<->" + nm;
-        msg += Animation(vv.Map, vv.Dataset.ReadMapBodyList(nm)) + ", ";
-        fromName = nm;
+
+    for (rep = 0; rep<repeats; rep++) {
+    	    var fromName = initName;
+	    for (var nm of mpList) {
+	        vv.Title = fromName + "<->" + nm;
+	        msg += Animation(vv.Map, vv.Dataset.ReadMapBodyList(nm)) + ", ";
+	        fromName = nm;
+	    }
+	    vv.Title = fromName + "<->" + initName;
+	    msg += Animation(vv.Map, initBody) + ", ";
     }
-    vv.Title = msg;
-    Animation(vv.Map, initBody);
 }
+
+pp.Title = msg;
