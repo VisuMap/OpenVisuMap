@@ -10,10 +10,15 @@ var cfg = {
 };
 
 cfg = {
+	 cEpochsSrt:5000,  gEpochsSrt:5000,
+	 cExaSrt:12,	     gExaSrt:12,
+	 cPprSrt:0.15,     gPprSrt:0.15,
+
         cEpochs:2000,      gEpochs:2000,       // training epochs for cell/gene profiles.
-        cPpr:0.15,         gPpr:0.15,           // perplexity ratio    
-        cMtr:cfg.cos,      gMtr:cfg.cos,       // metric 
-        cInitExa:12.0,     gInitExa: 8.0,      // initial exaggreation
+        cPpr:0.15,         gPpr:0.15,          // perplexity ratio    
+        cExa:12.0,         gExa:8.0,           // initial exaggreation
+
+        cMtr:cfg.euc,      gMtr:cfg.cos,       // metric 
         cMinPoint:5,       gMinPoint:5,           
         cMinSize:50,       gMinSize:50,
 	 RowSrtKeys:null,   ColumnSrtKeys:null,
@@ -22,11 +27,11 @@ cfg = {
         gPrShift:0.5,     // gene profile shift
         hm:null,
         Is3D:false,
-	 srtPpr:0.15,
 };
 
 function CheckMaps() {
-	if ( (cfg.cellMap==null) || (cfg.geneMap==null) ) {
+	if ( (cfg.cellMap==null) || (cfg.geneMap==null) 
+		|| !cfg.cellMap.TheForm.Visible || !cfg.geneMap.TheForm.Visible ) {
 		vv.Message("Cell or gene map not created!\nPlease run DualClustering!");
 		vv.Return();
 	}

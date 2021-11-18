@@ -14,13 +14,13 @@ function DSMain() {
 	
 	pp.Title = 'Sorting Rows...';
 	pp.SelectionMode = 0;
-	SortTable(dsTable, cfg.cMtr, cfg.cEpochs, 6, cfg.srtPpr);
+	SortTable(dsTable, cfg.cMtr, cfg.cEpochsSrt, cfg.cExaSrt, cfg.cPprSrt);
 	
 	pp.Title = 'Sorting Columns...';
 	pp.SelectionMode = 1;
 	var dsTable2 = dsTable.Transpose2();
 	cs.ShiftTable(dsTable2, cfg.gPrShift);
-	SortTable(dsTable2, cfg.gMtr, cfg.gEpochs, 4, cfg.srtPpr);
+	SortTable(dsTable2, cfg.gMtr, cfg.gEpochsSrt, cfg.gExaSrt, cfg.gPprSrt);
        dsTable2.FreeRef();
 	pp.Title = 'Sorting Completed!';	
 	pp.DisableReorder = true;

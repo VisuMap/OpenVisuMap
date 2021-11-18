@@ -30,12 +30,12 @@ function DEmbeddingMain() {
 	var mds = New.MdsCluster(nt);
 	mds.Show();	
 
-	cfg.cellMap = RunEmbedding(mds, cfg.cEpochs, cfg.cMtr, cfg.cInitExa, cfg.cPpr);
+	cfg.cellMap = RunEmbedding(mds, cfg.cEpochs, cfg.cMtr, cfg.cExa, cfg.cPpr);
 
 	var nt2 = nt.Transpose2();
 	cs.ShiftTable(nt2, cfg.gPrShift);
 	mds.SetTrainingData(nt2);
-	cfg.geneMap = RunEmbedding(mds, cfg.gEpochs, cfg.gMtr, cfg.gInitExa, cfg.gPpr);
+	cfg.geneMap = RunEmbedding(mds, cfg.gEpochs, cfg.gMtr, cfg.gExa, cfg.gPpr);
 	nt2.FreeRef();
 	mds.Close();
 

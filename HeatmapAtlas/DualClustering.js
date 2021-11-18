@@ -27,7 +27,7 @@ function DCMain() {
 	cs.NormalizeColoring(cfg.cellMap.BodyList, cfg.RowSrtKeys, rowClusters);
 	cfg.cellMap.ClickContextMenu("Atlas/Capture Coloring");
 
-	var colClusters = DoClustering(cfg.geneMap, cfg.gMinSize, cfg.gMinSize);
+	var colClusters = DoClustering(cfg.geneMap, cfg.gMinSize, cfg.gMinPoint);
 	cs.NormalizeColoring(cfg.geneMap.BodyList, cfg.ColumnSrtKeys, colClusters);
 	cfg.geneMap.ClickContextMenu("Atlas/Capture Coloring");
 
