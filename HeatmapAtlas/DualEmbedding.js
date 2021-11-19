@@ -19,6 +19,8 @@ function RunEmbedding(mds, epochs, mtr, initExa, ppRatio) {
 	mds.PerplexityRatio = ppRatio;
 	mds.ExaggerationFactor = initExa;
 	mds.Reset().Start();
+	if ( mds.LoopsTsne != mds.MaxLoops )
+		vv.Return();
 
 	var mpView = mds.Is3D ? mds.Show3DView() : mds.Show2DView();
 	mpView.NormalizeView();
@@ -28,7 +30,7 @@ function RunEmbedding(mds, epochs, mtr, initExa, ppRatio) {
 function DEmbeddingMain() {
 	var nt = pp.GetNumberTable();
 	var mds = New.MdsCluster(nt);
-	mds.Show();	
+	mds.Show();
 
 	cfg.cellMap = RunEmbedding(mds, cfg.cEpochs, cfg.cMtr, cfg.cExa, cfg.cPpr);
 

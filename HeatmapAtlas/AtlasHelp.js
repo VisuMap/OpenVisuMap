@@ -10,19 +10,19 @@ var cfg = {
 };
 
 cfg = {
-	 cEpochsSrt:5000,  gEpochsSrt:5000,
-	 cExaSrt:12,	     gExaSrt:12,
+	 cEpochsSrt:3000,  gEpochsSrt:3000,
+	 cExaSrt:12,	   gExaSrt:12,
 	 cPprSrt:0.15,     gPprSrt:0.15,
 
         cEpochs:2000,      gEpochs:2000,       // training epochs for cell/gene profiles.
         cPpr:0.15,         gPpr:0.15,          // perplexity ratio    
         cExa:12.0,         gExa:8.0,           // initial exaggreation
 
-        cMtr:cfg.euc,      gMtr:cfg.cos,       // metric 
+        cMtr:cfg.cos,      gMtr:cfg.cos,       // metric 
         cMinPoint:5,       gMinPoint:5,           
         cMinSize:50,       gMinSize:50,
-	 RowSrtKeys:null,   ColumnSrtKeys:null,
-	 cellMap:null,      geneMap:null,
+	RowSrtKeys:null,   ColumnSrtKeys:null,
+	cellMap:null,      geneMap:null,
  
         gPrShift:0.5,     // gene profile shift
         hm:null,
@@ -57,6 +57,8 @@ function SortTable(T, mt, epochs, ex, pr) {
 		vv.Message("Training degraded!\nPlease try with smaller initial exaggeration.");
 		vv.Return(1);
 	}
+	if ( tsne.CurrentLoops != tsne.MaxLoops)
+		vv.Return();
 
 	if (pp.SelectionMode == 0)
 		cfg.RowSrtKeys = tsne.ItemList;
