@@ -18,7 +18,7 @@ function ShowActiveGenes() {
 	bv.Top = pp.Top + pp.Height - 8;
 	bv.Left = pp.Left + 24;
 	bv.Width = pp.Width - 24;
-	bv.Height = sp.Height/2;
+	bv.Height = host.toInt32(sp.Height/2);
 	bv.AutoScaling = true;
 	bv.Horizontal = false;
 	bv.Title = "Cell Expression Profile";

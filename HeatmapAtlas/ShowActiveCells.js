@@ -17,7 +17,7 @@ function ShowActiveCells() {
 	bv.Show();
 	bv.Top = pp.Top + 14;
 	bv.Left = pp.Left + pp.TheForm.ClientSize.Width + 1;
-	bv.Width = pp.Width*2/3;
+	bv.Width = host.toInt32(pp.Width*2/3);
 	bv.Height = sp.Height - 10;
 	bv.AutoScaling = false;
 	bv.Horizontal = true;
