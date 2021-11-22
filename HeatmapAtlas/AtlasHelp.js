@@ -11,7 +11,7 @@ var cfg = {
 
 cfg = {
 	 cEpochsSrt:3000,  gEpochsSrt:3000,
-	 cExaSrt:12,	   gExaSrt:12,
+        cExaSrt:12,	     gExaSrt:12,
 	 cPprSrt:0.15,     gPprSrt:0.15,
 
         cEpochs:2000,      gEpochs:2000,       // training epochs for cell/gene profiles.
@@ -19,10 +19,10 @@ cfg = {
         cExa:12.0,         gExa:8.0,           // initial exaggreation
 
         cMtr:cfg.cos,      gMtr:cfg.cos,       // metric 
-        cMinPoint:5,       gMinPoint:5,           
-        cMinSize:50,       gMinSize:50,
-	RowSrtKeys:null,   ColumnSrtKeys:null,
-	cellMap:null,      geneMap:null,
+        cMinPoint:5,       gMinPoint:10,           
+        cMinSize:50,       gMinSize:100,
+        RowSrtKeys:null,   ColumnSrtKeys:null,
+        cellMap:null,      geneMap:null,
  
         gPrShift:0.5,     // gene profile shift
         hm:null,

@@ -10,7 +10,6 @@ function Animation(mp, bodyList) {
     vv.Sleep(1000);
     return moved;
 }
-
 var msg = "Moved bodies: ";
 var repeats = 2;
 
