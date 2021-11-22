@@ -29,14 +29,13 @@ if ( (dsName == null) || (dsName == "") ) {
 
 vv.Folder.OpenDataset(dsName);
 cfg.cellMap.ResetSize();
-cfg.cellMap.GlyphSize = 0.5;
 cfg.cellMap.CaptureMap();
+vv.Map.Metric = cfg.cMtr;
 cfg.cellMap.Close();
 
 var atlas = New.Atlas("FeatureMaps");
 atlas.Show();
 cfg.geneMap.ResetSize();
-cfg.geneMap.GlyphSize = 0.5;
 var geneItem = atlas.NewSnapshotItem(cfg.geneMap);
 geneItem.Id = dsName;
 geneItem.Name = "HeatmapAtlas";
