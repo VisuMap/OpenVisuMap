@@ -11,7 +11,7 @@ function Animation(mp, bodyList) {
     return moved;
 }
 var msg = "Moved bodies: ";
-var repeats = 2;
+var repeats = 1;
 
 if ((pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster") || (pp.Name == "D3dRender") ) {
     // Morphing between calling view and other open map snapshots.
