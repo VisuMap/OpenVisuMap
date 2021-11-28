@@ -8,16 +8,16 @@ ValidateHeatMap(pp);
 CheckMaps();
 
 function ShowActiveGenes() {
-	var expTable = pp.GetNumberTable();	
+	var expTable = cfg.hm.GetNumberTable();	
 	var sp = NewExpressionMap(cfg.geneMap, "Active Genes");
 	sp.Top = cfg.geneMap.Top;
 	sp.Left = cfg.cellMap.Left;
 	
 	var bv = New.BarView(expTable.SelectRows(New.IntArray(0)));
 	bv.Show();
-	bv.Top = pp.Top + pp.Height - 8;
-	bv.Left = pp.Left + 24;
-	bv.Width = pp.Width - 24;
+	bv.Top = cfg.hm.Top + cfg.hm.Height - 8;
+	bv.Left = cfg.hm.Left + 24;
+	bv.Width = cfg.hm.Width - 24;
 	bv.Height = host.toInt32(sp.Height/2);
 	bv.AutoScaling = true;
 	bv.Horizontal = false;
@@ -26,7 +26,7 @@ function ShowActiveGenes() {
 	bv.Redraw();
 
 
-	pp.SelectionMode = 0;
+	cfg.hm.SelectionMode = 0;
 	vv.EventManager.OnItemsSelected(
 		"!cs.ShowActiveGenes(vv.EventSource.Item, cfg.hm.GetNumberTable(), vv.EventSource.Argument);",
 		sp, sp);

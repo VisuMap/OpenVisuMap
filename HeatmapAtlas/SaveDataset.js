@@ -8,11 +8,11 @@ ValidateHeatMap(pp);
 CheckMaps();
 
 var dsName = "AtlasDs";
-var desc = pp.Description;
+var desc = cfg.hm.Description;
 if ( desc.startsWith("Data imported from:") ) {
   var i1 = desc.lastIndexOf("\\")+1;
   var i2 = desc.lastIndexOf(".");
-  dsName = pp.Description.substring(i1, i2);
+  dsName = cfg.hm.Description.substring(i1, i2);
 }
 
 dsName = vv.PromptMessage("New Dataset Name", dsName);
@@ -20,7 +20,7 @@ dsName = vv.PromptMessage("New Dataset Name", dsName);
 if ( (dsName == null) || (dsName == "") )
   vv.Return();
 
-dsName = pp.GetNumberTable().SaveAsDataset(dsName, desc);
+dsName = cfg.hm.GetNumberTable().SaveAsDataset(dsName, desc);
 
 if ( (dsName == null) || (dsName == "") ) {
   vv.Message("Failed to save dataset:" + vv.LastError);

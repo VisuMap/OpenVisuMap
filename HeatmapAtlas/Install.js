@@ -11,7 +11,7 @@ for(var [label, script, view, img] of [
 	["Active Genes",	"ShowActiveGenes.js","HeatMap", null],
 	["Active Cells",	"ShowActiveCells.js","HeatMap", null],
 	["Save Data",		"SaveDataset.js",	"HeatMap", null],
-	["Compare Maps",	"MapMorph.js",	"MapSnapshot", icon],
+	["Compare Maps",	"MapMorph.js",	"MainForm|MapSnapshot", icon],
 ]) mgr.SetCustomMenu("Atlas/"+label, true, script, view, img);
 
 for(var [label, img, script] of [
@@ -19,5 +19,5 @@ for(var [label, img, script] of [
 	["Import H5AD", 	null, "H5adRead.pyn"],
 	["Import H5", 	null, "H5Read.pyn"],
 	["Import Matrix", 	null, "MatrixRead.pyn"], 
-       ["Show Feature Map", null, scriptA],
+       ["Feature Map",	null, scriptA],
 ]) mgr.SetCustomButton("Atlas/"+label, img, script);

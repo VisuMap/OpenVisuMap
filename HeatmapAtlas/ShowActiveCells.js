@@ -8,16 +8,16 @@ ValidateHeatMap(pp);
 CheckMaps();
 
 function ShowActiveCells() {
-	var expTable = pp.GetNumberTable();	
+	var expTable = cfg.hm.GetNumberTable();	
 	var sp = NewExpressionMap(cfg.cellMap, "Active Cells");
-	sp.Top = pp.Top - pp.Height + 8;
-	sp.Left = pp.Left - pp.TheForm.ClientSize.Width;
+	sp.Top = cfg.hm.Top - cfg.hm.Height + 8;
+	sp.Left = cfg.hm.Left - cfg.hm.TheForm.ClientSize.Width;
 	
 	var bv = New.BarView(expTable.SelectColumns( New.IntArray(0) ));
 	bv.Show();
-	bv.Top = pp.Top + 14;
-	bv.Left = pp.Left + pp.TheForm.ClientSize.Width + 1;
-	bv.Width = host.toInt32(pp.Width*2/3);
+	bv.Top = cfg.hm.Top + 14;
+	bv.Left = cfg.hm.Left + cfg.hm.TheForm.ClientSize.Width + 1;
+	bv.Width = host.toInt32(cfg.hm.Width*2/3);
 	bv.Height = sp.Height - 10;
 	bv.AutoScaling = false;
 	bv.Horizontal = true;
@@ -28,7 +28,7 @@ function ShowActiveCells() {
 	bv.Redraw();
 	
 	sp.Tag = bv;
-	pp.SelectionMode = 1;
+	cfg.hm.SelectionMode = 1;
 	vv.EventManager.OnItemsSelected(
 		"!cs.ShowActiveCells(vv.EventSource.Item, cfg.hm.GetNumberTable(), vv.EventSource.Argument);",
 		sp, sp);

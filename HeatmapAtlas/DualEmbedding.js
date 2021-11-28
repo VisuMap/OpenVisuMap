@@ -28,7 +28,7 @@ function RunEmbedding(mds, epochs, mtr, initExa, ppRatio) {
 };
 
 function DEmbeddingMain() {
-	var nt = pp.GetNumberTable();
+	var nt = cfg.hm.GetNumberTable();
 	var mds = New.MdsCluster(nt);
 	mds.Show();
 
@@ -44,9 +44,9 @@ function DEmbeddingMain() {
 	var sz = 450;
 	var winWidth = sz;
 	var winHeight = sz;
-	pp.TheForm.SetBounds(1000, 700, winWidth, winHeight);
-	cfg.cellMap.TheForm.SetBounds(pp.TheForm.Left - sz + 15, pp.TheForm.Top, sz, sz);
-	cfg.geneMap.TheForm.SetBounds(pp.TheForm.Left, pp.TheForm.Top - sz + 8, sz, sz);
+	cfg.hm.TheForm.SetBounds(1000, 700, winWidth, winHeight);
+	cfg.cellMap.TheForm.SetBounds(cfg.hm.TheForm.Left - sz + 15, cfg.hm.TheForm.Top, sz, sz);
+	cfg.geneMap.TheForm.SetBounds(cfg.hm.TheForm.Left, cfg.hm.TheForm.Top - sz + 8, sz, sz);
 	cfg.cellMap.Title = "Cell Map";
 	cfg.geneMap.Title = "Gene Map";
 }
