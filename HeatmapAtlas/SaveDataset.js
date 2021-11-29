@@ -31,6 +31,10 @@ vv.Folder.OpenDataset(dsName);
 cfg.cellMap.ResetSize();
 cfg.cellMap.CaptureMap();
 vv.Map.Metric = cfg.cMtr;
+vv.Map.GlyphOpacity = 0.5;
+vv.Map.GlyphSize = 0.5;
+vv.Map.GlyphType= "36 Clusters|36 Clusters|36 Clusters";
+vv.Map.Redraw();
 cfg.cellMap.Close();
 
 var atlas = New.Atlas("FeatureMaps");
