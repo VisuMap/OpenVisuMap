@@ -99,6 +99,16 @@ function FlushMarkers(map1, map2, map3) {
 	}
 }
 
+function LayoutMaps() {
+	var sz = 450;
+	var winWidth = sz;
+	var winHeight = sz;
+	cfg.hm.TheForm.SetBounds(1000, 700, winWidth, winHeight);
+	cfg.cellMap.TheForm.SetBounds(cfg.hm.TheForm.Left - sz + 15, cfg.hm.TheForm.Top, sz, sz);
+	cfg.geneMap.TheForm.SetBounds(cfg.hm.TheForm.Left, cfg.hm.TheForm.Top - sz + 8, sz, sz);
+	cfg.cellMap.Title = "Cell Map";
+	cfg.geneMap.Title = "Gene Map";
+}
 
 var cs = New.CsObject(`
 	public void ShiftTable(INumberTable nt, double shiftFactor) {

@@ -2,7 +2,6 @@
 //
 var mgr = vv.GuiManager;
 var icon = vv.CurrentScriptDirectory + "\\MenuIcon.png";
-var scriptA = "!if (vv.AtlasManager.OpenMap('FeatureMaps', vv.Dataset.Name) == null)vv.Message('No Feature Map Found');";
 
 for(var [label, script, view, img] of [ 
 	["Dual Sorting", 	"DualSorting.js", 	"HeatMap", icon],
@@ -19,5 +18,5 @@ for(var [label, img, script] of [
 	["Import H5AD", 	null, "H5adRead.pyn"],
 	["Import H5", 	null, "H5Read.pyn"],
 	["Import Matrix", 	null, "MatrixRead.pyn"], 
-       ["Feature Map",	null, scriptA],
+       ["Show Maps",		null, "ShowMaps.js"],
 ]) mgr.SetCustomButton("Atlas/"+label, img, script);
