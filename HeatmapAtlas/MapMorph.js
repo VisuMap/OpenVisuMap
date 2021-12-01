@@ -6,14 +6,15 @@
 //Then, activate one map in the main window and run this script.
 //
 
+var msg = "Moved bodies: ";
+var [loopPause, framePause, frames] = [500, 50, 20];
+var repeats = 2;
+
 function Animation(mp, bodyList) {
-    var moved = mp.MoveBodiesTo(bodyList, 30, 75, 0);
-    vv.Sleep(1000);
+    var moved = mp.MoveBodiesTo(bodyList, frames, framePause, 0);
+    vv.Sleep(loopPause);
     return moved;
 }
-
-var msg = "Moved bodies: ";
-var repeats = 1;
 
 var mapList = vv.FindFormList("MapSnapshot");
 var enabledBodies = vv.Dataset.BodyListEnabled();
@@ -21,7 +22,7 @@ var mapList = Array.from(mapList).filter(m=>m.BodyList.Count==enabledBodies.Coun
 
 if ( (pp.Name == "MainForm") && (mapList.length == 1) ) {
     vv.Echo("A");
-    var moved = vv.Map.MoveBodiesTo(mapList[0].BodyList, 30, 75, repeats, 500);
+    var moved = vv.Map.MoveBodiesTo(mapList[0].BodyList, frames, framePause, repeats, loopPause);
     msg = msg + moved;
 } else if ( (pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster") || (pp.Name == "D3dRender") ) {
     // Morphing between calling view and other open map snapshots.
