@@ -20,8 +20,7 @@ var mapList = vv.FindFormList("MapSnapshot");
 var enabledBodies = vv.Dataset.BodyListEnabled();
 var mapList = Array.from(mapList).filter(m=>m.BodyList.Count==enabledBodies.Count);
 
-if ( (pp.Name == "MainForm") && (mapList.length == 1) ) {
-    vv.Echo("A");
+if ( (pp==vv) && (mapList.length==1) ) {
     var moved = vv.Map.MoveBodiesTo(mapList[0].BodyList, frames, framePause, repeats, loopPause);
     msg = msg + moved;
 } else if ( (pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster") || (pp.Name == "D3dRender") ) {
@@ -35,7 +34,6 @@ if ( (pp.Name == "MainForm") && (mapList.length == 1) ) {
         if ((vw.TheForm !== f) && (vw.BodyList.Count == bsCount))
             vwList.Add(vw);
     }
-
     for (rep = 0; rep<repeats; rep++) {
 	    for (var vw of vwList) {
 	        var g = vw.TheForm;
@@ -47,7 +45,6 @@ if ( (pp.Name == "MainForm") && (mapList.length == 1) ) {
 	    msg += Animation(pp, initBody) + ", ";
     }
 } else {
-    vv.Echo("B");
     // Morphing between maps with the same name prefix.
     var initBody = New.BodyListClone(enabledBodies);
     var initName = vv.Map.Name;
