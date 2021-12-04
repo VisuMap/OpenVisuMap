@@ -37,50 +37,48 @@ function SaveDataset() {
 	vv.Map.GlyphType= "36 Clusters|36 Clusters|36 Clusters";
 	vv.Map.Redraw();
 	cfg.cellMap.Close();
+	cfg.cellMap = null;
 }
-SaveDataset();
 
-function SaveOrderKeys() {
-	cs.SyncKeyColoring(cfg.hm.GetNumberTable(), cfg.RowSrtKeys, cfg.ColumnSrtKeys);
+function SaveMaps() {
        var dsName = vv.Dataset.Name;
-	var atlas = New.Atlas("OrderKey1D");
-	atlas.Show();
+	var atlas = New.Atlas("FeatureMaps").Show();
 
-	var spRow = New.SpectrumView(cfg.RowSrtKeys).Show();
-	spRow.NormalizeView();
-	spRow.Horizontal = false;
-	spRow.Width =70; spRow.Height=450;
-	var itemRow = atlas.NewSpectrumItem(spRow);
-	itemRow.Id = dsName + "_Row";
-
-	var spCol = New.SpectrumView(cfg.ColumnSrtKeys).Show();
-	spCol.NormalizeView();
-	spCol.Horizontal = true;
-	spRow.Width =450; spRow.Height=70;
-	var itemCol = atlas.NewSpectrumItem(spCol);
-	itemCol.Id = dsName + "_Col";
-
-	spRow.Close();
-	spCol.Close();
-	atlas.Close();
-}
-SaveOrderKeys();
-
-
-function SaveFeatureMap() {
-       var dsName = vv.Dataset.Name;
-	var atlas = New.Atlas("FeatureMaps");
-	atlas.Show();
 	cfg.geneMap.ResetSize();
 	var geneItem = atlas.NewSnapshotItem(cfg.geneMap);
 	geneItem.Id = dsName;
 	geneItem.Name = "HeatmapAtlas";
-	atlas.Close();
 	cfg.geneMap.Close();
-	
+	cfg.geneMap = null;
+		
+	cs.SyncKeyColoring(cfg.hm.GetNumberTable(), cfg.RowSrtKeys, cfg.ColumnSrtKeys);
 	cfg.hm.Close();
-	cfg.hm = cfg.cellMap = cfg.geneMap = null;
+	cfg.hm = null;
+
+	var sp = New.SpectrumView(cfg.RowSrtKeys).Show();
+	sp.NormalizeView();
+	sp.Horizontal = false;
+	sp.Width =70; sp.Height=450;
+	var itemRow = atlas.NewSpectrumItem(sp);
+	itemRow.Id = dsName + "_Row";
+	itemRow.IconWidth = 20;
+	itemRow.IconHeight = 200;
+	sp.Close();
+
+	sp = New.SpectrumView(cfg.ColumnSrtKeys).Show();
+	sp.NormalizeView();
+	sp.Horizontal = true;
+	sp.Width =450; sp.Height=70;
+	var itemCol = atlas.NewSpectrumItem(sp);
+	itemCol.Id = dsName + "_Col";
+	itemCol.IconWidth = 200;
+	itemCol.IconHeight = 20;
+	sp.Close();
+
+	atlas.Close();
 }
-SaveFeatureMap();
+
+SaveDataset();
+SaveMaps();
 
 

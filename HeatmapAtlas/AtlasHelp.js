@@ -243,10 +243,17 @@ var cs = New.CsObject(`
 			return false;
 		var id2RowSpec = nt.RowSpecList.ToDictionary(rs=>rs.Id);
 		var id2ColSpec = nt.ColumnSpecList.ToDictionary(cs=>cs.Id);
-		foreach(var item in rowKeys)
+		var rowMean = rowKeys.Average(it=>it.Value);
+		var colMean = colKeys.Average(it=>it.Value);
+
+		foreach(var item in rowKeys) {
 			item.Group = id2RowSpec[item.Id].Type;
-		foreach(var item in colKeys)
+			item.Value = 2*rowMean - item.Value;
+		}
+		foreach(var item in colKeys) {
 			item.Group = id2ColSpec[item.Id].Group;
+			//item.Value = 2*colMean - item.Value;
+		}
 		return true;
 	}
 `);
