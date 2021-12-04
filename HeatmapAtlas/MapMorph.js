@@ -8,7 +8,7 @@
 
 var msg = "Moved bodies: ";
 var [loopPause, framePause, frames] = [500, 50, 20];
-var repeats = 2;
+var repeats = 1;
 
 function Animation(mp, bodyList) {
     var moved = mp.MoveBodiesTo(bodyList, frames, framePause, 0);
