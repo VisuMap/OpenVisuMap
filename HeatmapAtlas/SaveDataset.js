@@ -38,6 +38,34 @@ function SaveDataset() {
 	vv.Map.Redraw();
 	cfg.cellMap.Close();
 }
+SaveDataset();
+
+function SaveOrderKeys() {
+	cs.SyncKeyColoring(cfg.hm.GetNumberTable(), cfg.RowSrtKeys, cfg.ColumnSrtKeys);
+       var dsName = vv.Dataset.Name;
+	var atlas = New.Atlas("OrderKey1D");
+	atlas.Show();
+
+	var spRow = New.SpectrumView(cfg.RowSrtKeys).Show();
+	spRow.NormalizeView();
+	spRow.Horizontal = false;
+	spRow.Width =70; spRow.Height=450;
+	var itemRow = atlas.NewSpectrumItem(spRow);
+	itemRow.Id = dsName + "_Row";
+
+	var spCol = New.SpectrumView(cfg.ColumnSrtKeys).Show();
+	spCol.NormalizeView();
+	spCol.Horizontal = true;
+	spRow.Width =450; spRow.Height=70;
+	var itemCol = atlas.NewSpectrumItem(spCol);
+	itemCol.Id = dsName + "_Col";
+
+	spRow.Close();
+	spCol.Close();
+	atlas.Close();
+}
+SaveOrderKeys();
+
 
 function SaveFeatureMap() {
        var dsName = vv.Dataset.Name;
@@ -53,26 +81,6 @@ function SaveFeatureMap() {
 	cfg.hm.Close();
 	cfg.hm = cfg.cellMap = cfg.geneMap = null;
 }
-
-SaveDataset();
 SaveFeatureMap();
 
-function SaveOrderKeys() {
-       var dsName = vv.Dataset.Name;
-	var atlas = New.Atlas("OrderKey1D");
-	atlas.Show();
-
-	var spRow = New.SpectrumView(cfg.RowSrtKeys).Show();
-	var itemRow = atlas.NewSpectrumItem(spRow);
-	itemRow.Id = dsName + "_Row";
-
-	var spCol = New.SpectrumView(cfg.ColumnSrtKeys).Show();
-	var itemCol = atlas.NewSpectrumItem(spCol);
-	itemCol.Id = dsName + "_Col";
-
-	spRow.Close();
-	spCol.Close();
-	atlas.Close();
-}
-SaveOrderKeys();
 

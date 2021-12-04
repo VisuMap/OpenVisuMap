@@ -237,4 +237,16 @@ var cs = New.CsObject(`
 		bv.UpperLimit = 3* Math.Sqrt(sum/n);
 		bv.LowerLimit = 0;		
 	}
+
+	public bool SyncKeyColoring(INumberTable nt, List<IValueItem> rowKeys, List<IValueItem> colKeys) {
+		if ( (nt==null) || (rowKeys==null) || (colKeys==null) )
+			return false;
+		var id2RowSpec = nt.RowSpecList.ToDictionary(rs=>rs.Id);
+		var id2ColSpec = nt.ColumnSpecList.ToDictionary(cs=>cs.Id);
+		foreach(var item in rowKeys)
+			item.Group = id2RowSpec[item.Id].Type;
+		foreach(var item in colKeys)
+			item.Group = id2ColSpec[item.Id].Group;
+		return true;
+	}
 `);
