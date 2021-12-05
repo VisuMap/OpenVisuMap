@@ -38,9 +38,11 @@ def LoadRowId(fname):
 		for i in range(nt.Rows):
 			nt.RowSpecList[i].Id = uf.LookupName(lines[i].decode('utf-8'))
 
+# samples with this additional info can be found by googling on GSE1116106 or GSM4905030.
 LoadColumnId(prefix+'features.tsv.gz')
 LoadColumnId(prefix+'genes.tsv.gz')
 LoadRowId(prefix+'barcodes.tsv.gz')
 
 
 ShowHeatmap(nt, fileName)
+
