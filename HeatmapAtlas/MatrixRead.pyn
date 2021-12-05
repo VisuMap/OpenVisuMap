@@ -2,10 +2,12 @@
 #
 import scanpy, gzip
 import numpy as np
+import os
 from scipy.io import mmread
 vv.Import('AtlasHelp.pyn')
 
 fileName = PromptFile("Matrix Counts|*matrix.mtx.gz")
+prefix = fileName[:-13]
 
 tb = mmread(fileName)
 tb = tb.toarray()
@@ -13,20 +15,29 @@ tb = np.matrix(tb.transpose())
 tb = tb.astype(np.float64)
 nt = mm.ToTable(tb)
 
-featureFile = fileName[:-13] + 'features.tsv.gz'
-with gzip.open(featureFile) as f:
-	lines = f.readlines()
-if ( len(lines)) == nt.Columns:
-	uf = New.UniqueNameFinder()
-	for i in range(nt.Columns):
-		nt.ColumnSpecList[i].Id = uf.LookupName(lines[i].decode('utf-8'))
+def LoadColumnId(fname):
+	if not os.path.isfile(fname):
+		return
+	with gzip.open(fname) as f:
+		lines = f.readlines()
+	if (len(lines)) == nt.Columns:
+		uf = New.UniqueNameFinder()
+		for i in range(nt.Columns):
+			nt.ColumnSpecList[i].Id = uf.LookupName(lines[i].decode('utf-8'))
 
-barcodeFile = fileName[:-13] + 'barcodes.tsv.gz'
-with gzip.open(barcodeFile) as f:
-	lines = f.readlines()
-if ( len(lines)) == nt.Rows:
-	uf = New.UniqueNameFinder()
-	for i in range(nt.Rows):
-		nt.RowSpecList[i].Id = uf.LookupName(lines[i].decode('utf-8'))
+def LoadRowId(fname):
+	if not os.path.isfile(fname):
+		return
+	with gzip.open(fname) as f:
+		lines = f.readlines()
+	if (len(lines)) == nt.Rows:
+		uf = New.UniqueNameFinder()
+		for i in range(nt.Rows):
+			nt.RowSpecList[i].Id = uf.LookupName(lines[i].decode('utf-8'))
+
+LoadColumnId(prefix+'features.tsv.gz')
+LoadColumnId(prefix+'genes.tsv.gz')
+LoadRowId(prefix+'barcodes.tsv.gz')
+
 
 ShowHeatmap(nt, fileName)
