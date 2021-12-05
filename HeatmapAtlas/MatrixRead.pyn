@@ -23,7 +23,10 @@ def LoadColumnId(fname):
 	if (len(lines)) == nt.Columns:
 		uf = New.UniqueNameFinder()
 		for i in range(nt.Columns):
-			nt.ColumnSpecList[i].Id = uf.LookupName(lines[i].decode('utf-8'))
+			fs = lines[i].decode('utf-8').split()
+			nt.ColumnSpecList[i].Id = uf.LookupName(fs[0])
+			if len(fs)>1:
+				nt.ColumnSpecList[i].Name = fs[1]
 
 def LoadRowId(fname):
 	if not os.path.isfile(fname):
