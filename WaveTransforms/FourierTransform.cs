@@ -97,9 +97,8 @@ namespace VisuMap.WaveTransforms {
         public static INumberTable MatrixProduct(INumberTable left, INumberTable right) {
             int dim = right.Rows;  // The dimension of the transformation.
             int repeats = left.Columns / dim;
-            if (left.Columns % dim > 0) {
+            if (left.Columns % dim > 0) 
                 repeats++;
-            }
             int outColumns = repeats * right.Columns;
 
             INumberTable prod = WaveTransforms.App.ScriptApp.New.NumberTable(left.Rows, outColumns);
@@ -107,24 +106,25 @@ namespace VisuMap.WaveTransforms {
             double[][] L = (double[][])left.Matrix;
             double[][] R = (double[][])right.Matrix;
 
-            for(int row=0; row<prod.Rows; row++) {
+            MT.Loop(0, prod.Rows, row => {
                 double[] Lrow = L[row];
+                double[] Prow = P[row];
                 for (int col = 0; col < prod.Columns; col++) {
                     int col2 = col % right.Columns;
-                    int k0 = col/right.Columns * dim;
+                    int k0 = col / right.Columns * dim;
                     double v = 0;
                     for (int k = 0; k < dim; k++) {
                         if ((k0 + k) < Lrow.Length) {
                             v += Lrow[k0 + k] * R[k][col2];
                         }
                     }
-                    P[row][col] = v;
+                    Prow[col] = v;
                 }
-            }
+            });
 
-            for (int row = 0; row < left.Rows; row++) {
+            for (int row = 0; row < left.Rows; row++) 
                 prod.RowSpecList[row].CopyFrom(left.RowSpecList[row]);
-            }
+            
 
             IList<IColumnSpec> pSpecList = prod.ColumnSpecList;
             IList<IColumnSpec> rSpecList = right.ColumnSpecList;
