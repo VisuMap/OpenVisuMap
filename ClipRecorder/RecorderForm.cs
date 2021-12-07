@@ -605,7 +605,12 @@ namespace ClipRecorder {
                         }
                         frameList.Add(frame);
                     }
-                    currentFrame = (frameList.Count == 0) ? -1 : 0;
+                    if (frameList.Count == 0) {
+                        currentFrame = -1;
+                    } else {
+                        app.ScriptApp.GuiManager.RememberCurrentMap();
+                        currentFrame = 0;
+                    }
                     SetMaximum(frameList.Count);
                     SyncCurrentFrame();
                 }
