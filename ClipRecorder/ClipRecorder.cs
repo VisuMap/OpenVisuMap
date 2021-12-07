@@ -18,9 +18,25 @@ namespace ClipRecorder {
             miPlugin.DropDownItems.Add("PCA Tracking", null, PcaTracking);
 
             App.InstallPluginObject(new ScriptApp());
+            App.InstallFileImporter(new ClipImporter(this));
         }
 
-        void OpenRecorder(object sender, EventArgs e) {
+        class ClipImporter : IFileImporter {
+            ClipRecorder clipRecorder;
+            public ClipImporter(ClipRecorder clipRecorder) { this.clipRecorder = clipRecorder; }
+            public string FileNameFilter { get => ""; }
+            public bool ImportFile(string fileName) {
+                if (fileName.EndsWith(".clip")) {
+                    if ( (CurrentRecorder == null) || CurrentRecorder.IsDisposed ) 
+                        clipRecorder.OpenRecorder(null, null);
+                    CurrentRecorder.LoadClipFile(fileName, false);
+                    return true;
+                } else
+                    return false;
+            }
+        }
+
+        public void OpenRecorder(object sender, EventArgs e) {
             CurrentRecorder = new RecorderForm(App);
             CurrentRecorder.Show();
         }

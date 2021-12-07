@@ -518,7 +518,7 @@ namespace ClipRecorder {
 
         const short TypePrefix = 77;
 
-        bool SaveClip() {
+        public bool SaveClip() {
             using (BlobStream blob = new BlobStream(clipFilePath, true))
             using (BinaryWriter writer = new BinaryWriter(blob.Stream)) {
                 int dimension = app.ScriptApp.Dataset.CurrentMap.Dimension;
@@ -557,7 +557,7 @@ namespace ClipRecorder {
             return true;
         }
 
-        bool LoadClipFile(string filePath, bool append) {
+        public bool LoadClipFile(string filePath, bool append) {
             try {
                 using (BlobStream blob = new BlobStream(filePath, false))
                 using (BinaryReader reader = new BinaryReader(blob.Stream)) {
