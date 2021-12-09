@@ -161,7 +161,7 @@ namespace VisuMap.WaveTransforms {
                 for (int col = 0; col < freqTable.Columns; col++) {
                     int c = col % tDim; // c is the index within the repeat interval.
                     if (c == 0) continue;
-                    if ( ( tDim % 2 == 0 ) && ( c==tDim/2 ) ) {
+                    if ((tDim % 2 == 0) && (c == tDim / 2)) {
                         // In case tDim is even, the n/2-th element is at the centre of the symmetry
                         // and must not be duplciated.
                         continue;
@@ -196,11 +196,11 @@ namespace VisuMap.WaveTransforms {
             }
 
             int repeats = freqTable.Columns / tDim;
-            if ( repeats > 1 ) { 
+            if (repeats > 1) {
                 // the transformation has been repeated. We need to add the repeated coefficient here.                
                 for (int r = 1; r < repeats; r++) {
                     for (int n = 0; n < tDim; n++) {
-                        filterFreq.Add(r*tDim + filterFreq[n]);
+                        filterFreq.Add(r * tDim + filterFreq[n]);
                     }
                 }
             }

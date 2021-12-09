@@ -1,3 +1,4 @@
+//MenuLabels Fourier Haar Walsh WaveletD4 PCA
 // File: BandPass.js
 //
 // Purpose: Filter the data of a value diagram view through a band-pass filter.
@@ -6,43 +7,22 @@
 // Remarks: this script should be installed through the script SetWaveTransforms.js.
 //
 //
-if ( pp.Name == "ValueDiagram" ) {
-	var t = vv.FindPluginObject("WaveTransforms"); 
-	var info = new Array();
-	info.diagram = pp;
-	info.table = pp.GetNumberTable().Duplicate();
-    var dimension = info.table.Columns;
+if ( (pp.Name == "ValueDiagram") || (pp.Name== "HeatMap") ) {
+    var t = vv.FindPluginObject("WaveTransforms"); 	
+    var dataTable = pp.GetNumberTable();
+    var dimension = dataTable.Columns;
+    var transform = null;
 
     switch(vv.EventSource.Item) {
-        case "Fourier": info.transform = t.NewFourier(dimension); break;
-        case "Haar": info.transform = t.NewHaar(dimension); break;
-        case "Walsh": info.transform = t.NewWalsh(dimension); break;
-        case "WaveletD4": info.transform = t.NewWaveletD4(dimension); break;
-        case "PCA": info.transform = t.NewPca(info.table); break;
+        case "Fourier": transform = t.NewFourier(dimension); break;
+        case "Haar": transform = t.NewHaar(dimension); break;
+        case "Walsh": transform = t.NewWalsh(dimension); break;
+        case "WaveletD4": transform = t.NewWaveletD4(dimension); break;
+        case "PCA": transform = t.NewPca(dataTable); break;
     }
-
-	var filter = New.IntervalFilter();
-    filter.Script = null;  // Avoid persistent script get called.
-    filter.ValueMax = 1.0;
-    filter.ValueMin = 0;
-    filter.ValueHigh = 0.35;
-    filter.ValueLow = 0.0;
-    filter.Tag = info;
-    filter.Orientation = 0;
-    filter.NumberFormat = "f3";
-    filter.Script = vv.CurrentScriptPath;
-    filter.Show();
-    
-	RefreshDiagram(filter);	
-} else if ( pp.Name == "IntervalFilter" ) {  // Assuming the caller is the track panel.
-	RefreshDiagram(pp);
+    var transTable = transform.Filter(dataTable, 0, 0.35); // Low-Band: [0, 0.35] out from [0, 1.0]
+    pp.SetNumberTable(transTable);
+    pp.Redraw();
 } else {
-	vv.Message("This script can only be called from value diagram window.");
-}
-
-function RefreshDiagram(filter) {
-	var info = filter.Tag;
-	var newTable = info.transform.Filter(info.table, filter.ValueLow, filter.ValueHigh);
-	info.diagram.SetNumberTable(newTable);
-	info.diagram.Redraw();
+    vv.Message("This script can only be called from value diagram window.");
 }

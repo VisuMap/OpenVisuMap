@@ -1,3 +1,4 @@
+//MenuLabels Fourier Haar Walsh WaveletD4 PCA
 // File: WaveFilter.js
 // 
 // Purpose: filter the number table of a data view by one of wave alike transformation.
@@ -27,4 +28,8 @@ if ( transform == null ) {
 }
   
 var newTable = transform.Filter(table, lowFreq, highFreq);
-newTable.ShowValueDiagram();
+
+if ( pp.Name == "HeatMap" ) 
+  newTable.ShowHeatMap();
+else
+  newTable.ShowValueDiagram();
