@@ -1,0 +1,94 @@
+#ModellingHelp.pyn
+import numpy as np
+import math
+import torch
+from torch import nn
+
+class ModellingConfiguration:
+	def __init__(self):
+		self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+		self.NN = None
+		self.log = None
+		self.epochs = 0
+		self.trainingTime = 0
+		self.reportFreq = 50
+
+	def EnableLog(self):
+		if (self.log == None) or self.log.TheForm.IsDisposed:
+		    self.log = New.HistoryView().Show()
+		    self.log.StepSize=4	
+
+class MapDataset(Dataset):
+	def __init__(self, XX, YY):
+		self.XX = XX
+		self.YY = YY
+		self.Samples = XX.shape[0]
+
+	def __getitem__(self, index):
+		return self.XX[index], self.YY[index]
+
+	def __len__(self):
+		return self.Samples
+
+mdc = ModellingConfiguration()
+
+def GetTrainData():
+	X = mm.ToNumpy( vv.GetNumberTableView(True) )
+	N = X.shape[0]
+	inDim = X.shape[1]
+	outDim = vv.Map.Dimension
+	bList = vv.Dataset.BodyListEnabled()
+	Y = np.empty([N, outDim], dtype=np.float32)
+	for n in range(N):
+		b = bList[n]
+		if outDim == 2:
+			Y[n] = [b.X, b.Y]
+		else:
+			Y[n] = [b.X, b.Y, b.Z]
+	return X, Y
+
+def GetTestData():
+	return mm.ToNumpy( vv.GetNumberTableView(True) )
+
+def Np2T(A):
+	return torch.from_numpy(A).float().to(mdc.device)
+
+def T2Np(T):
+	return T.detach().cpu().numpy()
+
+def init_weights(m):
+    if isinstance(m, nn.Linear):
+        torch.nn.init.xavier_uniform_(m.weight)
+        m.bias.data.fill_(0.01)
+
+class NeuralNetwork(nn.Module):
+	def __init__(self, dims):
+		super(NeuralNetwork, self).__init__()
+		self.model = nn.Sequential()
+		for k in range(len(dims)-1):
+			self.model.add_module('lay'+str(k), nn.Linear(dims[k], dims[k+1], bias=True))
+			#self.model.add_module('f'+str(k), nn.ReLU())
+			self.model.add_module('f'+str(k), nn.LeakyReLU())
+		self.scalings = nn.Parameter(10*torch.ones([dims[-1]]).to(mdc.device), requires_grad=True)
+		self.model.apply(init_weights)
+		self = self.to(mdc.device)
+
+	def forward(self, x):
+		return self.model(x) * self.scalings
+
+def ShowPred(NN, XX, refY):
+	P = T2Np(NN(XX))
+	map = New.MapSnapshot().Show()
+	bsList = map.BodyList
+	for i in range(bsList.Count):
+		b = bsList[i]
+		[b.X, b.Y] = P[i]
+	if refY is not None:
+		err = np.mean(np.linalg.norm(refY-P, axis=1))
+		map.Title = 'Preication Map  L2 Error: %.2f, Time: %.1fs'%(err, mdc.trainingTime)
+	else:
+		map.Title = 'Predication Map'
+	map.RedrawAll()
+
+
+

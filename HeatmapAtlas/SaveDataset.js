@@ -35,6 +35,7 @@ function SaveDataset() {
 	vv.Map.GlyphOpacity = 0.5;
 	vv.Map.GlyphSize = 0.5;
 	vv.Map.GlyphType= "36 Clusters|36 Clusters|36 Clusters";
+	vv.Map.Name = "Cell";
 	vv.Map.Redraw();
 	cfg.cellMap.Close();
 	cfg.cellMap = null;

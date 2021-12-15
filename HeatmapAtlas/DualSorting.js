@@ -22,7 +22,7 @@ function DSMain() {
 	cs.ShiftTable(dsTable2, cfg.gPrShift);
 	SortTable(dsTable2, cfg.gMtr, cfg.gEpochsSrt, cfg.gExaSrt, cfg.gPprSrt);
        dsTable2.FreeRef();
-	cfg.hm.Title = 'Sorting Completed!';	
+	cfg.hm.Title = 'Sorted';	
 	cfg.hm.DisableReorder = true;
 }
 

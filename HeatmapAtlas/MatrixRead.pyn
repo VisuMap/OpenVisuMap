@@ -1,6 +1,6 @@
 # Import matrix.mtx.gz files
 #
-import scanpy, gzip
+import gzip
 import numpy as np
 import os
 from scipy.io import mmread

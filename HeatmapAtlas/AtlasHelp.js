@@ -12,13 +12,13 @@ var cfg = {
 cfg = {
 	 cEpochsSrt:3000,  gEpochsSrt:3000,
         cExaSrt:12,	     gExaSrt:12,
-	 cPprSrt:0.15,     gPprSrt:0.15,
+	 cPprSrt:0.1,     gPprSrt:0.1,
 
         cEpochs:2000,      gEpochs:2000,       // training epochs for cell/gene profiles.
         cPpr:0.15,         gPpr:0.15,          // perplexity ratio    
         cExa:12.0,         gExa:8.0,           // initial exaggreation
 
-        cMtr:cfg.cos,      gMtr:cfg.cos,       // metric 
+        cMtr:cfg.euc,      gMtr:cfg.euc,       // metric 
         cMinPoint:5,       gMinPoint:10,           
         cMinSize:50,       gMinSize:100,
         RowSrtKeys:null,   ColumnSrtKeys:null,

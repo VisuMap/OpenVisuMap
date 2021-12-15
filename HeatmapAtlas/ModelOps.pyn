@@ -1,0 +1,25 @@
+#MenuLabels Eval Save Load
+#
+#File: ModelOps.pyn
+#
+vv.Import('ModellingHelp.pyn')
+vv.Import('AtlasHelp.pyn')
+
+opLabel = vv.EventSource.Item
+
+def CheckModel():
+	if mdc.NN is None:
+		vv.Message('No model has been created!')
+		vv.Return()
+
+if opLabel == 'Save':
+	CheckModel()
+	mdPath = PromptFileForSave("Torch Modeles|*.tmd")
+	torch.save(mdc.NN.state_dict(), mdPath)
+elif opLabel == 'Load':
+	mdPath = PromptFile("Torch Modeles|*.tmd")
+	mdc.NN = NeuralNetwork([50, 30, 25, 10, 2])	
+	mdc.NN.load_state_dict(torch.load(mdPath))
+elif opLabel == 'Eval':
+	CheckModel()
+	ShowPred(mdc.NN, Np2T(GetTestData()), None)
