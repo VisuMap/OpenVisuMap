@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{8a44dce8-fac1-4e80-9bff-de63ff114022}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile />
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="AtlasHelp.js" />
+    <Content Include="AtlasHelp.pyn" />
+    <Content Include="DualClustering.js" />
+    <Content Include="DualEmbedding.js" />
+    <Content Include="DualSorting.js" />
+    <Content Include="H5adRead.pyn" />
+    <Content Include="H5Read.pyn" />
+    <Content Include="Install.js" />
+    <Content Include="LoomRead.pyn" />
+    <Content Include="MapFolding.js" />
+    <Content Include="MapMorph.js" />
+    <Content Include="MatrixRead.pyn" />
+    <Content Include="MenuIcon.png" />
+    <Content Include="Modelling.png" />
+    <Content Include="ModellingHelp.pyn" />
+    <Content Include="ModelOps.pyn" />
+    <Content Include="Package.bat" />
+    <Content Include="SaveDataset.js" />
+    <Content Include="ShowActiveCells.js" />
+    <Content Include="ShowActiveGenes.js" />
+    <Content Include="ShowMaps.js" />
+    <Content Include="StagedTraining.js" />
+    <Content Include="TrainModel.pyn" />
+    <Content Include="UnInstall.js" />
+    <Content Include="VariationTracing.js" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>
