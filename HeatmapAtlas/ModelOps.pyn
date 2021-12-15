@@ -4,6 +4,7 @@
 #
 vv.Import('ModellingHelp.pyn')
 vv.Import('AtlasHelp.pyn')
+import pickle
 
 opLabel = vv.EventSource.Item
 
@@ -15,13 +16,23 @@ def CheckModel():
 if opLabel == 'Save':
 	CheckModel()
 	mdPath = PromptFileForSave("Torch Modeles|*.tmd")
-	torch.save(mdc.NN.state_dict(), mdPath)
+	statDict = mdc.NN.state_dict()
+	statDict['layerDimensions'] = mdc.NN.layerDimensions
+	torch.save(statDict, mdPath)
+	#torch.save(mdc.NN, mdPath)
 elif opLabel == 'Load':
 	mdPath = PromptFile("Torch Modeles|*.tmd")
-	mdc.NN = NeuralNetwork([50, 30, 25, 10, 2])	
-	mdc.NN.load_state_dict(torch.load(mdPath))
+	statDict = torch.load(mdPath)
+	mdc.NN = NeuralNetwork(statDict['layerDimensions'])
+	del statDict['layerDimensions']
+	mdc.NN.load_state_dict(statDict)
 elif opLabel == 'Eval':
 	CheckModel()
-	ShowPred(mdc.NN, Np2T(GetTestData()), None)
+	testData = GetTestData()
+	if testData.shape[1] != mdc.NN.layerDimensions[0]:
+		vv.Message("The model input dimension doesn't match that of the current table: %d != %d"%(
+			mdc.NN.layerDimensions[0], testData.shape[1]))
+		vv.Return()
+	ShowPred(mdc.NN, Np2T(testData), None)
 elif opLabel == 'Stop':
 	mdc.stopTraining = True

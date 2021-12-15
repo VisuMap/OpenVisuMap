@@ -44,26 +44,27 @@ class NeuralNetwork(nn.Module):
             self.model.add_module('f'+str(k), nn.LeakyReLU())
         self.scalings = nn.Parameter(10.0*torch.ones([dims[-1]]).to(mdc.device), requires_grad=True)
         self.model.apply(init_weights)
+        self.layerDimensions = dims
         self = self.to(mdc.device)
 
     def forward(self, x):
         return self.model(x) * self.scalings
 
+def GetMapData():
+    outDim = vv.Map.Dimension
+    bList = vv.Dataset.BodyListEnabled()
+    N = bList.Count
+    Y = np.empty([N, outDim], dtype=np.float32)
+    for n in range(N):
+        b = bList[n]
+        if outDim == 2:
+            Y[n] = [b.X, b.Y]
+        else:
+            Y[n] = [b.X, b.Y, b.Z]
+    return Y
 
 def GetTrainData():
-	X = mm.ToNumpy( vv.GetNumberTableView(True) )
-	N = X.shape[0]
-	inDim = X.shape[1]
-	outDim = vv.Map.Dimension
-	bList = vv.Dataset.BodyListEnabled()
-	Y = np.empty([N, outDim], dtype=np.float32)
-	for n in range(N):
-		b = bList[n]
-		if outDim == 2:
-			Y[n] = [b.X, b.Y]
-		else:
-			Y[n] = [b.X, b.Y, b.Z]
-	return X, Y
+	return mm.ToNumpy(vv.GetNumberTableView(True)), GetMapData()
 
 def GetTestData():
 	return mm.ToNumpy( vv.GetNumberTableView(True) )
@@ -81,7 +82,7 @@ def init_weights(m):
 
 def ShowPred(NN, XX, refY):
 	P = T2Np(NN(XX))
-	map = New.MapSnapshot(True).Show()
+	map = New.MapSnapshot(True)
 	bsList = map.BodyList
 	for i in range(bsList.Count):
 		b = bsList[i]
@@ -91,7 +92,6 @@ def ShowPred(NN, XX, refY):
 		map.Title = 'Preication Map  L2 Error: %.2f, Time: %.1fs'%(err, mdc.trainingTime)
 	else:
 		map.Title = 'Predication Map'
-	map.RedrawAll()
-
+	map.Show()
 mdc = ModellingConfiguration()
 
