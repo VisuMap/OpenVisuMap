@@ -3,7 +3,7 @@ import numpy as np
 import math
 import torch
 from torch import nn
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 
 class ModellingConfiguration:
 	def __init__(self):
@@ -20,10 +20,10 @@ class ModellingConfiguration:
 		    self.log = New.HistoryView().Show()
 
 class MapDataset(Dataset):
-	def __init__(self, XX, YY):
-		self.XX = XX
-		self.YY = YY
-		self.Samples = XX.shape[0]
+	def __init__(self):
+		self.X,  self.Y  = GetTrainData()
+		self.XX, self.YY = Np2T(self.X), Np2T(self.Y)
+		self.Samples = self.X.shape[0]
 
 	def __getitem__(self, index):
 		return self.XX[index], self.YY[index]
@@ -31,7 +31,24 @@ class MapDataset(Dataset):
 	def __len__(self):
 		return self.Samples
 
-mdc = ModellingConfiguration()
+	def GetLoader(self, batch_size=64):
+		return DataLoader(dataset=self, batch_size=batch_size, shuffle=True)
+
+
+class NeuralNetwork(nn.Module):
+    def __init__(self, dims):
+        super(NeuralNetwork, self).__init__()
+        self.model = nn.Sequential()
+        for k in range(len(dims)-1):
+            self.model.add_module('lay'+str(k), nn.Linear(dims[k], dims[k+1], bias=True))
+            self.model.add_module('f'+str(k), nn.LeakyReLU())
+        self.scalings = nn.Parameter(10.0*torch.ones([dims[-1]]).to(mdc.device), requires_grad=True)
+        self.model.apply(init_weights)
+        self = self.to(mdc.device)
+
+    def forward(self, x):
+        return self.model(x) * self.scalings
+
 
 def GetTrainData():
 	X = mm.ToNumpy( vv.GetNumberTableView(True) )
@@ -62,24 +79,9 @@ def init_weights(m):
         torch.nn.init.xavier_uniform_(m.weight)
         m.bias.data.fill_(0.01)
 
-class NeuralNetwork(nn.Module):
-	def __init__(self, dims):
-		super(NeuralNetwork, self).__init__()
-		self.model = nn.Sequential()
-		for k in range(len(dims)-1):
-			self.model.add_module('lay'+str(k), nn.Linear(dims[k], dims[k+1], bias=True))
-			#self.model.add_module('f'+str(k), nn.ReLU())
-			self.model.add_module('f'+str(k), nn.LeakyReLU())
-		self.scalings = nn.Parameter(10.0*torch.ones([dims[-1]]).to(mdc.device), requires_grad=True)
-		self.model.apply(init_weights)
-		self = self.to(mdc.device)
-
-	def forward(self, x):
-		return self.model(x) * self.scalings
-
 def ShowPred(NN, XX, refY):
 	P = T2Np(NN(XX))
-	map = New.MapSnapshot().Show()
+	map = New.MapSnapshot(True).Show()
 	bsList = map.BodyList
 	for i in range(bsList.Count):
 		b = bsList[i]
@@ -90,4 +92,6 @@ def ShowPred(NN, XX, refY):
 	else:
 		map.Title = 'Predication Map'
 	map.RedrawAll()
+
+mdc = ModellingConfiguration()
 

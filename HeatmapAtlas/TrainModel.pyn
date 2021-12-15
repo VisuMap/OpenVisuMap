@@ -1,18 +1,16 @@
 # TrainModel.pyn
 #
 vv.Import('ModellingHelp.pyn')
-from torch.utils.data import DataLoader
 import time
 
-X, Y = GetTrainData()
-XX, YY = Np2T(X), Np2T(Y)
-mdc.NN = NeuralNetwork([X.shape[1], 100, 50, 25, Y.shape[1]])
+mapDs = MapDataset()
+inDim, outDim = mapDs.X.shape[1], mapDs.Y.shape[1]
+mdc.NN = NeuralNetwork([inDim,  100, 50, 25,  outDim])
 mdc.EnableLog()
 mdc.epochs = 500
 
-def TrainModel(NN, XX, YY):	
-	mapDs = MapDataset(XX, YY)
-	batchDs = DataLoader(dataset=mapDs, batch_size=100, shuffle=True)
+def TrainModel(NN, mapDs):	
+	batchDs = mapDs.GetLoader(batch_size=100)
 	optimizer = torch.optim.Adagrad(NN.parameters(), lr=0.005)
 	loss_func = torch.nn.MSELoss()	
 	mdc.stopTraining = False
@@ -34,5 +32,5 @@ def TrainModel(NN, XX, YY):
 			break
 	mdc.trainingTime = time.time() - startTime
 
-TrainModel(mdc.NN, XX, YY)
-ShowPred(mdc.NN, XX, Y)
+TrainModel(mdc.NN, mapDs)
+ShowPred(mdc.NN, mapDs.XX, mapDs.Y)
