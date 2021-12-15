@@ -3,20 +3,21 @@ import numpy as np
 import math
 import torch
 from torch import nn
+from torch.utils.data import Dataset
 
 class ModellingConfiguration:
 	def __init__(self):
 		self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 		self.NN = None
 		self.log = None
-		self.epochs = 0
+		self.epochs = 500
 		self.trainingTime = 0
 		self.reportFreq = 50
+		self.stopTraining = False
 
 	def EnableLog(self):
 		if (self.log == None) or self.log.TheForm.IsDisposed:
 		    self.log = New.HistoryView().Show()
-		    self.log.StepSize=4	
 
 class MapDataset(Dataset):
 	def __init__(self, XX, YY):
@@ -69,7 +70,7 @@ class NeuralNetwork(nn.Module):
 			self.model.add_module('lay'+str(k), nn.Linear(dims[k], dims[k+1], bias=True))
 			#self.model.add_module('f'+str(k), nn.ReLU())
 			self.model.add_module('f'+str(k), nn.LeakyReLU())
-		self.scalings = nn.Parameter(10*torch.ones([dims[-1]]).to(mdc.device), requires_grad=True)
+		self.scalings = nn.Parameter(10.0*torch.ones([dims[-1]]).to(mdc.device), requires_grad=True)
 		self.model.apply(init_weights)
 		self = self.to(mdc.device)
 
@@ -89,6 +90,4 @@ def ShowPred(NN, XX, refY):
 	else:
 		map.Title = 'Predication Map'
 	map.RedrawAll()
-
-
 

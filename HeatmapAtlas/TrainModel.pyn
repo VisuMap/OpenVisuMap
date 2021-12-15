@@ -1,20 +1,21 @@
 # TrainModel.pyn
 #
 vv.Import('ModellingHelp.pyn')
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 import time
 
 X, Y = GetTrainData()
 XX, YY = Np2T(X), Np2T(Y)
-mdc.NN = NeuralNetwork([X.shape[1], 30, 25, 10, Y.shape[1]])
+mdc.NN = NeuralNetwork([X.shape[1], 100, 50, 25, Y.shape[1]])
 mdc.EnableLog()
-mdc.epochs = 1000*60
+mdc.epochs = 500
 
 def TrainModel(NN, XX, YY):	
 	mapDs = MapDataset(XX, YY)
-	batchDs = DataLoader(dataset=mapDs, batch_size=200, shuffle=True)
-	optimizer = torch.optim.Adadelta(NN.parameters(), lr=0.1)
+	batchDs = DataLoader(dataset=mapDs, batch_size=100, shuffle=True)
+	optimizer = torch.optim.Adagrad(NN.parameters(), lr=0.005)
 	loss_func = torch.nn.MSELoss()	
+	mdc.stopTraining = False
 	startTime = time.time()
 	for t in range(mdc.epochs):
 		cost = 0
@@ -29,23 +30,9 @@ def TrainModel(NN, XX, YY):
 		if ((t+1)%mdc.reportFreq == 0) and (mdc.log != None):
 			mdc.log.AddStep(float(cost))
 			mdc.log.Title = 'Eochs: ' + str(t+1)
+		if mdc.stopTraining:
+			break
 	mdc.trainingTime = time.time() - startTime
 
-
-def TrainModel2(NN, XX, YY):	
-	optimizer = torch.optim.Adadelta(NN.parameters(), lr=0.1)
-	loss_func = torch.nn.MSELoss()	
-	startTime = time.time()
-	for t in range(mdc.epochs):
-		loss = loss_func(NN(XX), YY)
-		optimizer.zero_grad()
-		loss.backward()
-		optimizer.step()
-		vv.Sleep(0)
-		if ((t+1)%mdc.reportFreq  == 0) and (mdc.log != None):
-			mdc.log.AddStep(float(loss.data.cpu().numpy()))
-			mdc.log.Title = 'Eochs: ' + str(t+1)
-	mdc.trainingTime = time.time() - startTime
-
-TrainModel2(mdc.NN, XX, YY)
+TrainModel(mdc.NN, XX, YY)
 ShowPred(mdc.NN, XX, Y)

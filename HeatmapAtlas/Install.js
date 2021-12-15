@@ -24,6 +24,6 @@ for(var [label, img, script] of [
 ]) mgr.SetCustomButton("Atlas/"+label, img, script);
 
 
-mgr.SetCustomButton("Modelling/Train Model", icon2, "TrainModel.pyn");
+mgr.SetCustomButton("Modelling/Train", icon2, "TrainModel.pyn");
 mgr.SetCustomButton("Modelling/*", null, "ModelOps.pyn");
 
