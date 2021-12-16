@@ -33,6 +33,7 @@ elif opLabel == 'Eval':
 		vv.Message("The model input dimension doesn't match that of the current table: %d != %d"%(
 			mdc.NN.layerDimensions[0], testData.shape[1]))
 		vv.Return()
-	ShowPred(mdc.NN, Np2T(testData), None)
+	#ShowPred(mdc.NN, Np2T(testData), None)
+	ShowPred(mdc.NN, Np2T(testData), GetMapData())
 elif opLabel == 'Stop':
 	mdc.stopTraining = True

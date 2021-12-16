@@ -93,5 +93,7 @@ def ShowPred(NN, XX, refY):
 	else:
 		map.Title = 'Predication Map'
 	map.Show()
-mdc = ModellingConfiguration()
 
+
+if 'mdc' not in globals():
+  mdc = ModellingConfiguration()

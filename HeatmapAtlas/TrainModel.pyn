@@ -3,10 +3,12 @@
 vv.Import('ModellingHelp.pyn')
 import time
 
-mapDs = MapDataset()
-inDim, outDim = mapDs.X.shape[1], mapDs.Y.shape[1]
 if mdc.NN is not None:
     del mdc.NN
+    mdc.NN = None
+
+mapDs = MapDataset()
+inDim, outDim = mapDs.X.shape[1], mapDs.Y.shape[1]
 mdc.NN = NeuralNetwork([inDim,  100, 50,  outDim])
 mdc.EnableLog()
 mdc.epochs = 500
