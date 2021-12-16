@@ -5,7 +5,9 @@ import time
 
 mapDs = MapDataset()
 inDim, outDim = mapDs.X.shape[1], mapDs.Y.shape[1]
-mdc.NN = NeuralNetwork([inDim,  100, 50, 25,  outDim])
+if mdc.NN is not None:
+    del mdc.NN
+mdc.NN = NeuralNetwork([inDim,  100, 50,  outDim])
 mdc.EnableLog()
 mdc.epochs = 500
 
@@ -31,6 +33,5 @@ def TrainModel(NN, mapDs):
 		if mdc.stopTraining:
 			break
 	mdc.trainingTime = time.time() - startTime
-
 TrainModel(mdc.NN, mapDs)
 ShowPred(mdc.NN, mapDs.XX, mapDs.Y)
