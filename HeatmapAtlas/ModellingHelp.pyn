@@ -5,6 +5,7 @@ import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
 
+
 class ModellingConfiguration:
 	def __init__(self):
 		self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -48,13 +49,11 @@ class NeuralNetwork(nn.Module):
                 self.model.add_module('f%d'%k, nn.LeakyReLU())            
             if k == 0:
                 self.model.add_module('dp%d'%k, nn.Dropout(p=0.25))
-
         if trainData is None:
-            columnRange = 1000 * torch.ones([dims[-1]])
+            columnRange = torch.ones([dims[-1]])
         else:
             columnRange = torch.from_numpy( 1.25 * np.max(trainData.Y, axis=0) )
-        self.scalings = nn.Parameter(columnRange.to(mdc.device), requires_grad=True)
-
+        self.scalings = nn.Parameter(columnRange.to(mdc.device), requires_grad=False)
         self.model.apply(init_weights)
         self.layerDimensions = dims
         self = self.to(mdc.device)

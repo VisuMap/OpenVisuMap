@@ -16,7 +16,7 @@ mdc.epochs = 2000
 
 def TrainModel(NN, mapDs):	
 	batchDs = mapDs.GetLoader(batch_size=25)
-	optimizer = torch.optim.Adagrad(NN.parameters(), lr=0.0025)
+	optimizer = torch.optim.Adagrad(NN.parameters(), lr=0.005)
 	loss_func = torch.nn.MSELoss()	
 	mdc.stopTraining = False
 	startTime = time.time()
@@ -24,7 +24,7 @@ def TrainModel(NN, mapDs):
 		cost = 0
 		for bX, bY in batchDs:
 			loss = loss_func(NN(bX), bY)
-			optimizer.zero_grad()
+			optimizer.zero_grad(set_to_none=True)
 			loss.backward()
 			optimizer.step()
 			cost += loss.data.cpu().numpy()
