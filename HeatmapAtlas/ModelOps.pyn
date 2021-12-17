@@ -1,4 +1,4 @@
-#MenuLabels Eval Save Load Stop
+#MenuLabels Eval Save Load
 #
 #File: ModelOps.pyn
 #
@@ -35,5 +35,3 @@ elif opLabel == 'Eval':
 		vv.Return()
 	#ShowPred(mdc.NN, Np2T(testData), None)
 	ShowPred(mdc.NN, Np2T(testData), GetMapData())
-elif opLabel == 'Stop':
-	mdc.stopTraining = True

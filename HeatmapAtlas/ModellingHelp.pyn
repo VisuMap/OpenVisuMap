@@ -36,19 +36,33 @@ class MapDataset(Dataset):
 
 
 class NeuralNetwork(nn.Module):
-    def __init__(self, dims):
+    def __init__(self, dims, trainData=None):
         super(NeuralNetwork, self).__init__()
         self.model = nn.Sequential()
-        for k in range(len(dims)-1):
-            self.model.add_module('lay'+str(k), nn.Linear(dims[k], dims[k+1], bias=True))
-            self.model.add_module('f'+str(k), nn.LeakyReLU())
-        self.scalings = nn.Parameter(10.0*torch.ones([dims[-1]]).to(mdc.device), requires_grad=True)
+        L = len(dims)
+        for k in range(L-1):
+            self.model.add_module('lay%d'%k, nn.Linear(dims[k], dims[k+1], bias=True))
+            if k == (L-2):
+                self.model.add_module('f%d'%k, nn.Sigmoid())
+            else:
+                self.model.add_module('f%d'%k, nn.LeakyReLU())            
+            if k == 0:
+                self.model.add_module('dp%d'%k, nn.Dropout(p=0.25))
+
+        if trainData is None:
+            columnRange = 1000 * torch.ones([dims[-1]])
+        else:
+            columnRange = torch.from_numpy( 1.25 * np.max(trainData.Y, axis=0) )
+        self.scalings = nn.Parameter(columnRange.to(mdc.device), requires_grad=True)
+
         self.model.apply(init_weights)
         self.layerDimensions = dims
         self = self.to(mdc.device)
 
     def forward(self, x):
         return self.model(x) * self.scalings
+
+#========================================================================================================
 
 def GetMapData():
     outDim = vv.Map.Dimension
@@ -94,6 +108,8 @@ def ShowPred(NN, XX, refY):
 		map.Title = 'Predication Map'
 	map.Show()
 
+#========================================================================================================
 
 if 'mdc' not in globals():
   mdc = ModellingConfiguration()
+
