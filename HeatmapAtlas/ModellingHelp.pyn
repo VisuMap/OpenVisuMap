@@ -1,6 +1,6 @@
 #ModellingHelp.pyn
 import numpy as np
-import math
+import math, time
 import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
@@ -11,14 +11,12 @@ class ModellingConfiguration:
 		self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 		self.NN = None
 		self.log = None
-		self.epochs = 500
-		self.trainingTime = 0
 		self.reportFreq = 50
-		self.stopTraining = False
 
 	def EnableLog(self):
 		if (self.log == None) or self.log.TheForm.IsDisposed:
 		    self.log = New.HistoryView().Show()
+		    self.log.OnClose('@mdc.NN.stopTraining=True')
 
 class MapDataset(Dataset):
 	def __init__(self):
@@ -57,9 +55,34 @@ class NeuralNetwork(nn.Module):
         self.model.apply(init_weights)
         self.layerDimensions = dims
         self = self.to(mdc.device)
+        self.trainingTime = 0
+        self.stopTraining = False
 
     def forward(self, x):
         return self.model(x) * self.scalings
+
+    def Train(self, mapDs, epochs):	
+        batchDs = mapDs.GetLoader(batch_size=25)
+        optimizer = torch.optim.Adagrad(self.parameters(), lr=0.005)
+        loss_func = torch.nn.MSELoss()	
+        self.stopTraining = False
+        startTime = time.time()
+        for t in range(epochs):
+            cost = 0
+            for bX, bY in batchDs:
+                loss = loss_func(self(bX), bY)
+                optimizer.zero_grad(set_to_none=False)
+                loss.backward()
+                optimizer.step()
+                cost += loss.data.cpu().numpy()
+                vv.Sleep(0)
+            cost /= len(batchDs)
+            if self.stopTraining:
+                break
+            if ((t+1)%mdc.reportFreq == 0):
+                mdc.log.AddStep(float(cost))
+                mdc.log.Title = 'Eochs: ' + str(t+1)
+        self.trainingTime = time.time() - startTime
 
 #========================================================================================================
 
@@ -102,7 +125,7 @@ def ShowPred(NN, XX, refY):
 		[b.X, b.Y] = P[i]
 	if refY is not None:
 		err = np.mean(np.linalg.norm(refY-P, axis=1))
-		map.Title = 'Preication Map  L2 Error: %.2f, Time: %.1fs'%(err, mdc.trainingTime)
+		map.Title = 'Preication Map  L2 Error: %.2f, Time: %.1fs'%(err, mdc.NN.trainingTime)
 	else:
 		map.Title = 'Predication Map'
 	map.Show()

@@ -1,7 +1,6 @@
 # TrainModel.pyn
 #
 vv.Import('ModellingHelp.pyn')
-import time
 
 if mdc.NN is not None:
     del mdc.NN
@@ -11,30 +10,5 @@ mapDs = MapDataset()
 inDim, outDim = mapDs.X.shape[1], mapDs.Y.shape[1]
 mdc.NN = NeuralNetwork([inDim,  inDim, inDim, 10,  outDim], mapDs)
 mdc.EnableLog()
-mdc.log.OnClose('@mdc.stopTraining=True')
-mdc.epochs = 2000
-
-def TrainModel(NN, mapDs):	
-	batchDs = mapDs.GetLoader(batch_size=25)
-	optimizer = torch.optim.Adagrad(NN.parameters(), lr=0.005)
-	loss_func = torch.nn.MSELoss()	
-	mdc.stopTraining = False
-	startTime = time.time()
-	for t in range(mdc.epochs):
-		cost = 0
-		for bX, bY in batchDs:
-			loss = loss_func(NN(bX), bY)
-			optimizer.zero_grad(set_to_none=True)
-			loss.backward()
-			optimizer.step()
-			cost += loss.data.cpu().numpy()
-			vv.Sleep(0)
-		cost /= len(batchDs)
-		if mdc.stopTraining:
-			break
-		if ((t+1)%mdc.reportFreq == 0):
-			mdc.log.AddStep(float(cost))
-			mdc.log.Title = 'Eochs: ' + str(t+1)
-	mdc.trainingTime = time.time() - startTime
-TrainModel(mdc.NN, mapDs)
+mdc.NN.Train(mapDs, 200)
 ShowPred(mdc.NN, mapDs.XX, mapDs.Y)
