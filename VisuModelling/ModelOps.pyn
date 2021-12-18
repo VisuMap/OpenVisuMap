@@ -9,29 +9,28 @@ import pickle
 opLabel = vv.EventSource.Item
 
 def CheckModel():
-	if mdc.NN is None:
+	if vmd.NN is None:
 		vv.Message('No model has been created!')
 		vv.Return()
 
 if opLabel == 'Save':
 	CheckModel()
 	mdPath = PromptFileForSave("Torch Modeles|*.tmd")
-	statDict = mdc.NN.state_dict()
-	statDict['layerDimensions'] = mdc.NN.layerDimensions
+	statDict = vmd.NN.state_dict()
+	statDict['layerDimensions'] = vmd.NN.layerDimensions
 	torch.save(statDict, mdPath)
-	#torch.save(mdc.NN, mdPath)
+	#torch.save(mdv.NN, mdPath)
 elif opLabel == 'Load':
 	mdPath = PromptFile("Torch Modeles|*.tmd")
 	statDict = torch.load(mdPath)
-	mdc.NN = NeuralNetwork(statDict['layerDimensions'])
+	vmd.NN = NeuralNetwork(statDict['layerDimensions'])
 	del statDict['layerDimensions']
-	mdc.NN.load_state_dict(statDict)
+	vmd.NN.load_state_dict(statDict)
 elif opLabel == 'Eval':
 	CheckModel()
 	testData = GetTestData()
-	if testData.shape[1] != mdc.NN.layerDimensions[0]:
+	if testData.shape[1] != vmd.NN.layerDimensions[0]:
 		vv.Message("The model input dimension doesn't match that of the current table: %d != %d"%(
-			mdc.NN.layerDimensions[0], testData.shape[1]))
+			vmd.NN.layerDimensions[0], testData.shape[1]))
 		vv.Return()
-	#ShowPred(mdc.NN, Np2T(testData), None)
-	ShowPred(mdc.NN, Np2T(testData), GetMapData())
+	ShowPred(vmd.NN, Np2T(testData), GetMapData())

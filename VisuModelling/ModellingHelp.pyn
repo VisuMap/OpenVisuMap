@@ -15,7 +15,7 @@ class ModellingConfiguration:
 	def EnableLog(self):
 		if (self.log == None) or self.log.TheForm.IsDisposed:
 		    self.log = New.HistoryView().Show()
-		    self.log.OnClose('@mdc.NN.stopTraining=True')
+		    self.log.OnClose('@vmd.NN.stopTraining=True')
 
 class MapDataset(Dataset):
 	def __init__(self):
@@ -49,13 +49,14 @@ class NeuralNetwork(nn.Module):
             columnRange = torch.ones([dims[-1]])
         else:
             columnRange = torch.from_numpy( 1.25 * np.max(trainData.Y, axis=0) )
-        self.scalings = nn.Parameter(columnRange.to(mdc.device), requires_grad=False)
+        self.scalings = nn.Parameter(columnRange.to(vmd.device), requires_grad=False)
         self.model.apply(init_weights)
         self.layerDimensions = dims
-        self = self.to(mdc.device)
+        self = self.to(vmd.device)
         self.trainingTime = 0
         self.stopTraining = False
-        mdc.EnableLog()
+        if trainData is not None:
+            vmd.EnableLog()
 
 
     def forward(self, x):
@@ -79,9 +80,9 @@ class NeuralNetwork(nn.Module):
             cost /= len(batchDs)
             if self.stopTraining:
                 break
-            if ((t+1)%mdc.reportFreq == 0):
-                mdc.log.AddStep(float(cost))
-                mdc.log.Title = 'Eochs: ' + str(t+1)
+            if ((t+1)%vmd.reportFreq == 0):
+                vmd.log.AddStep(float(cost))
+                vmd.log.Title = 'Eochs: ' + str(t+1)
         self.trainingTime = time.time() - startTime
 
     def Train2(self, mapDs, epochs):	
@@ -102,9 +103,9 @@ class NeuralNetwork(nn.Module):
             cost /= len(batchDs)
             if self.stopTraining:
                 break
-            if ((t+1)%mdc.reportFreq == 0):
-                mdc.log.AddStep(float(cost))
-                mdc.log.Title = 'Eochs: ' + str(t+1)
+            if ((t+1)%vmd.reportFreq == 0):
+                vmd.log.AddStep(float(cost))
+                vmd.log.Title = 'Eochs: ' + str(t+1)
         self.trainingTime = time.time() - startTime
 
 #========================================================================================================
@@ -129,7 +130,7 @@ def GetTestData():
 	return mm.ToNumpy( vv.GetNumberTableView(True) )
 
 def Np2T(A):
-	return torch.from_numpy(A).float().to(mdc.device)
+	return torch.from_numpy(A).float().to(vmd.device)
 
 def T2Np(T):
 	return T.detach().cpu().numpy()
@@ -148,13 +149,13 @@ def ShowPred(NN, XX, refY):
 		[b.X, b.Y] = P[i]
 	if refY is not None:
 		err = np.mean(np.linalg.norm(refY-P, axis=1))
-		map.Title = 'Preication Map  L2 Error: %.2f, Time: %.1fs'%(err, mdc.NN.trainingTime)
+		map.Title = 'Preication Map  L2 Error: %.2f, Time: %.1fs'%(err, vmd.NN.trainingTime)
 	else:
 		map.Title = 'Predication Map'
 	map.Show()
 
 #========================================================================================================
 
-if 'mdc' not in globals():
-  mdc = ModellingConfiguration()
+if 'vmd' not in globals():
+  vmd = ModellingConfiguration()
 
