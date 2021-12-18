@@ -5,7 +5,6 @@ import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
 
-
 class ModellingConfiguration:
 	def __init__(self):
 		self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -33,7 +32,6 @@ class MapDataset(Dataset):
 	def GetLoader(self, batch_size=64):
 		return DataLoader(dataset=self, batch_size=batch_size, shuffle=True)
 
-
 class NeuralNetwork(nn.Module):
     def __init__(self, dims, trainData=None):
         super(NeuralNetwork, self).__init__()
@@ -57,6 +55,8 @@ class NeuralNetwork(nn.Module):
         self = self.to(mdc.device)
         self.trainingTime = 0
         self.stopTraining = False
+        mdc.EnableLog()
+
 
     def forward(self, x):
         return self.model(x) * self.scalings
@@ -64,6 +64,29 @@ class NeuralNetwork(nn.Module):
     def Train(self, mapDs, epochs):	
         batchDs = mapDs.GetLoader(batch_size=25)
         optimizer = torch.optim.Adagrad(self.parameters(), lr=0.005)
+        loss_func = torch.nn.MSELoss()	
+        self.stopTraining = False
+        startTime = time.time()
+        for t in range(epochs):
+            cost = 0
+            for bX, bY in batchDs:
+                loss = loss_func(self(bX), bY)
+                optimizer.zero_grad(set_to_none=False)
+                loss.backward()
+                optimizer.step()
+                cost += loss.data.cpu().numpy()
+                vv.Sleep(0)
+            cost /= len(batchDs)
+            if self.stopTraining:
+                break
+            if ((t+1)%mdc.reportFreq == 0):
+                mdc.log.AddStep(float(cost))
+                mdc.log.Title = 'Eochs: ' + str(t+1)
+        self.trainingTime = time.time() - startTime
+
+    def Train2(self, mapDs, epochs):	
+        batchDs = mapDs.GetLoader(batch_size=25)
+        optimizer = torch.optim.Adadelta(self.parameters(), lr=0.0125)
         loss_func = torch.nn.MSELoss()	
         self.stopTraining = False
         startTime = time.time()

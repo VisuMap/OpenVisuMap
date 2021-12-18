@@ -2,7 +2,6 @@
 //
 var mgr = vv.GuiManager;
 var icon = vv.CurrentScriptDirectory + "\\MenuIcon.png";
-var icon2 = vv.CurrentScriptDirectory + "\\Modelling.png";
 
 for(var [label, script, view, img] of [ 
   ["Dual Sorting", 		"DualSorting.js", 	"HeatMap", icon],
@@ -22,8 +21,4 @@ for(var [label, img, script] of [
 	["Import Matrix", 	null, "MatrixRead.pyn"], 
        ["Show Maps",		null, "ShowMaps.js"],
 ]) mgr.SetCustomButton("Atlas/"+label, img, script);
-
-
-mgr.SetCustomButton("Modelling/Train", icon2, "TrainModel.pyn");
-mgr.SetCustomButton("Modelling/*", null, "ModelOps.pyn");
 

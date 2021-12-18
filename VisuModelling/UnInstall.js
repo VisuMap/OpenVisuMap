@@ -1,0 +1,2 @@
+vv.GuiManager.RemoveCustomButton("VisuModelling/");
+

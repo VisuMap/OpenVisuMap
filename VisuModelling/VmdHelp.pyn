@@ -1,0 +1,26 @@
+# VmdHelp.pyn
+#
+def PromptFile( filter ):
+	import clr
+	clr.AddReference("System.Windows.Forms")
+	from System.Windows.Forms import OpenFileDialog
+	fd = OpenFileDialog()
+	fd.Filter = filter
+	fd.RestoreDirectory = True
+	fd.ShowDialog()
+	if fd.FileName == "":
+		quit()
+	return fd.FileName
+
+def PromptFileForSave( filter ):
+	import clr
+	clr.AddReference("System.Windows.Forms")
+	from System.Windows.Forms import SaveFileDialog
+	fd = SaveFileDialog()
+	fd.Filter = filter
+	fd.RestoreDirectory = True
+	fd.ShowDialog()
+	if fd.FileName == "":
+		quit()
+	return fd.FileName
+
