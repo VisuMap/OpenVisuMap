@@ -33,6 +33,25 @@ class MapDataset(Dataset):
 	def GetLoader(self, batch_size=64):
 		return DataLoader(dataset=self, batch_size=batch_size, shuffle=True)
 
+class OutScaling(nn.Module):
+	def __init__(self, outDim, outData=None):
+		super(OutScaling, self).__init__()
+		if outData is None:
+			colScale = torch.ones([outDim])
+			colShift = torch.zeros([outDim])
+		else:
+			colMax = np.max(outData, axis=0)
+			colMin = np.min(outData, axis=0) 
+			colCenter = 0.5*(colMax + colMin)
+			colFact = 1.025 * (colMax - colMin)
+			colScale = torch.from_numpy( colFact )
+			colShift = torch.from_numpy( colCenter - 0.5*colFact )
+		self.scalings = nn.Parameter(colScale.to(vmd.device), requires_grad=False)
+		self.shifts = nn.Parameter(colShift.to(vmd.device), requires_grad=False)
+
+	def forward(self, x):
+		return x * self.scalings + self.shifts
+
 class NeuralNetwork(nn.Module):
     def __init__(self, dims, trainData=None):
         super(NeuralNetwork, self).__init__()
@@ -47,10 +66,10 @@ class NeuralNetwork(nn.Module):
             if k == 0:
                 self.model.add_module('dp%d'%k, nn.Dropout(p=0.25))
         if trainData is None:
-            columnRange = torch.ones([dims[-1]])
+            self.model.add_module('os', OutScaling(dims[-1]) )
         else:
-            columnRange = torch.from_numpy( 1.025 * np.max(trainData.Y, axis=0) )
-        self.scalings = nn.Parameter(columnRange.to(vmd.device), requires_grad=False)
+            self.model.add_module('os', OutScaling(dims[-1], trainData.Y) )
+
         self.model.apply(init_weights)
         self.layerDimensions = dims
         self = self.to(vmd.device)
@@ -61,12 +80,12 @@ class NeuralNetwork(nn.Module):
             vmd.EnableLog()
 
     def forward(self, x):
-        return self.model(x) * self.scalings
+        return self.model(x)
 
-    def Train(self, mapDs, epochs):	
-        batchDs = mapDs.GetLoader(batch_size=25)
-        optimizer = torch.optim.Adam(self.parameters(), lr=0.00025)
-        scheduler = StepLR(optimizer, step_size=int(epochs/20), gamma=0.8)
+    def Train(self, mapDs, epochs, batch_size=25, lr=0.00025, gamma=0.8):	
+        batchDs = mapDs.GetLoader(batch_size=batch_size)
+        optimizer = torch.optim.Adam(self.parameters(), lr=lr)
+        scheduler = StepLR(optimizer, step_size=int(epochs/20), gamma=gamma)
         loss_func = torch.nn.MSELoss()	
         self.stopTraining = False
         startTime = time.time()

@@ -7,5 +7,5 @@ if vmd.NN is not None:
 mapDs = MapDataset()
 inDim, outDim = mapDs.X.shape[1], mapDs.Y.shape[1]
 vmd.NN = NeuralNetwork([inDim,  inDim, inDim, 10,  outDim], mapDs)
-vmd.NN.Train(mapDs, 2000)
+vmd.NN.Train(mapDs, epochs=2000, batch_size=25, lr=0.00025, gamma=0.8)
 ShowPred(vmd.NN, mapDs.XX, mapDs.Y)
