@@ -4,6 +4,7 @@ import math, time
 import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
+from torch.optim.lr_scheduler import StepLR
 
 class ModellingConfiguration:
 	def __init__(self):
@@ -48,23 +49,24 @@ class NeuralNetwork(nn.Module):
         if trainData is None:
             columnRange = torch.ones([dims[-1]])
         else:
-            columnRange = torch.from_numpy( 1.25 * np.max(trainData.Y, axis=0) )
+            columnRange = torch.from_numpy( 1.025 * np.max(trainData.Y, axis=0) )
         self.scalings = nn.Parameter(columnRange.to(vmd.device), requires_grad=False)
         self.model.apply(init_weights)
         self.layerDimensions = dims
         self = self.to(vmd.device)
         self.trainingTime = 0
         self.stopTraining = False
-        if trainData is not None:
+        # If the model is intended for training.
+        if trainData is not None:  
             vmd.EnableLog()
-
 
     def forward(self, x):
         return self.model(x) * self.scalings
 
     def Train(self, mapDs, epochs):	
         batchDs = mapDs.GetLoader(batch_size=25)
-        optimizer = torch.optim.Adagrad(self.parameters(), lr=0.005)
+        optimizer = torch.optim.Adam(self.parameters(), lr=0.00025)
+        scheduler = StepLR(optimizer, step_size=int(epochs/20), gamma=0.8)
         loss_func = torch.nn.MSELoss()	
         self.stopTraining = False
         startTime = time.time()
@@ -78,29 +80,7 @@ class NeuralNetwork(nn.Module):
                 cost += loss.data.cpu().numpy()
                 vv.Sleep(0)
             cost /= len(batchDs)
-            if self.stopTraining:
-                break
-            if ((t+1)%vmd.reportFreq == 0):
-                vmd.log.AddStep(float(cost))
-                vmd.log.Title = 'Eochs: ' + str(t+1)
-        self.trainingTime = time.time() - startTime
-
-    def Train2(self, mapDs, epochs):	
-        batchDs = mapDs.GetLoader(batch_size=25)
-        optimizer = torch.optim.Adadelta(self.parameters(), lr=0.0125)
-        loss_func = torch.nn.MSELoss()	
-        self.stopTraining = False
-        startTime = time.time()
-        for t in range(epochs):
-            cost = 0
-            for bX, bY in batchDs:
-                loss = loss_func(self(bX), bY)
-                optimizer.zero_grad(set_to_none=False)
-                loss.backward()
-                optimizer.step()
-                cost += loss.data.cpu().numpy()
-                vv.Sleep(0)
-            cost /= len(batchDs)
+            scheduler.step()
             if self.stopTraining:
                 break
             if ((t+1)%vmd.reportFreq == 0):
@@ -141,7 +121,8 @@ def init_weights(m):
         m.bias.data.fill_(0.01)
 
 def ShowPred(NN, XX, refY):
-	P = T2Np(NN(XX))
+	with torch.no_grad():
+		P = T2Np(NN(XX))
 	map = New.MapSnapshot(True)
 	bsList = map.BodyList
 	for i in range(bsList.Count):

@@ -39,6 +39,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VisuMapCLR", "..\VisuMap\Vi
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "HeatmapAtlas", "HeatmapAtlas\HeatmapAtlas.pyproj", "{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "VisuModelling", "VisuModelling\VisuModelling.pyproj", "{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -795,6 +797,27 @@ Global
 		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Setup32|Any CPU.ActiveCfg = Release|Any CPU
 		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Setup32|x64.ActiveCfg = Release|Any CPU
 		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Setup32|x86.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Debug32|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Debug32|x64.ActiveCfg = Debug|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Debug32|x86.ActiveCfg = Debug|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Release|x64.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Release|x86.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Release32|Any CPU.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Release32|x64.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Release32|x86.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Release64|Any CPU.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Release64|x64.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Release64|x86.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Setup|Any CPU.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Setup|x64.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Setup|x86.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Setup32|Any CPU.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Setup32|x64.ActiveCfg = Release|Any CPU
+		{FBBD17D0-73CA-4927-91D1-F4A89AB18FAA}.Setup32|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

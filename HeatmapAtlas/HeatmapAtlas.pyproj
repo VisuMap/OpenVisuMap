@@ -32,16 +32,12 @@
     <Content Include="MapMorph.js" />
     <Content Include="MatrixRead.pyn" />
     <Content Include="MenuIcon.png" />
-    <Content Include="Modelling.png" />
-    <Content Include="ModellingHelp.pyn" />
-    <Content Include="ModelOps.pyn" />
     <Content Include="Package.bat" />
     <Content Include="SaveDataset.js" />
     <Content Include="ShowActiveCells.js" />
     <Content Include="ShowActiveGenes.js" />
     <Content Include="ShowMaps.js" />
     <Content Include="StagedTraining.js" />
-    <Content Include="TrainModel.pyn" />
     <Content Include="UnInstall.js" />
     <Content Include="VariationTracing.js" />
   </ItemGroup>

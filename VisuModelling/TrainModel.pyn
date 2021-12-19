@@ -1,39 +1,11 @@
 # TrainModel.pyn
 #
 vv.Import('ModellingHelp.pyn')
-
 if vmd.NN is not None:
     del vmd.NN
     vmd.NN = None
-
 mapDs = MapDataset()
 inDim, outDim = mapDs.X.shape[1], mapDs.Y.shape[1]
 vmd.NN = NeuralNetwork([inDim,  inDim, inDim, 10,  outDim], mapDs)
-
-'''
-trainingEpochs = 2000
-batchDs = mapDs.GetLoader(batch_size=25)
-optimizer = torch.optim.Adadelta(vmd.NN.parameters(), lr=0.0125)
-loss_func = torch.nn.MSELoss()	
-md.NN.stopTraining = False
-startTime = time.time()
-for t in range(trainingEpochs):
-    cost = 0
-    for bX, bY in batchDs:
-        loss = loss_func(vmd.NN(bX), bY)
-        optimizer.zero_grad(set_to_none=False)
-        loss.backward()
-        optimizer.step()
-        cost += loss.data.cpu().numpy()
-        vv.Sleep(0)
-    cost /= len(batchDs)
-    if vmd.NN.stopTraining:
-        break
-    if ((t+1)%vmd.reportFreq == 0):
-        vmd.log.AddStep(float(cost))
-        vmd.log.Title = 'Eochs: ' + str(t+1)
-vmd.NN.trainingTime = time.time() - startTime
-'''
-
-vmd.NN.Train2(mapDs, 2000)
+vmd.NN.Train(mapDs, 2000)
 ShowPred(vmd.NN, mapDs.XX, mapDs.Y)
