@@ -57,14 +57,13 @@ class NeuralNetwork(nn.Module):
         super(NeuralNetwork, self).__init__()
         self.model = nn.Sequential()
         L = len(dims)
+        #self.model.add_module('dp', nn.Dropout(p=0.25))
         for k in range(L-1):
             self.model.add_module('lay%d'%k, nn.Linear(dims[k], dims[k+1], bias=True))
-            if k == (L-2):
-                self.model.add_module('f%d'%k, nn.Sigmoid())
-            else:
-                self.model.add_module('f%d'%k, nn.LeakyReLU())            
-            if k == 0:
-                self.model.add_module('dp%d'%k, nn.Dropout(p=0.25))
+            actFct = nn.Sigmoid() if k==(L-2) else nn.LeakyReLU(negative_slope=0.01)
+            self.model.add_module('f%d'%k, actFct)
+            if k==0:self.model.add_module('dp', nn.Dropout(p=0.25))
+
         if trainData is None:
             self.model.add_module('os', OutScaling(dims[-1]) )
         else:
