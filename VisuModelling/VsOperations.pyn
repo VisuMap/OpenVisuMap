@@ -1,0 +1,33 @@
+#MenuLabels Eval Save Load
+#
+#File: VsOperations.pyn
+#
+vv.Import('VsModelling.pyn')
+vv.Import('CommonUtil.pyn')
+
+opLabel = vv.EventSource.Item
+
+def CheckModel():
+	if vmd.model is None:
+		vv.Message('No model has been created!')
+		vv.Return()
+
+if opLabel == 'Save':
+	CheckModel()
+	mdPath = PromptOpenDirectory()
+	if mdPath != '':
+		vmd.model.save(mdPath)
+		vv.Message("Saved model!")
+elif opLabel == 'Load':
+	mdPath = PromptOpenDirectory()
+	if mdPath != '':
+		vmd.model = tf.keras.models.load_model(mdPath)
+		vv.Message("Loaded model!")
+elif opLabel == 'Eval':
+	CheckModel()
+	testData = GetTestData()
+	if testData.shape[1] != vmd.model.input_shape[1]:
+		vv.Message("The model input dimension doesn't match that of the current table: %d != %d"%(
+			vmd.model.input_shape[1], testData.shape[1]))
+		vv.Return()
+	ShowPred(vmd.model(testData).numpy(), GetMapData())

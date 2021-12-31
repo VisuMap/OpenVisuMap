@@ -148,9 +148,9 @@ def ShowPred(NN, XX, refY):
 		[b.X, b.Y] = P[i]
 	if refY is not None:
 		err = np.mean(np.linalg.norm(refY-P, axis=1))
-		map.Title = 'Preication Map  L2 Error: %.2f, Time: %.1fs'%(err, vmd.NN.trainingTime)
+		map.Title = 'Predicated Map  L2 Error: %.2f, Time: %.1fs'%(err, vmd.NN.trainingTime)
 	else:
-		map.Title = 'Predication Map'
+		map.Title = 'Predicated Map'
 	map.Show()
 
 #========================================================================================================

@@ -7,6 +7,7 @@ import time
 class ModellingConfiguration:
 	def __init__(self):
 		self.model = None
+		self.ds = None
 		self.log = None
 		self.reportFreq = 5
 
@@ -29,6 +30,21 @@ class OutScaling(keras.layers.Layer):
 
 	def call(self, inputs):
 		return self.colScale * inputs + self.colShift
+
+#--------------------------------------------------------------------------------------------
+
+def CheckGPU():
+	vv.Echo( "GPU Available: " + str( tf.test.is_gpu_available() ))
+	vv.Echo('Num GPUs Available: %d'%(len(tf.config.list_physical_devices('GPU'))))
+	vv.Echo('Device Name: ' + tf.test.gpu_device_name())
+
+def MapDataset(batchSize=25):
+		X, Y = GetTrainData()
+		ds = tf.data.Dataset.from_tensor_slices((X, Y))
+		ds = ds.shuffle(buffer_size=1024).batch(batch_size=batchSize)
+		ds.X = X
+		ds.Y = Y
+		return ds
 
 def NewMapModel(layerDims, Y):
 	md = keras.Sequential([keras.layers.Flatten(input_shape=(layerDims[0],))])
@@ -71,17 +87,17 @@ def ShowPred(P, refY):
 		[b.X, b.Y] = P[i]
 	if refY is not None:
 		err = np.mean(np.linalg.norm(refY-P, axis=1))
-		map.Title = 'Preication Map  L2 Error: %.2f, Time: %.1fs'%(err, vmd.trainingTime)
+		map.Title = 'Predicated Map:  L2 Error: %.2f, Time: %.1fs'%(err, vmd.trainingTime)
 	else:
-		map.Title = 'Predication Map'
+		map.Title = 'Predicated Map'
 	map.Show()
 
-def TrainModel(model, ds, epochs):
+def TrainModel(model, ds, epochs, initial_lr=0.00025):
 	lossFct = keras.losses.MeanSquaredError()
 	epochBatches = len(list(ds))
 	totalBatches = epochs * epochBatches
 	lr_schedule = keras.optimizers.schedules.ExponentialDecay(
-	    initial_learning_rate=0.00025, decay_steps=int(totalBatches/20), staircase=True, decay_rate=0.8)
+	    initial_learning_rate=initial_lr, decay_steps=int(totalBatches/20), staircase=True, decay_rate=0.8)
 	optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
 	
 	vmd.stopTraining = False
@@ -105,3 +121,5 @@ def TrainModel(model, ds, epochs):
 
 if 'vmd' not in globals():
 	vmd = ModellingConfiguration()
+
+
