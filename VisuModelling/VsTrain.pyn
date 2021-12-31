@@ -1,0 +1,22 @@
+vv.Import('VsModelling.pyn')
+
+import sys, math
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+import time
+
+if vmd.model is not None:
+    del vmd.model
+    vmd.model = None
+
+X, Y = GetTrainData()
+inDim, outDim = X.shape[1], Y.shape[1]
+vmd.model = NewMapModel([inDim, 128, 128, outDim], Y)
+vmd.EnableLog()
+vmd.ds = tf.data.Dataset.from_tensor_slices((X, Y))
+vmd.ds = vmd.ds.shuffle(buffer_size=1024).batch(batch_size=25)
+
+TrainModel(vmd.model, vmd.ds, epochs = 200)
+ShowPred(vmd.model(X).numpy(), Y)
+

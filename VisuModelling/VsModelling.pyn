@@ -1,0 +1,107 @@
+import sys, math
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+import time
+
+class ModellingConfiguration:
+	def __init__(self):
+		self.model = None
+		self.log = None
+		self.reportFreq = 5
+
+	def EnableLog(self):
+		if (self.log == None) or self.log.TheForm.IsDisposed:
+		    self.log = New.HistoryView().Show()
+		    self.log.OnClose('@vmd.stopTraining=True')
+
+class OutScaling(keras.layers.Layer):
+	def __init__(self, D):
+		super(OutScaling, self).__init__()
+		colMax = np.max(D, axis=0)
+		colMin = np.min(D, axis=0) 
+		colCenter = 0.5*(colMax + colMin)
+		colFact = 1.025*(colMax - colMin)
+		#self.colScale = tf.Variable(colFact, trainable=False)
+		#self.colShift =  tf.Variable(colCenter - 0.5*colFact, trainable=False)
+		self.colScale = colFact
+		self.colShift =  colCenter - 0.5*colFact
+
+	def call(self, inputs):
+		return self.colScale * inputs + self.colShift
+
+def NewMapModel(layerDims, Y):
+	md = keras.Sequential([keras.layers.Flatten(input_shape=(layerDims[0],))])
+	md.add(keras.layers.Dropout(0.25))
+	layers = len(layerDims)
+	for ly in range(1, layers-1):
+		md.add( keras.layers.Dense(layerDims[ly], activation='leaky_relu', kernel_initializer='uniform', use_bias=True) )
+	md.add( keras.layers.Dense(layerDims[-1], activation='sigmoid', kernel_initializer='uniform', use_bias=True) )
+	md.add(OutScaling(Y))
+	return md
+
+def GetMapData():
+    outDim = vv.Map.Dimension
+    bList = vv.Dataset.BodyListEnabled()
+    N = bList.Count
+    Y = np.empty([N, outDim], dtype=np.float32)
+    for n in range(N):
+        b = bList[n]
+        if outDim == 2:
+            Y[n] = [b.X, b.Y]
+        else:
+            Y[n] = [b.X, b.Y, b.Z]
+    return Y
+
+def GetTrainData():
+	return mm.ToNumpy(vv.GetNumberTableView(True)), GetMapData()
+
+def GetTestData():
+	return mm.ToNumpy( vv.GetNumberTableView(True) )
+
+def ShowNumpyMatrix(np):
+	nt = mm.ToTable(np)
+	New.HeatMap(nt).Show()
+
+def ShowPred(P, refY):
+	map = New.MapSnapshot(True)
+	bsList = map.BodyList
+	for i in range(bsList.Count):
+		b = bsList[i]
+		[b.X, b.Y] = P[i]
+	if refY is not None:
+		err = np.mean(np.linalg.norm(refY-P, axis=1))
+		map.Title = 'Preication Map  L2 Error: %.2f, Time: %.1fs'%(err, vmd.trainingTime)
+	else:
+		map.Title = 'Predication Map'
+	map.Show()
+
+def TrainModel(model, ds, epochs):
+	lossFct = keras.losses.MeanSquaredError()
+	epochBatches = len(list(ds))
+	totalBatches = epochs * epochBatches
+	lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+	    initial_learning_rate=0.00025, decay_steps=int(totalBatches/20), staircase=True, decay_rate=0.8)
+	optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
+	
+	vmd.stopTraining = False
+	startTime = time.time()
+	for epoch in range(epochs):
+		for bX, bY in ds:
+			cost = 0
+			with tf.GradientTape() as tape:
+				loss = lossFct(bY, vmd.model(bX))
+			grads = tape.gradient(loss, vmd.model.trainable_variables)
+			optimizer.apply_gradients(zip(grads, vmd.model.trainable_variables))
+			cost += loss
+			vv.Sleep(0)
+		cost /= epochBatches
+		if vmd.stopTraining:
+			break
+		if ((epoch + 1) % vmd.reportFreq == 0):
+			vmd.log.AddStep(float(cost))
+			vmd.log.Title = 'Eochs: %d, Cost: %.3f'%(epoch+1, cost)
+	vmd.trainingTime = time.time() - startTime
+
+if 'vmd' not in globals():
+	vmd = ModellingConfiguration()
