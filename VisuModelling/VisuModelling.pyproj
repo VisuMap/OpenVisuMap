@@ -23,14 +23,17 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="CommonUtil.pyn" />
     <Content Include="Install.js" />
     <Content Include="Modelling.png" />
-    <Content Include="ModellingHelp.pyn" />
-    <Content Include="ModelOps.pyn" />
     <Content Include="Package.bat" />
-    <Content Include="TrainModel.pyn" />
+    <Content Include="PtModelling.pyn" />
+    <Content Include="PtOperations.pyn" />
+    <Content Include="PtTrain.pyn" />
     <Content Include="UnInstall.js" />
-    <Content Include="VmdHelp.pyn" />
+    <Content Include="VsModelling.pyn" />
+    <Content Include="VsOperations.pyn" />
+    <Content Include="VsTrain.pyn" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

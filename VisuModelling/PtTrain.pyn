@@ -10,5 +10,5 @@ dimList, DropR, LR  = [inDim, 128, 64, 10, outDim], 0.25, 0.00025
 #dimList, DropR, LR = [inDim, inDim, inDim, 10, outDim], 0.25, 0.00025
 
 vmd.NN = NeuralNetwork(dimList, vmd.ds, DropR)
-vmd.NN.Train(vmd.ds, epochs=200, batch_size=25, lr=LR, gamma=0.8)
+vmd.NN.Train(vmd.ds, epochs=2000, batch_size=25, lr=LR, gamma=0.8)
 ShowPred(vmd.NN, vmd.ds.XX, vmd.ds.Y)

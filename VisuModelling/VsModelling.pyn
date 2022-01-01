@@ -99,10 +99,10 @@ def TrainModel(vmd, epochs=200, initial_lr=0.00025):
 	vmd.stopTraining = False
 	startTime = time.time()
 	for epoch in range(epochs):
+		cost = 0
 		for bX, bY in vmd.ds:
-			cost = 0
 			with tf.GradientTape() as tape:
-				loss = lossFct(bY, md(bX, training=True))
+				loss = lossFct(md(bX, training=True), bY)
 			grads = tape.gradient(loss, md.trainable_variables)
 			optimizer.apply_gradients(zip(grads, md.trainable_variables))
 			cost += loss

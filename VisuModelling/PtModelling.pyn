@@ -94,7 +94,7 @@ class NeuralNetwork(nn.Module):
         batchDs = mapDs.GetLoader(batch_size=batch_size)
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
         scheduler = StepLR(optimizer, step_size=int(epochs/20), gamma=gamma)
-        loss_func = torch.nn.MSELoss()	
+        loss_func = torch.nn.MSELoss(reduction='sum')	
         self.stopTraining = False
         startTime = time.time()
         for t in range(epochs):
