@@ -9,7 +9,7 @@ class ModellingConfiguration:
 		self.model = None
 		self.ds = None
 		self.log = None
-		self.reportFreq = 5
+		self.reportFreq = 50
 		self.trainingTime = 0
 
 	def EnableLog(self):
@@ -124,7 +124,7 @@ def TrainModel(vmd, epochs=200, initial_lr=0.00025):
 			grads = tape.gradient(loss, md.trainable_variables)
 			optimizer.apply_gradients(zip(grads, md.trainable_variables))
 			cost += loss
-			#vv.Sleep(0)
+			vv.DoEvents()
 		cost /= epochBatches
 		if vmd.stopTraining:
 			break

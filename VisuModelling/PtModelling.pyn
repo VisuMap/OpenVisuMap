@@ -96,7 +96,7 @@ class NeuralNetwork(nn.Module):
                 loss.backward()
                 optimizer.step()
                 cost += loss.data.cpu().numpy()
-                vv.Sleep(0)
+                vv.DoEvents()
             cost /= len(batchDs)
             scheduler.step()
             if self.stopTraining:
