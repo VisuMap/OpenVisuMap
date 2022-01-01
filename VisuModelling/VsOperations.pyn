@@ -30,4 +30,4 @@ elif opLabel == 'Eval':
 		vv.Message("The model input dimension doesn't match that of the current table: %d != %d"%(
 			vmd.model.input_shape[1], testData.shape[1]))
 		vv.Return()
-	ShowPred(vmd.model(testData).numpy(), GetMapData())
+	ShowPred(vmd.model(testData, training=False).numpy(), GetMapData())

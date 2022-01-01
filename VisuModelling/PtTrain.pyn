@@ -1,6 +1,6 @@
-# TrainModel.pyn
+# PtTrain.pyn
 #
-vv.Import('ModellingHelp.pyn')
+vv.Import('PtModelling.pyn')
 if vmd.NN is not None:
     del vmd.NN
     vmd.NN = None

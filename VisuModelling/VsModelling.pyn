@@ -75,15 +75,15 @@ def ShowModel(md):
 
 #--------------------------------------------------------------------------------------------
 
-def NewMapModel(layerDims, Y):
+def NewMapModel(layerDims, Y, dropoutRatio=0.25):
 	md = keras.Sequential([keras.layers.Flatten(input_shape=(layerDims[0],))])
-	md.add(keras.layers.Dropout(0.75))
 	layers = len(layerDims)
-	for ly in range(1, layers-1):
-		md.add( keras.layers.Dense(layerDims[ly], activation='leaky_relu', 
+	for k in range(1, layers):
+		actFct = 'sigmoid' if k == (layers-1) else 'leaky_relu'
+		md.add( keras.layers.Dense(layerDims[k], activation=actFct, 
 			kernel_initializer='uniform', bias_initializer='uniform', use_bias=True) )
-	md.add( keras.layers.Dense(layerDims[-1], activation='sigmoid', 
-		kernel_initializer='uniform', bias_initializer='uniform', use_bias=True) )
+		if k == 1:
+			md.add(keras.layers.Dropout(dropoutRatio))			
 	md.add(OutScaling(Y))
 	return md
 
@@ -120,11 +120,11 @@ def TrainModel(vmd, epochs=200, initial_lr=0.00025):
 		for bX, bY in vmd.ds:
 			cost = 0
 			with tf.GradientTape() as tape:
-				loss = lossFct(bY, md(bX))
+				loss = lossFct(bY, md(bX, training=True))
 			grads = tape.gradient(loss, md.trainable_variables)
 			optimizer.apply_gradients(zip(grads, md.trainable_variables))
 			cost += loss
-			vv.Sleep(0)
+			#vv.Sleep(0)
 		cost /= epochBatches
 		if vmd.stopTraining:
 			break
