@@ -10,11 +10,20 @@ class ModellingConfiguration:
 		self.ds = None
 		self.log = None
 		self.reportFreq = 5
+		self.trainingTime = 0
 
 	def EnableLog(self):
 		if (self.log == None) or self.log.TheForm.IsDisposed:
 		    self.log = New.HistoryView().Show()
 		    self.log.OnClose('@vmd.stopTraining=True')
+
+	def Clear(self):
+		if self.model is not None:
+		    del self.model
+		    self.model = None
+		if self.ds is not None:
+		    del self.ds
+		    self.ds = None
 
 class OutScaling(keras.layers.Layer):
 	def __init__(self, D):
@@ -27,7 +36,6 @@ class OutScaling(keras.layers.Layer):
 		#self.colShift =  tf.Variable(colCenter - 0.5*colFact, trainable=False)
 		self.colScale = colFact
 		self.colShift =  colCenter - 0.5*colFact
-
 	def call(self, inputs):
 		return self.colScale * inputs + self.colShift
 
@@ -38,6 +46,22 @@ def CheckGPU():
 	vv.Echo('Num GPUs Available: %d'%(len(tf.config.list_physical_devices('GPU'))))
 	vv.Echo('Device Name: ' + tf.test.gpu_device_name())
 
+def GetMapData():
+    outDim = vv.Map.Dimension
+    bList = vv.Dataset.BodyListEnabled()
+    N = bList.Count
+    Y = np.empty([N, outDim], dtype=np.float32)
+    for n in range(N):
+        b = bList[n]
+        Y[n] = [b.X, b.Y] if outDim == 2 else [b.X, b.Y, b.Z]
+    return Y
+
+def GetTrainData():
+	return mm.ToNumpy(vv.GetNumberTableView(True)), GetMapData()
+
+def GetTestData():
+	return mm.ToNumpy( vv.GetNumberTableView(True) )
+
 def MapDataset(batchSize=25):
 		X, Y = GetTrainData()
 		ds = tf.data.Dataset.from_tensor_slices((X, Y))
@@ -46,34 +70,22 @@ def MapDataset(batchSize=25):
 		ds.Y = Y
 		return ds
 
+def ShowModel(md):
+	md.summary(print_fn = lambda x: vv.Echo(x))
+
+#--------------------------------------------------------------------------------------------
+
 def NewMapModel(layerDims, Y):
 	md = keras.Sequential([keras.layers.Flatten(input_shape=(layerDims[0],))])
-	md.add(keras.layers.Dropout(0.25))
+	md.add(keras.layers.Dropout(0.75))
 	layers = len(layerDims)
 	for ly in range(1, layers-1):
-		md.add( keras.layers.Dense(layerDims[ly], activation='leaky_relu', kernel_initializer='uniform', use_bias=True) )
-	md.add( keras.layers.Dense(layerDims[-1], activation='sigmoid', kernel_initializer='uniform', use_bias=True) )
+		md.add( keras.layers.Dense(layerDims[ly], activation='leaky_relu', 
+			kernel_initializer='uniform', bias_initializer='uniform', use_bias=True) )
+	md.add( keras.layers.Dense(layerDims[-1], activation='sigmoid', 
+		kernel_initializer='uniform', bias_initializer='uniform', use_bias=True) )
 	md.add(OutScaling(Y))
 	return md
-
-def GetMapData():
-    outDim = vv.Map.Dimension
-    bList = vv.Dataset.BodyListEnabled()
-    N = bList.Count
-    Y = np.empty([N, outDim], dtype=np.float32)
-    for n in range(N):
-        b = bList[n]
-        if outDim == 2:
-            Y[n] = [b.X, b.Y]
-        else:
-            Y[n] = [b.X, b.Y, b.Z]
-    return Y
-
-def GetTrainData():
-	return mm.ToNumpy(vv.GetNumberTableView(True)), GetMapData()
-
-def GetTestData():
-	return mm.ToNumpy( vv.GetNumberTableView(True) )
 
 def ShowNumpyMatrix(np):
 	nt = mm.ToTable(np)
@@ -92,32 +104,36 @@ def ShowPred(P, refY):
 		map.Title = 'Predicated Map'
 	map.Show()
 
-def TrainModel(model, ds, epochs, initial_lr=0.00025):
+def TrainModel(vmd, epochs=200, initial_lr=0.00025):
+	md = vmd.model
+	logger = vmd.log
 	lossFct = keras.losses.MeanSquaredError()
-	epochBatches = len(list(ds))
+	epochBatches = len(list(vmd.ds))
 	totalBatches = epochs * epochBatches
-	lr_schedule = keras.optimizers.schedules.ExponentialDecay(
-	    initial_learning_rate=initial_lr, decay_steps=int(totalBatches/20), staircase=True, decay_rate=0.8)
+	lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=initial_lr,
+		decay_steps=int(totalBatches/20), staircase=True, decay_rate=0.8)
 	optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
 	
 	vmd.stopTraining = False
 	startTime = time.time()
 	for epoch in range(epochs):
-		for bX, bY in ds:
+		for bX, bY in vmd.ds:
 			cost = 0
 			with tf.GradientTape() as tape:
-				loss = lossFct(bY, vmd.model(bX))
-			grads = tape.gradient(loss, vmd.model.trainable_variables)
-			optimizer.apply_gradients(zip(grads, vmd.model.trainable_variables))
+				loss = lossFct(bY, md(bX))
+			grads = tape.gradient(loss, md.trainable_variables)
+			optimizer.apply_gradients(zip(grads, md.trainable_variables))
 			cost += loss
 			vv.Sleep(0)
 		cost /= epochBatches
 		if vmd.stopTraining:
 			break
 		if ((epoch + 1) % vmd.reportFreq == 0):
-			vmd.log.AddStep(float(cost))
-			vmd.log.Title = 'Eochs: %d, Cost: %.3f'%(epoch+1, cost)
+			logger.AddStep(float(cost))
+			logger.Title = 'Eochs: %d, Cost: %.3f'%(epoch+1, cost)
 	vmd.trainingTime = time.time() - startTime
+
+#--------------------------------------------------------------------------------------------
 
 if 'vmd' not in globals():
 	vmd = ModellingConfiguration()

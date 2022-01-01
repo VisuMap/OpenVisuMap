@@ -22,7 +22,7 @@ elif opLabel == 'Load':
 	mdPath = PromptOpenDirectory()
 	if mdPath != '':
 		vmd.model = tf.keras.models.load_model(mdPath)
-		vv.Message("Loaded model!")
+		vv.Message('Loaded model: %d=>%d'%(vmd.model.input_shape[1], vmd.model.output_shape[1]) )
 elif opLabel == 'Eval':
 	CheckModel()
 	testData = GetTestData()
