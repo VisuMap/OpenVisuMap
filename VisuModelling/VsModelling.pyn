@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 import time
+vv.Import('CommonUtil.pyn')
 
 class ModellingConfiguration:
 	def __init__(self):
@@ -46,22 +47,6 @@ def CheckGPU():
 	vv.Echo('Num GPUs Available: %d'%(len(tf.config.list_physical_devices('GPU'))))
 	vv.Echo('Device Name: ' + tf.test.gpu_device_name())
 
-def GetMapData():
-    outDim = vv.Map.Dimension
-    bList = vv.Dataset.BodyListEnabled()
-    N = bList.Count
-    Y = np.empty([N, outDim], dtype=np.float32)
-    for n in range(N):
-        b = bList[n]
-        Y[n] = [b.X, b.Y] if outDim == 2 else [b.X, b.Y, b.Z]
-    return Y
-
-def GetTrainData():
-	return mm.ToNumpy(vv.GetNumberTableView(True)), GetMapData()
-
-def GetTestData():
-	return mm.ToNumpy( vv.GetNumberTableView(True) )
-
 def MapDataset(batchSize=25):
 		X, Y = GetTrainData()
 		ds = tf.data.Dataset.from_tensor_slices((X, Y))
@@ -86,10 +71,6 @@ def NewMapModel(layerDims, Y, dropoutRatio=0.25):
 			md.add(keras.layers.Dropout(dropoutRatio))			
 	md.add(OutScaling(Y))
 	return md
-
-def ShowNumpyMatrix(np):
-	nt = mm.ToTable(np)
-	New.HeatMap(nt).Show()
 
 def ShowPred(P, refY):
 	map = New.MapSnapshot(True)

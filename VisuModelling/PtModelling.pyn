@@ -5,11 +5,13 @@ import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
 from torch.optim.lr_scheduler import StepLR
+vv.Import('CommonUtil.pyn')
 
 class ModellingConfiguration:
 	def __init__(self):
 		self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 		self.NN = None
+		self.ds = None
 		self.log = None
 		self.reportFreq = 50
 
@@ -17,6 +19,14 @@ class ModellingConfiguration:
 		if (self.log == None) or self.log.TheForm.IsDisposed:
 		    self.log = New.HistoryView().Show()
 		    self.log.OnClose('@vmd.NN.stopTraining=True')
+
+	def Clear(self):
+		if self.NN is not None:
+		    del self.NN
+		    self.NN = None
+		if self.ds is not None:
+		    del self.ds
+		    self.ds = None
 
 class MapDataset(Dataset):
 	def __init__(self):
@@ -53,16 +63,15 @@ class OutScaling(nn.Module):
 		return x * self.scalings + self.shifts
 
 class NeuralNetwork(nn.Module):
-    def __init__(self, dims, trainData=None):
+    def __init__(self, dims, trainData=None, dropRatio=0.25):
         super(NeuralNetwork, self).__init__()
         self.model = nn.Sequential()
         L = len(dims)
-        #self.model.add_module('dp', nn.Dropout(p=0.25))
         for k in range(L-1):
             self.model.add_module('lay%d'%k, nn.Linear(dims[k], dims[k+1], bias=True))
             actFct = nn.Sigmoid() if k==(L-2) else nn.LeakyReLU(negative_slope=0.01)
             self.model.add_module('f%d'%k, actFct)
-            if k==0:self.model.add_module('dp', nn.Dropout(p=0.25))
+            if k==0:self.model.add_module('dp', nn.Dropout(p=dropRatio))
 
         if trainData is None:
             self.model.add_module('os', OutScaling(dims[-1]) )
@@ -108,24 +117,8 @@ class NeuralNetwork(nn.Module):
 
 #========================================================================================================
 
-def GetMapData():
-    outDim = vv.Map.Dimension
-    bList = vv.Dataset.BodyListEnabled()
-    N = bList.Count
-    Y = np.empty([N, outDim], dtype=np.float32)
-    for n in range(N):
-        b = bList[n]
-        if outDim == 2:
-            Y[n] = [b.X, b.Y]
-        else:
-            Y[n] = [b.X, b.Y, b.Z]
-    return Y
-
-def GetTrainData():
-	return mm.ToNumpy(vv.GetNumberTableView(True)), GetMapData()
-
-def GetTestData():
-	return mm.ToNumpy( vv.GetNumberTableView(True) )
+def CheckGPU():
+	vv.Echo( "GPU Available: " + str(torch.cuda.is_available()) )
 
 def Np2T(A):
 	return torch.from_numpy(A).float().to(vmd.device)
