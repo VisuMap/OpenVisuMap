@@ -61,7 +61,8 @@ def ShowModel(md):
 #--------------------------------------------------------------------------------------------
 
 def NewMapModel(layerDims, Y, dropoutRatio=0.25):
-	md = keras.Sequential([keras.layers.Flatten(input_shape=(layerDims[0],))])
+	md = keras.Sequential()
+	md.add( keras.Input(shape=(layerDims[0])) )
 	layers = len(layerDims)
 	for k in range(1, layers):
 		actFct = 'sigmoid' if k == (layers-1) else 'leaky_relu'

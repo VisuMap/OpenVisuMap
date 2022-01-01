@@ -9,6 +9,6 @@ dimList, DropR, LR  = [inDim, 128, 64, 10, outDim], 0.25, 0.00025
 vmd.model = NewMapModel(dimList, vmd.ds.Y, DropR)
 
 vmd.EnableLog()
-TrainModel(vmd, epochs = 2000, initial_lr=LR)
+TrainModel(vmd, epochs = 200, initial_lr=LR)
 ShowPred(vmd.model(vmd.ds.X, training=False).numpy(), vmd.ds.Y)
 
