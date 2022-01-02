@@ -13,15 +13,18 @@ class ModellingConfiguration:
 		self.trainingTime = 0
 	def EnableLog(self):
 		if (self.log == None) or self.log.TheForm.IsDisposed:
-		    self.log = New.HistoryView().Show()
-		    self.log.OnClose('@vmd.stopTraining=True')
+			self.log = New.HistoryView().Show()
+			self.log.OnClose('@vmd.stopTraining=True')
 	def Clear(self):
 		if self.model is not None:
-		    del self.model
-		    self.model = None
+			del self.model
+			self.model = None
 		if self.ds is not None:
-		    del self.ds
-		    self.ds = None
+			if self.ds.tensors is not None:
+				del self.ds.tensors
+				self.ds.tensors = None
+			del self.ds
+			self.ds = None
 
 class OutScaling(keras.layers.Layer):
 	def __init__(self, D):
@@ -46,6 +49,9 @@ def MapDataset(batchSize=25):
 		X, Y = GetTrainData()
 		ds = tf.data.Dataset.from_tensor_slices((X, Y))
 		ds = ds.shuffle(buffer_size=1024).batch(batch_size=batchSize)
+		ds.tensors = []
+		for bX, bY in ds:
+			ds.tensors.append( (tf.convert_to_tensor(bX), tf.convert_to_tensor(bY)) )
 		ds.X = X
 		ds.Y = Y
 		return ds
@@ -99,15 +105,15 @@ def TrainModel(vmd, epochs=200, initial_lr=0.00025):
 		staircase=True, decay_rate=0.8)
 	optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
 
-	tensorDS = []
-	for bX, bY in vmd.ds:
-		tensorDS.append( (tf.convert_to_tensor(bX), tf.convert_to_tensor(bY)) )
+
+	#The following line makes train_step() callable for different dataset.
+	train_step.__init__(train_step.python_function, 'train_step', jit_compile=True)
 
 	vmd.stopTraining = False
 	startTime = time.time()
 	for epoch in range(epochs):
 		cost = 0
-		for bX, bY in tensorDS:
+		for bX, bY in vmd.ds.tensors:
 			cost += train_step(vmd.model, optimizer, lossFct, bX, bY)
 		vv.DoEvents()
 		cost /= epochBatches
