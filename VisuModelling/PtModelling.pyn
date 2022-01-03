@@ -30,7 +30,7 @@ class ModellingConfiguration:
 
 class MapDataset(Dataset):
 	def __init__(self):
-		self.X,  self.Y  = GetTrainData()
+		self.X,  self.Y  = GetDatasetData(), GetMapData()
 		self.XX, self.YY = Np2T(self.X), Np2T(self.Y)
 		self.Samples = self.X.shape[0]
 
@@ -146,8 +146,4 @@ def ShowPred(NN, XX, refY):
 		map.Title = 'Predicated Map'
 	map.Show()
 
-#========================================================================================================
-
-if 'vmd' not in globals():
-  vmd = ModellingConfiguration()
 

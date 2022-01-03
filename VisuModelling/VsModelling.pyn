@@ -38,8 +38,7 @@ class OutScaling(keras.layers.Layer):
 	def call(self, inputs):
 		return self.colScale * inputs + self.colShift
 
-#--------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------
 def CheckGPU():
 	vv.Echo( "GPU Available: " + str( tf.test.is_gpu_available() ))
 	vv.Echo('Num GPUs Available: %d'%(len(tf.config.list_physical_devices('GPU'))))
@@ -51,8 +50,7 @@ def ShuffleDataset(X, Y):
 	X = np.take(X, idxList, axis=0)
 	Y = np.take(Y, idxList, axis=0)
 
-def MapDataset(batchSize=25):
-		X, Y = GetTrainData()
+def TrainDataset(X, Y, batchSize=25):
 		ds = tf.data.Dataset.from_tensor_slices((X, Y))
 		ds = ds.shuffle(buffer_size=1024).batch(batch_size=batchSize)
 		ds.tensors = []
@@ -65,7 +63,7 @@ def MapDataset(batchSize=25):
 def ShowModel(md):
 	md.summary(print_fn = lambda x: vv.Echo(x))
 
-#--------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------
 
 def NewMapModel(layerDims, Y, dropoutRatio=0.25):
 	md = keras.Sequential()
@@ -129,10 +127,4 @@ def TrainModel(vmd, epochs=200, initial_lr=0.00025):
 			vmd.log.AddStep(float(cost))
 			vmd.log.Title = 'Eochs: %d, Cost: %.3f'%(epoch+1, cost)
 	vmd.trainingTime = time.time() - startTime
-
-#--------------------------------------------------------------------------------------------
-
-if 'vmd' not in globals():
-	vmd = ModellingConfiguration()
-
 

@@ -8,6 +8,9 @@ import pickle
 
 opLabel = vv.EventSource.Item
 
+if 'vmd' not in globals():
+  vmd = ModellingConfiguration()
+
 def CheckModel():
 	if vmd.NN is None:
 		vv.Message('No model has been created!')
@@ -28,7 +31,7 @@ elif opLabel == 'Load':
 	vmd.NN.load_state_dict(statDict)
 elif opLabel == 'Eval':
 	CheckModel()
-	testData = GetTestData()
+	testData = GetDatasetData()
 	if testData.shape[1] != vmd.NN.layerDimensions[0]:
 		vv.Message("The model input dimension doesn't match that of the current table: %d != %d"%(
 			vmd.NN.layerDimensions[0], testData.shape[1]))

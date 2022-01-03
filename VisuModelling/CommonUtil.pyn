@@ -48,20 +48,21 @@ def ShowHeatmap(nt, fileName):
 	hm.Description = 'Data imported from: ' + fileName
 	return hm
 
-def GetMapData():
-    outDim = vv.Map.Dimension
-    bList = vv.Dataset.BodyListEnabled()
-    N = bList.Count
-    Y = np.empty([N, outDim], dtype=np.float32)
-    for n in range(N):
-        b = bList[n]
-        Y[n] = [b.X, b.Y] if outDim == 2 else [b.X, b.Y, b.Z]
-    return Y
+def GetMapData(mapName=None):
+	if mapName == None:
+		outDim = vv.Map.Dimension
+		bList = vv.Dataset.BodyListEnabled()
+	else:
+		bList = None
 
-def GetTrainData():
-	return mm.ToNumpy(vv.GetNumberTableView(True)), GetMapData()
+	N = bList.Count
+	Y = np.empty([N, outDim], dtype=np.float32)
+	for n in range(N):
+		b = bList[n]
+		Y[n] = [b.X, b.Y] if outDim == 2 else [b.X, b.Y, b.Z]
+	return Y
 
-def GetTestData():
+def GetDatasetData():
 	return mm.ToNumpy( vv.GetNumberTableView(True) )
 
 def ShowNumpyMatrix(np):
