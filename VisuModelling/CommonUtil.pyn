@@ -1,4 +1,4 @@
-# AtlasHelp.pyn
+# CommonUtil.pyn
 #
 def PromptFile( filter ):
 	import clr
@@ -48,19 +48,32 @@ def ShowHeatmap(nt, fileName):
 	hm.Description = 'Data imported from: ' + fileName
 	return hm
 
-def GetMapData(mapName=None):
+def ShowMap(nt):
+	map = New.MapSnapshot(True)
+	bsList = map.BodyList
+	for i in range(bsList.Count):
+		b = bsList[i]
+		if nt.shape[1] ==  2:
+			[b.X, b.Y] = nt[i]
+		else:
+			[b.X, b.Y, b.Z] = nt[i]
+	map.Show();
+	return map
+
+def GetMapData(mapName = None):
 	if mapName == None:
 		outDim = vv.Map.Dimension
 		bList = vv.Dataset.BodyListEnabled()
 	else:
-		bList = None
-
+		map = vv.Dataset.ReadMap(mapName)
+		outDim = map.Dimension
+		bList = vv.Dataset.ReadMapBodyList(mapName, True)
 	N = bList.Count
-	Y = np.empty([N, outDim], dtype=np.float32)
+	D = np.empty([N, outDim], dtype=np.float32)
 	for n in range(N):
 		b = bList[n]
-		Y[n] = [b.X, b.Y] if outDim == 2 else [b.X, b.Y, b.Z]
-	return Y
+		D[n] = [b.X, b.Y] if outDim == 2 else [b.X, b.Y, b.Z]
+	return D
 
 def GetDatasetData():
 	return mm.ToNumpy( vv.GetNumberTableView(True) )

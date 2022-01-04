@@ -51,6 +51,9 @@ def ShuffleDataset(X, Y):
 	Y = np.take(Y, idxList, axis=0)
 
 def TrainDataset(X, Y, batchSize=25):
+		if X.shape[0] != Y.shape[0]:
+			vv.Message("Input and Output data have different size: %d != %d"%(X.shape[0], Y.shape[0]))
+			vv.Return()
 		ds = tf.data.Dataset.from_tensor_slices((X, Y))
 		ds = ds.shuffle(buffer_size=1024).batch(batch_size=batchSize)
 		ds.tensors = []
@@ -79,17 +82,12 @@ def NewMapModel(layerDims, Y, dropoutRatio=0.25):
 	return md
 
 def ShowPred(P, refY):
-	map = New.MapSnapshot(True)
-	bsList = map.BodyList
-	for i in range(bsList.Count):
-		b = bsList[i]
-		[b.X, b.Y] = P[i]
+	map = ShowMap(P)
 	if refY is not None:
 		err = np.mean(np.linalg.norm(refY-P, axis=1))
 		map.Title = 'Predicated Map:  L2 Error: %.2f, Time: %.1fs'%(err, vmd.trainingTime)
 	else:
 		map.Title = 'Predicated Map'
-	map.Show()
 
 @tf.function(jit_compile=True)
 def train_step(md, optimizer, lossFct, bX, bY):
@@ -99,7 +97,7 @@ def train_step(md, optimizer, lossFct, bX, bY):
 	optimizer.apply_gradients(zip(grads, md.trainable_variables))
 	return loss
 
-def TrainModel(vmd, epochs=200, initial_lr=0.00025):
+def TrainModel(vmd, epochs=200, initial_lr=0.00025, logCallback=None):
 	lossFct = keras.losses.MeanSquaredError()
 	epochBatches = len(list(vmd.ds))
 	totalBatches = epochs * epochBatches
@@ -126,5 +124,7 @@ def TrainModel(vmd, epochs=200, initial_lr=0.00025):
 		if ((epoch + 1) % vmd.reportFreq == 0):
 			vmd.log.AddStep(float(cost))
 			vmd.log.Title = 'Eochs: %d, Cost: %.3f'%(epoch+1, cost)
+			if logCallback != None:
+				logCallback()
 	vmd.trainingTime = time.time() - startTime
 
