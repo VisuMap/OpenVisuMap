@@ -30,6 +30,7 @@
     <Content Include="PtModelling.pyn" />
     <Content Include="PtOperations.pyn" />
     <Content Include="PtTrain.pyn" />
+    <Content Include="TransMap.pyn" />
     <Content Include="UnInstall.js" />
     <Content Include="VsModelling.pyn" />
     <Content Include="VsOperations.pyn" />

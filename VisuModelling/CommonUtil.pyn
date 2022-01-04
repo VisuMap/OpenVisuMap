@@ -48,7 +48,7 @@ def ShowHeatmap(nt, fileName):
 	hm.Description = 'Data imported from: ' + fileName
 	return hm
 
-def ShowMap(nt):
+def ShowMap(nt):	
 	map = New.MapSnapshot(True)
 	bsList = map.BodyList
 	for i in range(bsList.Count):
@@ -70,7 +70,7 @@ def GetMapData(mapName = None):
 		bList = vv.Dataset.BodyListEnabled()
 	else:
 		map = vv.Dataset.ReadMap(mapName)
-		outDim = map.Dimension
+		outDim = map.Dimension		
 		bList = vv.Dataset.ReadMapBodyList(mapName, True)
 	N = bList.Count
 	D = np.empty([N, outDim], dtype=np.float32)
