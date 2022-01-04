@@ -122,9 +122,8 @@ def TrainModel(vmd, epochs=200, initial_lr=0.00025, logCallback=None):
 		if vmd.stopTraining:
 			break
 		if ((epoch + 1) % vmd.reportFreq == 0):
-			vmd.log.AddStep(float(cost))
-			vmd.log.Title = 'Eochs: %d, Cost: %.3f'%(epoch+1, cost)
+			ReportTraining(epoch, cost)
 			if logCallback != None:
-				logCallback()
+				logCallback(epoch, cost)
 	vmd.trainingTime = time.time() - startTime
 

@@ -8,7 +8,8 @@ vmd.Clear()
 vmd.ds = TrainDataset(GetDatasetData(), GetMapData(), 25)
 inDim, outDim = vmd.ds.X.shape[1], vmd.ds.Y.shape[1]
 
-dimList, DropR, LR  = [inDim, 128, 64, 10, outDim], 0.5, 0.0001
+#dimList, DropR, LR  = [inDim, 16, 32, 64, 128, 64, 32, 16, outDim], 0.5, 0.0001
+dimList, DropR, LR  = [inDim, 128, 64, 10, outDim], 0.25, 0.0001
 #dimList, DropR, LR = [inDim, inDim, inDim, 10, outDim], 0.25, 0.00025
 
 vmd.model = NewMapModel(dimList, vmd.ds.Y, DropR)

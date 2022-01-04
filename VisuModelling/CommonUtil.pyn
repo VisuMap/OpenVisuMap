@@ -60,6 +60,10 @@ def ShowMap(nt):
 	map.Show();
 	return map
 
+def ReportTraining(epoch, cost):
+	vmd.log.AddStep(float(cost))
+	vmd.log.Title = 'Eochs: %d, Cost: %.3f'%(epoch+1, cost)
+
 def GetMapData(mapName = None):
 	if mapName == None:
 		outDim = vv.Map.Dimension

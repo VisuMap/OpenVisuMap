@@ -14,6 +14,7 @@ class ModellingConfiguration:
 		self.ds = None
 		self.log = None
 		self.reportFreq = 50
+		self.trainingTime = 0
 
 	def EnableLog(self):
 		if (self.log == None) or self.log.TheForm.IsDisposed:
@@ -81,7 +82,6 @@ class NeuralNetwork(nn.Module):
         self.model.apply(init_weights)
         self.layerDimensions = dims
         self = self.to(vmd.device)
-        self.trainingTime = 0
         self.stopTraining = False
         # If the model is intended for training.
         if trainData is not None:  
@@ -97,7 +97,7 @@ class NeuralNetwork(nn.Module):
         loss_func = torch.nn.MSELoss(reduction='sum')	
         self.stopTraining = False
         startTime = time.time()
-        for t in range(epochs):
+        for epoch in range(epochs):
             cost = 0
             for bX, bY in batchDs:
                 loss = loss_func(self(bX), bY)
@@ -110,10 +110,9 @@ class NeuralNetwork(nn.Module):
             scheduler.step()
             if self.stopTraining:
                 break
-            if ((t+1)%vmd.reportFreq == 0):
-                vmd.log.AddStep(float(cost))
-                vmd.log.Title = 'Eochs: %d, Cost: %.3f'%(t+1, cost)
-        self.trainingTime = time.time() - startTime
+        if ((epoch + 1) % vmd.reportFreq == 0):
+             ReportTraining(epoch, cost)
+        vmd.trainingTime = time.time() - startTime
 
 #========================================================================================================
 
@@ -134,14 +133,10 @@ def init_weights(m):
 def ShowPred(NN, XX, refY):
 	with torch.no_grad():
 		P = T2Np(NN(XX))
-	map = New.MapSnapshot(True)
-	bsList = map.BodyList
-	for i in range(bsList.Count):
-		b = bsList[i]
-		[b.X, b.Y] = P[i]
+	map = ShowMap(P)
 	if refY is not None:
 		err = np.mean(np.linalg.norm(refY-P, axis=1))
-		map.Title = 'Predicated Map  L2 Error: %.2f, Time: %.1fs'%(err, vmd.NN.trainingTime)
+		map.Title = 'Predicated Map  L2 Error: %.2f, Time: %.1fs'%(err, vmd.trainingTime)
 	else:
 		map.Title = 'Predicated Map'
 	map.Show()
