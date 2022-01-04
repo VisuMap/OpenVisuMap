@@ -26,21 +26,20 @@ namespace VisuMap.DataLink {
 
         const int CmdMsg = 102;
         const int CmdLogMsg = 110;
-        const int CmdClrLog = 112;
         const int CmdRunScript = 111;
+        const int CmdClrLog = 112;
         const int CmdGetExpression = 114;
-        const int CmdTsne = 200;
         const int CmdPing = 120;
         const int CmdOK = 121;
         const int CmdShMatrix2 = 122;
         const int CmdGetProperty = 125;
         const int CmdSetProperty = 126;
+        const int CmdLoadTable = 127;
         const int CmdFail = 129;
+        const int CmdLoadTable0 = 132;
         const int CmdSaveTable = 133;
         const int CmdLoadBlob = 134;
         const int CmdSaveBlob = 135;
-        const int CmdLoadTable0 = 132;
-        const int CmdLoadTable = 127;
         const int CmdGetItemIds = 137;
         const int CmdSelectItems = 138;
         const int CmdUpdateLabels = 140;
@@ -48,6 +47,7 @@ namespace VisuMap.DataLink {
         const int CmdLoadDistances = 142;
         const int CmdSetColumnIds = 143;
         const int CmdLoadMap = 144;
+        const int CmdTsne = 200;
 
         IInfoPad logger;
 

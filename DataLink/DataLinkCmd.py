@@ -1,7 +1,6 @@
 import socket, struct, time
 import numpy as np
 
-
 #============================================================================================
 # class DataLinkCmd
 #============================================================================================
@@ -9,50 +8,32 @@ import numpy as np
 class DataLinkCmd:
     skt = None
     port = None
-    CMD_COST=100
-    CMD_SHOW_PRED=101
-    CMD_MSG=102
-    CMD_UPDATE_MAP=103
-    CMD_SAVE_MODEL=104
-    CMD_EXT_HISTOGRAM=108
-    CMD_CFG_HISTOGRAM=109
+    vmHost = None
+
+    CMD_MSG=102    
     CMD_LOG_MSG=110
-    CMD_LOG_CLEAR=112
     CMD_RUN_SCRIPT=111
-    CMD_LOG_TITLE=113
+    CMD_LOG_CLEAR=112
     CMD_GET_EXPRESSION=114
-    CMD_APP_MAPPING=115
-    CMD_SET_STATUS=116
-    CMD_GET_PREDINFO = 119
     CMD_PING = 120
     CMD_OK = 121
     CMD_SH_MATRIX2=122
-    CMD_OPEN_DATASET=123
-    CMD_SH_MAP=124
     CMD_GET_PROPERTY=125
     CMD_SET_PROPERTY=126
     CMD_LOAD_TABLE=127
-    CMD_ADD_STEP=128
     CMD_FAIL = 129
-    CMD_LD_TRAINING = 130
-    CMD_UPDATE_MAP2=131
     CMD_LOAD_TABLE0=132
     CMD_SAVE_TABLE=133
     CMD_LOAD_BLOB=134
     CMD_SAVE_BLOB=135
-    CMD_RPT_START=136
     CMD_GET_ITEM_IDS=137
     CMD_SELECT_ITEMS=138
-    CMD_APP_MAPPING2=139
     CMD_UPDATE_LABELS=140
     CMD_LOAD_LABELS=141
     CMD_LOAD_DISTANCES = 142
     CMD_SET_COLUMIDS = 143
     CMD_LOAD_MAP = 144
     CMD_TSNE = 200
-
-    logIdx = 0
-    vmHost = None
 
     def __init__(self, portNumber=8877, vmHost='localhost'):
         self.skt = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
@@ -73,74 +54,19 @@ class DataLinkCmd:
         else:
             return False
 
-    def ReportCost(self, epoch, v, job=0):
-        r""" Report the current learning cost.
+    def DoTsne(self, D, epochs=1000, perplexityRatio=0.05, mapDimension=2):
+        r""" Perform t-SNE dimensionality reduction on a data table.
         """
-        self.skt.sendall(bytearray(struct.pack('iifi', self.CMD_COST, epoch, v, job)))
-
-    def ReportStartTraining(self, job=0):
-        r""" Notifiy that the training has started.
-        """
-        self.skt.sendall(bytearray(struct.pack('ii', self.CMD_RPT_START, job)))
-
-    def ExtHistogram(self, idx, v, job=0):
-        r""" Add values to a histogram.
-        """
-        if type(v) is np.ndarray:
-            pkt = bytearray(struct.pack('iii', self.CMD_EXT_HISTOGRAM, idx, job)) + bytearray(v)
-        else:
-            pkt = bytearray(struct.pack('iiif', self.CMD_EXT_HISTOGRAM, idx, job, v))
-        self.skt.sendall(pkt)
-
-    def AddStep(self, idx, v, offset=0):
-        r"""Add values to a multiple-curve histogram.
-        """
-        if type(v) is np.ndarray:
-            pkt = bytearray(struct.pack('iii', self.CMD_ADD_STEP, idx, offset)) + bytearray(v)
-        else:
-            pkt = bytearray(struct.pack('iiif', self.CMD_ADD_STEP, idx, offset, v))
-        self.skt.sendall(pkt)
-
-    def CfgHistogram(self, idx, title='', count=0, groupSize=None):
-        r"""Configure a histogram.
-        count=0 means creating as many curves as the number of parallel jobs.
-        groupSize: list of integers standing for the size of curve groups, each with a common color.
-        """
-        msg = title
-        if groupSize is not None:
-            msg += '|' + ','.join(str(sz) for sz in groupSize)
-        self.skt.sendall(bytearray(struct.pack('iii%ds'%(len(msg)), self.CMD_CFG_HISTOGRAM, idx, count, msg.encode('utf-8'))))
-
-    def ShowPrediction(self, job):
-        r"""Request the server to perform a prediction
-        """
-        self.skt.sendall(bytearray(struct.pack('ii', self.CMD_SHOW_PRED, job)))
-
-    def GetPredInfo(self):
-        r"""Get prediction information.
-        """
-        self.skt.sendall(bytearray(struct.pack('i', self.CMD_GET_PREDINFO)))
-        buf = self.skt.recv(8)
-        errorL1, mismatches =  struct.unpack_from('<fi', buf)
-        return errorL1, mismatches
-
-    def SaveModel(self, jIdx=0):
-        r"""Request the server to server the current model.
-        """
-        self.skt.sendall(bytearray(struct.pack('ii', self.CMD_SAVE_MODEL, jIdx)))
-
-    def UpdateMap(self, jIdx):
-        r"""Request the server to update map with data saved in a file.
-        """
-        self.skt.sendall(bytearray(struct.pack('ii', self.CMD_UPDATE_MAP, jIdx)))
-
-    def UpdateMap2(self, map, jIdx):
-        r"""Request the server to update map.
-        """
-        self.skt.sendall(bytearray(struct.pack('ii', self.CMD_UPDATE_MAP2, jIdx)))
-        if self.IsOK():
-            with self.ConnectToVisuMap() as tcpCnt:
-                self.WriteMatrix(tcpCnt, map)
+        self.skt.sendall(struct.pack('<i', self.CMD_TSNE))
+        self.IsOK()
+        with self.ConnectToVisuMap() as tcpCnt:
+            # sends the parameters for the command
+            tcpCnt.send(struct.pack('<iif', epochs, mapDimension, perplexityRatio))
+            # sends the data for the command
+            self.WriteMatrix(tcpCnt, D)
+            # receives the map
+            result = self.ReadMatrix(tcpCnt)
+        return result
     
     def UpdateLabels(self, labels):
         r"""Request the server to update labels of current map.
@@ -175,11 +101,6 @@ class DataLinkCmd:
         """
         self.skt.sendall(bytearray(struct.pack('i'+str(len(msg))+'s', self.CMD_MSG, msg.encode('utf-8'))))
 
-    def SetStatus(self, msg):
-        r"""Request the server to server the status text.
-        """
-        self.skt.sendall(bytearray(struct.pack('i'+str(len(msg))+'s', self.CMD_SET_STATUS, msg.encode('utf-8'))))
-
     def LogMsg(self, msg):
         r"""Added a line of message to the information pad of the server.
         """
@@ -195,19 +116,6 @@ class DataLinkCmd:
         r"""Clear the information pad.
         """
         self.skt.sendall(bytearray(struct.pack('i', self.CMD_LOG_CLEAR)))
-
-    def AppMapping(self):
-        r"""Send model prediction to the server via a file.
-        """
-        self.skt.sendall(bytearray(struct.pack('i', self.CMD_APP_MAPPING)))
-
-    def AppMapping2(self, map):
-        r"""Send model prediction to the server.
-        """
-        self.skt.sendall(bytearray(struct.pack('i', self.CMD_APP_MAPPING2)))
-        if self.IsOK():
-            with self.ConnectToVisuMap() as tcpCnt:         
-                self.WriteMatrix(tcpCnt, map)
 
     def RecvMsg(self, skt):
         r"""Receive a message from the server.
@@ -229,11 +137,6 @@ class DataLinkCmd:
         else:
             return None
             
-    def LogTitle(self):
-        r"""Add the title of the monitor window to the information pad.
-        """
-        self.skt.sendall(bytearray(struct.pack('i', self.CMD_LOG_TITLE)))
-
     def GetExpression(self, expression):
         r"""Get an expression from the server.
         """
@@ -351,36 +254,6 @@ class DataLinkCmd:
             n = sktCnt.send(view)
             view = view[n:]
             toWrite -= n
-
-    
-    def OpenDataset(self, mapName='', dsName='', target=None, dataGroup=3, tmout=60):
-        r"""Open dataset and optionally load their data
-        
-        Arg:
-            mapName: the name of target map.
-            dsName: the name of target dataset.
-            target: may be one of the following: 'Shp': the XYZ coordinate of the map; 
-            'Clr': The row type coded in 1-hot format; 'Cls': The row type as floats.
-            dataGroup: may be: 0: no data required, only switch the dataset and map; 1: input data; 
-                 2: output data; 3: input & output data.  
-            tmout: the timeout value in seconds.
-        """
-        msg = mapName + '|' + dsName + '|' + str(dataGroup) + '|' + str(target)
-        self.skt.sendall(bytearray(struct.pack('i%ds'%(len(msg)), self.CMD_OPEN_DATASET, msg.encode('utf-8'))))
-        self.skt.settimeout(tmout)
-        if not self.IsOK(): return False
-
-        if dataGroup==0:
-            return None, None
-        else:
-            with self.ConnectToVisuMap(tmout) as tcpCnt:
-                inputData = None
-                outputData = None
-                if (dataGroup==1) or (dataGroup==3):
-                    inputData = self.ReadMatrix(tcpCnt)
-                if (dataGroup==2) or (dataGroup==3):
-                    outputData = self.ReadMatrix(tcpCnt)
-            return inputData, outputData
     
     def LoadTableWithLabel(self, dsName='', tmout=20):
         r""" Load enabled data points and their types from a table
@@ -423,7 +296,6 @@ class DataLinkCmd:
             return distTable
         else:
             return None
-
 
     def LoadBlob(self, blobName, offset=0, size=0, outBuffer=None):
         r"""Obtain a blob as an array of 32-bit values.
@@ -521,7 +393,6 @@ class DataLinkCmd:
                     remaining -= k
             cnt += n
 
-
     def ShowMatrix (self, matrix, rowInfo=None, view=0, access='n', title='Tensor', viewIdx=0):
         r"""Show a matrix on VisuMap server.
         Args:
@@ -578,29 +449,3 @@ class DataLinkCmd:
         if tmout != 0:
             tcpCnt.settimeout(tmout)
         return tcpCnt
-
-    def LoadTrainingData(self, mdInput, mdOutput):
-        r"""Load training data from the server.
-        """
-        msg = mdInput + '@' + mdOutput
-        self.skt.sendall(bytearray(struct.pack('i' + str(len(msg)) + 's', self.CMD_LD_TRAINING,  msg.encode('utf-8'))))
-        buf = self.skt.recv(8)
-        if ( len(buf) >= 8):
-            retValues =  struct.unpack_from('ii', buf)
-            mapDimension = retValues[0]
-            resp = retValues[1]
-            if resp == 0:
-                return None, None, None, 0
-            inData = None
-            outData = None
-            validationData = None
-            with self.ConnectToVisuMap(20) as tcpCnt:
-                if (resp & 1) != 0:
-                    inData = self.ReadMatrix(tcpCnt)
-                if (resp & 2) != 0:
-                    outData = self.ReadMatrix(tcpCnt)
-                if (resp & 4) != 0:
-                    validationData = self.ReadMatrix(tcpCnt)
-            return inData, outData, validationData, mapDimension
-        else:
-            return None, None, None, 0

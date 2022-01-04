@@ -29,7 +29,6 @@ ds = np.nan_to_num(ds)
 print("Loaded table: ", ds.shape)
 
 print('Fitting data...')
-
 for k in range(repeats):
     if randomizeOrder:
         perm = np.random.permutation(ds.shape[0])
@@ -39,7 +38,6 @@ for k in range(repeats):
         perm = np.arange(ds.shape[0])[np.argsort(perm)]
 
     t0 = time.time()
-
     um = umap.UMAP(n_neighbors=nn, min_dist=md, local_connectivity=lc, 
         n_components=mapDim, metric=mtr, negative_sample_rate=ns,
         n_epochs=epochs, init=initType, learning_rate=1, verbose=True)
