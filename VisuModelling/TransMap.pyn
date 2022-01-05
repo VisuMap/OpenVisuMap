@@ -7,10 +7,17 @@ if 'vmd' not in globals():
 
 vmd.Clear()
 vmd.ds = TrainDataset(GetMapData(), GetMapData('2D'))
-inDim, outDim = vmd.ds.X.shape[1], vmd.ds.Y.shape[1]
-dimList, DropR, LR  = [inDim, 16, 32, 64, 32, 16, outDim], 0.25, 0.00025
+dimList, DropR, LR  = [16, 32, 64, 32, 16], 0.25, 0.0001
 
-vmd.model = NewMapModel(dimList, vmd.ds.Y, DropR)
+logMap = New.MapSnapshot(True).Show()
+def LogModel(epoch, cost):
+	Y = vmd.model(vmd.ds.X, training=False).numpy()
+	ShowMap(Y, logMap)
+
+vmd.model = NewMapModel(dimList, vmd.ds.X, vmd.ds.Y, DropR)
+
+#vmd.model.sumary(print_fn=lambda x: vv.Echo(x))
+
 vmd.EnableLog()
-TrainModel(vmd, epochs = 200, initial_lr=LR)
+TrainModel(vmd, epochs = 2000, initial_lr=LR, logCallback=LogModel)
 ShowPred(vmd.model(vmd.ds.X, training=False).numpy(), vmd.ds.Y)
