@@ -46,8 +46,6 @@ class InScaling(keras.layers.Layer):
 		range = maxInput - minInput
 		self.inScale = 1.0/range
 		self.inShift = -minInput/range
-		#self.inScale *= 0.5
-		#self.inShift *= 0.5
 	def call(self, inputs):
 		#return (inputs - minInput)/range
 		return self.inScale * inputs + self.inShift
@@ -87,12 +85,14 @@ def NewMapModel(layerDims, X, Y, dropoutRatio=0.25):
 	md.add( keras.Input(shape=(layerDims[0])) )
 	layers = len(layerDims)
 	md.add(InScaling(X))
+	
 	for k in range(1, layers):
 		actFct = 'sigmoid' if k == (layers-1) else 'leaky_relu'
 		md.add( keras.layers.Dense(layerDims[k], activation=actFct, 
 			kernel_initializer='glorot_uniform', bias_initializer='zeros', use_bias=True) )
-		if k == 1: md.add(keras.layers.Dropout(dropoutRatio))			
-	md.add(OutScaling(Y, gape=0.0125))
+		if (k == 1) and (dropoutRatio>0): 
+			md.add(keras.layers.Dropout(dropoutRatio))			
+	md.add(OutScaling(Y, gape=0.015))
 	return md
 
 def ShowPred(P, refY):
