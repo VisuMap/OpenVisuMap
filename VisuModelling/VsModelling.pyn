@@ -67,7 +67,7 @@ def MapLogger(epoch, cost):
 			vmd.logMap = New.MapSnapshot(True).Show()
 	Y = vmd.model(vmd.ds.X, training=False).numpy()
 	ShowMap(Y, vmd.logMap)
-	vmd.logMap.Title = f'Epoch: {epoch}, Cost: {cost:.2f}'
+	vmd.logMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f}'
 
 def ShuffleDataset(X, Y):
 	idxList = np.arange(X.shape[0])
