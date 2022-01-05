@@ -27,16 +27,30 @@ class ModellingConfiguration:
 			self.ds = None
 
 class OutScaling(keras.layers.Layer):
-	def __init__(self, D):
+	def __init__(self, D, gape=0.0125):
 		super(OutScaling, self).__init__()
 		colMax = np.max(D, axis=0)
 		colMin = np.min(D, axis=0) 
 		colCenter = 0.5*(colMax + colMin)
-		colFact = 1.025*(colMax - colMin)
+		colFact = (1 + 2*gape)*(colMax - colMin)
 		self.colScale = colFact
 		self.colShift =  colCenter - 0.5*colFact
 	def call(self, inputs):
 		return self.colScale * inputs + self.colShift
+
+class InScaling(keras.layers.Layer):
+	def __init__(self, D):
+		super(InScaling, self).__init__()
+		maxInput = np.max(D)
+		minInput = np.min(D)
+		range = maxInput - minInput
+		self.inScale = 1.0/range
+		self.inShift = -minInput/range
+		#self.inScale *= 0.5
+		#self.inShift *= 0.5
+	def call(self, inputs):
+		#return (inputs - minInput)/range
+		return self.inScale * inputs + self.inShift
 
 #-------------------------------------------------------------------------
 def CheckGPU():
@@ -68,17 +82,17 @@ def ShowModel(md):
 
 #---------------------------------------------------------------------------
 
-def NewMapModel(layerDims, Y, dropoutRatio=0.25):
+def NewMapModel(layerDims, X, Y, dropoutRatio=0.25):
 	md = keras.Sequential()
 	md.add( keras.Input(shape=(layerDims[0])) )
 	layers = len(layerDims)
-	#md.add(keras.layers.Dropout(dropoutRatio))
+	md.add(InScaling(X))
 	for k in range(1, layers):
 		actFct = 'sigmoid' if k == (layers-1) else 'leaky_relu'
 		md.add( keras.layers.Dense(layerDims[k], activation=actFct, 
 			kernel_initializer='glorot_uniform', bias_initializer='zeros', use_bias=True) )
 		if k == 1: md.add(keras.layers.Dropout(dropoutRatio))			
-	md.add(OutScaling(Y))
+	md.add(OutScaling(Y, gape=0.0125))
 	return md
 
 def ShowPred(P, refY):

@@ -48,8 +48,10 @@ def ShowHeatmap(nt, fileName):
 	hm.Description = 'Data imported from: ' + fileName
 	return hm
 
-def ShowMap(nt):	
-	map = New.MapSnapshot(True)
+def ShowMap(nt, map=None):	
+	if map == None:
+		map = New.MapSnapshot(True)
+		map.Show()
 	bsList = map.BodyList
 	for i in range(bsList.Count):
 		b = bsList[i]
@@ -57,7 +59,7 @@ def ShowMap(nt):
 			[b.X, b.Y] = nt[i]
 		else:
 			[b.X, b.Y, b.Z] = nt[i]
-	map.Show();
+	map.RedrawBodiesXyz()
 	return map
 
 def ReportTraining(epoch, cost):

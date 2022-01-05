@@ -110,8 +110,8 @@ class NeuralNetwork(nn.Module):
             scheduler.step()
             if self.stopTraining:
                 break
-        if ((epoch + 1) % vmd.reportFreq == 0):
-             ReportTraining(epoch, cost)
+            if ((epoch + 1) % vmd.reportFreq == 0):
+                ReportTraining(epoch, cost)
         vmd.trainingTime = time.time() - startTime
 
 #========================================================================================================
