@@ -9,7 +9,8 @@ class ModellingConfiguration:
 		self.model = None
 		self.ds = None
 		self.log = None
-		self.reportFreq = 10
+		self.logMap = None
+		self.reportFreq = 50
 		self.trainingTime = 0
 	def EnableLog(self):
 		if (self.log == None) or self.log.TheForm.IsDisposed:
@@ -52,10 +53,21 @@ class InScaling(keras.layers.Layer):
 		return self.inScale * inputs + self.inShift
 
 #-------------------------------------------------------------------------
+def InitVmd():
+	if 'vmd' not in globals():
+		globals()['vmd'] = ModellingConfiguration()
+
 def CheckGPU():
 	vv.Echo( "GPU Available: " + str( tf.test.is_gpu_available() ))
 	vv.Echo('Num GPUs Available: %d'%(len(tf.config.list_physical_devices('GPU'))))
 	vv.Echo('Device Name: ' + tf.test.gpu_device_name())
+
+def MapLogger(epoch, cost):
+	if (vmd.logMap == None) or vmd.logMap.TheForm.IsDisposed:
+			vmd.logMap = New.MapSnapshot(True).Show()
+	Y = vmd.model(vmd.ds.X, training=False).numpy()
+	ShowMap(Y, vmd.logMap)
+	vmd.logMap.Title = f'Epoch: {epoch}, Cost: {cost:.2f}'
 
 def ShuffleDataset(X, Y):
 	idxList = np.arange(X.shape[0])

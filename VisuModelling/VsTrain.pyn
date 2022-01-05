@@ -1,24 +1,14 @@
 # VsTrain.pyn
 vv.Import('VsModelling.pyn')
-
-if 'vmd' not in globals():
-	vmd = ModellingConfiguration()
-
+InitVmd()
 vmd.Clear()
 vmd.ds = TrainDataset(GetDatasetData(), GetMapData(), 25)
-inDim, outDim = vmd.ds.X.shape[1], vmd.ds.Y.shape[1]
+inDim = vmd.ds.X.shape[1]
 
 #dimList, DropR, LR  = [16, 32, 64, 128, 64, 32, 16], 0.5, 0.0001
 #dimList, DropR, LR  = [128, 64, 10], 0.25, 0.0001
 dimList, DropR, LR = [inDim, inDim, 10], 0.25, 0.0005
 vmd.model = NewMapModel(dimList, vmd.ds.X, vmd.ds.Y, DropR)
-
-'''
-logMap = New.MapSnapshot(True).Show()
-def LogModel(epoch, cost):
-	Y = vmd.model(vmd.ds.X, training=False).numpy()
-	ShowMap(Y, logMap)
-'''
 
 vmd.EnableLog()
 TrainModel(vmd, epochs = 2000, initial_lr=LR, logCallback=None)

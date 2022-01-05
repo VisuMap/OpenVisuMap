@@ -5,8 +5,7 @@
 vv.Import('VsModelling.pyn')
 vv.Import('CommonUtil.pyn')
 
-if 'vmd' not in globals():
-	vmd = ModellingConfiguration()
+InitVmd()
 
 opLabel = vv.EventSource.Item
 

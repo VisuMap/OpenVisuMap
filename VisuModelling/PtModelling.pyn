@@ -119,6 +119,10 @@ class NeuralNetwork(nn.Module):
 def CheckGPU():
 	vv.Echo( "GPU Available: " + str(torch.cuda.is_available()) )
 
+def InitVmd():
+	if 'vmd' not in globals():
+		globals()['vmd'] = ModellingConfiguration()
+
 def Np2T(A):
 	return torch.from_numpy(A).float().to(vmd.device)
 

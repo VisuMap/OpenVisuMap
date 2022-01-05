@@ -8,8 +8,7 @@ import pickle
 
 opLabel = vv.EventSource.Item
 
-if 'vmd' not in globals():
-  vmd = ModellingConfiguration()
+InitVmd()
 
 def CheckModel():
 	if vmd.NN is None:
