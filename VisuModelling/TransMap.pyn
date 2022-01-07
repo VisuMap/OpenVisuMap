@@ -4,12 +4,19 @@ vv.Import('VsModelling.pyn')
 
 InitVmd()
 vmd.Clear()
-X = np.concatenate( (GetMapData('Tst'), GetMapData('TstEuc')), axis=1 )
+
+D = GetDatasetData()
+#A = GetMapData('Tst')
+#B = GetMapData('TstEuc')
+#C = GetMapData('TstUmap')
+#X = np.concatenate( (A, B, C), axis=1)
+
+X = D
 Y = GetMapData('2D')
+
 vmd.ds = TrainDataset(X, Y)
-dimList, DropR, LR  = [256, 128, 64, 32], 0.25, 0.0001
+dimList, DropR, LR, epochs  = [256, 128, 64, 32, 16], 0.25, 0.0001, 2000
 
 vmd.model = NewMapModel(dimList, X, Y, DropR)
-vmd.EnableLog()
-TrainModel(vmd, epochs = 5000, initial_lr=LR, logCallback=MapLogger)
-#ShowPred(vmd.model(X, training=False).numpy(), Y)
+TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
+ShowPred(vmd.model(X, training=False).numpy(), Y)

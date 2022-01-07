@@ -2,14 +2,14 @@
 vv.Import('VsModelling.pyn')
 InitVmd()
 vmd.Clear()
-vmd.ds = TrainDataset(GetDatasetData(), GetMapData(), 25)
-inDim = vmd.ds.X.shape[1]
 
-#dimList, DropR, LR  = [16, 32, 64, 128, 64, 32, 16], 0.5, 0.0001
-#dimList, DropR, LR  = [128, 64, 10], 0.25, 0.0001
-dimList, DropR, LR = [inDim, inDim, 10], 0.25, 0.0005
-vmd.model = NewMapModel(dimList, vmd.ds.X, vmd.ds.Y, DropR)
+X, Y = GetDatasetData(), GetMapData()
+vmd.ds = TrainDataset(X, Y, 25)
+inDim = X.shape[1]
 
-vmd.EnableLog()
-TrainModel(vmd, epochs = 2000, initial_lr=LR, logCallback=None)
-ShowPred(vmd.model(vmd.ds.X, training=False).numpy(), vmd.ds.Y)
+dimList, DropR, LR, epochs  = [256, 128, 64, 32, 16], 0.25, 0.0001, 2000
+#dimList, DropR, LR, epochs = [inDim, inDim, 10], 0.25, 0.0005, 2000
+
+vmd.model = NewMapModel(dimList, X, Y, DropR)
+TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
+ShowPred(vmd.model(X, training=False).numpy(), Y)

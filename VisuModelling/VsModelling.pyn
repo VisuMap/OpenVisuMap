@@ -143,7 +143,7 @@ def TrainModel(vmd, epochs=200, initial_lr=0.00025, logCallback=None):
 
 	#The following line makes train_step() callable for different dataset.
 	train_step.__init__(train_step.python_function, 'train_step', jit_compile=True)
-
+	vmd.EnableLog()
 	vmd.stopTraining = False
 	startTime = time.time()
 	for epoch in range(epochs):
