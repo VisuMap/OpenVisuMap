@@ -42,15 +42,9 @@ class OutScaling(keras.layers.Layer):
 class InScaling(keras.layers.Layer):
 	def __init__(self, D):
 		super(InScaling, self).__init__()
-		maxInput = np.max(D)
-		minInput = np.min(D)
-		range = maxInput - minInput
-		fct = 1.0
-		self.inScale = fct/range
-		self.inShift = -fct*minInput/range
+		self.inScale = 4.0/(np.std(D) * D.shape[1])
 	def call(self, inputs):
-		#return (inputs - minInput)/range
-		return self.inScale * inputs + self.inShift
+		return self.inScale * inputs
 
 #-------------------------------------------------------------------------
 def InitVmd():
