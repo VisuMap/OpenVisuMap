@@ -91,7 +91,15 @@ def TrainDataset(X, Y, batchSize=25):
 def ShowModel(md):
 	md.summary(print_fn = lambda x: vv.Echo(x))
 
-#---------------------------------------------------------------------------
+def ShowPred(P, refY):
+	map = ShowMap(P)
+	if refY is not None:
+		err = np.mean(np.linalg.norm(refY-P, axis=1))
+		map.Title = 'Predicated Map:  L2 Error: %.2f, Time: %.1fs'%(err, vmd.trainingTime)
+	else:
+		map.Title = 'Predicated Map'
+
+#-------------------------------------------------------------------------------------
 
 def NewMapModel(layerDims, X, Y, dropoutRatio=0.25):
 	md = keras.Sequential()
@@ -112,13 +120,7 @@ def NewMapModel(layerDims, X, Y, dropoutRatio=0.25):
 
 	return md
 
-def ShowPred(P, refY):
-	map = ShowMap(P)
-	if refY is not None:
-		err = np.mean(np.linalg.norm(refY-P, axis=1))
-		map.Title = 'Predicated Map:  L2 Error: %.2f, Time: %.1fs'%(err, vmd.trainingTime)
-	else:
-		map.Title = 'Predicated Map'
+#-------------------------------------------------------------------------------------
 
 @tf.function(jit_compile=True)
 def train_step(md, optimizer, lossFct, bX, bY):
@@ -157,4 +159,3 @@ def TrainModel(vmd, epochs=200, initial_lr=0.00025, logCallback=None):
 			if logCallback != None:
 				logCallback(epoch, cost)
 	vmd.trainingTime = time.time() - startTime
-
