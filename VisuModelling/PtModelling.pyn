@@ -63,17 +63,34 @@ class OutScaling(nn.Module):
 	def forward(self, x):
 		return x * self.scalings + self.shifts
 
+class InScaling(nn.Module):
+	def __init__(self, inDim, inData=None):
+		super(InScaling, self).__init__()
+		if inData is None:
+			inScale = torch.tensor(1.0)
+		else:
+			inScale = torch.tensor( 4.0/(np.std(inData) * inData.shape[1]) )			
+		self.inScalings = nn.Parameter(inScale.to(vmd.device), requires_grad=False)
+
+	def forward(self, x):
+		return x * self.inScalings
+
 class NeuralNetwork(nn.Module):
     def __init__(self, dims, trainData=None, dropRatio=0.25):
         super(NeuralNetwork, self).__init__()
+        if trainData is not None:
+            dims = [trainData.X.shape[1]] + dims + [trainData.Y.shape[1]]					
+
         self.model = nn.Sequential()
+        inData = None if trainData is None else trainData.Y
+        self.model.add_module('inS', InScaling(dims[0], inData))
+
         L = len(dims)
         for k in range(L-1):
             self.model.add_module('lay%d'%k, nn.Linear(dims[k], dims[k+1], bias=True))
             actFct = nn.Sigmoid() if k==(L-2) else nn.LeakyReLU(negative_slope=0.01)
             self.model.add_module('f%d'%k, actFct)
             if k==0:self.model.add_module('dp', nn.Dropout(p=dropRatio))
-
         if trainData is None:
             self.model.add_module('os', OutScaling(dims[-1]) )
         else:
