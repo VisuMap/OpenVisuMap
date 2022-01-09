@@ -5,11 +5,13 @@ vmd.Clear()
 
 X, Y = GetDatasetData(), GetMapData()
 vmd.ds = TrainDataset(X, Y, 25)
-inDim = X.shape[1]
 
 dimList, DropR, LR, epochs  = [256, 128, 64, 32, 16], 0.25, 0.0001, 2000
+
+#inDim = X.shape[1]
 #dimList, DropR, LR, epochs = [inDim, inDim, 10], 0.25, 0.0005, 2000
 
+
 vmd.model = NewMapModel(dimList, X, Y, DropR)
-TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
+TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=None)
 ShowPred(vmd.model(X, training=False).numpy(), Y)

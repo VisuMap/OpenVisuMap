@@ -82,7 +82,7 @@ def GetMapData(mapName = None):
 	return D
 
 def GetDatasetData():
-	return mm.ToNumpy( vv.GetNumberTableView(True) )
+	return mm.ToNumpy( vv.GetNumberTableView(True) ).astype(np.float32)
 
 def ShowNumpyMatrix(np):
 	nt = mm.ToTable(np)
