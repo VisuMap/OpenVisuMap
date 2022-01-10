@@ -5,17 +5,22 @@ vv.Import('VsModelling.pyn')
 InitVmd()
 vmd.Clear()
 
+'''
 D = GetDatasetData()
-#A = GetMapData('Tst')
-#B = GetMapData('TstEuc')
-#C = GetMapData('TstUmap')
-#X = np.concatenate( (A, B, C), axis=1)
+D = mm.Matrix32ToNumpy(vv.Math.FastPcaReduction(D, 60))
+A = GetMapData('Tst')
+B = GetMapData('TstEuc')
+C = GetMapData('TstUmap')
+D *= np.std(A)/np.std(D)
+X = np.concatenate((A,B,C,D), axis=1)
+X = np.concatenate((D,A), axis=1)
+'''
 
-X = D
+X = GetDatasetData()
 Y = GetMapData('2D')
 
 vmd.ds = TrainDataset(X, Y)
-dimList, DropR, LR, epochs  = [256, 128, 64, 32, 16], 0.25, 0.0001, 2000
+dimList, DropR, LR, epochs  = [256,128,64,32,16], 0.25, 0.0005, 5000
 
 vmd.model = NewMapModel(dimList, X, Y, DropR)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
