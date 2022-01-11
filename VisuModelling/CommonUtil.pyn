@@ -66,19 +66,34 @@ def ReportTraining(epoch, cost):
 	vmd.log.AddStep(float(cost))
 	vmd.log.Title = 'Eochs: %d, Cost: %.3f'%(epoch+1, cost)
 
-def GetMapData(mapName = None):
+def GetBodyList(mapName = None):
 	if mapName == None:
-		outDim = vv.Map.Dimension
-		bList = vv.Dataset.BodyListEnabled()
+		return vv.Map.Dimension, vv.Dataset.BodyListEnabled()
 	else:
 		map = vv.Dataset.ReadMap(mapName)
-		outDim = map.Dimension		
-		bList = vv.Dataset.ReadMapBodyList(mapName, True)
+		return map.Dimension, vv.Dataset.ReadMapBodyList(mapName, True)
+
+def GetMapData(mapName = None):
+	outDim, bList = GetBodyList(mapName)
 	N = bList.Count
 	D = np.empty([N, outDim], dtype=np.float32)
 	for n in range(N):
 		b = bList[n]
 		D[n] = [b.X, b.Y] if outDim == 2 else [b.X, b.Y, b.Z]
+	return D
+
+def GetClusterData(mapName = None):
+	_, bList = GetBodyList(mapName)
+	N = bList.Count
+	maxIdx = 0
+	for b in bList:
+		tIdx = max(0, int(b.Type))
+		if tIdx > maxIdx:
+			maxIdx = tIdx
+	D = np.zeros([N, maxIdx+1], dtype=np.float32)
+	for n in range(N):
+		tIdx = max(0, bList[n].Type)
+		D[n, tIdx] = 1.0
 	return D
 
 def GetDatasetData():
