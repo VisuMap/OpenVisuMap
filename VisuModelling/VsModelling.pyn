@@ -53,16 +53,17 @@ def InitVmd():
 		globals()['vmd'] = ModellingConfiguration()
 
 def CheckGPU():
-	vv.Echo( "GPU Available: " + str( tf.test.is_gpu_available() ))
-	vv.Echo('Num GPUs Available: %d'%(len(tf.config.list_physical_devices('GPU'))))
-	vv.Echo('Device Name: ' + tf.test.gpu_device_name())
+	vv.Echo(f'GPU Available: {tf.test.is_gpu_available()}' )
+	vv.Echo(f'Num GPUs Available: {len(tf.config.list_physical_devices("GPU"))}')
+	vv.Echo(f'Device Name: {tf.test.gpu_device_name()}')
 
 def MapLogger(epoch, cost):
 	if (vmd.logMap == None) or vmd.logMap.TheForm.IsDisposed:
 			vmd.logMap = New.MapSnapshot(True).Show()
 	Y = vmd.model(vmd.ds.X, training=False).numpy()
 	ShowMap(Y, vmd.logMap)
-	vmd.logMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f}'
+	err = np.mean(np.linalg.norm(vmd.ds.Y-Y, axis=1))
+	vmd.logMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f},  L2: {err:.2f}'
 
 def ShuffleDataset(X, Y):
 	idxList = np.arange(X.shape[0])
@@ -72,7 +73,7 @@ def ShuffleDataset(X, Y):
 
 def TrainDataset(X, Y, batchSize=25):
 		if X.shape[0] != Y.shape[0]:
-			vv.Message("Input and Output data have different size: %d != %d"%(X.shape[0], Y.shape[0]))
+			vv.Message(f'Input and Output data have different size: {X.shape[0]} != {Y.shape[0]}')
 			vv.Return()
 		ds = tf.data.Dataset.from_tensor_slices((X, Y))
 		ds = ds.shuffle(buffer_size=1024).batch(batch_size=batchSize)
@@ -90,7 +91,7 @@ def ShowPred(P, refY):
 	map = ShowMap(P)
 	if refY is not None:
 		err = np.mean(np.linalg.norm(refY-P, axis=1))
-		map.Title = 'Predicated Map:  L2 Error: %.2f, Time: %.1fs'%(err, vmd.trainingTime)
+		map.Title = f'Predicated Map:  L2 Error: {err:.2f}, Time: {vmd.trainingTime:.1f}'
 	else:
 		map.Title = 'Predicated Map'
 
