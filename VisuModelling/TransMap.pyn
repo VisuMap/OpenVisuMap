@@ -6,21 +6,30 @@ InitVmd()
 vmd.Clear()
 
 '''
+T = GetClusterData('Tst')
 D = GetDatasetData()
-D = mm.Matrix32ToNumpy(vv.Math.FastPcaReduction(D, 60))
+D = mm.Matrix32ToNumpy(vv.Math.FastPcaReduction(D, 30))
 A = GetMapData('Tst')
 B = GetMapData('TstEuc')
 C = GetMapData('TstUmap')
 D *= np.std(A)/np.std(D)
 X = np.concatenate((A,B,C,D), axis=1)
 X = np.concatenate((D,A), axis=1)
+X = GetDatasetData()
 '''
 
-X = GetDatasetData()
+'''
+T = 25.0*GetClusterData('Tst')
+D = GetDatasetData()
+X = np.concatenate((D, T), axis=1)
 Y = GetMapData('2D')
+'''
+
+X = GetMapData('TstEuc2')
+Y = GetMapData('TstEuc')
 
 vmd.ds = TrainDataset(X, Y)
-dimList, DropR, LR, epochs  = [256,128,64,32,16], 0.25, 0.0005, 5000
+dimList, DropR, LR, epochs  = 5*[128], 0.25, 0.00025, 5000
 
 vmd.model = NewMapModel(dimList, X, Y, DropR)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
