@@ -141,7 +141,7 @@ def NewCluster(layerDims, X, Y, dropoutRatio=0.25):
 		if (k == 0) and (dropoutRatio>0): 
 			md.add(keras.layers.Dropout(dropoutRatio))
 	md.add( DenseLayer(Y.shape[1], 'leaky_relu') )
-	md.add( keras.layers.Softmax() )
+	md.add( keras.layers.Softmax(name='ClstLayer') )
 	md.modelType = vmd.CLUSTERING
 	return md
 

@@ -14,6 +14,13 @@ def CheckModel():
 		vv.Message('No model has been created!')
 		vv.Return()
 
+def IsCluster(md):
+	try:
+		cLayer = md.get_layer('ClstLayer')
+		return True		
+	except:
+		return False
+
 if opLabel == 'Save':
 	CheckModel()
 	mdPath = PromptOpenDirectory()
@@ -24,7 +31,13 @@ elif opLabel == 'Load':
 	mdPath = PromptOpenDirectory()
 	if mdPath != '':
 		vmd.model = tf.keras.models.load_model(mdPath)
-		vv.Message('Loaded model: %d=>%d'%(vmd.model.input_shape[1], vmd.model.output_shape[1]) )
+		if IsCluster(vmd.model):
+			vmd.model.modelType = vmd.CLUSTERING
+			mdType = 'Clustering'
+		else:
+			vmd.model.modelType = vmd.REGRESSION
+			mdType = 'Regression'
+		vv.Message(f'Loaded model: {mdType} {vmd.model.input_shape[1]}=>{vmd.model.output_shape[1]}')
 elif opLabel == 'Eval':
 	CheckModel()
 	testData = GetDatasetData()

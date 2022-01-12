@@ -3,6 +3,7 @@
 var mgr = vv.GuiManager;
 var icon = vv.CurrentScriptDirectory + "\\Modelling.png";
 mgr.SetCustomButton("VisuModelling/Train", icon, "VsTrain.pyn");
+mgr.SetCustomButton("VisuModelling/Cluster", null, "VsCluster.pyn");
 mgr.SetCustomButton("VisuModelling/*", null, "VsOperations.pyn");
 
 /*
