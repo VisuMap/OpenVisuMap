@@ -11,5 +11,5 @@ dimList, DropR, LR, epochs  = [128, 64, 32, 16], 0.25, 0.0001, 2000
 #dimList, DropR, LR, epochs = [inDim, inDim, 10], 0.25, 0.0005, 2000
 
 vmd.model = NewMapModel(dimList, X, Y, DropR)
-TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=None)
-ShowPred(vmd.model(X, training=False).numpy(), Y)
+TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
+ShowPred(vmd.model, X, Y)

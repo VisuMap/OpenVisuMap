@@ -68,20 +68,29 @@ def MapLogger(epoch, cost):
 	err = np.mean(np.linalg.norm(vmd.ds.Y-Y, axis=1))
 	vmd.logMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f},  L2: {err:.2f}'
 
-def ClusterLogger(epoch, cost):
-	if (vmd.logMap == None) or vmd.logMap.TheForm.IsDisposed:
-		vmd.logMap = New.MapSnapshot(True).Show()
-	Y = tf.math.argmax( vmd.model(vmd.ds.X, training=False), axis=1).numpy()
-	pBodyList = vmd.logMap.BodyList
+def GetClusterPred(md, X):
+	return tf.math.argmax( md(X, training=False), axis=1).numpy()
+
+def ShowClusterPred(T, epoch, cost, map):
+	pBodyList = map.BodyList
 	for i, b in enumerate(pBodyList):
-		b.Type = Y[i]
-	vmd.logMap.RedrawBodiesType()
+		b.Type = T[i]
+	map.RedrawBodiesType()
 	mismatchs = 0
 	bList = vv.Dataset.BodyListEnabled()
 	for i in range(bList.Count):
 		if bList[i].Type != pBodyList[i].Type:
 			mismatchs += 1
-	vmd.logMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f}, Mismatchs: {mismatchs}'
+	if cost == 0:
+		map.Title = f'Clustering mismatchs: {mismatchs}'
+	else:
+		map.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f}, Mismatchs: {mismatchs}'
+
+def ClusterLogger(epoch, cost):
+	if (vmd.logMap == None) or vmd.logMap.TheForm.IsDisposed:
+		vmd.logMap = New.MapSnapshot(True).Show()
+	P = GetClusterPred(vmd.model, vmd.ds.X)
+	ShowClusterPred(P, epoch, cost, vmd.logMap)
 
 def ShuffleDataset(X, Y):
 	idxList = np.arange(X.shape[0])
@@ -105,13 +114,19 @@ def TrainDataset(X, Y, batchSize=25):
 def ShowModel(md):
 	md.summary(print_fn = lambda x: vv.Echo(x))
 
-def ShowPred(P, refY):
-	map = ShowMap(P)
-	if refY is not None:
-		err = np.mean(np.linalg.norm(refY-P, axis=1))
-		map.Title = f'Predicated Map:  L2 Error: {err:.2f}, Time: {vmd.trainingTime:.1f}'
+def ShowPred(md, X, refY):
+	if md.modelType == vmd.REGRESSION:
+		P = vmd.model(X, training=False).numpy()
+		map = ShowMap(P)
+		if refY is not None:
+			err = np.mean(np.linalg.norm(refY-P, axis=1))
+			map.Title = f'Predicated Map:  L2 Error: {err:.2f}, Time: {vmd.trainingTime:.1f}'
+		else:
+			map.Title = 'Predicated Map'
 	else:
-		map.Title = 'Predicated Map'
+		map = New.MapSnapshot(True).Show()
+		P = GetClusterPred(md, X)
+		ShowClusterPred(P, 0, 0, map)
 
 #-------------------------------------------------------------------------------------
 
