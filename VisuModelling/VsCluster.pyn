@@ -8,7 +8,7 @@ X = GetDatasetData()
 Y = GetClusterData()
 vmd.ds = TrainDataset(X, Y)
 
-dimList, DropR, LR, epochs  = [256, 128, 100, 96, 80], 0.125, 0.00025, 2000
+dimList, DropR, LR, epochs  = [256, 128, 100, 96], 0.25, 0.0002, 2000
 
 vmd.model = NewCluster(dimList, X, Y, DropR)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=ClusterLogger)
