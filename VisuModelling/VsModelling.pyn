@@ -19,7 +19,9 @@ class ModellingConfiguration:
 		if (self.log == None) or self.log.TheForm.IsDisposed:
 			self.log = New.HistoryView().Show()
 			self.log.OnClose('@vmd.stopTraining=True')
+
 	def Clear(self):
+		vv.Map.SelectedBodies=None
 		if self.model is not None:
 			del self.model
 			self.model = None
