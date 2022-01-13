@@ -45,7 +45,7 @@ class OutScaling(keras.layers.Layer):
 class InScaling(keras.layers.Layer):
 	def __init__(self, D):
 		super(InScaling, self).__init__()
-		self.inScale = 4.0/(np.std(D) * D.shape[1])
+		self.inScale = float(4.0/(np.std(D) * D.shape[1]))
 	def call(self, inputs):
 		return self.inScale * inputs
 
@@ -165,7 +165,7 @@ def NewCluster(layerDims, X, Y, dropoutRatio=0.25):
 @tf.function(jit_compile=True)
 def train_step(md, optimizer, lossFct, bX, bY):
 	with tf.GradientTape() as tape:
-		loss = lossFct(md(bX, training=True), bY)
+		loss = lossFct(bY, md(bX, training=True))
 	grads = tape.gradient(loss, md.trainable_variables)
 	optimizer.apply_gradients(zip(grads, md.trainable_variables))
 	return loss
