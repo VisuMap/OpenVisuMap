@@ -16,21 +16,18 @@ D *= np.std(A)/np.std(D)
 X = np.concatenate((A,B,C,D), axis=1)
 X = np.concatenate((D,A), axis=1)
 X = GetDatasetData()
-'''
 
-'''
 T = 25.0*GetClusterData('Tst')
 D = GetDatasetData()
 X = np.concatenate((D, T), axis=1)
 Y = GetMapData('2D')
 '''
 
-X = GetMapData('TstEuc2')
-Y = GetMapData('TstEuc')
+X = GetMapData('Tst')
+Y = GetMapData('TstUmap')
 
-vmd.ds = TrainDataset(X, Y)
-dimList, DropR, LR, epochs  = 5*[128], 0.25, 0.00025, 5000
+vmd.ds = TrainDataset(X, Y, batchSize=25)
+dimList, DropR, LR, epochs  = 3*[2^10], 0.25, 0.0001, 2000
 
 vmd.model = NewMapModel(dimList, X, Y, DropR)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
-ShowPred(vmd.model(X, training=False).numpy(), Y)
