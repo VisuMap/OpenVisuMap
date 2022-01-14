@@ -1,13 +1,15 @@
 # VsCluster.pyn
+#
+# Train a classification model to the clustering in the current map.
+#
+#------------------------------------------------------------------------
 vv.Import('CommonUtil.pyn')
 vv.Import('VsModelling.pyn')
 InitVmd()
 vmd.Clear()
 
-X = GetDatasetData()
-Y = GetClusterData()
+X, Y = GetDatasetData(), GetClusterData()
 vmd.ds = TrainDataset(X, Y)
-
 dimList, DropR, LR, epochs  = [128, 64, Y.shape[1]], 0.5, 0.001, 500
 vmd.model = NewCluster(dimList, X, Y, DropR)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=ClusterLogger)

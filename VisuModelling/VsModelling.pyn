@@ -2,7 +2,6 @@ import sys, math, time
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-vv.Import('CommonUtil.pyn')
 
 class ModellingConfiguration:
 	def __init__(self):
@@ -66,7 +65,8 @@ def MapLogger(epoch, cost):
 	if (vmd.logMap == None) or vmd.logMap.TheForm.IsDisposed:
 			vmd.logMap = New.MapSnapshot(True).Show()
 	Y = vmd.model(vmd.ds.X, training=False).numpy()
-	ShowMap(Y, vmd.logMap)
+	#ShowMap(Y, vmd.logMap)
+	MoveBodiesTo(vmd.logMap, Y)
 	err = np.mean(np.linalg.norm(vmd.ds.Y-Y, axis=1))
 	vmd.logMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f},  L2: {err:.2f}'
 

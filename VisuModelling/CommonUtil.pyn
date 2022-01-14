@@ -48,6 +48,16 @@ def ShowHeatmap(nt, fileName):
 	hm.Description = 'Data imported from: ' + fileName
 	return hm
 
+def MoveBodiesTo(map, nt):
+	bList = New.BodyListClone(map.BodyList)
+	is3d = (nt.shape[1] >= 3)
+	for i, b in enumerate(bList):
+		if is3d:
+			[b.X, b.Y, b.Z] = nt[i]
+		else:
+			[b.X, b.Y] = nt[i]
+	map.MoveBodiesTo(bList)
+
 def ShowMap(nt, map=None):	
 	if map == None:
 		map = New.MapSnapshot(True)
