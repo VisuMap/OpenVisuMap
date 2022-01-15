@@ -142,7 +142,7 @@ def NewMapModel(layerDims, X, Y, dropoutRatio=0.25):
 		if (k == 0) and (dropoutRatio>0): 
 			md.add(keras.layers.Dropout(dropoutRatio))
 	md.add( DenseLayer(Y.shape[1], 'sigmoid') )
-	md.add( OutScaling(Y, gape=0.015) )
+	md.add( OutScaling(Y, gape=0.0) )
 	md.modelType = vmd.REGRESSION
 	return md
 
