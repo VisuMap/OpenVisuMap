@@ -36,10 +36,8 @@ class OutScaling(keras.layers.Layer):
 		super(OutScaling, self).__init__()
 		colMax = np.max(D, axis=0)
 		colMin = np.min(D, axis=0) 
-		colCenter = 0.5*(colMax + colMin)
-		colFact = (1 + 2*gape)*(colMax - colMin)
-		self.colScale = colFact
-		self.colShift =  colCenter - 0.5*colFact
+		self.colScale = (colMax - colMin)/(1-2*gape)
+		self.colShift = 0.5*(colMax + colMin - self.colScale)
 	def call(self, inputs):
 		return self.colScale * inputs + self.colShift
 
@@ -65,8 +63,7 @@ def MapLogger(epoch, cost):
 	if (vmd.logMap == None) or vmd.logMap.TheForm.IsDisposed:
 			vmd.logMap = New.MapSnapshot(True).Show()
 	Y = vmd.model(vmd.ds.X, training=False).numpy()
-	#ShowMap(Y, vmd.logMap)
-	MoveBodiesTo(vmd.logMap, Y)
+	vmd.logMap.MoveBodiesTo(mm.ToMatrix32(Y))
 	err = np.mean(np.linalg.norm(vmd.ds.Y-Y, axis=1))
 	vmd.logMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f},  L2: {err:.2f}'
 
