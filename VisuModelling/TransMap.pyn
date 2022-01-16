@@ -2,6 +2,8 @@
 vv.Import('CommonUtil.pyn')
 vv.Import('VsModelling.pyn')
 
+from tensorflow.keras.layers.experimental import RandomFourierFeatures
+
 InitVmd()
 vmd.Clear()
 
@@ -21,16 +23,16 @@ T = 25.0*GetClusterData('Tst')
 D = GetDatasetData()
 X = np.concatenate((D, T), axis=1)
 Y = GetMapData('2D')
-'''
-
 A = GetMapData('Tst')
 T = GetClusterData('Tst')
 
-X = np.concatenate( (A, T), axis=1 )
+'''
+
+X = GetMapData('Tst')
 Y = GetMapData('TstEuc')
-
 vmd.ds = TrainDataset(X, Y, batchSize=25)
-dimList, DropR, LR, epochs  = 4*[1024], 0.25, 0.0001, 5000
+dimList, DropR, LR, epochs  = [512, 256], 0.25, 0.0025, 2000
+vmd.reportFreq = 50
 
-vmd.model = NewMapModel(dimList, X, Y, DropR)
+vmd.model = NewTransModel(dimList, X, Y, DropR, rbfDim=512)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
