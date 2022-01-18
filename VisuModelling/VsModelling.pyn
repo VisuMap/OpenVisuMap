@@ -58,9 +58,10 @@ class RBFLayer(keras.layers.Layer):
 			for q in range(L):
 				cs[p*L+q] = [x0+p*ss, y0+q*ss]
 		cs = 0.9*cs + [0.05,0.05]
-		sigma = np.max(maxV - minV)/L
-		self.betas = 4.0*0.5/sigma**2
+		sigma = np.max(maxV - minV)/(3.0*L)
+		self.betas = 0.5/sigma**2
 		self.centers = cs.astype(np.float32) * (maxV - minV) + minV
+
 	def call(self, X):
 		# the following block is from 
 		#   https://github.com/PetraVidnerova/rbf_for_tf2/blob/master/rbflayer.py
