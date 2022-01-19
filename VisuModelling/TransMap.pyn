@@ -1,38 +1,16 @@
 # VsTrain.pyn
 vv.Import('CommonUtil.pyn')
 vv.Import('VsModelling.pyn')
-
-from tensorflow.keras.layers.experimental import RandomFourierFeatures
-
 InitVmd()
 vmd.Clear()
 
-'''
-T = GetClusterData('Tst')
-D = GetDatasetData()
-D = mm.Matrix32ToNumpy(vv.Math.FastPcaReduction(D, 30))
-A = GetMapData('Tst')
-B = GetMapData('TstEuc')
-C = GetMapData('TstUmap')
-D *= np.std(A)/np.std(D)
-X = np.concatenate((A,B,C,D), axis=1)
-X = np.concatenate((D,A), axis=1)
-X = GetDatasetData()
-
-T = 25.0*GetClusterData('Tst')
-D = GetDatasetData()
-X = np.concatenate((D, T), axis=1)
-Y = GetMapData('2D')
-A = GetMapData('Tst')
-T = GetClusterData('Tst')
-
-'''
-
-X = GetMapData('Tst')
-Y = GetMapData('TstEuc')
+X = GetMapData('X1')
+Y = GetMapData('Y1')
 vmd.ds = TrainDataset(X, Y, batchSize=25)
-dimList, DropR, LR, epochs  = [256, 128, 64, 32, 16, 8], 0.25, 0.001, 2000
-vmd.reportFreq = 50
 
+#dimList, DropR, LR, epochs  = [256, 128, 64, 32, 16, 8], 0.25, 0.001, 2000
+dimList, DropR, LR, epochs  = [400] + 10*[200], 0.0, 0.001, 2000
+
+vmd.reportFreq = 10
 vmd.model = NewTransModel(dimList, X, Y, DropR, rbfDim=20)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
