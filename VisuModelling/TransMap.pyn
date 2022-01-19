@@ -9,7 +9,7 @@ Y = GetMapData('Y1')
 vmd.ds = TrainDataset(X, Y, batchSize=25)
 
 #dimList, DropR, LR, epochs  = [256, 128, 64, 32, 16, 8], 0.25, 0.001, 2000
-dimList, DropR, LR, epochs  = [400] + 10*[200], 0.0, 0.001, 2000
+dimList, DropR, LR, epochs  = [400] + 10*[200], 0.0, 0.0005, 3000
 
 vmd.reportFreq = 10
 vmd.model = NewTransModel(dimList, X, Y, DropR, rbfDim=20)
