@@ -16,3 +16,4 @@ TsneDx/SP500_pc.csv
 /WaveTransforms/VisuMap.exe
 /WaveTransforms/VisuMap.exe.config
 /DataLink/__pycache__/DataLinkCmd.cpython-36.pyc
+/DataLink/__pycache__/DataLinkCmd.cpython-37.pyc

@@ -11,10 +11,11 @@ namespace VisuMap.DataLink {
     public class PythonEngine : IScriptPlugin, IDisposable {
         const string scriptPrefix = "@";
         string scriptEditor = "notepad" ;
-        string pythonProgamm = "python";
+        string pythonProgamm;
 
         public PythonEngine() {
             scriptEditor = DataLink.App.ScriptApp.GetProperty("DataLink.PythonEditor", scriptEditor);
+            pythonProgamm = DataLink.App.ScriptApp.GetProperty("DataLink.PythonProg", "python.exe");
         }
 
         public string ScriptEditor { get => scriptEditor; set => scriptEditor = value; }
