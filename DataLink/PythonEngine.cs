@@ -76,6 +76,11 @@ namespace VisuMap.DataLink {
         }
 
         static void CallCmd(string progName, string argList, bool showWindow) {
+            int idx = progName.IndexOf(' ');
+            if ( idx > 0) {
+                argList = progName.Substring(idx) + " " + argList;
+                progName = progName.Substring(0, idx);
+            }
             var proc = StartCmd(progName, argList, showWindow);
             while (!proc.WaitForExit(100))
                 Application.DoEvents();
