@@ -1,5 +1,5 @@
 var mgr = vv.GuiManager;
-mgr.SetCustomMenu("PyUtils/UMAP", true, "UMapRun.py", "MainForm|Heatmap", null);
+mgr.SetCustomMenu("PyUtils/UMAP", true, "UMapRun.py", "MainForm|HeatMap", null);
 
 vv.SetProperty("DataLink.CmdPort", "8877", "DataLink command IP port. Restart needed after change");
 vv.SetProperty("DataLink.PythonEditor", "notepad", "Path to the python script editor.");
