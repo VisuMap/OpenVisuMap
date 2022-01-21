@@ -82,6 +82,9 @@ def GetMapData(mapName = None):
 		D[n] = [b.X, b.Y] if outDim == 2 else [b.X, b.Y, b.Z]
 	return D
 
+def GetMaps(*arg):
+	return map(GetMapData, list(arg))
+
 def GetClusterData(mapName = None):
 	_, bList = GetBodyList(mapName)
 	N = bList.Count

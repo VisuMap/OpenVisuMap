@@ -3,14 +3,17 @@ vv.Import('CommonUtil.pyn')
 vv.Import('VsModelling.pyn')
 InitVmd()
 vmd.Clear()
+vmd.reportFreq = 10
 
-X = GetMapData('X1')
-Y = GetMapData('Y1')
+X, Y, tX, tY = GetMaps('X1', 'Y1', 'tX', 'tY')
 vmd.ds = TrainDataset(X, Y, batchSize=25)
 
-#dimList, DropR, LR, epochs  = [256, 128, 64, 32, 16, 8], 0.25, 0.001, 2000
-dimList, DropR, LR, epochs  = [400] + 10*[200], 0.0, 0.0005, 3000
+dimList, DropR, LR, epochs  = [400, 300, 200, 100, 50], 0.25, 0.0001, 2000
+#dimList, DropR, LR, epochs  = [400] + 10*[200], 0.25, 0.0005, 3000
+#dimList, DropR, LR, epochs  = [400] + 5*[20, 200], 0.0, 0.0005, 2000
 
-vmd.reportFreq = 10
 vmd.model = NewTransModel(dimList, X, Y, DropR, rbfDim=20)
-TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
+
+for n in range(2):
+	TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
+	ShowPred(vmd.model, tX, tY)
