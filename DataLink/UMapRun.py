@@ -8,7 +8,7 @@ import numpy as np
 mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['e']
 initType = ['spectral', 'random'][0]
 repeats, epochs = 1, 2000
-mapDim, nn, md, lc, ns = 3, 2000, 0.25, 5.0, 25
+mapDim, nn, md, lc, ns, sp = 3, 2000, 0.25, 5.0, 25, 0.5
 randomizeOrder = True
 
 log = DataLinkCmd.DataLinkCmd()
@@ -40,10 +40,10 @@ for k in range(repeats):
     t0 = time.time()
     um = umap.UMAP(n_neighbors=nn, min_dist=md, local_connectivity=lc, 
         n_components=mapDim, metric=mtr, negative_sample_rate=ns,
-        n_epochs=epochs, init=initType, learning_rate=1, verbose=True)
+        n_epochs=epochs, init=initType, learning_rate=1, verbose=True, spread=sp)
     map = um.fit_transform(ds)
     tm = time.time() - t0
-    title = 'UMAP: Neighbors: %d, MinDist: %g, LocCnt: %g, N.Smpl: %d, Metric: %s, Time: %.1f'%(nn, md, lc, ns, mtr, tm)
+    title = 'UMAP: Neighbors: %d, MinDist: %g, LocCnt: %g, N.Smpl: %d, Spread: %.1f, Metric: %s, Time: %.1f'%(nn, md, lc, ns, sp, mtr, tm)
     
     if randomizeOrder: # reverse the random order.
         map = map[perm]
