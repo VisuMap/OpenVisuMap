@@ -64,7 +64,7 @@ def ShowMap(nt, map=None):
 
 def ReportTraining(epoch, cost):
 	vmd.log.AddStep(float(cost))
-	vmd.log.Title = 'Eochs: %d, Cost: %.3f'%(epoch+1, cost)
+	vmd.log.Title = 'Epochs: %d, Cost: %.3f'%(epoch+1, cost)
 
 def GetBodyList(mapName = None):
 	if mapName == None:
