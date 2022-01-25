@@ -10,12 +10,7 @@ tX, tY = X, Y
 #X, Y, tX, tY = GetMaps('X1', 'Y1', 'tX', 'tY')
 vmd.ds = TrainDataset(X, Y, batchSize=25)
 
-dimList, DropR, LR, epochs  = [800, 400, 200], 0.0, 0.00025, 2000
-#dimList, DropR, LR, epochs  = [800, 400, 200], 0.0, 0.00025, 3000
-#dimList, DropR, LR, epochs  = [400, 300, 200, 100, 50], 0.25, 0.0001, 2000
-
+dimList, DropR, LR, epochs  = [800, 400, 200], 0.0, 0.00025, 3000
 vmd.model = NewTransModel(dimList, X, Y, DropR, rbfDim=4096)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
 vmd.logMap.NewSnapshot()
-vmd.model = NewTransModel(dimList, X, Y, DropR, rbfDim=4096)
-TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)

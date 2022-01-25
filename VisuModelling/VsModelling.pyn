@@ -50,11 +50,10 @@ class InScaling(keras.layers.Layer):
 class RBFLayer(keras.layers.Layer):
 	def __init__(self, X, K):
 		super(RBFLayer, self).__init__()
-		N, minV, maxV = X.shape[0], np.min(X, axis=0), np.max(X, axis=0)
+		N = X.shape[0]
 		self.centers = X[ [k*73%N for k in range(K)] ]
-		sigma = np.max(maxV - minV)/(3.0*math.sqrt(K))
-		self.betas = 0.5/sigma**2
-
+		s = (np.max(X) - np.min(X))/(4.0*math.sqrt(K))
+		self.betas  = 1.0/(2*s*s)
 	def call(self, X):
 		# the following block is from 
 		#   https://github.com/PetraVidnerova/rbf_for_tf2/blob/master/rbflayer.py
@@ -155,7 +154,7 @@ def NewMapModel(layerDims, X, Y, dropoutRatio=0.25):
 	md.add( InScaling(X) )
 	for k, dim in enumerate(layerDims):
 		md.add( DenseLayer(dim, 'leaky_relu') )
-		if (k == 0) and (dropoutRatio>0): 
+		if (k==0) and (dropoutRatio>0): 
 			md.add(keras.layers.Dropout(dropoutRatio))
 	md.add( DenseLayer(Y.shape[1], 'sigmoid') )
 	md.add( OutScaling(Y, gape=0.0) )
@@ -174,7 +173,6 @@ def NewTransModel(layerDims, X, Y, dropoutRatio=0.25, rbfDim=256):
 	md.add( OutScaling(Y, gape=0.0) )
 	md.modelType = vmd.REGRESSION
 	return md
-
 
 def NewCluster(layerDims, X, Y, dropoutRatio=0.25):
 	md = keras.Sequential()
