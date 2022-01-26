@@ -60,6 +60,29 @@ class RBFLayer(keras.layers.Layer):
 		H = tf.transpose(tf.expand_dims(self.centers, -1) - tf.transpose(X))
 		return tf.exp(-self.betas * tf.math.reduce_sum(H**2, axis=1))
 
+class TrainDataset():
+	def __init__(self, X, Y, batchSize=25, shuffle=True, sortKey=None):
+		if X.shape[0] != Y.shape[0]:
+			vv.Message(f'Input and Output data have different size: {X.shape[0]} != {Y.shape[0]}')
+			vv.Return()
+		N = X.shape[0]
+		if sortKey is not None:
+			idxList = np.argsort(sortKey)
+			sX, sY = X[idxList], Y[idxList]
+		else:
+			sX, sY = X, Y					
+		if shuffle:
+			idxList = np.arange(N)
+			np.random.shuffle(idxList)
+			sX, sY = sX[idxList], sY[idxList]
+		self.tensors = []
+		for p in range(0, N, batchSize):
+			q = min(p+batchSize, N)
+			self.tensors.append((
+				tf.convert_to_tensor(sX[p:q]), 
+				tf.convert_to_tensor(sY[p:q]) ))
+		self.X = X
+		self.Y = Y
 #-------------------------------------------------------------------------
 
 def InitVmd():
@@ -105,25 +128,6 @@ def ClusterLogger(epoch, cost):
 		vmd.logMap = New.MapSnapshot(True).Show()
 	P = GetClusterPred(vmd.model, vmd.ds.X)
 	ShowClusterPred(P, epoch, cost, vmd.logMap)
-
-def ShuffleDataset(X, Y):
-	idxList = np.arange(X.shape[0])
-	np.random.shuffle(idxList)
-	X = np.take(X, idxList, axis=0)
-	Y = np.take(Y, idxList, axis=0)
-
-def TrainDataset(X, Y, batchSize=25):
-		if X.shape[0] != Y.shape[0]:
-			vv.Message(f'Input and Output data have different size: {X.shape[0]} != {Y.shape[0]}')
-			vv.Return()
-		ds = tf.data.Dataset.from_tensor_slices((X, Y))
-		ds = ds.shuffle(buffer_size=1024).batch(batch_size=batchSize)
-		ds.tensors = []
-		for bX, bY in ds:
-			ds.tensors.append( (tf.convert_to_tensor(bX), tf.convert_to_tensor(bY)) )
-		ds.X = X
-		ds.Y = Y
-		return ds
 
 def ShowModel(md):
 	md.summary(print_fn = lambda x: vv.Echo(x))
@@ -203,7 +207,7 @@ def TrainModel(vmd, epochs, initial_lr=0.00025, logCallback=None):
 	else:
 		lossFct = keras.losses.CategoricalCrossentropy()
 
-	epochBatches = len(list(vmd.ds))
+	epochBatches = len(vmd.ds.tensors)
 	totalBatches = epochs * epochBatches
 	lr_schedule = keras.optimizers.schedules.ExponentialDecay(
 		initial_learning_rate=initial_lr,
