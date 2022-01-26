@@ -10,7 +10,11 @@ X, Y = GetMaps('Tst', '2D')
 sKey = np.array([b.Type for b in vv.Dataset.BodyListEnabled()])
 vmd.ds = TrainDataset(X, Y, batchSize=25, shuffle=False, sortKey=sKey)
 
-dimList, DropR, LR, rbfs, epochs  = [800, 400, 200], 0.0, 0.00025, 4096, 3000
+rbfs, dimList, DropR, LR, epochs  = 1600, [800, 400, 200, 100, 100, 100], 0.0, 0.0005, 3000
 
 vmd.model = NewTransModel(dimList, X, Y, DropR, rbfDim=rbfs)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
+ShowPred(vmd.model, X, Y)
+vmd.model = NewTransModel(dimList, X, Y, DropR, rbfDim=rbfs)
+TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
+

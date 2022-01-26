@@ -65,24 +65,31 @@ class TrainDataset():
 		if X.shape[0] != Y.shape[0]:
 			vv.Message(f'Input and Output data have different size: {X.shape[0]} != {Y.shape[0]}')
 			vv.Return()
-		N = X.shape[0]
 		if sortKey is not None:
 			idxList = np.argsort(sortKey)
 			sX, sY = X[idxList], Y[idxList]
 		else:
 			sX, sY = X, Y					
 		if shuffle:
-			idxList = np.arange(N)
+			idxList = np.arange(X.shape[0])
 			np.random.shuffle(idxList)
 			sX, sY = sX[idxList], sY[idxList]
 		self.tensors = []
-		for p in range(0, N, batchSize):
-			q = min(p+batchSize, N)
-			self.tensors.append((
-				tf.convert_to_tensor(sX[p:q]), 
-				tf.convert_to_tensor(sY[p:q]) ))
-		self.X = X
-		self.Y = Y
+		for p in range(0, X.shape[0], batchSize):
+			q = p+batchSize
+			self.tensors.append(( tf.convert_to_tensor(sX[p:q]), tf.convert_to_tensor(sY[p:q]) ))
+		self.X, self.Y = X, Y
+
+	def __iter__(self):
+		self.idxTensor = 0
+		return self
+	def __next__(self):
+		if self.idxTensor < len(self.tensors):
+			result = self.tensors[self.idxTensor]
+			self.idxTensor += 1
+			return result
+		else:
+			raise StopIteration
 #-------------------------------------------------------------------------
 
 def InitVmd():
@@ -223,7 +230,7 @@ def TrainModel(vmd, epochs, initial_lr=0.00025, logCallback=None):
 	startTime = time.time()
 	for epoch in range(epochs):
 		cost = 0
-		for bX, bY in vmd.ds.tensors:
+		for bX, bY in vmd.ds:
 			cost += train_step(vmd.model, optimizer, lossFct, bX, bY)
 		vv.DoEvents()
 		cost /= epochBatches
