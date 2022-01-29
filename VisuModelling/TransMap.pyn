@@ -32,6 +32,13 @@ def NewTransModel(layerDims, X, Y, dropoutRatio=0.25, rbfDim=256):
 	md.lossFct = keras.losses.MeanSquaredError()
 	return md
 
+def Logger(epoch, cost):
+	vmd.OpenLogMap()
+	P = vmd.model(vmd.ds.X, training=False).numpy()
+	vmd.logMap.MoveBodiesTo(mm.ToMatrix32(P))
+	err = np.mean(np.linalg.norm(vmd.ds.Y-P, axis=1))
+	vmd.logMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f},  L2: {err:.2f}'
+
 #X, Y, tX, tY = GetMaps('X1', 'Y1', 'tX', 'tY')
 X, Y = GetMaps('Tst', '2D')
 sKey = np.array([b.Type for b in vv.Dataset.BodyListEnabled()])
@@ -40,5 +47,5 @@ vmd.ds = TrainDataset(X, Y, batchSize=25, shuffle=False, sortKey=sKey)
 rbfs,dimList,DropR,LR,epochs = 2048, [200]+6*[100], 0.0,0.0005,3000
 
 vmd.model = NewTransModel(dimList, X, Y, DropR, rbfDim=rbfs)
-TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
+TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
 ShowPred(vmd.model, X, Y)

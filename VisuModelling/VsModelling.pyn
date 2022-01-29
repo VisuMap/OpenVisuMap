@@ -10,7 +10,7 @@ class ModellingConfiguration:
 		self.log = None
 		self.logMap = None
 		self.reportFreq = 10
-		self.trainingTime = 0
+		self.trainingTime = 0		
 		self.REGRESSION = 100
 		self.CLUSTERING = 101
 		self.FULL_MODEL = 102
@@ -23,6 +23,7 @@ class ModellingConfiguration:
 	def Clear(self):
 		vv.Map.SelectedBodies=None
 		if self.model is not None:
+			del self.model.lossFct
 			del self.model
 			self.model = None
 		if self.ds is not None:
@@ -32,14 +33,18 @@ class ModellingConfiguration:
 			del self.ds
 			self.ds = None
 
+	def OpenLogMap(self):
+		if (self.logMap == None) or self.logMap.TheForm.IsDisposed:
+				self.logMap = New.MapSnapshot(True).Show()
+
 class OutScaling(keras.layers.Layer):
-	def __init__(self, X, gape=0.0125):
+	def __init__(self, Y, gape=0.0125):
 		super(OutScaling, self).__init__()
-		colMin, colMax = np.min(X, axis=0), np.max(X, axis=0) 
+		colMin, colMax = np.min(Y, axis=0), np.max(Y, axis=0) 
 		self.colScale = (colMax - colMin)/(1-2*gape)
 		self.colShift = 0.5*(colMax + colMin - self.colScale)
-	def call(self, X):
-		return self.colScale * X + self.colShift
+	def call(self, Y):
+		return self.colScale * Y + self.colShift
 
 class InScaling(keras.layers.Layer):
 	def __init__(self, X):
@@ -47,7 +52,6 @@ class InScaling(keras.layers.Layer):
 		self.inScale = float(4.0/(np.std(X) * X.shape[1]))
 	def call(self, X):
 		return self.inScale * X
-
 
 class TrainDataset():
 	def __init__(self, X, Y, batchSize=25, shuffle=True, sortKey=None):
@@ -111,25 +115,6 @@ def ShowClusterPred(T, epoch, cost, map):
 		map.Title = f'Clustering mismatchs: {mismatchs}'
 	else:
 		map.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f}, Mismatchs: {mismatchs}'
-
-def MapLogger(epoch, cost):
-	if (vmd.logMap == None) or vmd.logMap.TheForm.IsDisposed:
-			vmd.logMap = New.MapSnapshot(True).Show()
-	if vmd.model.modelType == vmd.REGRESSION:
-		P = vmd.model(vmd.ds.X, training=False).numpy()
-		vmd.logMap.MoveBodiesTo(mm.ToMatrix32(P))
-		err = np.mean(np.linalg.norm(vmd.ds.Y-P, axis=1))
-		vmd.logMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f},  L2: {err:.2f}'
-	elif vmd.model.modelType == vmd.CLUSTERING:
-		P = GetClusterPred(vmd.model, vmd.ds.X)
-		ShowClusterPred(P, epoch, cost, vmd.logMap)
-	elif vmd.model.modelType == vmd.FULL_MODEL:
-		mD = vmd.model.mapDim		
-		P = vmd.model(vmd.ds.X, training=False).numpy()
-		vmd.logMap.MoveBodiesTo(mm.ToMatrix32(P[:,:mD]))
-		err = np.mean(np.linalg.norm(vmd.ds.Y[:, :mD]-P[:, :mD], axis=1))
-		misses = 123
-		vmd.logMap.Title = f'Epoch:{epoch+1}, Cost:{cost:.2f}, L2:{err:.2f}, MisMatches:{misses}'
 
 def ShowModel(md):
 	md.summary(print_fn = lambda x: vv.Echo(x))

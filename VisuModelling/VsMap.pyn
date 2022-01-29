@@ -13,17 +13,17 @@ Yc = GetClusterData()
 X = GetDatasetData()
 Y = tf.concat([Ym, Yc], axis=1)
 vmd.ds = TrainDataset(X, Y)
-dimList, DropR, LR, epochs  = [128, 64, Y.shape[1]], 0.5, 0.001, 1000
+dimList, DropR, LR, epochs  = [128, 64, 32], 0.5, 0.001, 1000
 mapDim = Ym.shape[1]
 
 class FullMapLoss():
 	def __init__(self, mapDim):
 		self.mapDim = mapDim
-		self.mse = keras.losses.MeanSquaredError()
-		self.entropy = keras.losses.CategoricalCrossentropy()
+		self.MSE = keras.losses.MeanSquaredError()
+		self.Entropy = keras.losses.CategoricalCrossentropy()
 	def __call__(self, Y, pY):
 		mD = self.mapDim
-		return self.mse(Y[:,:mD], pY[:,:mD]) + self.entropy(Y[:, mD:], pY[:, mD:])
+		return self.MSE(Y[:,:mD], pY[:,:mD]) + self.Entropy(Y[:, mD:], pY[:, mD:])
 
 class MapOutLayer(keras.layers.Layer):
 	def __init__(self, Y, mapDim, clusterDim):
@@ -55,8 +55,16 @@ def NewFullModel(layerDims, X, Y, mapDim, dropoutRatio=0.25):
 	md.mapDim = mapDim
 	return md
 
+def Logger(epoch, cost):
+	vmd.OpenLogMap()
+	mD = vmd.model.mapDim		
+	P = vmd.model(vmd.ds.X, training=False).numpy()
+	vmd.logMap.MoveBodiesTo(mm.ToMatrix32(P[:,:mD]))
+	err = np.mean(np.linalg.norm(vmd.ds.Y[:, :mD]-P[:, :mD], axis=1))
+	misses = 123
+	vmd.logMap.Title = f'Epoch:{epoch+1}, Cost:{cost:.2f}, L2:{err:.2f}, MisMatches:{misses}'
+
 vmd.model = NewFullModel(dimList, X, Y, mapDim, DropR)
 
-TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
+TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
 
-#ShowPred(vmd.model, X, Y)

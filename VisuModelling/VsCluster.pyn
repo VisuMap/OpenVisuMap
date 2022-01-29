@@ -22,10 +22,15 @@ def NewCluster(layerDims, X, Y, dropoutRatio=0.25):
 	md.lossFct = keras.losses.CategoricalCrossentropy()
 	return md
 
+def Logger(epoch, cost):
+	vmd.OpenLogMap()
+	P = GetClusterPred(vmd.model, vmd.ds.X)
+	ShowClusterPred(P, epoch, cost, vmd.logMap)
+
 X, Y = GetDatasetData(), GetClusterData()
 vmd.ds = TrainDataset(X, Y)
-dimList, DropR, LR, epochs  = [128, 64, Y.shape[1]], 0.5, 0.001, 1000
+dimList, DropR, LR, epochs  = [128, 64, 32], 0.5, 0.001, 1000
 
 vmd.model = NewCluster(dimList, X, Y, DropR)
-TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=MapLogger)
+TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
 ShowPred(vmd.model, X, Y)
