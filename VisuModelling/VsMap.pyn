@@ -3,18 +3,11 @@
 # Train a model to the current map together with its clustering.
 #
 #------------------------------------------------------------------------
+
 vv.Import('CommonUtil.pyn')
 vv.Import('VsModelling.pyn')
 InitVmd()
 vmd.Clear()
-
-Ym = GetMapData()
-Yc = GetClusterData()
-X = GetDatasetData()
-Y = tf.concat([Ym, Yc], axis=1)
-vmd.ds = TrainDataset(X, Y)
-dimList, DropR, LR, epochs  = [128, 64, 32], 0.5, 0.001, 1000
-mapDim = Ym.shape[1]
 
 class FullMapLoss():
 	def __init__(self, mapDim):
@@ -37,7 +30,8 @@ class MapOutLayer(keras.layers.Layer):
 		self.colShift = 0.5*(colMax + colMin - self.colScale)
 
 	def call(self, X):		
-		Ymap = self.colScale * self.mapFct(X) + self.colShift
+		Ymap = self.mapFct(X)
+		Ymap = self.colScale * Ymap + self.colShift
 		Ycluster = self.Softmax(self.clusterFct(X))
 		return tf.concat([Ymap, Ycluster], axis=1)
 
@@ -59,12 +53,28 @@ def Logger(epoch, cost):
 	vmd.OpenLogMap()
 	mD = vmd.model.mapDim		
 	P = vmd.model(vmd.ds.X, training=False).numpy()
-	vmd.logMap.MoveBodiesTo(mm.ToMatrix32(P[:,:mD]))
+	vmd.logMap.MoveBodiesTo(mm.ToMatrix32(P[:,:mD].copy()))
 	err = np.mean(np.linalg.norm(vmd.ds.Y[:, :mD]-P[:, :mD], axis=1))
-	misses = 123
-	vmd.logMap.Title = f'Epoch:{epoch+1}, Cost:{cost:.2f}, L2:{err:.2f}, MisMatches:{misses}'
+	misses = 0
+	for k, b in enumerate(vmd.logMap.BodyList):
+		maxIdx = mD + np.argmax(P[k, mD:])	
+		if vmd.ds.Y[k, maxIdx] != 1.0:
+			misses += 1
+			b.Highlighted = True
+		else:
+			b.Highlighted = False
+	vmd.logMap.RedrawBodies()
+	vmd.logMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f}, L2: {err:.2f}, MisMatches: {misses}'
 
-vmd.model = NewFullModel(dimList, X, Y, mapDim, DropR)
+#------------------------------------------------------------------------
 
+X = GetDatasetData()
+Ym = GetMapData()
+Yc = GetClusterData()
+Y = tf.concat([Ym, Yc], axis=1)
+vmd.ds = TrainDataset(X, Y)
+dimList, DropR, LR, epochs  = [128, 64, 32], 0.0, 0.0005, 2000
+
+vmd.model = NewFullModel(dimList, X, Y, Ym.shape[1], DropR)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
 

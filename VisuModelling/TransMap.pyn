@@ -1,4 +1,8 @@
-# VsTrain.pyn
+# TransMap.pyn
+# 
+# Train models to transform MDS map to another MDS maps.
+#------------------------------------------------------------------------------
+
 vv.Import('CommonUtil.pyn')
 vv.Import('VsModelling.pyn')
 InitVmd()
