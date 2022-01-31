@@ -49,8 +49,7 @@ elif opLabel == 'Load':
 			md.lossFct = keras.losses.MeanSquaredError()
 		else:
 			mdType = 'FullMap'
-			#outLayer = md.layers[len(md.layers)-1]
-			md.mapDim = 2
+			md.mapDim = 3 if md.name.endswith('3') else 2
 			md.lossFct = FullMapLoss(md.mapDim)
 		vmd.model = md
 		vv.Message(f'Loaded model: {mdType} {vmd.model.input_shape[1]}=>{vmd.model.output_shape[1]}')
