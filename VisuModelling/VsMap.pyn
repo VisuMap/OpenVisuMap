@@ -64,10 +64,10 @@ Ym = GetMapData()
 Yc = GetClusterData()
 Y = tf.concat([Ym, Yc], axis=1)
 vmd.ds = TrainDataset(X, Y)
-dimList, DropR, LR, epochs  = [512, 256, 128], 0.25, 0.0005, 500
+dimList, DropR, LR, epochs  = [256, 128, 64, 32], 0.25, 0.0005, 2000
 vmd.reportFreq = 10
 
 vmd.model = NewFullModel(dimList, X, Y, Ym.shape[1], DropR)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
-ShowPred(vmd.model, X, Y)
+#ShowPred(vmd.model, X, Y)
 

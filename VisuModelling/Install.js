@@ -2,9 +2,10 @@
 //
 var mgr = vv.GuiManager;
 var icon = vv.CurrentScriptDirectory + "\\Modelling.png";
-mgr.SetCustomButton("VisuModelling/Train", icon, "VsTrain.pyn");
-mgr.SetCustomButton("VisuModelling/Cluster", null, "VsCluster.pyn");
+mgr.SetCustomButton("VisuModelling/Learn Mapping", icon, "VsMap.pyn");
 mgr.SetCustomButton("VisuModelling/*", null, "VsOperations.pyn");
+mgr.SetCustomButton("VisuModelling/Learn Scaling", null, "VsTrain.pyn");
+mgr.SetCustomButton("VisuModelling/Learn Clustering", null, "VsCluster.pyn");
 
 /*
 For using Pytorch library:
