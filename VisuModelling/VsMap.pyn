@@ -69,5 +69,6 @@ vmd.reportFreq = 10
 
 vmd.model = NewFullModel(dimList, X, Y, Ym.shape[1], DropR)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
-#ShowPred(vmd.model, X, Y)
+ShowPred(vmd.model, X, Y)
+
 

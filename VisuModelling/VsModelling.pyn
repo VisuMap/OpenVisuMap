@@ -54,14 +54,16 @@ class InScaling(keras.layers.Layer):
 		return self.inScale * X
 
 class FullMapLoss(tf.keras.losses.Loss):
-	def __init__(self, mapDim):
+	def __init__(self, mapDim, cBias=0.9):
 		super(FullMapLoss, self).__init__()
 		self.mapDim = mapDim
 		self.MSE = keras.losses.MeanSquaredError()
 		self.Entropy = keras.losses.CategoricalCrossentropy()
+		self.cBias = cBias
+		self.rBias = 1.0 - cBias
 	def __call__(self, Y, pY):
 		mD = self.mapDim
-		return self.MSE(Y[:,:mD], pY[:,:mD]) + self.Entropy(Y[:, mD:], pY[:, mD:])
+		return self.rBias*self.MSE(Y[:,:mD], pY[:,:mD]) + self.cBias * self.Entropy(Y[:, mD:], pY[:, mD:])
 
 class TrainDataset():
 	def __init__(self, X, Y, batchSize=25, shuffle=True, sortKey=None):
@@ -198,16 +200,18 @@ def TrainModel(vmd, epochs, initial_lr=0.00025, logCallback=None):
 	vmd.EnableLog()
 	vmd.stopTraining = False
 	startTime = time.time()
-	for epoch in range(epochs):
+
+	for epoch in range(epochs):  
 		cost = 0
 		for bX, bY in vmd.ds:
 			cost += train_step(vmd.model, optimizer, vmd.model.lossFct, bX, bY)
 		vv.DoEvents()
-		cost /= epochBatches
+		cost /= epochBatches		
 		if vmd.stopTraining:
 			break
 		if ((epoch + 1) % vmd.reportFreq == 0):
 			ReportTraining(epoch, cost)
 			if logCallback != None:
 				logCallback(epoch, cost)
+
 	vmd.trainingTime = time.time() - startTime
