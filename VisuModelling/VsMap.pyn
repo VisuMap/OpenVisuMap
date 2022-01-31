@@ -9,18 +9,9 @@ vv.Import('VsModelling.pyn')
 InitVmd()
 vmd.Clear()
 
-class FullMapLoss():
-	def __init__(self, mapDim):
-		self.mapDim = mapDim
-		self.MSE = keras.losses.MeanSquaredError()
-		self.Entropy = keras.losses.CategoricalCrossentropy()
-	def __call__(self, Y, pY):
-		mD = self.mapDim
-		return self.MSE(Y[:,:mD], pY[:,:mD]) + self.Entropy(Y[:, mD:], pY[:, mD:])
-
 class MapOutLayer(keras.layers.Layer):
 	def __init__(self, Y, mapDim, clusterDim):
-		super(MapOutLayer, self).__init__()
+		super(MapOutLayer, self).__init__(name='FullMapOut')
 		self.mapFct = DenseLayer(mapDim, 'sigmoid')
 		self.clusterFct = DenseLayer(clusterDim, 'leaky_relu')
 		self.Softmax = keras.layers.Softmax(name='Softmax')
@@ -28,6 +19,7 @@ class MapOutLayer(keras.layers.Layer):
 		colMin, colMax = np.min(Ym, axis=0), np.max(Ym, axis=0) 
 		self.colScale = colMax - colMin
 		self.colShift = 0.5*(colMax + colMin - self.colScale)
+		self.mapDim = mapDim
 
 	def call(self, X):		
 		Ymap = self.mapFct(X)
@@ -46,7 +38,7 @@ def NewFullModel(layerDims, X, Y, mapDim, dropoutRatio=0.25):
 	md.add( MapOutLayer(Y, mapDim, Y.shape[1] - mapDim) )
 	md.modelType = vmd.FULL_MODEL
 	md.lossFct = FullMapLoss(mapDim)
-	md.mapDim = mapDim
+	md.mapDim = tf.constant(mapDim)
 	return md
 
 def Logger(epoch, cost):
@@ -73,8 +65,8 @@ Ym = GetMapData()
 Yc = GetClusterData()
 Y = tf.concat([Ym, Yc], axis=1)
 vmd.ds = TrainDataset(X, Y)
-dimList, DropR, LR, epochs  = [128, 64, 32], 0.0, 0.0005, 2000
+dimList, DropR, LR, epochs  = [512, 256, 128], 0.25, 0.0005, 500
 
 vmd.model = NewFullModel(dimList, X, Y, Ym.shape[1], DropR)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
-
+ShowPred(vmd.model, X, Y)

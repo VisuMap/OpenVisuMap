@@ -4,7 +4,6 @@
 #
 vv.Import('VsModelling.pyn')
 vv.Import('CommonUtil.pyn')
-
 InitVmd()
 
 opLabel = vv.EventSource.Item
@@ -14,12 +13,22 @@ def CheckModel():
 		vv.Message('No model has been created!')
 		vv.Return()
 
-def IsCluster(md):
-	try:
-		cLayer = md.get_layer('ClstLayer')
-		return True		
-	except:
-		return False
+def GetInputData(md):
+	X = GetDatasetData()
+	if X.shape[1] != md.input_shape[1]:
+		vv.Message("The model input dimension doesn't match that of the current table: %d != %d"%(
+			md.input_shape[1], X.shape[1]))
+		vv.Return()
+	return X
+
+def GetModelType(md):
+	outLayer = md.layers[len(md.layers)-1]
+	if outLayer.name == 'ClstLayer':
+		return vmd.CLUSTERING
+	elif outLayer.name == 'FullMapOut':
+		return vmd.FULL_MODEL
+	else:
+		return vmd.REGRESSION
 
 if opLabel == 'Save':
 	CheckModel()
@@ -30,19 +39,33 @@ if opLabel == 'Save':
 elif opLabel == 'Load':
 	mdPath = PromptOpenDirectory()
 	if mdPath != '':
-		vmd.model = tf.keras.models.load_model(mdPath)
-		if IsCluster(vmd.model):
-			vmd.model.modelType = vmd.CLUSTERING
+		md = tf.keras.models.load_model(mdPath)
+		md.modelType = GetModelType(md)
+		if md.modelType == vmd.CLUSTERING:
 			mdType = 'Clustering'
-		else:
-			vmd.model.modelType = vmd.REGRESSION
+			md.lossFct = keras.losses.CategoricalCrossentropy()
+		elif md.modelType == vmd.REGRESSION:
 			mdType = 'Regression'
+			md.lossFct = keras.losses.MeanSquaredError()
+		else:
+			mdType = 'FullMap'
+			#outLayer = md.layers[len(md.layers)-1]
+			md.mapDim = 2
+			md.lossFct = FullMapLoss(md.mapDim)
+		vmd.model = md
 		vv.Message(f'Loaded model: {mdType} {vmd.model.input_shape[1]}=>{vmd.model.output_shape[1]}')
+		#ShowModel(md)
 elif opLabel == 'Eval':
 	CheckModel()
-	testData = GetDatasetData()
-	if testData.shape[1] != vmd.model.input_shape[1]:
+	testX = GetDatasetData()
+	if testX.shape[1] != vmd.model.input_shape[1]:
 		vv.Message("The model input dimension doesn't match that of the current table: %d != %d"%(
-			vmd.model.input_shape[1], testData.shape[1]))
+			vmd.model.input_shape[1], testX.shape[1]))
 		vv.Return()
-	ShowPred(vmd.model, testData, GetMapData())
+	if vmd.model.modelType == vmd.REGRESSION:
+		testY = GetMapData()
+	elif vmd.model.modelType == vmd.CLUSTERING:
+		testY = GetClusterData()
+	else:   # vmd.model.modelType == vmd.FULL_MODEL
+		testY = np.concatenate([GetMapData(), GetClusterData()], axis=1)
+	ShowPred(vmd.model, testX, testY)

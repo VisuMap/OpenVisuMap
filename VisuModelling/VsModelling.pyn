@@ -53,6 +53,16 @@ class InScaling(keras.layers.Layer):
 	def call(self, X):
 		return self.inScale * X
 
+class FullMapLoss(tf.keras.losses.Loss):
+	def __init__(self, mapDim):
+		super(FullMapLoss, self).__init__()
+		self.mapDim = mapDim
+		self.MSE = keras.losses.MeanSquaredError()
+		self.Entropy = keras.losses.CategoricalCrossentropy()
+	def __call__(self, Y, pY):
+		mD = self.mapDim
+		return self.MSE(Y[:,:mD], pY[:,:mD]) + self.Entropy(Y[:, mD:], pY[:, mD:])
+
 class TrainDataset():
 	def __init__(self, X, Y, batchSize=25, shuffle=True, sortKey=None):
 		if X.shape[0] != Y.shape[0]:
@@ -119,6 +129,15 @@ def ShowClusterPred(T, epoch, cost, map):
 def ShowModel(md):
 	md.summary(print_fn = lambda x: vv.Echo(x))
 
+def GetHits(mapDim, P, T):
+	N = P.shape[0]
+	hits = np.zeros(N, dtype=np.int8)
+	idxList = tf.math.argmax(P[:, mapDim:], axis=1).numpy() + mapDim
+	for k in range(N):
+		if T[k, idxList[k]] == 1.0:
+			hits[k] = 1
+	return hits
+
 def ShowPred(md, X, refY):
 	if md.modelType == vmd.REGRESSION:
 		P = vmd.model(X, training=False).numpy()
@@ -128,10 +147,27 @@ def ShowPred(md, X, refY):
 			map.Title = f'Predicated Map:  L2 Error: {err:.2f}, Time: {vmd.trainingTime:.1f}'
 		else:
 			map.Title = 'Predicated Map'
-	else:
+	elif md.modelType == vmd.CLUSTERING:
 		map = New.MapSnapshot(True).Show()
 		P = GetClusterPred(md, X)
 		ShowClusterPred(P, 0, 0, map)
+	else:  # vmd.FULL_MODEL
+		P = md(X, training=False).numpy()
+		mD = md.mapDim
+		Pm = P[:, :mD].copy()
+		Pc = np.argmax(P[:, mD:], axis=1)
+		map = ShowMap(Pm)
+		ShowClusterPred(Pc, 0, 0, map)
+		if refY is not None:
+			misses = P.shape[0] - np.sum( GetHits(mD, P, refY) )
+			err = np.mean(np.linalg.norm(refY[:,:mD]-Pm, axis=1))
+			map.Title = f'Predicated Map:  L2 Error: {err:.2f}, MisMatchs: {misses}, Time: {vmd.trainingTime:.1f}'
+		else:
+			map.Title = 'Predicated Map'
+
+'''
+ShowPred(vmd.model, X, Y)
+'''
 
 def DenseLayer(dim, activation):
 	return keras.layers.Dense(dim, activation=activation, use_bias=True,

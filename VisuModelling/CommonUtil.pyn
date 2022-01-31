@@ -50,15 +50,14 @@ def ShowHeatmap(nt, fileName):
 
 def ShowMap(nt, map=None):	
 	if map == None:
-		map = New.MapSnapshot(True)
-		map.Show()
+		map = New.MapSnapshot(True).Show()
 	bsList = map.BodyList
-	for i in range(bsList.Count):
-		b = bsList[i]
-		if nt.shape[1] ==  2:
-			[b.X, b.Y] = nt[i]
-		else:
-			[b.X, b.Y, b.Z] = nt[i]
+	is3D = (nt.shape[1] == 3)
+	for i, b in enumerate(bsList):
+		R = nt[i]
+		b.X = R[0]
+		b.Y = R[1]
+		b.Z = R[2] if is3D else 0
 	map.RedrawBodiesXyz()
 	return map
 
