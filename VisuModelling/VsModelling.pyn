@@ -167,10 +167,6 @@ def ShowPred(md, X, refY):
 		else:
 			map.Title = 'Predicated Map'
 
-'''
-ShowPred(vmd.model, X, Y)
-'''
-
 def DenseLayer(dim, activation):
 	return keras.layers.Dense(dim, activation=activation, use_bias=True,
 			kernel_initializer='glorot_uniform', bias_initializer='zeros')
