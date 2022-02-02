@@ -64,8 +64,9 @@ Ym = GetMapData()
 Yc = GetClusterData()
 Y = np.concatenate([Ym, Yc], axis=1)
 vmd.ds = TrainDataset(X, Y)
-dimList, DropR, LR, epochs  = [256, 128, 64, 32], 0.25, 0.0005, 2000
-vmd.reportFreq = 10
+#dimList, DropR, LR, epochs  = [256, 128, 64, 32], 0.25, 0.0005, 2000
+dimList, DropR, LR, epochs  = [256, 128, 64, 32], 0.25, 0.005, 2000
+vmd.reportFreq = 50
 
 vmd.model = NewFullModel(dimList, X, Y, Ym.shape[1], DropR)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)

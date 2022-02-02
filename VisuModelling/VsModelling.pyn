@@ -140,7 +140,7 @@ def GetHits(mapDim, P, T):
 			hits[k] = 1
 	return hits
 
-def ShowPred(md, X, refY):
+def ShowPred(md, X, refY=None):
 	if md.modelType == vmd.REGRESSION:
 		P = vmd.model(X, training=False).numpy()
 		map = ShowMap(P)
