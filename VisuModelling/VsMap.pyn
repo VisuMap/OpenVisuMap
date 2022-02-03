@@ -68,8 +68,21 @@ vmd.ds = TrainDataset(X, Y)
 dimList, DropR, LR, epochs  = [256, 128, 64, 32], 0.25, 0.005, 2000
 vmd.reportFreq = 50
 
-vmd.model = NewFullModel(dimList, X, Y, Ym.shape[1], DropR)
-TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
-ShowPred(vmd.model, X, Y)
+#vmd.model = NewFullModel(dimList, X, Y, Ym.shape[1], DropR)
+#TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
+#ShowPred(vmd.model, X, Y)
+
+tX = GetDatasetData('A1')
+tYm = GetMapData('A1')
+tYc = GetClusterData('A1')
+tY = np.concatenate([tYm, tYc], axis=1)
+
+for DropR in [0.15, 0.25, 0.35]:
+	vmd.model = NewFullModel(dimList, X, Y, Ym.shape[1], DropR)
+	TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
+	map = ShowPred(vmd.model, tX, tY, refMapName='A1')
+	vv.Echo(map.Title + f', DropR: {DropR}')
+	map.Close()
+
 
 

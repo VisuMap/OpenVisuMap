@@ -27,13 +27,24 @@ def Logger(epoch, cost):
 	P = vmd.model(vmd.ds.X, training=False).numpy()
 	vmd.logMap.MoveBodiesTo(mm.ToMatrix32(P))
 	err = np.mean(np.linalg.norm(vmd.ds.Y-P, axis=1))
-	vmd.logMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f},  L2: {err:.2f}'
+	vmd.logMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.4f},  L2: {err:.2f}'
 
+vmd.reportFreq = 50
 X, Y = GetDatasetData(), GetMapData()
 inDim, outDim = X.shape[1], Y.shape[1]
 vmd.ds = TrainDataset(X, Y, batchSize=25)
-dimList, DropR, LR, epochs = [inDim, 256, 128, 64, 32], 0.25, 0.00025, 2000
+dimList, DropR, LR, epochs = [inDim, 256] + 3*[128], 0.30, 0.001, 1500 # 14.05
 
 vmd.model = NewMapModel(dimList, X, Y, DropR)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
 ShowPred(vmd.model, X, Y)
+
+'''
+tX, tY = GetDatasetData('A1'), GetMapData('A1')
+for k in [1, 2]:
+	vmd.model = NewMapModel(dimList, X, Y, DropR)
+	TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)	
+	map = ShowPred(vmd.model, tX, tY, refMapName='A1')
+	vv.Echo(map.Title + f', LR: {LR}')
+	map.Close()
+'''

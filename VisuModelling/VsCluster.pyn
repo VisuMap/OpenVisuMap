@@ -25,21 +25,23 @@ def NewCluster(layerDims, X, Y, dropoutRatio=0.25):
 def Logger(epoch, cost):
 	vmd.OpenLogMap()
 	P = GetClusterPred(vmd.model, vmd.ds.X)
-	ShowClusterPred(P, epoch, cost, vmd.logMap)
+	ShowClusterPred(P, epoch, cost, vmd.logMap, refY=vmd.ds.Y)
 
+vmd.reportFreq = 50
 X, Y = GetDatasetData(), GetClusterData()
 vmd.ds = TrainDataset(X, Y)
-#dimList, DropR, LR, epochs  = [128, 64, 32], 0.5, 0.001, 1000
-dimList, DropR, LR, epochs  = [128, 64, 32], 0.25, 0.001, 2000
+dimList, DropR, LR, epochs  = [256, 128], 0.5, 0.00025, 1500
 
 vmd.model = NewCluster(dimList, X, Y, DropR)
-TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
+TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)	
 ShowPred(vmd.model, X, Y)
 
 '''
-orgMapName = vv.Map.Name
-vv.Dataset.OpenMap('A1')
-tX, tY = GetDatasetData(), GetClusterData()
-ShowPred(vmd.model, tX, tY)
-vv.Dataset.OpenMap(orgMapName)
+tX, tY = GetDatasetData('A1'), GetClusterData('A1')
+for k in range(3):
+	vmd.model = NewCluster(dimList, X, Y, DropR)
+	TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)	
+	map = ShowPred(vmd.model, tX, tY, refMapName='A1')
+	vv.Echo(map.Title + f', P: {dim}')
+	map.Close()
 '''

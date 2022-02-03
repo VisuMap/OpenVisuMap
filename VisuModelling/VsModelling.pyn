@@ -110,23 +110,21 @@ def CheckGPU():
 def GetClusterPred(md, X):
 	return tf.math.argmax( md(X, training=False), axis=1).numpy()
 
-def ShowClusterPred(T, epoch, cost, map):
+def ShowClusterPred(P, epoch, cost, map, refY=None):
 	pBodyList = map.BodyList
 	for i, b in enumerate(pBodyList):
-		b.Type = T[i]
+		b.Type = P[i]
 	map.RedrawBodiesType()
-	mismatchs = 0
-	bList = vv.Dataset.BodyListEnabled()
-	for i in range(bList.Count):
-		if bList[i].Type != pBodyList[i].Type:
-			mismatchs += 1
-			pBodyList[i].Highlighted = True
-		else:
-			pBodyList[i].Highlighted = False
-	if cost == 0:
-		map.Title = f'Clustering mismatchs: {mismatchs}'
-	else:
-		map.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f}, Mismatchs: {mismatchs}'
+	mismatchs = 0	
+	if refY is not None:
+		refType = np.argmax(refY, axis=1)
+		for i, t in enumerate(refType):
+			if P[i] != t:
+				mismatchs += 1
+				pBodyList[i].Highlighted = True
+			else:
+				pBodyList[i].Highlighted = False
+		map.Title = f'Epoch: {epoch+1}, Cost: {cost:.2g}, Mismatchs: {mismatchs}'
 
 def ShowModel(md):
 	md.summary(print_fn = lambda x: vv.Echo(x))
@@ -140,32 +138,37 @@ def GetHits(mapDim, P, T):
 			hits[k] = 1
 	return hits
 
-def ShowPred(md, X, refY=None):
+def ShowPred(md, X, refY=None, refMapName=None):
+	if refMapName is None:
+		map = New.MapSnapshot(True).Show()
+	else:
+		map = New.MapSnapshot("", refMapName, True).Show()
+	if map.BodyList.Count != X.shape[0]:
+		vv.Message(f'Data size incompatible: {map.BodyList.Count} != {X.shape[0]}')
+		vv.Return(1)
+	map.Title = 'Predication'
+
 	if md.modelType == vmd.REGRESSION:
-		P = vmd.model(X, training=False).numpy()
-		map = ShowMap(P)
+		P = vmd.model(X, training=False).numpy()	
+		map = ShowMap(P, map)
 		if refY is not None:
 			err = np.mean(np.linalg.norm(refY-P, axis=1))
-			map.Title = f'Predicated Map:  L2 Error: {err:.2f}, Time: {vmd.trainingTime:.1f}'
-		else:
-			map.Title = 'Predicated Map'
+			map.Title = f'Predication:  L2: {err:.2f}, Time: {vmd.trainingTime:.1f}'
 	elif md.modelType == vmd.CLUSTERING:
-		map = New.MapSnapshot(True).Show()
 		P = GetClusterPred(md, X)
-		ShowClusterPred(P, 0, 0, map)
+		ShowClusterPred(P, 0, 0, map, refY)
 	else:  # vmd.FULL_MODEL
 		P = md(X, training=False).numpy()
 		mD = md.mapDim
 		Pm = P[:, :mD].copy()
 		Pc = np.argmax(P[:, mD:], axis=1)
-		map = ShowMap(Pm)
-		ShowClusterPred(Pc, 0, 0, map)
+		ShowMap(Pm, map)
+		ShowClusterPred(Pc, 0, 0, map, refY)
 		if refY is not None:
 			misses = P.shape[0] - np.sum( GetHits(mD, P, refY) )
 			err = np.mean(np.linalg.norm(refY[:,:mD]-Pm, axis=1))
-			map.Title = f'Predicated Map:  L2 Error: {err:.2f}, MisMatchs: {misses}, Time: {vmd.trainingTime:.1f}'
-		else:
-			map.Title = 'Predicated Map'
+			map.Title = f'Predication: L2: {err:.2f}, MisMatchs: {misses}, Time: {vmd.trainingTime:.1f}'
+	return map
 
 def DenseLayer(dim, activation):
 	return keras.layers.Dense(dim, activation=activation, use_bias=True,

@@ -103,7 +103,8 @@ def GetDatasetData(mapName = None):
 		ntTable = vv.GetNumberTableView(True)
 	else:
 		nt = vv.GetNumberTableView()
-		rowIds = mm.ListToList([b.Id for b in vv.Dataset.ReadMapBodyList(mapName, True)])	
+		bdList = vv.Dataset.ReadMapBodyList(mapName, True)
+		rowIds = mm.ToList([b.Id for b in bdList])	
 		ntTable = nt.SelectRowsByIdView(rowIds)
 	return mm.ToNumpy(ntTable).astype(np.float32)
 
