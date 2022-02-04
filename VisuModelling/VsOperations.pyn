@@ -21,15 +21,6 @@ def GetInputData(md):
 		vv.Return()
 	return X
 
-def GetModelType(md):
-	outLayer = md.layers[len(md.layers)-1]
-	if outLayer.name == 'ClstLayer':
-		return vmd.CLUSTERING
-	elif outLayer.name == 'FullMapOut':
-		return vmd.FULL_MODEL
-	else:
-		return vmd.REGRESSION
-
 if opLabel == 'Save':
 	CheckModel()
 	mdPath = PromptOpenDirectory()
@@ -40,17 +31,22 @@ elif opLabel == 'Load':
 	mdPath = PromptOpenDirectory()
 	if mdPath != '':
 		md = tf.keras.models.load_model(mdPath)
-		md.modelType = GetModelType(md)
-		if md.modelType == vmd.CLUSTERING:
+		if md.name == 'ClusterMd':
+			md.modelType = vmd.CLUSTERING
 			mdType = 'Clustering'
 			md.lossFct = keras.losses.CategoricalCrossentropy()
-		elif md.modelType == vmd.REGRESSION:
+		elif md.name == 'RegressionMd':
+			md.modelType = vmd.REGRESSION
 			mdType = 'Regression'
 			md.lossFct = keras.losses.MeanSquaredError()
-		else:
+		elif md.name.startswith('MapMd_'):
+			md.modelType = vmd.FULL_MODEL
 			mdType = 'FullMap'
 			md.mapDim = 3 if md.name.endswith('3') else 2
 			md.lossFct = FullMapLoss(md.mapDim)
+		else:
+			md.modelType = 0
+			mdType = "Unknown"
 		vmd.model = md
 		vv.Message(f'Loaded model: {mdType} {vmd.model.input_shape[1]}=>{vmd.model.output_shape[1]}')
 		#ShowModel(md)

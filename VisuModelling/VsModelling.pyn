@@ -199,12 +199,14 @@ def TrainModel(vmd, epochs, initial_lr=0.00025, logCallback=None):
 	vmd.EnableLog()
 	vmd.stopTraining = False
 	startTime = time.time()
-
+	batchCount = 0
 	for epoch in range(epochs):  
 		cost = 0
 		for bX, bY in vmd.ds:
 			cost += train_step(vmd.model, optimizer, vmd.model.lossFct, bX, bY)
-		vv.DoEvents()
+			batchCount += 1
+			if batchCount % 50 == 0:
+				vv.DoEvents()
 		cost /= epochBatches		
 		if vmd.stopTraining:
 			break

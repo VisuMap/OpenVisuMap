@@ -8,35 +8,28 @@ vv.Import('VsModelling.pyn')
 InitVmd()
 vmd.Clear()
 
-class MapOutLayer(keras.layers.Layer):
-	def __init__(self, Y, mapDim, clusterDim):
-		super(MapOutLayer, self).__init__(name='FullMapOut')
-		self.mapFct = DenseLayer(mapDim, 'sigmoid')
-		self.clusterFct = DenseLayer(clusterDim, 'leaky_relu')
-		self.Softmax = keras.layers.Softmax(name='Softmax')
-		Ym = Y[:,:mapDim]
-		colMin, colMax = np.min(Ym, axis=0), np.max(Ym, axis=0) 
-		self.colScale = colMax - colMin
-		self.colShift = 0.5*(colMax + colMin - self.colScale)
-
-	def call(self, X):		
-		Ymap = self.mapFct(X)
-		Ymap = self.colScale * Ymap + self.colShift
-		Ycluster = self.Softmax(self.clusterFct(X))
-		return tf.concat([Ymap, Ycluster], axis=1)
-
-def NewFullModel(layerDims, X, Y, mapDim, dropoutRatio=0.25):
+def NewFullModel(layerDims, X, Y, mapDim, dropoutRatio=0.25, cBias=0.9):
 	input = keras.Input(shape=(X.shape[1]))
 	P = InScaling(X)(input)
 	for k, dim in enumerate(layerDims):
 		P = DenseLayer(dim, 'leaky_relu')(P)
 		if (k == 0) and (dropoutRatio>0): 
 			P = keras.layers.Dropout(dropoutRatio)(P)
-	output = MapOutLayer(Y, mapDim, Y.shape[1] - mapDim)(P)
-	md = keras.Model(input, output, name=f'MapMd{mapDim}')
+
+	clusterDim = Y.shape[1] - mapDim
+	Pm = DenseLayer(mapDim, 'sigmoid')(P)
+	Pc = keras.layers.Softmax(name='Softmax')( DenseLayer(clusterDim, 'leaky_relu')(P) )
+	Ym = Y[:,:mapDim]
+	colMin, colMax = np.min(Ym, axis=0), np.max(Ym, axis=0) 
+	colScale = colMax - colMin
+	colShift = 0.5*(colMax + colMin - colScale)
+	Pm = colScale*Pm + colShift
+	output = tf.concat([Pm, Pc], axis=1, name='FullMapOut')
+
+	md = keras.Model(input, output, name=f'MapMd_{mapDim}')
 	md.modelType = vmd.FULL_MODEL
 	md.mapDim = mapDim
-	md.lossFct = FullMapLoss(mapDim)
+	md.lossFct = FullMapLoss(mapDim, cBias=cBias)
 	return md
 
 def Logger(epoch, cost):
@@ -64,7 +57,7 @@ Yc = GetClusterData()
 Y = np.concatenate([Ym, Yc], axis=1)
 vmd.ds = TrainDataset(X, Y)
 inDim = X.shape[1]
-dimList, DropR, LR, epochs  = [inDim, 256] + 3*[128], 0.3, 0.001, 1500
+dimList, DropR, LR, epochs  = [inDim, 256] + 3*[128], 0.65, 0.001, 1500
 vmd.reportFreq = 50
 
 vmd.model = NewFullModel(dimList, X, Y, Ym.shape[1], DropR)
@@ -77,7 +70,7 @@ tYm = GetMapData('A1')
 tYc = GetClusterData('A1')
 tY = np.concatenate([tYm, tYc], axis=1)
 
-for DropR in [0.15, 0.25, 0.35]:
+for DropR in [0.4, 0.5, 0.6]:
 	vmd.model = NewFullModel(dimList, X, Y, Ym.shape[1], DropR)
 	TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
 	map = ShowPred(vmd.model, tX, tY, refMapName='A1')
