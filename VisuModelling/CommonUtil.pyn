@@ -82,7 +82,10 @@ def GetMapData(mapName = None):
 	return D
 
 def GetMaps(*arg):
-	return map(GetMapData, list(arg))
+	tList = []
+	for nm in list(arg):
+		tList.append(GetMapData(nm))
+	return tList
 
 def GetClusterData(mapName = None):
 	_, bList = GetBodyList(mapName)

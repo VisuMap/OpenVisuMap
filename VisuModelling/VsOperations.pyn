@@ -21,6 +21,29 @@ def GetInputData(md):
 		vv.Return()
 	return X
 
+def AcceptModel(md):
+	nm = md.name
+	if nm == 'ClusterMd':
+		md.modelType = vmd.CLUSTERING
+		mdType = 'Clustering'
+		md.lossFct = keras.losses.CategoricalCrossentropy()
+	elif nm == 'RegressionMd':
+		md.modelType = vmd.REGRESSION
+		mdType = 'Regression'
+		md.lossFct = keras.losses.MeanSquaredError()
+	elif nm.startswith('MapMd_'):
+		md.modelType = vmd.FULL_MODEL
+		mdType = 'FullMap'
+		md.mapDim = 3 if md.name.endswith('3') else 2
+		md.lossFct = FullMapLoss(md.mapDim)
+	else:
+		md.modelType = vmd.REGRESSION
+		md.lossFct = keras.losses.MeanSquaredError()
+		mdType = "Unknown"
+	vv.Message(f'Loaded model: {mdType} {md.input_shape[1]}=>{md.output_shape[1]}')
+	#ShowModel(md)
+	return md
+
 if opLabel == 'Save':
 	CheckModel()
 	mdPath = PromptOpenDirectory()
@@ -30,26 +53,7 @@ if opLabel == 'Save':
 elif opLabel == 'Load':
 	mdPath = PromptOpenDirectory()
 	if mdPath != '':
-		md = tf.keras.models.load_model(mdPath)
-		if md.name == 'ClusterMd':
-			md.modelType = vmd.CLUSTERING
-			mdType = 'Clustering'
-			md.lossFct = keras.losses.CategoricalCrossentropy()
-		elif md.name == 'RegressionMd':
-			md.modelType = vmd.REGRESSION
-			mdType = 'Regression'
-			md.lossFct = keras.losses.MeanSquaredError()
-		elif md.name.startswith('MapMd_'):
-			md.modelType = vmd.FULL_MODEL
-			mdType = 'FullMap'
-			md.mapDim = 3 if md.name.endswith('3') else 2
-			md.lossFct = FullMapLoss(md.mapDim)
-		else:
-			md.modelType = 0
-			mdType = "Unknown"
-		vmd.model = md
-		vv.Message(f'Loaded model: {mdType} {vmd.model.input_shape[1]}=>{vmd.model.output_shape[1]}')
-		#ShowModel(md)
+		vmd.model = AcceptModel( tf.keras.models.load_model(mdPath) )
 elif opLabel == 'Eval':
 	CheckModel()
 	testX = GetDatasetData()

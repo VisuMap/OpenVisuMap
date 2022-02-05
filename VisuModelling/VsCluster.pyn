@@ -17,7 +17,7 @@ def NewCluster(layerDims, X, Y, dropoutRatio=0.25):
 		if (k == 0) and (dropoutRatio>0): 
 			md.add(keras.layers.Dropout(dropoutRatio))
 	md.add( DenseLayer(Y.shape[1], 'leaky_relu') )
-	md.add( keras.layers.Softmax(name='ClstLayer') )
+	md.add( keras.layers.Softmax() )
 	md.modelType = vmd.CLUSTERING
 	md.lossFct = keras.losses.CategoricalCrossentropy()
 	return md
@@ -37,11 +37,12 @@ TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
 ShowPred(vmd.model, X, Y)
 
 '''
-tX, tY = GetDatasetData('A1'), GetClusterData('A1')
+tMap = 'A1'
+tX, tY = GetDatasetData(tMap), GetClusterData(tMap)
 for k in range(3):
 	vmd.model = NewCluster(dimList, X, Y, DropR)
 	TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)	
-	map = ShowPred(vmd.model, tX, tY, refMapName='A1')
+	map = ShowPred(vmd.model, tX, tY, refMapName=tMap)
 	vv.Echo(map.Title + f', P: {dim}')
 	map.Close()
 '''

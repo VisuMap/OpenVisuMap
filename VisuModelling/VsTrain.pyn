@@ -40,11 +40,12 @@ TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
 ShowPred(vmd.model, X, Y)
 
 '''
-tX, tY = GetDatasetData('A1'), GetMapData('A1')
+tMap = 'A1'
+tX, tY = GetDatasetData(tMap), GetMapData(tMap)
 for k in [1, 2]:
 	vmd.model = NewMapModel(dimList, X, Y, DropR)
 	TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)	
-	map = ShowPred(vmd.model, tX, tY, refMapName='A1')
+	map = ShowPred(vmd.model, tX, tY, refMapName=tMap)
 	vv.Echo(map.Title + f', LR: {LR}')
 	map.Close()
 '''
