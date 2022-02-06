@@ -43,6 +43,7 @@ ShowPred(vmd.model, X, Y)
 tMap = 'A1'
 tX, tY = GetDatasetData(tMap), GetMapData(tMap)
 for k in [1, 2]:
+	del vmd.model
 	vmd.model = NewMapModel(dimList, X, Y, DropR)
 	TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)	
 	map = ShowPred(vmd.model, tX, tY, refMapName=tMap)

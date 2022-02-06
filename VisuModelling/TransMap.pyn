@@ -58,15 +58,22 @@ def Logger(epoch, cost):
 	vmd.logMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.2f},  L2: {err:.2f}'
 
 #------------------------------------------------------------------------------
-vmd.reportFreq = 10
+vmd.reportFreq = 50
 X, Y = GetMaps('Tst', '2D')
 sKey = np.array([b.Type for b in vv.Dataset.BodyListEnabled()])
 vmd.ds = TrainDataset(X, Y, batchSize=25, shuffle=False, sortKey=sKey)
 
-rbfs,dimList,DropR,LR,epochs = 1600, [200, 100, 100, 100, 100], 0.0,0.0005,3000
+rbfs,dimList,DropR,LR,epochs = 1600, [200]+4*[100], 0.0, 0.0005, 3000
 
 vmd.model = NewTransModel(dimList, X, Y, DropR, rbfDim=rbfs)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
-ShowPred(vmd.model, X, Y)
 
-#ShowPred(vmd.model, GetMaps('A1'), refMapName='A1')
+'''
+for LR in [0.0005, 0.0005, 0.0005]:
+	del vmd.model
+	vmd.model = NewTransModel(dimList, X, Y, DropR, rbfDim=rbfs)
+	TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
+	vv.Echo(vmd.logMap.Title + f', LR: {LR}')
+ShowPred(vmd.model, X, Y)
+ShowPred(vmd.model, GetMaps('A1'), refMapName='A1')
+'''

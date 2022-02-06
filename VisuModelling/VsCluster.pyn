@@ -40,6 +40,7 @@ ShowPred(vmd.model, X, Y)
 tMap = 'A1'
 tX, tY = GetDatasetData(tMap), GetClusterData(tMap)
 for k in range(3):
+	del vmd.model
 	vmd.model = NewCluster(dimList, X, Y, DropR)
 	TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)	
 	map = ShowPred(vmd.model, tX, tY, refMapName=tMap)
