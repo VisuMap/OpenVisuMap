@@ -62,7 +62,7 @@ Yc = GetClusterData()
 Y = np.concatenate([Ym, Yc], axis=1)
 vmd.ds = TrainDataset(X, Y)
 inDim = X.shape[1]
-dimList,DR,LR,epochs = [inDim, 256] + 6*[128], 0.5, 0.0015, 1500
+dimList,DR,LR,epochs = [inDim, 256] + 6*[100], 0.5, 0.0015, 1500
 vmd.reportFreq = 50
 
 vmd.model = NewFullModel(dimList, X, Y, Ym.shape[1], DR)
@@ -74,7 +74,7 @@ tMap = 'A1'
 tX = GetDatasetData(tMap)
 tY = np.concatenate([GetMapData(tMap), GetClusterData(tMap)], axis=1)
 
-for d in [1, 2, 3]:
+for d in [1, 2]:
 	del vmd.model
 	vmd.model = NewFullModel(dimList, X, Y, Ym.shape[1], DR)
 	TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)

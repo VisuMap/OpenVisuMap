@@ -124,7 +124,7 @@ def ShowClusterPred(P, epoch, cost, map, refY=None):
 				pBodyList[i].Highlighted = True
 			else:
 				pBodyList[i].Highlighted = False
-		map.Title = f'Epoch: {epoch+1}, Cost: {cost:.2g}, Mismatchs: {mismatchs}'
+		map.Title = f'Epoch: {epoch+1}, Cost: {cost:.2g}, Misses: {mismatchs}'
 
 def ShowModel(md):
 	md.summary(print_fn = lambda x: vv.Echo(x))
@@ -157,6 +157,7 @@ def ShowPred(md, X, refY=None, refMapName=None):
 	elif md.modelType == vmd.CLUSTERING:
 		P = GetClusterPred(md, X)
 		ShowClusterPred(P, 0, 0, map, refY)
+		map.Title = map.Title + f',  Time: {vmd.trainingTime:.2f}'
 	else:  # vmd.FULL_MODEL
 		P = md(X, training=False).numpy()
 		mD = md.mapDim
