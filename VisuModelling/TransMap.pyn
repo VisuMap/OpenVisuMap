@@ -12,7 +12,7 @@ vmd.Clear()
 
 class RBFLayer2D(keras.layers.Layer):
 	def __init__(self, X, K):
-		super(RBFLayer, self).__init__()
+		super(RBFLayer2D, self).__init__()
 		N = X.shape[0]
 		self.centers = X[ [k*73%N for k in range(K)] ]
 		s = (np.max(X) - np.min(X))/(4.0*math.sqrt(K))
@@ -26,7 +26,7 @@ class RBFLayer2D(keras.layers.Layer):
 
 class RBFLayer1D(keras.layers.Layer):
 	def __init__(self, X, K):
-		super(RBFLayer2, self).__init__()
+		super(RBFLayer1D, self).__init__()
 		N = X.shape[0]
 		self.centers = X[ [k*73%N for k in range(K)] ]
 		self.beta  = 4.0*math.sqrt(K)/(np.max(X) - np.min(X))

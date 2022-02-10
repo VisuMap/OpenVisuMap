@@ -113,4 +113,11 @@ def GetDatasetData(mapName = None):
 
 def ShowNumpyMatrix(np):
 	nt = mm.ToTable(np)
-	New.HeatMap(nt).Show()
+	return New.HeatMap(nt).Show()
+
+def ShowXyMap(np):
+	bsList = vv.Dataset.BodyListEnabled()
+	tb = mm.ToTable(np)
+	for row, b in enumerate(bsList):
+		tb.RowSpecList[row].CopyFromBody(b)
+	return New.XyPlot(tb).Show()
