@@ -175,6 +175,13 @@ def DenseLayer(dim, activation):
 	return keras.layers.Dense(dim, activation=activation, use_bias=True,
 			kernel_initializer='glorot_uniform', bias_initializer='zeros')
 
+def AdamOptimizer(totalBatches, LR):
+	lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+		initial_learning_rate=LR,
+		decay_steps=int(totalBatches/20), 
+		staircase=False, decay_rate=0.8)
+	return keras.optimizers.Adam(learning_rate=lr_schedule)
+
 #-------------------------------------------------------------------------------------
 
 @tf.function(jit_compile=True)
@@ -186,34 +193,24 @@ def train_step(md, optimizer, lossFct, bX, bY):
 	return loss
 
 def TrainModel(vmd, epochs, initial_lr=0.00025, logCallback=None):
-	epochBatches = len(vmd.ds.tensors)
-	totalBatches = epochs * epochBatches
-	lr_schedule = keras.optimizers.schedules.ExponentialDecay(
-		initial_learning_rate=initial_lr,
-		decay_steps=int(totalBatches/20), 
-		staircase=False, decay_rate=0.8)
-	optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
-
+	optimizer = AdamOptimizer(epochs*len(vmd.ds.tensors), initial_lr)
 	#The following line makes train_step() callable for different dataset.
 	train_step.__init__(train_step.python_function, 'train_step', jit_compile=True)
-
 	vmd.EnableLog()
 	vmd.stopTraining = False
 	startTime = time.time()
 	batchCount = 0
+	N = vmd.ds.X.shape[0]
+
 	for epoch in range(epochs):  
 		cost = 0
 		for bX, bY in vmd.ds:
 			cost += train_step(vmd.model, optimizer, vmd.model.lossFct, bX, bY)
 			batchCount += 1
-			if batchCount % 50 == 0:
-				vv.DoEvents()
-		cost /= epochBatches		
-		if vmd.stopTraining:
-			break
+			if batchCount%100 == 0: vv.DoEvents()
+		cost /= N		
+		if vmd.stopTraining: break
 		if ((epoch + 1) % vmd.reportFreq == 0):
 			ReportTraining(epoch, cost)
-			if logCallback != None:
-				logCallback(epoch, cost)
-
+			if logCallback != None:	logCallback(epoch, cost)
 	vmd.trainingTime = time.time() - startTime
