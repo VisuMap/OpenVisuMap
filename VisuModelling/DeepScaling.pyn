@@ -14,7 +14,8 @@ class RBFLayer1D(keras.layers.Layer):
 	def __init__(self, X, K, inDim=2):
 		super(RBFLayer1D, self).__init__()
 		if X is None:
-			self.centers = np.random.uniform(0, 1.0, [K, inDim]).astype(np.float32)
+			np.random.seed(123)
+			self.centers = np.random.uniform(-1, 1, [K, inDim]).astype(np.float32)
 			self.beta = 1.0
 		else:
 			N = X.shape[0]
@@ -40,19 +41,18 @@ def Logger(epoch, cost):
 
 # Load data and settings
 batchSize, vmd.reportFreq = 25, 10
-inDim, dimList,DR,LR,epochs = 2, [200, 100, 50, 25], 0.0, 0.001, 500
-dY = GetMapData('Tst')
+inDim, dimList,DR,LR,epochs = 2, [400, 200], 0.0, 0.001, 500
+dY = GetDatasetData()
 N = dY.shape[0]
 Y = tf.convert_to_tensor(dY)
 dsIdx = [np.array(range(i, i+batchSize)) for i in range(0,N,batchSize)]
-#dX = np.random.normal(0, 1.0, size=[N, inDim]).astype(np.float32)
 dX = np.zeros([N, inDim], dtype=np.float32)
 X = tf.Variable(dX, trainable=True)
 
 # Create the model.
 input = keras.Input(shape=(1), dtype=tf.int32)
 P = tf.reshape(tf.gather(X, input), [-1, inDim])
-P = RBFLayer1D(None,5,inDim)(P)
+#P = RBFLayer1D(None,5,inDim)(P)
 
 for k, dim in enumerate(dimList):
 	P = DenseLayer(dim, 'leaky_relu') (P)
@@ -68,7 +68,6 @@ md.X = X   # this statment will add X to md.trainable_variables!
 optimizer = AdamOptimizer(epochs*len(dsIdx), LR)
 vmd.EnableLog()
 vmd.stopTraining = False
-cbLogger = Logger
 startTime = time.time()
 
 @tf.function(jit_compile=False)
@@ -87,10 +86,7 @@ for epoch in range(epochs):
 	for i, bIdx in enumerate(dsIdx):
 		cost += trainStep(md, optimizer, md.lossFct, bIdx)
 		if i%100==0: vv.DoEvents()
-	cost /= N
 	if vmd.stopTraining:	break
-	if ((epoch + 1) % vmd.reportFreq == 0): 
-		ReportTraining(epoch, cost)
-		if cbLogger != None:	cbLogger(epoch, cost)
+	ReportTraining(epoch, cost, Logger)
 
 vmd.trainingTime = time.time() - startTime

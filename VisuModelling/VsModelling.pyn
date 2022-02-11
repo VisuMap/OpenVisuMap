@@ -210,7 +210,5 @@ def TrainModel(vmd, epochs, initial_lr=0.00025, logCallback=None):
 			if batchCount%100 == 0: vv.DoEvents()
 		cost /= N		
 		if vmd.stopTraining: break
-		if ((epoch + 1) % vmd.reportFreq == 0):
-			ReportTraining(epoch, cost)
-			if logCallback != None:	logCallback(epoch, cost)
+		ReportTraining(epoch, cost, logCallback)
 	vmd.trainingTime = time.time() - startTime
