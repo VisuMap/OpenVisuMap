@@ -48,12 +48,14 @@ if opLabel == 'Save':
 	CheckModel()
 	mdPath = PromptOpenDirectory()
 	if mdPath != '':
+		#vmd.model.info = tf.Variable('Hi', trainable=False)
 		vmd.model.save(mdPath)
 		vv.Message("Saved model!")
 elif opLabel == 'Load':
 	mdPath = PromptOpenDirectory()
 	if mdPath != '':
 		vmd.model = AcceptModel( tf.keras.models.load_model(mdPath) )
+		#vv.Message(str(vmd.model.info.numpy()))
 elif opLabel == 'Eval':
 	CheckModel()
 	testX = GetDatasetData()
