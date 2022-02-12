@@ -21,20 +21,26 @@ def GetInputData(md):
 		vv.Return()
 	return X
 
+def SaveModel(md, mdPath):
+	mdInfo = {'modelType': md.modelType}
+	if md.modelType == vmd.FULL_MODEL:
+		mdInfo['mapDim'] = md.mapDim
+	md.info = tf.Variable(str(mdInfo), trainable=False)
+	md.save(mdPath)
+	vv.Message(f'Saved model of type: {md.modelType}!')
+
 def AcceptModel(md):
-	nm = md.name
-	if nm == 'ClusterMd':
-		md.modelType = vmd.CLUSTERING
+	mdInfo = eval( md.info.numpy().decode('ascii') )
+	type = md.modelType = mdInfo['modelType']
+	if type == vmd.CLUSTERING:
 		mdType = 'Clustering'
 		md.lossFct = keras.losses.CategoricalCrossentropy()
-	elif nm == 'RegressionMd':
-		md.modelType = vmd.REGRESSION
+	elif type == vmd.REGRESSION:
 		mdType = 'Regression'
 		md.lossFct = keras.losses.MeanSquaredError()
-	elif nm.startswith('MapMd_'):
-		md.modelType = vmd.FULL_MODEL
+	elif type == vmd.FULL_MODEL:
 		mdType = 'FullMap'
-		md.mapDim = 3 if md.name.endswith('3') else 2
+		md.mapDim = mdInfo['mapDim']
 		md.lossFct = FullMapLoss(md.mapDim)
 	else:
 		md.modelType = vmd.REGRESSION
@@ -48,14 +54,11 @@ if opLabel == 'Save':
 	CheckModel()
 	mdPath = PromptOpenDirectory()
 	if mdPath != '':
-		#vmd.model.info = tf.Variable('Hi', trainable=False)
-		vmd.model.save(mdPath)
-		vv.Message("Saved model!")
+		SaveModel(vmd.model, mdPath)
 elif opLabel == 'Load':
 	mdPath = PromptOpenDirectory()
 	if mdPath != '':
 		vmd.model = AcceptModel( tf.keras.models.load_model(mdPath) )
-		#vv.Message(str(vmd.model.info.numpy()))
 elif opLabel == 'Eval':
 	CheckModel()
 	testX = GetDatasetData()

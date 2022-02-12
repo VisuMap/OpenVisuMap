@@ -69,15 +69,15 @@ def TrainBatch(md, bIdx):
 	md.optimizer.apply_gradients(zip(grads, md.trainable_variables))
 	return loss
 
-def TrainModel(md, epochs, dsIdx, LR):
-	md.optimizer = AdamOptimizer(epochs*len(dsIdx), LR)
+def TrainModel(md, epochs, dsBatchs, LR):
+	md.optimizer = AdamOptimizer(epochs*len(dsBatchs), LR)
 	vmd.EnableLog()	
 	TrainBatch.__init__(TrainBatch.python_function, 'TrainBatch', jit_compile=False)
 	vmd.stopTraining = False
 	vmd.startTime = time.time()
 	for epoch in range(epochs):  
 		cost = 0
-		for i, bIdx in enumerate(dsIdx):
+		for i, bIdx in enumerate(dsBatchs):
 			cost += TrainBatch(md, bIdx)
 			if i%50==0: vv.DoEvents()
 		if vmd.stopTraining:	break
@@ -87,17 +87,16 @@ def TrainModel(md, epochs, dsIdx, LR):
 #------------------------------------------------------------------------------
 # Load data and settings
 
-batchSize, vmd.reportFreq = 25, 10
-inDim, dimList,DR,LR,epochs = 2, [400, 200, 100], 0.25, 0.001, 500
-dY = GetDatasetData()
-N = dY.shape[0]
-Y = tf.convert_to_tensor(dY)
-dsIdx = [np.array(range(i, min(N,i+batchSize))) for i in range(0,N,batchSize)]
-dX = RandomMatrix(0, N, inDim)
-X = tf.Variable(dX, trainable=True)
+bSz, initSpread, vmd.reportFreq = 25, 0, 10
+inDim, dimList,DR,LR,epochs = 2, [400, 200, 100], 0.25, 0.001, 250
+Y = tf.convert_to_tensor(GetDatasetData())
+N = Y.shape[0]
+LL = np.array(range(N))
+dsBatchs = [LL[n:n+bSz] for n in range(0, N, bSz)]
+X = tf.Variable(RandomMatrix(initSpread, N, inDim), trainable=True)
 
 #------------------------------------------------------------------------------
 # Create model and train it.
 
 md = DeepScalingModel(X, Y, dimList, DR)
-TrainModel(md, epochs, dsIdx, LR)
+TrainModel(md, 4*epochs, dsBatchs, LR)

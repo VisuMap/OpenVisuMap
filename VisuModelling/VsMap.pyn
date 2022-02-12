@@ -29,9 +29,9 @@ def NewFullModel(layerDims, X, Y, mapDim, dropoutRatio=0.25, cBias=0.9):
 	Pc = DenseLayer(clusterDim, 'leaky_relu')(Pc)
 	Pc = keras.layers.Softmax(name='Softmax')(Pc)
 
-	output = tf.concat([Pm, Pc], axis=1, name='FullMapOut')
+	output = tf.concat([Pm, Pc], axis=1)
 
-	md = keras.Model(input, output, name=f'MapMd_{mapDim}')
+	md = keras.Model(input, output, name='FullMapMd')
 	md.modelType = vmd.FULL_MODEL
 	md.mapDim = mapDim
 	md.lossFct = FullMapLoss(mapDim, cBias=cBias)
