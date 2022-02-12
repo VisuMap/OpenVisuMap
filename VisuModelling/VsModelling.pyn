@@ -10,7 +10,8 @@ class ModellingConfiguration:
 		self.log = None
 		self.logMap = None
 		self.reportFreq = 10
-		self.trainingTime = 0		
+		self.trainingTime = 0
+		self.startTime = 0		
 		self.REGRESSION = 100
 		self.CLUSTERING = 101
 		self.FULL_MODEL = 102
@@ -198,7 +199,7 @@ def TrainModel(vmd, epochs, initial_lr=0.00025, logCallback=None):
 	train_step.__init__(train_step.python_function, 'train_step', jit_compile=True)
 	vmd.EnableLog()
 	vmd.stopTraining = False
-	startTime = time.time()
+	vmd.startTime = time.time()
 	batchCount = 0
 	N = vmd.ds.X.shape[0]
 
@@ -211,4 +212,4 @@ def TrainModel(vmd, epochs, initial_lr=0.00025, logCallback=None):
 		cost /= N		
 		if vmd.stopTraining: break
 		ReportTraining(epoch, cost, logCallback)
-	vmd.trainingTime = time.time() - startTime
+	vmd.trainingTime = time.time() - vmd.startTime
