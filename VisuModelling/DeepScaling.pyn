@@ -9,22 +9,11 @@ vv.Import('VsModelling.pyn')
 InitVmd()
 vmd.Clear()
 #------------------------------------------------------------------------------
-
-class RBFLayer1D(keras.layers.Layer):
-	def __init__(self, X, K, inDim=2):
-		super(RBFLayer1D, self).__init__()
-		if X is None:
-			np.random.seed(123)
-			self.centers = np.random.uniform(-1, 1, [K, inDim]).astype(np.float32)
-			self.beta = 1.0
-		else:
-			N = X.shape[0]
-			self.centers = X[ [k*73%N for k in range(K)] ]
-			self.beta  = 4.0*math.sqrt(K)/(np.max(X) - np.min(X))
-	def call(self, X):
-		H = tf.transpose(tf.expand_dims(self.centers, -1) - tf.transpose(X))
-		D = self.beta * tf.math.reduce_sum(tf.abs(H), axis=1)
-		return tf.exp(-D)
+def RandomMatrix(size, rows, columns):
+	if size == 0:
+		return np.zeros([rows, columns], dtype=np.float32)
+	else:
+		return np.random.uniform(-size, size, [rows, columns]).astype(np.float32)
 
 xyMap = None
 def Logger(epoch, cost):
@@ -37,22 +26,40 @@ def Logger(epoch, cost):
 		xyMap.Redraw()
 	xyMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.4f}'
 
-#------------------------------------------------------------------------------
+class RBFLayer1D(keras.layers.Layer):
+	def __init__(self, X, K, inDim=2):
+		super(RBFLayer1D, self).__init__()
+		if X is None:
+			np.random.seed(123)
+			self.centers = RandomMatrix(1.0, K, inDim)
+			self.beta = 1.0
+		else:
+			N = X.shape[0]
+			self.centers = X[ [k*73%N for k in range(K)] ]
+			self.beta  = 4.0*math.sqrt(K)/(np.max(X) - np.min(X))
+	def call(self, X):
+		H = tf.transpose(tf.expand_dims(self.centers, -1) - tf.transpose(X))
+		D = self.beta * tf.math.reduce_sum(tf.abs(H), axis=1)
+		return tf.exp(-D)
 
+#------------------------------------------------------------------------------
 # Load data and settings
+
 batchSize, vmd.reportFreq = 25, 10
-inDim, dimList,DR,LR,epochs = 2, [400, 200], 0.0, 0.001, 500
+inDim, dimList,DR,LR,epochs = 2, [200, 100, 50], 0.25, 0.001, 1500
 dY = GetDatasetData()
 N = dY.shape[0]
 Y = tf.convert_to_tensor(dY)
-dsIdx = [np.array(range(i, i+batchSize)) for i in range(0,N,batchSize)]
-dX = np.zeros([N, inDim], dtype=np.float32)
+dsIdx = [np.array(range(i, min(N,i+batchSize))) for i in range(0,N,batchSize)]
+dX = RandomMatrix(1, N, inDim)
 X = tf.Variable(dX, trainable=True)
 
-# Create the model.
+#------------------------------------------------------------------------------
+# Create the model.  
+
 input = keras.Input(shape=(1), dtype=tf.int32)
 P = tf.reshape(tf.gather(X, input), [-1, inDim])
-#P = RBFLayer1D(None,5,inDim)(P)
+P = RBFLayer1D(None,5,inDim)(P)
 
 for k, dim in enumerate(dimList):
 	P = DenseLayer(dim, 'leaky_relu') (P)
@@ -64,11 +71,11 @@ md = keras.Model(input, output, name=f'Scaling')
 md.lossFct = keras.losses.MeanSquaredError()
 md.X = X   # this statment will add X to md.trainable_variables!
 
-# prepare training loop
+#------------------------------------------------------------------------------
+# prepare training loop. 
 optimizer = AdamOptimizer(epochs*len(dsIdx), LR)
 vmd.EnableLog()
 vmd.stopTraining = False
-startTime = time.time()
 
 @tf.function(jit_compile=False)
 def trainStep(md, optimizer, lossFct, bIdx):
@@ -80,7 +87,9 @@ def trainStep(md, optimizer, lossFct, bIdx):
 	return loss
 trainStep.__init__(trainStep.python_function, 'trainStep', jit_compile=False)
 
-# Start the training loop
+#------------------------------------------------------------------------------
+# Start the training loop.
+startTime = time.time()
 for epoch in range(epochs):  
 	cost = 0
 	for i, bIdx in enumerate(dsIdx):
@@ -88,5 +97,4 @@ for epoch in range(epochs):
 		if i%100==0: vv.DoEvents()
 	if vmd.stopTraining:	break
 	ReportTraining(epoch, cost, Logger)
-
 vmd.trainingTime = time.time() - startTime
