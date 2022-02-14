@@ -87,37 +87,40 @@ def TrainScalingModel(md, epochs, dsBatchs, LR):
 # Load data and settings
 
 inDim = 2
-bSz = 25
-dimList = [125, 250, 500]
+batchSize = 25
+dimList = [100, 200, 400]
 DR, LR, epochs = 0.25, 0.0001, 500
-
 initSpread = 0
 vmd.reportFreq = 10
 xyMap = None
 md = None
-#Y = GetMapData()
-Y = GetDatasetData()
-Y = tf.convert_to_tensor(Y)
-N = Y.shape[0]
-idxList = np.array(range(N))
-dsBatchs = [idxList[n:n+bSz] for n in range(0, N, bSz)]
-X = tf.Variable(RandomMatrix(initSpread, N, inDim), trainable=True)
 
+#dY = GetMapData()
+dY = GetDatasetData()
+Y = tf.convert_to_tensor(dY)
+N = dY.shape[0]
+dX = RandomMatrix(initSpread, N, inDim)
+X = tf.Variable(dX, trainable=True)
+idxList = np.array(range(N))
+dsBatchs = []
+for n in range(0, N, batchSize):
+	dsBatchs.append( tf.convert_to_tensor(idxList[n:n+batchSize]) )
 
 #------------------------------------------------------------------------------
 # Create model and train it.
 
-'''
 md = DeepScalingModel(X, Y, dimList, DR)
 TrainScalingModel(md, epochs, dsBatchs, LR)
+
 '''
 
-for repeats in range(3):
+for repeats in range(1):
 	X.assign(RandomMatrix(initSpread, N, inDim))
 	del md
 	xyMap = None
 	md = DeepScalingModel(X, Y, dimList, DR)
 	TrainScalingModel(md, epochs, dsBatchs, LR)
+
 
 P = X.numpy()
 P =  md(idxList, training=False).numpy()
