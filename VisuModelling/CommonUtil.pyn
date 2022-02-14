@@ -65,7 +65,7 @@ def ReportTraining(epoch, cost, logCallback=None):
 	if ((epoch + 1) % vmd.reportFreq != 0): 
 		return
 	vmd.log.AddStep(float(cost))
-	vmd.log.Title = 'Epochs: %d, Cost: %.3f'%(epoch+1, cost)
+	vmd.log.Title = f'Epochs: {epoch+1}, Cost: {cost:_.3f}'
 	if logCallback != None:	
 		logCallback(epoch, cost)
 

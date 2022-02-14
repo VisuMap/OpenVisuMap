@@ -15,7 +15,6 @@ def RandomMatrix(size, rows, columns):
 	else:
 		return np.random.uniform(-size, size, [rows, columns]).astype(np.float32)
 
-xyMap = None
 def Logger(epoch, cost):
 	global xyMap
 	npTable = X.numpy()
@@ -25,7 +24,7 @@ def Logger(epoch, cost):
 		mm.CopyToTable(npTable, xyMap.GetNumberTable())
 		xyMap.Redraw()
 	tm = (time.time() - vmd.startTime)/epoch
-	xyMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.4f}, E/s: {tm:.3f}'
+	xyMap.Title = f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}'
 
 class RBFLayer1D(keras.layers.Layer):
 	def __init__(self, X, K, inDim=2):
@@ -69,7 +68,7 @@ def TrainBatch(md, bIdx):
 	md.optimizer.apply_gradients(zip(grads, md.trainable_variables))
 	return loss
 
-def TrainModel(md, epochs, dsBatchs, LR):
+def TrainScalingModel(md, epochs, dsBatchs, LR):
 	md.optimizer = AdamOptimizer(epochs*len(dsBatchs), LR)
 	vmd.EnableLog()	
 	TrainBatch.__init__(TrainBatch.python_function, 'TrainBatch', jit_compile=False)
@@ -87,16 +86,43 @@ def TrainModel(md, epochs, dsBatchs, LR):
 #------------------------------------------------------------------------------
 # Load data and settings
 
-bSz, initSpread, vmd.reportFreq = 25, 0, 10
-inDim, dimList,DR,LR,epochs = 2, [400, 200, 100], 0.25, 0.001, 250
-Y = tf.convert_to_tensor(GetDatasetData())
+inDim = 2
+bSz = 25
+dimList = [125, 250, 500]
+DR, LR, epochs = 0.25, 0.0001, 500
+
+initSpread = 0
+vmd.reportFreq = 10
+xyMap = None
+md = None
+#Y = GetMapData()
+Y = GetDatasetData()
+Y = tf.convert_to_tensor(Y)
 N = Y.shape[0]
-LL = np.array(range(N))
-dsBatchs = [LL[n:n+bSz] for n in range(0, N, bSz)]
+idxList = np.array(range(N))
+dsBatchs = [idxList[n:n+bSz] for n in range(0, N, bSz)]
 X = tf.Variable(RandomMatrix(initSpread, N, inDim), trainable=True)
+
 
 #------------------------------------------------------------------------------
 # Create model and train it.
 
+'''
 md = DeepScalingModel(X, Y, dimList, DR)
-TrainModel(md, 4*epochs, dsBatchs, LR)
+TrainScalingModel(md, epochs, dsBatchs, LR)
+'''
+
+for repeats in range(3):
+	X.assign(RandomMatrix(initSpread, N, inDim))
+	del md
+	xyMap = None
+	md = DeepScalingModel(X, Y, dimList, DR)
+	TrainScalingModel(md, epochs, dsBatchs, LR)
+
+P = X.numpy()
+P =  md(idxList, training=False).numpy()
+xy = ShowXyMap(P)
+xy.ShowSnapshot()
+xy.Close()
+dimList.reverse()
+'''
