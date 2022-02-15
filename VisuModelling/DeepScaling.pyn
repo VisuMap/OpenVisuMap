@@ -26,28 +26,11 @@ def Logger(epoch, cost):
 	tm = (time.time() - vmd.startTime)/epoch
 	xyMap.Title = f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}'
 
-class RBFLayer1D(keras.layers.Layer):
-	def __init__(self, X, K, inDim=2):
-		super(RBFLayer1D, self).__init__()
-		if X is None:
-			np.random.seed(123)
-			self.centers = RandomMatrix(1.0, K, inDim)
-			self.beta = 1.0
-		else:
-			N = X.shape[0]
-			self.centers = X[ [k*73%N for k in range(K)] ]
-			self.beta  = 4.0*math.sqrt(K)/(np.max(X) - np.min(X))
-	def call(self, X):
-		H = tf.transpose(tf.expand_dims(self.centers, -1) - tf.transpose(X))
-		D = self.beta * tf.math.reduce_sum(tf.abs(H), axis=1)
-		return tf.exp(-D)
-
 def DeepScalingModel(X, Y, dimList, DR):
 	inDim = X.shape[1]
 	input = keras.Input(shape=(1), dtype=tf.int32)
-	P = tf.reshape(tf.gather(X, input), [-1, inDim])
-	#P = RBFLayer1D(None,50,inDim)(P)
-	
+	P = tf.gather(X, input)
+	P = tf.reshape(P, [-1, inDim])	
 	for k, dim in enumerate(dimList):
 		P = DenseLayer(dim, 'leaky_relu') (P)
 		if (k == 0) and (DR>0): 
@@ -89,7 +72,7 @@ def TrainScalingModel(md, epochs, dsBatchs, LR):
 inDim = 2
 batchSize = 25
 dimList = [100, 200, 400]
-DR, LR, epochs = 0.25, 0.0001, 500
+DR, LR, epochs = 0.25, 0.00025, 500
 initSpread = 0
 vmd.reportFreq = 10
 xyMap = None
