@@ -27,10 +27,7 @@ def Logger(epoch, cost):
 	xyMap.Title = f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}'
 
 def DeepScalingModel(X, Y, dimList, DR):
-	inDim = X.shape[1]
-	input = keras.Input(shape=(1), dtype=tf.int32)
-	P = tf.gather(X, input)
-	P = tf.reshape(P, [-1, inDim])	
+	P = input = keras.Input(shape=(X.shape[1]), dtype=tf.float32)
 	for k, dim in enumerate(dimList):
 		P = DenseLayer(dim, 'leaky_relu') (P)
 		if (k == 0) and (DR>0): 
@@ -44,9 +41,10 @@ def DeepScalingModel(X, Y, dimList, DR):
 
 @tf.function(jit_compile=False)
 def TrainBatch(md, bIdx):
-	bY = tf.gather(Y, bIdx)
 	with tf.GradientTape() as tape:
-		loss = md.lossFct(bY, md(bIdx, training=True))
+		bX, bY = tf.gather(X, bIdx), tf.gather(Y, bIdx)
+		pY = md(bX, training=True)
+		loss = md.lossFct(bY, pY)
 	grads = tape.gradient(loss, md.trainable_variables)
 	md.optimizer.apply_gradients(zip(grads, md.trainable_variables))
 	return loss
@@ -96,14 +94,13 @@ md = DeepScalingModel(X, Y, dimList, DR)
 TrainScalingModel(md, epochs, dsBatchs, LR)
 
 '''
-
-for repeats in range(1):
-	X.assign(RandomMatrix(initSpread, N, inDim))
+for repeats in range(2):
+	del X
 	del md
 	xyMap = None
+	X = tf.Variable(dX, trainable=True)
 	md = DeepScalingModel(X, Y, dimList, DR)
 	TrainScalingModel(md, epochs, dsBatchs, LR)
-
 
 P = X.numpy()
 P =  md(idxList, training=False).numpy()
