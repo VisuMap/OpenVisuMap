@@ -20,6 +20,7 @@ class ModellingConfiguration:
 		if (self.log == None) or self.log.TheForm.IsDisposed:
 			self.log = New.HistoryView().Show()
 			self.log.OnClose('@vmd.stopTraining=True')
+			self.log.AddContextMenu('Stop Training', '@vmd.stopTraining=True')
 
 	def Clear(self):
 		vv.Map.SelectedBodies=None

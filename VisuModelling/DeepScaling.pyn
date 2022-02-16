@@ -94,7 +94,8 @@ md = DeepScalingModel(X, Y, dimList, DR)
 TrainScalingModel(md, epochs, dsBatchs, LR)
 
 '''
-for repeats in range(2):
+
+for repeats in range(3):
 	del X
 	del md
 	xyMap = None
