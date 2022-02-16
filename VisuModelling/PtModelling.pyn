@@ -18,8 +18,10 @@ class ModellingConfiguration:
 
 	def EnableLog(self):
 		if (self.log == None) or self.log.TheForm.IsDisposed:
-		    self.log = New.HistoryView().Show()
-		    self.log.OnClose('@vmd.NN.stopTraining=True')
+			self.log = New.HistoryView().Show()
+			self.log.OnClose('@vmd.NN.stopTraining=True')
+			self.log.AddContextMenu('Stop Training', '@vmd.NN.stopTraining=True')
+
 
 	def Clear(self):
 		if self.NN is not None:
