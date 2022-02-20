@@ -9,28 +9,36 @@ vv.Import('VsModelling.pyn')
 InitVmd()
 vmd.Clear()
 #------------------------------------------------------------------------------
-def RandomMatrix(size, rows, columns):
-	if size == 0:
-		return np.zeros([rows, columns], dtype=np.float32)
-	else:
-		return np.random.uniform(-size, size, [rows, columns]).astype(np.float32)
 
 def Logger(epoch, cost):
 	global xyMap
-	npTable = X.numpy()
-	if (xyMap == None) or xyMap.TheForm.IsDisposed:
-		xyMap = ShowXyMap(npTable)
-	else:
-		mm.CopyToTable(npTable, xyMap.GetNumberTable())
-		xyMap.Redraw()
+	UpdateXyMap(X.numpy())
 	tm = (time.time() - vmd.startTime)/epoch
 	xyMap.Title = f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}'
+
+def Logger1D(epoch, cost):
+	global spMap
+	npSeq = X.numpy().flatten()
+	if (spMap == None) or spMap.TheForm.IsDisposed:
+		spMap = ShowSpectrum(npSeq)
+	else:
+		items = spMap.ItemList
+		for i in range(items.Count):
+			items[i].Value = npSeq[i]
+		spMap.ResetScaling()
+
+	pY =  md(tf.gather(X, idxList), training=False).numpy()
+	outMap = Update2DMap(pY) if outDim == 2 else	UpdateXyMap(pY)
+
+	tm = (time.time() - vmd.startTime)/epoch
+	logTitle = f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}'
+	outMap.Title = spMap.Title = logTitle
 
 def DeepScalingModel(X, Y, dimList, DR):
 	P = input = keras.Input(shape=(X.shape[1]), dtype=tf.float32)
 	for k, dim in enumerate(dimList):
 		P = DenseLayer(dim, 'leaky_relu') (P)
-		if (k == 0) and (DR>0): 
+		if (k <= 3) and (DR>0): 
 			P = keras.layers.Dropout(DR)(P)
 	P = DenseLayer(Y.shape[1], 'sigmoid') (P)
 	output = OutScaling(Y, gape=0.0) (P)
@@ -55,58 +63,71 @@ def TrainScalingModel(md, epochs, dsBatchs, LR):
 	TrainBatch.__init__(TrainBatch.python_function, 'TrainBatch', jit_compile=False)
 	vmd.stopTraining = False
 	vmd.startTime = time.time()
+	logger = Logger1D if inDim == 1 else Logger
 	for epoch in range(epochs):  
+		#if epoch == 300: dsBatchs = ToBatchList( np.argsort(X.numpy().flatten()) )
 		cost = 0
 		for i, bIdx in enumerate(dsBatchs):
 			cost += TrainBatch(md, bIdx)
 			if i%50==0: vv.DoEvents()
 		if vmd.stopTraining:	break
-		ReportTraining(epoch, cost, Logger)
+		ReportTraining(epoch, cost, logger)
 	vmd.trainingTime = time.time() - vmd.startTime
+
+def ToBatchList(indexList):
+	batchList = []
+	for n in range(0, N, batchSize):
+		batchList.append( tf.convert_to_tensor(indexList[n:n+batchSize]) )
+	return batchList
 
 #------------------------------------------------------------------------------
 # Load data and settings
 
-inDim = 2
+spread = 0.0
+inDim = 1
 batchSize = 25
-dimList = [100, 200, 400]
-DR, LR, epochs = 0.25, 0.00025, 500
-initSpread = 0
+dimList = 6*[256]
+DR, LR, epochs = 0.25, 0.0001, 1000
 vmd.reportFreq = 10
 xyMap = None
+spMap = None
 md = None
 
-#dY = GetMapData()
-dY = GetDatasetData()
+dY = GetMapData()
+#dY = GetDatasetData()
 Y = tf.convert_to_tensor(dY)
 N = dY.shape[0]
-dX = RandomMatrix(initSpread, N, inDim)
+outDim = dY.shape[1]
+dX = RandomMatrix(spread, N, inDim)
 X = tf.Variable(dX, trainable=True)
 idxList = np.array(range(N))
-dsBatchs = []
-for n in range(0, N, batchSize):
-	dsBatchs.append( tf.convert_to_tensor(idxList[n:n+batchSize]) )
+
+sortKey = np.array([b.Type for b in vv.Dataset.BodyListEnabled()])
+idxList2 = np.argsort(sortKey)
+
+#idxList2 = idxList.copy()
+#np.random.shuffle(idxList2)
+
+dsBatchs = ToBatchList(idxList2)
 
 #------------------------------------------------------------------------------
 # Create model and train it.
 
-md = DeepScalingModel(X, Y, dimList, DR)
-TrainScalingModel(md, epochs, dsBatchs, LR)
-
-'''
+#md = DeepScalingModel(X, Y, dimList, DR)
+#TrainScalingModel(md, epochs, dsBatchs, LR)   # LR = 0.000025 
 
 for repeats in range(3):
 	del X
-	del md
-	xyMap = None
+	del md			
 	X = tf.Variable(dX, trainable=True)
 	md = DeepScalingModel(X, Y, dimList, DR)
 	TrainScalingModel(md, epochs, dsBatchs, LR)
+	vmd.logMap.NewSnapshot()
+	if vmd.stopTraining:
+		break
 
-P = X.numpy()
-P =  md(idxList, training=False).numpy()
-xy = ShowXyMap(P)
-xy.ShowSnapshot()
-xy.Close()
-dimList.reverse()
+'''
+UpdateXyMap(X.numpy())
+P =  md(tf.gather(X, idxList), training=False).numpy()
+UpdateXyMap(P)
 '''

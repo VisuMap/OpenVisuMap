@@ -125,3 +125,34 @@ def ShowXyMap(np):
 	for row, b in enumerate(bsList):
 		tb.RowSpecList[row].CopyFromBody(b)
 	return New.XyPlot(tb).Show()
+
+def RandomMatrix(size, rows, columns):
+	if size == 0:
+		return np.zeros([rows, columns], dtype=np.float32)
+	else:
+		return np.random.uniform(-size, size, [rows, columns]).astype(np.float32)
+
+def UpdateXyMap(npTable):
+	global xyMap
+	if (xyMap == None) or xyMap.TheForm.IsDisposed:
+		xyMap = ShowXyMap(npTable)
+	else:
+		mm.CopyToTable(npTable, xyMap.GetNumberTable())
+		xyMap.Redraw()
+	return xyMap
+
+
+def Update2DMap(npTable):
+	vmd.OpenLogMap()
+	vmd.logMap.MoveBodiesTo(mm.ToMatrix32(npTable))
+	return vmd.logMap
+
+def ShowSpectrum(npSeq):
+	tb = mm.ToTable(npSeq.reshape([-1,1]), vv.Dataset.BodyListEnabled())
+	spMap = New.SpectrumView(tb)
+	spMap.AggregationOrientation=1
+	spMap.Horizontal = True
+	spMap.Show()
+	spMap.ResetScaling()	
+	return spMap
+
