@@ -87,7 +87,7 @@ spread = 0.0
 inDim = 1
 batchSize = 25
 dimList = 6*[256]
-DR, LR, epochs = 0.25, 0.0001, 1000
+DR, LR, epochs = 0.125, 0.000025, 1000
 vmd.reportFreq = 10
 xyMap = None
 spMap = None
@@ -114,7 +114,7 @@ dsBatchs = ToBatchList(idxList2)
 # Create model and train it.
 
 #md = DeepScalingModel(X, Y, dimList, DR)
-#TrainScalingModel(md, epochs, dsBatchs, LR)   # LR = 0.000025 
+#TrainScalingModel(md, epochs, dsBatchs, LR)
 
 for repeats in range(3):
 	del X
@@ -122,6 +122,7 @@ for repeats in range(3):
 	X = tf.Variable(dX, trainable=True)
 	md = DeepScalingModel(X, Y, dimList, DR)
 	TrainScalingModel(md, epochs, dsBatchs, LR)
+	spMap.DuplicateView()
 	vmd.logMap.NewSnapshot()
 	if vmd.stopTraining:
 		break

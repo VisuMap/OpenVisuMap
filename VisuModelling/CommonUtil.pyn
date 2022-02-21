@@ -148,8 +148,8 @@ def Update2DMap(npTable):
 	return vmd.logMap
 
 def ShowSpectrum(npSeq):
-	tb = mm.ToTable(npSeq.reshape([-1,1]), vv.Dataset.BodyListEnabled())
-	spMap = New.SpectrumView(tb)
+	vList = mm.ToValueList(npSeq.reshape([-1,1]), vv.Dataset.BodyListEnabled())
+	spMap = New.SpectrumView(vList)
 	spMap.AggregationOrientation=1
 	spMap.Horizontal = True
 	spMap.Show()
