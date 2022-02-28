@@ -4,11 +4,16 @@
 # inDim-dimensional table X, a la NN backprobagation: X<-Y
 #
 #------------------------------------------------------------------------------
+import random
 vv.Import('CommonUtil.pyn')
 vv.Import('VsModelling.pyn')
 InitVmd()
 vmd.Clear()
+
 #------------------------------------------------------------------------------
+xyMap = None
+spMap = None
+md = None
 
 def Logger(epoch, cost):
 	global xyMap
@@ -16,7 +21,7 @@ def Logger(epoch, cost):
 	tm = (time.time() - vmd.startTime)/epoch
 	xyMap.Title = f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}'
 
-def Logger1D(epoch, cost):
+def UpdateSeqView(epoch, cost):
 	global spMap
 	npSeq = X.numpy().flatten()
 	if (spMap == None) or spMap.TheForm.IsDisposed:
@@ -26,32 +31,68 @@ def Logger1D(epoch, cost):
 		for i in range(items.Count):
 			items[i].Value = npSeq[i]
 		spMap.ResetScaling()
+	return spMap
 
+def UpdateSeqView2(epoch, cost):
+	global spMap
+	npSeq = X.numpy().flatten()
+	if (spMap == None) or spMap.TheForm.IsDisposed:
+		spMap = New.MapSnapshot(True).Show()
+	minV, maxV = np.min(npSeq), np.max(npSeq)
+	rangeV = maxV - minV
+	N = npSeq.shape[0]
+	pos = np.empty([N, 3], dtype=np.float32)
+	posY = 200 if (int(epoch/vmd.reportFreq)%2 == 0) else 400
+	sz = spMap.MapLayout.Width
+	for i in range(N):
+		pos[i] = sz*(npSeq[i] - minV)/rangeV, posY, 0
+	spMap.MoveBodiesTo(mm.ToMatrix32(pos), 150, 20)  
+	return spMap
+
+def UpdateSeqView3(epoch, cost):
+	global spMap
+	npSeq = X.numpy().flatten()
+	if (spMap == None) or spMap.TheForm.IsDisposed:
+		spMap = ShowBarView(npSeq)
+	else:
+		spMap.MoveTo(mm.ToArray64(npSeq), 20, 30)
+	return spMap
+
+preX = None
+def UpdateSeqView4(epoch, cost):
+	global spMap
+	global preX
+	if (spMap == None) or spMap.TheForm.IsDisposed:
+		spMap = New.HistoryView().Show()
+	newX = X.numpy()
+	if preX is not None:
+		varX = float( np.sum(np.abs(newX-preX)) )
+		spMap.AddStep(varX)
+	preX = newX
+	return spMap
+
+def UpdateOutMap(epoch, cost):
 	pY =  md(X, training=False).numpy()
 	outDim = dY.shape[1]
 	outMap = Update2DMap(pY) if outDim == 2 else	UpdateXyMap(pY)
+	return outMap
 
+def Logger1D(epoch, cost):
 	tm = (time.time() - vmd.startTime)/epoch
 	logTitle = f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}'
-	outMap.Title = spMap.Title = logTitle
+	#UpdateSeqView4(epoch, cost).Title = logTitle
+	UpdateOutMap(epoch, cost).Title = logTitle
 
-class RBFLayer1D(keras.layers.Layer):
-	def __init__(self, K):
-		super(RBFLayer1D, self).__init__()
-		self.centers = np.array([ [k/K] for k in range(K)])
-		self.beta  = 4.0*math.sqrt(K)
-	def call(self, X):
-		H = tf.transpose(tf.expand_dims(self.centers, -1) - tf.transpose(X))
-		D = self.beta * tf.math.reduce_sum(tf.abs(H), axis=1)
-		return tf.exp(-D)
+#-------------------------------------------------------------------------------------------
 
 def DeepScalingModel(X, Y, dimList, DR):
 	P = input = keras.Input(shape=(X.shape[1]), dtype=tf.float32)
-	#P = RBFLayer1D(20)(P)
 	for k, dim in enumerate(dimList):
 		P = DenseLayer(dim, 'leaky_relu') (P)
 		if (k <= 4) and (DR>0): 
 			P = keras.layers.Dropout(DR)(P)
+		if k==0: P1 = P  # Jumping connections for better performance
+		if k==4: P += P1
 	P = DenseLayer(Y.shape[1], 'sigmoid') (P)
 	output = OutScaling(Y, gape=0.0) (P)
 	md = keras.Model(input, output, name=f'Scaling')
@@ -81,6 +122,7 @@ def TrainScalingModel(md, epochs, dsBatchs, LR):
 		for i, bIdx in enumerate(dsBatchs):
 			cost += TrainBatch(md, bIdx)
 			if i%50==0: vv.DoEvents()
+		random.shuffle(dsBatchs)
 		if vmd.stopTraining:	break
 		ReportTraining(epoch, cost, logger)
 	vmd.trainingTime = time.time() - vmd.startTime
@@ -90,7 +132,8 @@ def ToBatchList(dY, inDim, spread, batchSize):
 	Y = tf.convert_to_tensor(dY)
 	dX = RandomMatrix(spread, N, inDim)
 	X = tf.Variable(dX, trainable=True)
-	sortKey = np.array([b.Type for b in vv.Dataset.BodyListEnabled()])
+	#sortKey = [b.Type for b in vv.Dataset.BodyListEnabled()]
+	sortKey = [it.Value for it in vv.AtlasManager.ReadValueList(None, 'i3')]
 	indexList = np.argsort(sortKey)
 	#indexList = np.array(range(N))
 	#np.random.shuffle(indexList)
@@ -104,11 +147,8 @@ def ToBatchList(dY, inDim, spread, batchSize):
 
 spread, inDim, batchSize = 0.0, 1, 25
 dimList = 6*[256]
-DR, LR, epochs = 0.125, 0.00005, 1000
+DR, LR, epochs = 0.125, 0.0001, 1000
 vmd.reportFreq = 10
-xyMap = None
-spMap = None
-md = None
 
 dY = GetMapData()
 #dY = GetDatasetData()
@@ -117,10 +157,21 @@ X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
 #------------------------------------------------------------------------------
 # Create model and train it.
 #
-#md = DeepScalingModel(X, Y, dimList, DR)
-#TrainScalingModel(md, epochs, dsBatchs, LR)
+md = DeepScalingModel(X, Y, dimList, DR)
+TrainScalingModel(md, epochs, dsBatchs, LR)
 #
 
+'''
+for n in range(3):
+	del md
+	md = DeepScalingModel(X, Y, dimList, DR)
+	TrainScalingModel(md, epochs, dsBatchs, LR)
+	if vmd.stopTraining:	break
+	vmd.logMap.NewSnapshot()
+
+'''
+
+'''
 md0 = md = DeepScalingModel(X, Y, dimList, DR)
 TrainScalingModel(md0, epochs, dsBatchs, LR)
 
@@ -136,13 +187,14 @@ X1 = X.numpy()
 Y1 = md(X, training=False).numpy()
 pX = np.concatenate([X0, X1], axis=1)
 pY = Y0+Y1
-
+ShowMap(Y1)
 pMap = Update2DMap(pY)
 errMap = np.sum(np.abs(pY-dY))/dY.shape[0]
 pMap.Title = f'Error: {errMap:.2f}'
-
+ShowMap(5000*pX+np.array([400, 400]))
 '''
 
+'''
 for repeats in range(3):
 	del X
 	del md			

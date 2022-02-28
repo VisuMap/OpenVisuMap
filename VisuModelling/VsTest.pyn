@@ -1,0 +1,27 @@
+# VsTest.pyn
+#
+# experimental test code.
+#
+class RBFLayerOneDim(keras.layers.Layer):
+	def __init__(self, K):
+		super(RBFLayer1D, self).__init__()
+		self.centers = np.array([ [10.0*(k/K - 0.5)] for k in range(K)]).astype(np.float32)
+		self.beta  = np.float32(4.0*math.sqrt(K))
+	def call(self, X):
+		H = tf.transpose(tf.expand_dims(self.centers, -1) - tf.transpose(X))
+		D = self.beta * tf.math.reduce_sum(tf.abs(H), axis=1)
+		return tf.exp(-D)
+
+class RBFLayer2D(keras.layers.Layer):
+	def __init__(self, X, K):
+		super(RBFLayer2D, self).__init__()
+		N = X.shape[0]
+		self.centers = X[ [k*73%N for k in range(K)] ]
+		s = (np.max(X) - np.min(X))/(4.0*math.sqrt(K))
+		self.beta  = 1.0/(2*s*s)
+	def call(self, X):
+		# the following block is from 
+		#   https://github.com/PetraVidnerova/rbf_for_tf2/blob/master/rbflayer.py
+		H = tf.transpose(tf.expand_dims(self.centers, -1) - tf.transpose(X))
+		D = self.beta * tf.math.reduce_sum(H**2, axis=1)
+		return tf.exp(-D)

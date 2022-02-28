@@ -156,3 +156,13 @@ def ShowSpectrum(npSeq):
 	spMap.ResetScaling()	
 	return spMap
 
+def ShowBarView(npSeq):
+	vList = mm.ToValueList(npSeq.reshape([-1,1]), vv.Dataset.BodyListEnabled())
+	spMap = New.BarView(vList)
+	spMap.AggregationOrientation=1
+	spMap.Horizontal = False
+	spMap.AutoScaling = True
+	spMap.BaseLineType = 0	
+	spMap.Show()
+	return spMap
+
