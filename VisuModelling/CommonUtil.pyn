@@ -42,24 +42,6 @@ def PromptOpenDirectory():
 		preDirPath = fd.SelectedPath
 	return fd.SelectedPath
 
-def ShowHeatmap(nt, fileName):
-	hm = New.HeatMap(nt).Show()
-	hm.CentralizeColorSpectrum()
-	hm.Description = 'Data imported from: ' + fileName
-	return hm
-
-def ShowMap(nt, map=None):	
-	if map == None:
-		map = New.MapSnapshot(True).Show()
-	bsList = map.BodyList
-	is3D = (nt.shape[1] == 3)
-	for i, b in enumerate(bsList):
-		R = nt[i]
-		b.X = R[0]
-		b.Y = R[1]
-		b.Z = R[2] if is3D else 0
-	map.RedrawBodiesXyz()
-	return map
 
 def ReportTraining(epoch, cost, logCallback=None):
 	if ((epoch + 1) % vmd.reportFreq != 0): 
@@ -115,36 +97,64 @@ def GetDatasetData(mapName = None):
 		ntTable = nt.SelectRowsByIdView(rowIds)
 	return mm.ToNumpy(ntTable).astype(np.float32)
 
-def ShowNumpyMatrix(np):
-	nt = mm.ToTable(np)
-	return New.HeatMap(nt).Show()
-
-def ShowXyMap(np):
-	bsList = vv.Dataset.BodyListEnabled()
-	tb = mm.ToTable(np)
-	for row, b in enumerate(bsList):
-		tb.RowSpecList[row].CopyFromBody(b)
-	return New.XyPlot(tb).Show()
-
 def RandomMatrix(size, rows, columns):
 	if size == 0:
 		return np.zeros([rows, columns], dtype=np.float32)
 	else:
 		return np.random.uniform(-size, size, [rows, columns]).astype(np.float32)
 
-def UpdateXyMap(npTable):
+#------------------------------------------------------------------------------
+
+def ShowHeatmap(nt, fileName):
+	hm = New.HeatMap(nt).Show()
+	hm.CentralizeColorSpectrum()
+	hm.Description = 'Data imported from: ' + fileName
+	return hm
+
+def ShowMap(nt, map=None, title=None):	
+	if map == None:
+		map = New.MapSnapshot(True).Show()
+	bsList = map.BodyList
+	is3D = (nt.shape[1] == 3)
+	for i, b in enumerate(bsList):
+		R = nt[i]
+		b.X = R[0]
+		b.Y = R[1]
+		b.Z = R[2] if is3D else 0
+	map.RedrawBodiesXyz()
+	if title is not None:
+		map.Title = title
+	return map
+
+def ShowNumpyMatrix(np, title=None):
+	nt = mm.ToTable(np)
+	hm = New.HeatMap(nt).Show()
+	if title is not None: hm.Title = title
+	return hm
+
+def ShowXyMap(np, title=None):
+	bsList = vv.Dataset.BodyListEnabled()
+	tb = mm.ToTable(np)
+	for row, b in enumerate(bsList):
+		tb.RowSpecList[row].CopyFromBody(b)
+	xyMap = New.XyPlot(tb).Show()
+	if title is not None: xyMap.Title = title
+	return xyMap
+
+def UpdateXyMap(npTable, title=None):
 	global xyMap
 	if (xyMap == None) or xyMap.TheForm.IsDisposed:
 		xyMap = ShowXyMap(npTable)
 	else:
 		mm.CopyToTable(npTable, xyMap.GetNumberTable())
 		xyMap.Redraw()
+	if title is not None: xyMap.Title = title	
 	return xyMap
 
-
-def Update2DMap(npTable):
+def Update2DMap(npTable, title=None):
 	vmd.OpenLogMap()
 	vmd.logMap.MoveBodiesTo(mm.ToMatrix32(npTable))
+	if title is not None: vmd.logMap.Title = title	
 	return vmd.logMap
 
 def ShowSpectrum(npSeq):

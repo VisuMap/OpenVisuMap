@@ -16,10 +16,8 @@ spMap = None
 md = None
 
 def Logger(epoch, cost):
-	global xyMap
-	UpdateXyMap(X.numpy())
 	tm = (time.time() - vmd.startTime)/epoch
-	xyMap.Title = f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}'
+	UpdateXyMap(X.numpy(), title=f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}')
 
 def UpdateSeqView(epoch, cost):
 	global spMap
@@ -76,6 +74,12 @@ def UpdateOutMap(epoch, cost):
 	outDim = dY.shape[1]
 	outMap = Update2DMap(pY) if outDim == 2 else	UpdateXyMap(pY)
 	return outMap
+
+def ShowPredication(md, X, refY):
+	pY = md(X, training=False).numpy()
+	meanErr = np.sum(np.abs(pY-refY))/refY.shape[0]
+	pMap = ShowMap(pY, title=f'Predicted Map. Mean L1: {meanErr:0.3f}')
+	return pMap
 
 def Logger1D(epoch, cost):
 	tm = (time.time() - vmd.startTime)/epoch
@@ -145,9 +149,9 @@ def ToBatchList(dY, inDim, spread, batchSize):
 #------------------------------------------------------------------------------
 # Load data and settings
 
-spread, inDim, batchSize = 0.0, 1, 25
+spread, inDim, batchSize = 0.0, 2, 25
 dimList = 6*[256]
-DR, LR, epochs = 0.125, 0.0001, 1000
+DR, LR, epochs = 0.0, 0.0001, 1000
 vmd.reportFreq = 10
 
 dY = GetMapData()
@@ -159,6 +163,7 @@ X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
 #
 md = DeepScalingModel(X, Y, dimList, DR)
 TrainScalingModel(md, epochs, dsBatchs, LR)
+ShowPredication(md, X, dY)
 #
 
 '''
@@ -168,7 +173,6 @@ for n in range(3):
 	TrainScalingModel(md, epochs, dsBatchs, LR)
 	if vmd.stopTraining:	break
 	vmd.logMap.NewSnapshot()
-
 '''
 
 '''
@@ -176,22 +180,21 @@ md0 = md = DeepScalingModel(X, Y, dimList, DR)
 TrainScalingModel(md0, epochs, dsBatchs, LR)
 
 X0 = X.numpy()
-Y0 = md0(X, training=False).numpy()
+Y0 = md(X, training=False).numpy()
 Y =  Y - Y0
 X.assign(dX)
 md1 = md = DeepScalingModel(X, Y, dimList, DR)
 TrainScalingModel(md1, epochs, dsBatchs, LR)
 
-
 X1 = X.numpy()
 Y1 = md(X, training=False).numpy()
 pX = np.concatenate([X0, X1], axis=1)
 pY = Y0+Y1
-ShowMap(Y1)
-pMap = Update2DMap(pY)
-errMap = np.sum(np.abs(pY-dY))/dY.shape[0]
-pMap.Title = f'Error: {errMap:.2f}'
+meanErr = np.sum(np.abs(pY-dY))/dY.shape[0]
 ShowMap(5000*pX+np.array([400, 400]))
+ShowMap(pY, title = f'Mean L1 Error: {meanErr:.3f}')
+ShowMap(Y0)
+ShowMap(Y1).NormalizeView()
 '''
 
 '''
