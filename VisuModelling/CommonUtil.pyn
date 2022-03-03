@@ -105,10 +105,12 @@ def RandomMatrix(size, rows, columns):
 
 #------------------------------------------------------------------------------
 
-def ShowHeatmap(nt, fileName):
-	hm = New.HeatMap(nt).Show()
+
+def ShowHeatmap(np, title=None):
+	hm = New.HeatMap(mm.ToTable(np)).Show()
 	hm.CentralizeColorSpectrum()
-	hm.Description = 'Data imported from: ' + fileName
+	if title is not None: 
+		hm.Title = title
 	return hm
 
 def ShowMap(nt, map=None, title=None):	
@@ -126,12 +128,6 @@ def ShowMap(nt, map=None, title=None):
 		map.Title = title
 	return map
 
-def ShowNumpyMatrix(np, title=None):
-	nt = mm.ToTable(np)
-	hm = New.HeatMap(nt).Show()
-	if title is not None: hm.Title = title
-	return hm
-
 def ShowXyMap(np, title=None):
 	bsList = vv.Dataset.BodyListEnabled()
 	tb = mm.ToTable(np)
@@ -140,22 +136,6 @@ def ShowXyMap(np, title=None):
 	xyMap = New.XyPlot(tb).Show()
 	if title is not None: xyMap.Title = title
 	return xyMap
-
-def UpdateXyMap(npTable, title=None):
-	global xyMap
-	if (xyMap == None) or xyMap.TheForm.IsDisposed:
-		xyMap = ShowXyMap(npTable)
-	else:
-		mm.CopyToTable(npTable, xyMap.GetNumberTable())
-		xyMap.Redraw()
-	if title is not None: xyMap.Title = title	
-	return xyMap
-
-def Update2DMap(npTable, title=None):
-	vmd.OpenLogMap()
-	vmd.logMap.MoveBodiesTo(mm.ToMatrix32(npTable))
-	if title is not None: vmd.logMap.Title = title	
-	return vmd.logMap
 
 def ShowSpectrum(npSeq):
 	vList = mm.ToValueList(npSeq.reshape([-1,1]), vv.Dataset.BodyListEnabled())

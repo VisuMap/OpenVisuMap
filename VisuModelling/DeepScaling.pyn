@@ -21,6 +21,12 @@ def Logger(epoch, cost):
 	UpdateXyMap(X.numpy(), 
 		title=f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}')
 
+def Logger1D(epoch, cost):
+	tm = (time.time() - vmd.startTime)/epoch
+	logTitle = f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}'
+	UpdateSeqView(epoch, cost).Title = logTitle
+	UpdateOutMap(epoch, cost, logTitle)
+
 def UpdateSeqView(epoch, cost):
 	global spMap
 	npSeq = X.numpy().flatten()
@@ -79,11 +85,22 @@ def UpdateOutMap(epoch, cost, title=None):
 		outMap.Title = title
 	return outMap
 
-def Logger1D(epoch, cost):
-	tm = (time.time() - vmd.startTime)/epoch
-	logTitle = f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}'
-	#UpdateSeqView4(epoch, cost).Title = logTitle
-	UpdateOutMap(epoch, cost, logTitle)
+
+def UpdateXyMap(npTable, title=None):
+	global xyMap
+	if (xyMap == None) or xyMap.TheForm.IsDisposed:
+		xyMap = ShowXyMap(npTable)
+	else:
+		mm.CopyToTable(npTable, xyMap.GetNumberTable())
+		xyMap.Redraw()
+	if title is not None: xyMap.Title = title	
+	return xyMap
+
+def Update2DMap(npTable, title=None):
+	vmd.OpenLogMap()
+	vmd.logMap.MoveBodiesTo(mm.ToMatrix32(npTable))
+	if title is not None: vmd.logMap.Title = title	
+	return vmd.logMap
 
 #-------------------------------------------------------------------------------------------
 
@@ -160,10 +177,9 @@ def NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR):
 
 #------------------------------------------------------------------------------
 # Load data and settings
-inDim, dimList = 3, 6*[256]
-spread, batchSize, DR, LR, epochs = 0.0, 25, 0.125, 0.0001, 1000
+inDim, dimList = 1, 6*[256]
+spread, batchSize, DR, LR, epochs = 0.0, 25, 0.125, 0.0001, 100
 vmd.reportFreq = 10
-
 
 dY = GetMapData()
 #dY = GetDatasetData()
@@ -173,71 +189,59 @@ X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
 # Create model and train it.
 #
 
-md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
-pX, pY = X.numpy(), md(X, training=False).numpy()
-meanL1 = np.sum(np.abs(pY-dY))/dY.shape[0]
-sTitle = f'Epochs/DR/LR: {epochs}/{DR:.3f}/{LR:.5f}, Mean-L1: {meanL1:.3f}'
-ShowMap(pX, title = sTitle)
-ShowMap(pY, title = sTitle)
+def Main():
+	global md
 
-'''
-md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
-X0, Y0 = X.numpy(), md(X, training=False).numpy()
+	md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
+	pX, pY = X.numpy(), md(X, training=False).numpy()
+	meanL1 = np.sum(np.abs(pY-dY))/dY.shape[0]
+	sTitle = f'Epochs/DR/LR: {epochs}/{DR:.3f}/{LR:.5f}, Mean-L1: {meanL1:.3f}'
+	pX = 5000*pX+[400]
+	ShowMap(pX, title = sTitle)
+	ShowMap(pY, title = sTitle)
 
-Y =  Y - Y0
-X.assign(dX)
-md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
-X1, Y1 = X.numpy(), md(X, training=False).numpy()
+def Main3x1():
+	global md, Y
 
-Y =  Y - Y1
-X.assign(dX)
-md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
-X2, Y2 = X.numpy(), md(X, training=False).numpy()
+	vv.Echo('Training dimension 1')
+	md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
+	if vmd.stopTraining:	return
+	X0, Y0 = X.numpy(), md(X, training=False).numpy()
 
-pX, pY = np.concatenate([X0, X1, X2], axis=1),    Y0+Y1+Y2
-meanErr = np.sum(np.abs(pY-dY))/dY.shape[0]
-sTitle = f'Epochs/DR/LR: {epochs}/{DR:.3f}/{LR:.5f}, Mean-L1: {meanErr:.3f}'
-pX = 5000*pX+np.array([400, 400, 400])
-ShowMap(pX, title = sTitle)
-ShowMap(pY, title = sTitle)
-'''
+	Y =  Y - Y0
+	X.assign(dX)
+	vv.Echo('Training dimension 2')
+	md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
+	if vmd.stopTraining:	return
+	X1, Y1 = X.numpy(), md(X, training=False).numpy()
+	
+	Y =  Y - Y1
+	X.assign(dX)
+	vv.Echo('Training dimension 3')
+	md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
+	if vmd.stopTraining:	return
+	X2, Y2 = X.numpy(), md(X, training=False).numpy()
+	
+	pX, pY = np.concatenate([X0, X1, X2], axis=1),    Y0+Y1+Y2
+	meanErr = np.sum(np.abs(pY-dY))/dY.shape[0]
+	sTitle = f'Epochs/DR/LR: {epochs}/{DR:.3f}/{LR:.5f}, Mean-L1: {meanErr:.3f}'
+	pX = 5000*pX+[400]
+	ShowMap(pX, title = sTitle)
+	ShowMap(pY, title = sTitle)
 
-'''
-pX, pY = np.concatenate([X0, X1], axis=1),    Y0+Y1
-meanErr = np.sum(np.abs(pY-dY))/dY.shape[0]
-sTitle = f'Epochs/DR/LR: {epochs}/{DR:.3f}/{LR:.5f}, Mean-L1: {meanErr:.3f}'
-pX = 5000*pX+np.array([400, 400])
-ShowMap(pX, title = sTitle)
-ShowMap(pY, title = sTitle)
-ShowMap(Y0, title = sTitle)
-ShowMap(Y1, title = sTitle).NormalizeView()
-'''
+def MainLoop():
+	global X, md, spMap
 
-'''
-for n in range(3):
-	del md
-	md = DeepScalingModel(X, Y, dimList, DR)
-	TrainScalingModel(md, epochs, dsBatchs, LR)
-	if vmd.stopTraining:	break
-	vmd.logMap.NewSnapshot()
+	for repeat in range(3):
+		vv.Echo(f'Repeat no. {repeat}')
+		del X
+		del md			
+		X = tf.Variable(dX, trainable=True)
+		md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
+		vmd.logMap.NewSnapshot()
+		if vmd.stopTraining:
+			break
 
-for repeats in range(3):
-	del X
-	del md			
-	X = tf.Variable(dX, trainable=True)
-	md = DeepScalingModel(X, Y, dimList, DR)
-	TrainScalingModel(md, epochs, dsBatchs, LR)
-	spMap.DuplicateView()
-	vmd.logMap.NewSnapshot()
-	if vmd.stopTraining:
-		break
-
-UpdateXyMap(X.numpy())
-P =  md(X, training=False).numpy()
-Update2DMap(dY-P)
-Y0.shape
-
-Update2DMap(P)
-errMap = np.sum(np.abs(P-dY))/dY.shape[0]
-Update2DMap(Y.numpy())
-'''
+#Main()
+#Main3x1()
+MainLoop()
