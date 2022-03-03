@@ -11,13 +11,15 @@ InitVmd()
 vmd.Clear()
 
 #------------------------------------------------------------------------------
+
 xyMap = None
 spMap = None
 md = None
 
 def Logger(epoch, cost):
 	tm = (time.time() - vmd.startTime)/epoch
-	UpdateXyMap(X.numpy(), title=f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}')
+	UpdateXyMap(X.numpy(), 
+		title=f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}')
 
 def UpdateSeqView(epoch, cost):
 	global spMap
@@ -69,23 +71,19 @@ def UpdateSeqView4(epoch, cost):
 	preX = newX
 	return spMap
 
-def UpdateOutMap(epoch, cost):
+def UpdateOutMap(epoch, cost, title=None):
 	pY =  md(X, training=False).numpy()
 	outDim = dY.shape[1]
-	outMap = Update2DMap(pY) if outDim == 2 else	UpdateXyMap(pY)
+	outMap = Update2DMap(pY) if outDim <= 3 else	UpdateXyMap(pY)
+	if title != None:
+		outMap.Title = title
 	return outMap
-
-def ShowPredication(md, X, refY):
-	pY = md(X, training=False).numpy()
-	meanErr = np.sum(np.abs(pY-refY))/refY.shape[0]
-	pMap = ShowMap(pY, title=f'Predicted Map. Mean L1: {meanErr:0.3f}')
-	return pMap
 
 def Logger1D(epoch, cost):
 	tm = (time.time() - vmd.startTime)/epoch
 	logTitle = f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}'
 	#UpdateSeqView4(epoch, cost).Title = logTitle
-	UpdateOutMap(epoch, cost).Title = logTitle
+	UpdateOutMap(epoch, cost, logTitle)
 
 #-------------------------------------------------------------------------------------------
 
@@ -95,7 +93,8 @@ def DeepScalingModel(X, Y, dimList, DR):
 		P = DenseLayer(dim, 'leaky_relu') (P)
 		if (k <= 4) and (DR>0): 
 			P = keras.layers.Dropout(DR)(P)
-		if k==0: P1 = P  # Jumping connections for better performance
+		#Jumping connections for better performance
+		if k==0: P1 = P  
 		if k==4: P += P1
 	P = DenseLayer(Y.shape[1], 'sigmoid') (P)
 	output = OutScaling(Y, gape=0.0) (P)
@@ -136,8 +135,15 @@ def ToBatchList(dY, inDim, spread, batchSize):
 	Y = tf.convert_to_tensor(dY)
 	dX = RandomMatrix(spread, N, inDim)
 	X = tf.Variable(dX, trainable=True)
+	
 	#sortKey = [b.Type for b in vv.Dataset.BodyListEnabled()]
-	sortKey = [it.Value for it in vv.AtlasManager.ReadValueList(None, 'i3')]
+	
+	keyList = vv.AtlasManager.ReadValueList('Instance1', 'i19')
+	if keyList is None or keyList.Count != N:
+		vv.Message('Invalid sorting keys')
+		vv.Return()
+	sortKey = [it.Value for it in keyList]
+	
 	indexList = np.argsort(sortKey)
 	#indexList = np.array(range(N))
 	#np.random.shuffle(indexList)
@@ -146,13 +152,18 @@ def ToBatchList(dY, inDim, spread, batchSize):
 		batchList.append( tf.convert_to_tensor(indexList[n:n+batchSize]) )
 	return X, Y, dX, batchList
 
+def NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR):
+	global md
+	md = DeepScalingModel(X, Y, dimList, DR)
+	TrainScalingModel(md, epochs, dsBatchs, LR)
+	return md
+
 #------------------------------------------------------------------------------
 # Load data and settings
-
-spread, inDim, batchSize = 0.0, 2, 25
-dimList = 6*[256]
-DR, LR, epochs = 0.0, 0.0001, 1000
+inDim, dimList = 3, 6*[256]
+spread, batchSize, DR, LR, epochs = 0.0, 25, 0.125, 0.0001, 1000
 vmd.reportFreq = 10
+
 
 dY = GetMapData()
 #dY = GetDatasetData()
@@ -161,10 +172,46 @@ X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
 #------------------------------------------------------------------------------
 # Create model and train it.
 #
-md = DeepScalingModel(X, Y, dimList, DR)
-TrainScalingModel(md, epochs, dsBatchs, LR)
-ShowPredication(md, X, dY)
-#
+
+md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
+pX, pY = X.numpy(), md(X, training=False).numpy()
+meanL1 = np.sum(np.abs(pY-dY))/dY.shape[0]
+sTitle = f'Epochs/DR/LR: {epochs}/{DR:.3f}/{LR:.5f}, Mean-L1: {meanL1:.3f}'
+ShowMap(pX, title = sTitle)
+ShowMap(pY, title = sTitle)
+
+'''
+md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
+X0, Y0 = X.numpy(), md(X, training=False).numpy()
+
+Y =  Y - Y0
+X.assign(dX)
+md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
+X1, Y1 = X.numpy(), md(X, training=False).numpy()
+
+Y =  Y - Y1
+X.assign(dX)
+md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
+X2, Y2 = X.numpy(), md(X, training=False).numpy()
+
+pX, pY = np.concatenate([X0, X1, X2], axis=1),    Y0+Y1+Y2
+meanErr = np.sum(np.abs(pY-dY))/dY.shape[0]
+sTitle = f'Epochs/DR/LR: {epochs}/{DR:.3f}/{LR:.5f}, Mean-L1: {meanErr:.3f}'
+pX = 5000*pX+np.array([400, 400, 400])
+ShowMap(pX, title = sTitle)
+ShowMap(pY, title = sTitle)
+'''
+
+'''
+pX, pY = np.concatenate([X0, X1], axis=1),    Y0+Y1
+meanErr = np.sum(np.abs(pY-dY))/dY.shape[0]
+sTitle = f'Epochs/DR/LR: {epochs}/{DR:.3f}/{LR:.5f}, Mean-L1: {meanErr:.3f}'
+pX = 5000*pX+np.array([400, 400])
+ShowMap(pX, title = sTitle)
+ShowMap(pY, title = sTitle)
+ShowMap(Y0, title = sTitle)
+ShowMap(Y1, title = sTitle).NormalizeView()
+'''
 
 '''
 for n in range(3):
@@ -173,31 +220,7 @@ for n in range(3):
 	TrainScalingModel(md, epochs, dsBatchs, LR)
 	if vmd.stopTraining:	break
 	vmd.logMap.NewSnapshot()
-'''
 
-'''
-md0 = md = DeepScalingModel(X, Y, dimList, DR)
-TrainScalingModel(md0, epochs, dsBatchs, LR)
-
-X0 = X.numpy()
-Y0 = md(X, training=False).numpy()
-Y =  Y - Y0
-X.assign(dX)
-md1 = md = DeepScalingModel(X, Y, dimList, DR)
-TrainScalingModel(md1, epochs, dsBatchs, LR)
-
-X1 = X.numpy()
-Y1 = md(X, training=False).numpy()
-pX = np.concatenate([X0, X1], axis=1)
-pY = Y0+Y1
-meanErr = np.sum(np.abs(pY-dY))/dY.shape[0]
-ShowMap(5000*pX+np.array([400, 400]))
-ShowMap(pY, title = f'Mean L1 Error: {meanErr:.3f}')
-ShowMap(Y0)
-ShowMap(Y1).NormalizeView()
-'''
-
-'''
 for repeats in range(3):
 	del X
 	del md			
