@@ -17,17 +17,16 @@ spMap = None
 md = None
 
 def Logger(epoch, cost):
-	tm = (time.time() - vmd.startTime)/epoch
-	UpdateXyMap(X.numpy(), 
-		title=f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}')
-
-def Logger1D(epoch, cost):
+	global inDim
 	tm = (time.time() - vmd.startTime)/epoch
 	logTitle = f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}'
-	UpdateSeqView(epoch, cost).Title = logTitle
-	UpdateOutMap(epoch, cost, logTitle)
+	if inDim==1:
+		UpdateSeqView(epoch, cost, logTitle)
+		UpdateOutMap(epoch, cost, logTitle)
+	else:
+		UpdateXyMap(X.numpy(), title=logTitle)
 
-def UpdateSeqView(epoch, cost):
+def UpdateSeqView(epoch, cost, title):
 	global spMap
 	npSeq = X.numpy().flatten()
 	if (spMap == None) or spMap.TheForm.IsDisposed:
@@ -37,9 +36,10 @@ def UpdateSeqView(epoch, cost):
 		for i in range(items.Count):
 			items[i].Value = npSeq[i]
 		spMap.ResetScaling()
+	spMap.Title = title
 	return spMap
 
-def UpdateSeqView2(epoch, cost):
+def UpdateSeqView2(epoch, cost, title):
 	global spMap
 	npSeq = X.numpy().flatten()
 	if (spMap == None) or spMap.TheForm.IsDisposed:
@@ -53,9 +53,10 @@ def UpdateSeqView2(epoch, cost):
 	for i in range(N):
 		pos[i] = sz*(npSeq[i] - minV)/rangeV, posY, 0
 	spMap.MoveBodiesTo(mm.ToMatrix32(pos), 150, 20)  
+	spMap.Title = title
 	return spMap
 
-def UpdateSeqView3(epoch, cost):
+def UpdateSeqView3(epoch, cost, title):
 	global spMap
 	npSeq = X.numpy().flatten()
 	if (spMap == None) or spMap.TheForm.IsDisposed:
@@ -65,7 +66,7 @@ def UpdateSeqView3(epoch, cost):
 	return spMap
 
 preX = None
-def UpdateSeqView4(epoch, cost):
+def UpdateSeqView4(epoch, cost, title):
 	global spMap
 	global preX
 	if (spMap == None) or spMap.TheForm.IsDisposed:
@@ -75,6 +76,7 @@ def UpdateSeqView4(epoch, cost):
 		varX = float( np.sum(np.abs(newX-preX)) )
 		spMap.AddStep(varX)
 	preX = newX
+	spMap.Title = title
 	return spMap
 
 def UpdateOutMap(epoch, cost, title=None):
@@ -84,7 +86,6 @@ def UpdateOutMap(epoch, cost, title=None):
 	if title != None:
 		outMap.Title = title
 	return outMap
-
 
 def UpdateXyMap(npTable, title=None):
 	global xyMap
@@ -136,7 +137,6 @@ def TrainScalingModel(md, epochs, dsBatchs, LR):
 	TrainBatch.__init__(TrainBatch.python_function, 'TrainBatch', jit_compile=False)
 	vmd.stopTraining = False
 	vmd.startTime = time.time()
-	logger = Logger1D if inDim == 1 else Logger
 	for epoch in range(epochs):  
 		cost = 0
 		for i, bIdx in enumerate(dsBatchs):
@@ -144,7 +144,7 @@ def TrainScalingModel(md, epochs, dsBatchs, LR):
 			if i%50==0: vv.DoEvents()
 		random.shuffle(dsBatchs)
 		if vmd.stopTraining:	break
-		ReportTraining(epoch, cost, logger)
+		ReportTraining(epoch, cost, Logger)
 	vmd.trainingTime = time.time() - vmd.startTime
 
 def ToBatchList(dY, inDim, spread, batchSize):
@@ -178,7 +178,7 @@ def NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR):
 #------------------------------------------------------------------------------
 # Load data and settings
 inDim, dimList = 1, 6*[256]
-spread, batchSize, DR, LR, epochs = 0.0, 25, 0.125, 0.0001, 100
+spread, batchSize, DR, LR, epochs = 0.0, 25, 0.125, 0.0001, 1000
 vmd.reportFreq = 10
 
 dY = GetMapData()
@@ -190,7 +190,7 @@ X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
 #
 
 def Main():
-	global md
+	global md, X, Y, inDim, DR, LR
 
 	md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
 	pX, pY = X.numpy(), md(X, training=False).numpy()
@@ -200,29 +200,64 @@ def Main():
 	ShowMap(pX, title = sTitle)
 	ShowMap(pY, title = sTitle)
 
-def Main3x1():
-	global md, Y
+def Main3x():
+	global md, X, Y, inDim, DR, LR
 
+	pX = []
 	vv.Echo('Training dimension 1')
 	md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
 	if vmd.stopTraining:	return
-	X0, Y0 = X.numpy(), md(X, training=False).numpy()
+	pX.append(X.numpy())
+	pY = md(X, training=False).numpy()
 
-	Y =  Y - Y0
+	Y =  Y - pY
 	X.assign(dX)
 	vv.Echo('Training dimension 2')
 	md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
 	if vmd.stopTraining:	return
-	X1, Y1 = X.numpy(), md(X, training=False).numpy()
-	
-	Y =  Y - Y1
+	pX.append(X.numpy())
+	outY = md(X, training=False).numpy()
+	pY += outY
+
+	Y =  Y - outY
 	X.assign(dX)
 	vv.Echo('Training dimension 3')
 	md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
 	if vmd.stopTraining:	return
-	X2, Y2 = X.numpy(), md(X, training=False).numpy()
+	pX.append(X.numpy())
+	outY = md(X, training=False).numpy()
+	pY += outY
 	
-	pX, pY = np.concatenate([X0, X1, X2], axis=1),    Y0+Y1+Y2
+	pX = np.concatenate(pX, axis=1)
+
+	meanErr = np.sum(np.abs(pY-dY))/dY.shape[0]
+	sTitle = f'Epochs/DR/LR: {epochs}/{DR:.3f}/{LR:.5f}, Mean-L1: {meanErr:.3f}'
+	pX = 5000*pX+[400]
+	ShowMap(pX, title = sTitle)
+	ShowMap(pY, title = sTitle)
+
+def Main2x():
+	global md, X, Y, inDim, DR, LR, dsBatchs
+
+	pX = []
+	vv.Echo('Training dimension 1')
+	md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
+	if vmd.stopTraining:	
+		return
+	pX.append(X.numpy())
+	pY = md(X, training=False).numpy()
+
+	inDim = 2
+	X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
+	Y =  Y - pY
+	X.assign(dX)
+	vv.Echo('Training dimension 2')
+	md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
+	if vmd.stopTraining:	return
+	pX.append(X.numpy())
+	pY += md(X, training=False).numpy()
+	
+	pX = np.concatenate(pX, axis=1)
 	meanErr = np.sum(np.abs(pY-dY))/dY.shape[0]
 	sTitle = f'Epochs/DR/LR: {epochs}/{DR:.3f}/{LR:.5f}, Mean-L1: {meanErr:.3f}'
 	pX = 5000*pX+[400]
@@ -230,7 +265,8 @@ def Main3x1():
 	ShowMap(pY, title = sTitle)
 
 def MainLoop():
-	global X, md, spMap
+	global md, X, Y, inDim, DR, LR
+	global spMap
 
 	for repeat in range(3):
 		vv.Echo(f'Repeat no. {repeat}')
@@ -243,5 +279,6 @@ def MainLoop():
 			break
 
 #Main()
-#Main3x1()
-MainLoop()
+#Main3x()
+Main2x()
+#MainLoop()
