@@ -106,8 +106,8 @@ def RandomMatrix(size, rows, columns):
 #------------------------------------------------------------------------------
 
 
-def ShowHeatmap(np, title=None):
-	hm = New.HeatMap(mm.ToTable(np)).Show()
+def ShowHeatmap(np, title=None, bsList=None):
+	hm = New.HeatMap(mm.ToTable(np, bsList)).Show()
 	hm.CentralizeColorSpectrum()
 	if title is not None: 
 		hm.Title = title

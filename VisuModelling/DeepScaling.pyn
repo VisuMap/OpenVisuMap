@@ -18,15 +18,20 @@ md = None
 
 def Logger(epoch, cost):
 	global inDim
-	tm = (time.time() - vmd.startTime)/epoch
+	tm = (time.time() - vmd.startTime)/(epoch+1)
 	logTitle = f'Epoch: {epoch+1}, Cost: {cost:_.2f}, E/s: {tm:.3f}'
 	if inDim==1:
-		UpdateSeqView(epoch, cost, logTitle)
+		#UpdateInMap5(epoch, cost, logTitle)
+        #UpdateInMap(epoch, cost, logTitle)
 		UpdateOutMap(epoch, cost, logTitle)
 	else:
-		UpdateXyMap(X.numpy(), title=logTitle)
+		pX = X.numpy()
+		if inDim<=3:
+			Update2DMap(4000*pX+[400], title=logTitle)
+		else:
+			UpdateXyMap(pX, title=logTitle)
 
-def UpdateSeqView(epoch, cost, title):
+def UpdateInMap(epoch, cost, title):
 	global spMap
 	npSeq = X.numpy().flatten()
 	if (spMap == None) or spMap.TheForm.IsDisposed:
@@ -39,7 +44,7 @@ def UpdateSeqView(epoch, cost, title):
 	spMap.Title = title
 	return spMap
 
-def UpdateSeqView2(epoch, cost, title):
+def UpdateInMap2(epoch, cost, title):
 	global spMap
 	npSeq = X.numpy().flatten()
 	if (spMap == None) or spMap.TheForm.IsDisposed:
@@ -56,7 +61,7 @@ def UpdateSeqView2(epoch, cost, title):
 	spMap.Title = title
 	return spMap
 
-def UpdateSeqView3(epoch, cost, title):
+def UpdateInMap3(epoch, cost, title):
 	global spMap
 	npSeq = X.numpy().flatten()
 	if (spMap == None) or spMap.TheForm.IsDisposed:
@@ -66,7 +71,7 @@ def UpdateSeqView3(epoch, cost, title):
 	return spMap
 
 preX = None
-def UpdateSeqView4(epoch, cost, title):
+def UpdateInMap4(epoch, cost, title):
 	global spMap
 	global preX
 	if (spMap == None) or spMap.TheForm.IsDisposed:
@@ -78,6 +83,18 @@ def UpdateSeqView4(epoch, cost, title):
 	preX = newX
 	spMap.Title = title
 	return spMap
+
+seqHist = None
+colIdx = 0
+def UpdateInMap5(epoch, cost, tittle):
+	global seqHist, colIdx
+	if seqHist is None: 
+		N = dY.shape[0]
+		dim = int(epochs/vmd.reportFreq)
+		seqHist = np.zeros([N, dim], dtype=np.float32)
+		colIdx = 0
+	seqHist[:, colIdx] = X.numpy().flatten()[:]
+	colIdx += 1
 
 def UpdateOutMap(epoch, cost, title=None):
 	pY =  md(X, training=False).numpy()
@@ -121,7 +138,7 @@ def DeepScalingModel(X, Y, dimList, DR):
 	md.X = X   # this statment will add X to md.trainable_variables!
 	return md
 
-@tf.function(jit_compile=False)
+@tf.function(jit_compile=True)
 def TrainBatch(md, bIdx):
 	with tf.GradientTape() as tape:
 		bX, bY = tf.gather(X, bIdx), tf.gather(Y, bIdx)
@@ -134,7 +151,7 @@ def TrainBatch(md, bIdx):
 def TrainScalingModel(md, epochs, dsBatchs, LR):
 	md.optimizer = AdamOptimizer(epochs*len(dsBatchs), LR)
 	vmd.EnableLog()	
-	TrainBatch.__init__(TrainBatch.python_function, 'TrainBatch', jit_compile=False)
+	TrainBatch.__init__(TrainBatch.python_function, 'TrainBatch', jit_compile=True)
 	vmd.stopTraining = False
 	vmd.startTime = time.time()
 	for epoch in range(epochs):  
@@ -178,8 +195,9 @@ def NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR):
 #------------------------------------------------------------------------------
 # Load data and settings
 inDim, dimList = 1, 6*[256]
-spread, batchSize, DR, LR, epochs = 0.0, 25, 0.125, 0.0001, 1000
-vmd.reportFreq = 10
+spread, batchSize, DR, LR, epochs = 0, 25, 0.125, 0.001, 1000
+bodyList = vv.Dataset.BodyListEnabled()
+vmd.reportFreq = 20
 
 dY = GetMapData()
 #dY = GetDatasetData()
@@ -190,7 +208,7 @@ X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
 #
 
 def Main():
-	global md, X, Y, inDim, DR, LR
+	global md, X, Y, inDim, DR, LR, dsBatchs
 
 	md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
 	pX, pY = X.numpy(), md(X, training=False).numpy()
@@ -199,9 +217,11 @@ def Main():
 	pX = 5000*pX+[400]
 	ShowMap(pX, title = sTitle)
 	ShowMap(pY, title = sTitle)
+	if seqHist is not None:
+		ShowHeatmap(seqHist, 'SeqHist', bodyList)
 
 def Main3x():
-	global md, X, Y, inDim, DR, LR
+	global md, X, Y, inDim, DR, LR, dsBatchs
 
 	pX = []
 	vv.Echo('Training dimension 1')
@@ -264,11 +284,12 @@ def Main2x():
 	ShowMap(pX, title = sTitle)
 	ShowMap(pY, title = sTitle)
 
-def MainLoop():
-	global md, X, Y, inDim, DR, LR
+def MainRepeat():
+	global md, X, Y, inDim, DR, LR, dsBatchs
+
 	global spMap
 
-	for repeat in range(3):
+	for repeat in range(5):
 		vv.Echo(f'Repeat no. {repeat}')
 		del X
 		del md			
@@ -279,6 +300,6 @@ def MainLoop():
 			break
 
 #Main()
-#Main3x()
-Main2x()
-#MainLoop()
+Main3x()
+#Main2x()
+#MainRepeat()

@@ -37,7 +37,11 @@ class ModellingConfiguration:
 
 	def OpenLogMap(self):
 		if (self.logMap == None) or self.logMap.TheForm.IsDisposed:
-				self.logMap = New.MapSnapshot(True).Show()
+			self.logMap = New.MapSnapshot(True)
+			for b in self.logMap.BodyList:
+				b.Z = 0
+			self.logMap.Show()
+			
 
 class OutScaling(keras.layers.Layer):
 	def __init__(self, Y, gape=0.0125):
