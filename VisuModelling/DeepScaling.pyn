@@ -12,10 +12,6 @@ vmd.Clear()
 
 #------------------------------------------------------------------------------
 
-xyMap = None
-spMap = None
-md = None
-
 def Logger(epoch, cost):
 	global inDim
 	tm = (time.time() - vmd.startTime)/(epoch+1)
@@ -186,22 +182,19 @@ def ToBatchList(dY, inDim, spread, batchSize):
 		batchList.append( tf.convert_to_tensor(indexList[n:n+batchSize]) )
 	return X, Y, dX, batchList
 
+def FreeTensors():
+	global md, X, Y, dsBatchs
+	del X
+	del Y
+	for bt in dsBatchs:
+		del bt
+	del md
+
 def NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR):
 	global md
 	md = DeepScalingModel(X, Y, dimList, DR)
 	TrainScalingModel(md, epochs, dsBatchs, LR)
 	return md
-
-#------------------------------------------------------------------------------
-# Load data and settings
-inDim, dimList = 1, 6*[256]
-spread, batchSize, DR, LR, epochs = 0, 25, 0.125, 0.001, 1000
-bodyList = vv.Dataset.BodyListEnabled()
-vmd.reportFreq = 20
-
-dY = GetMapData()
-#dY = GetDatasetData()
-X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
 
 #------------------------------------------------------------------------------
 # Create model and train it.
@@ -286,9 +279,7 @@ def Main2x():
 
 def MainRepeat():
 	global md, X, Y, inDim, DR, LR, dsBatchs
-
 	global spMap
-
 	for repeat in range(5):
 		vv.Echo(f'Repeat no. {repeat}')
 		del X
@@ -298,8 +289,28 @@ def MainRepeat():
 		vmd.logMap.NewSnapshot()
 		if vmd.stopTraining:
 			break
+#------------------------------------------------------------------------------
+# Load data and settings
+md, xyMap, spMap = None, None, None
+vmd.reportFreq = 50
 
-#Main()
+inDim, dimList = 1, 6*[256]
+spread, batchSize, DR, LR, epochs = 0, 25, 0.125, 0.000_1, 2000
+bodyList = vv.Dataset.BodyListEnabled()
+
+dY = GetMapData()
+#dY = GetDatasetData()
+X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
+
+Main()
+
+'''
 Main3x()
-#Main2x()
-#MainRepeat()
+for repeats in range(2):
+	FreeTensors()
+	X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
+	Main3x()
+
+Main2x()
+MainRepeat()
+'''
