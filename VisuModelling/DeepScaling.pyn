@@ -182,13 +182,17 @@ def ToBatchList(dY, inDim, spread, batchSize):
 		batchList.append( tf.convert_to_tensor(indexList[n:n+batchSize]) )
 	return X, Y, dX, batchList
 
-def FreeTensors():
+def ClearSession():
 	global md, X, Y, dsBatchs
+	if md is None:
+		return
 	del X
 	del Y
 	for bt in dsBatchs:
 		del bt
 	del md
+	md = None
+	keras.backend.clear_session()
 
 def NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR):
 	global md
@@ -277,40 +281,30 @@ def Main2x():
 	ShowMap(pX, title = sTitle)
 	ShowMap(pY, title = sTitle)
 
-def MainRepeat():
-	global md, X, Y, inDim, DR, LR, dsBatchs
-	global spMap
-	for repeat in range(5):
-		vv.Echo(f'Repeat no. {repeat}')
-		del X
-		del md			
-		X = tf.Variable(dX, trainable=True)
-		md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
-		vmd.logMap.NewSnapshot()
-		if vmd.stopTraining:
-			break
 #------------------------------------------------------------------------------
 # Load data and settings
 md, xyMap, spMap = None, None, None
 vmd.reportFreq = 50
-
-inDim, dimList = 1, 6*[256]
-spread, batchSize, DR, LR, epochs = 0, 25, 0.125, 0.000_1, 2000
 bodyList = vv.Dataset.BodyListEnabled()
-
 dY = GetMapData()
 #dY = GetDatasetData()
-X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
 
-Main()
+inDim, dimList = 1, 4*[256]
+spread, batchSize, DR, LR, epochs = 0, 25, 0.125, 0.000_1, 500
+
+for repeats in range(3):
+	ClearSession()
+	X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
+	Main2x()
 
 '''
-Main3x()
-for repeats in range(2):
-	FreeTensors()
+X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
+Main()
+
+for repeats in range(3):
+	ClearSession()
 	X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
 	Main3x()
 
 Main2x()
-MainRepeat()
 '''
