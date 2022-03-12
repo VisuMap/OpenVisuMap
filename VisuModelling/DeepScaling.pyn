@@ -348,13 +348,15 @@ def ShowInMap(title):
 		xMap.Close()
 		vv.LastView.NormalizeView()
 		vv.LastView.Title = title
-	elif mdPre.topo == 3:  # sphare
+	elif mdPre.topo == 3:  # sphere
 		pX = Fit2Map(pX, size=400)
-		xMap = ShowMap(pX, title = title)
-		xMap.ClickContextMenu('3D Animation View...')
-		xMap.Close()
-		vv.LastView.NormalizeView()
-		vv.LastView.Title = title
+		bList = New.BodyListClone(vv.Dataset.BodyListEnabled())
+		for i in range(bList.Count):
+			b = bList[i]
+			b.X, b.Y, b.Z = pX[i]
+		sMap = New.SphereView(bList)
+		sMap.Title = title
+		sMap.Show()
 	elif mdPre.topo == 4:  # torus
 		xMap = ShowMap(pX, title = title)	
 		xMap.MapLayout.MapTypeIndex = 100
@@ -394,9 +396,8 @@ dY = GetMapData()
 inDim, dimList = 2, 6*[256]
 spread, batchSize, DR, LR, epochs = 0.0, 25, 0.25, 0.000_25, 1000
 
-for repeats in range(3):
+for repeats in range(2):
 	ClearSession()
 	X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
 	Main()
-	if vmd.stopTraining:
-		break
+	if vmd.stopTraining:	break
