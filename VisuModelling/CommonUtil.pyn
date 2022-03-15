@@ -159,3 +159,9 @@ def ShowBarView(npSeq):
 	spMap.Show()
 	return spMap
 
+def Check(condition, msg):
+	if not condition:
+		vv.Message(msg)
+		vv.Return(0)
+
+
