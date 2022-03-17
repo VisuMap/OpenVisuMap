@@ -140,6 +140,15 @@ def ShowXyMap(np, title=None):
 	if title is not None: xyMap.Title = title
 	return xyMap
 
+def ShowMap3D(np, title):
+	map = New.Map3DView(vv.Dataset.BodyListEnabled())
+	for i, b in enumerate(map.BodyList):
+		b.X, b.Y, b.Z = np[i, :]
+	map.Title = title
+	map.Show()
+	map.NormalizeView()
+	return map	
+
 def ShowSpectrum(npSeq):
 	vList = mm.ToValueList(npSeq.reshape([-1,1]), vv.Dataset.BodyListEnabled())
 	spMap = New.SpectrumView(vList)

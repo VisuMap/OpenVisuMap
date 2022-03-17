@@ -281,7 +281,7 @@ def Main3x():
 
 #------------------------------------------------------------------------------
 mdPre = None
-def ManifoldLayer(P, topo=0):
+def ManifoldLayer(P, topo):
 	global mdPre
 	if topo == 0:
 		mdPre = None
@@ -294,7 +294,8 @@ def ManifoldLayer(P, topo=0):
 
 	if topo == 1:
 		# A strip 
-		P *= [1.0, 0.25]
+		a, b = 1.0, 0.25
+		P *= [a, b]
 		visP = P	
 	elif topo==2:
 		# circle x line
@@ -303,15 +304,16 @@ def ManifoldLayer(P, topo=0):
 		visP = P
 	elif topo==3:
 		# 2D-sphere
-		P0, P1 = 50.0*P[:,0:1], 50.0*P[:,1:2]
-		P = 10.0*tf.concat([tf.math.cos(P0)*tf.math.sin(P1), 
+		a, b = 50, 10
+		P *= a
+		P0, P1 = P[:,0:1], P[:,1:2]
+		P = b*tf.concat([tf.math.cos(P0)*tf.math.sin(P1), 
 			tf.math.sin(P0)*tf.math.sin(P1), tf.math.cos(P1)], 1)
 		visP = P
 	elif topo==4:
 		# torus: circle1 x circle2
 		a, b = [50, 20], [10.0, 0.01, 10.0, 0.01]
-		P = b*tf.concat([tf.math.sin(a*P), tf.math.cos(a*P)], 1)
-	
+		P = b*tf.concat([tf.math.sin(a*P), tf.math.cos(a*P)], 1)	
 		alpha = tf.math.atan2(P[:,0], P[:,2])
 		beta = tf.math.atan2(P[:,1], P[:,3])
 		alpha = 400.0*(alpha/math.pi + 1.0)
@@ -320,15 +322,25 @@ def ManifoldLayer(P, topo=0):
 		beta = tf.reshape(beta, [-1, 1])
 		visP = tf.concat( [alpha, beta], axis=1)
 	elif topo==5:
-		P0 = P[:,0:1]
-		P1 = P[:,1:2]
-		P2 = P[:,2:3]
+		# real projective 3D space.
+		a, b = 30, 15
+		P *= a
+		P0, P1, P2 = P[:,0:1], P[:,1:2], P[:,2:3]
 		x0 = tf.math.cos(P0)
 		x1 = tf.math.sin(P0) * tf.math.cos(P1)
 		x2 = tf.math.sin(P0) * tf.math.sin(P1) * tf.math.cos(P2)
 		x3 = tf.math.sin(P0) * tf.math.sin(P1) * tf.math.sin(P2)
-		P = tf.concat([x0, x1, x2, x3], 1)
-		visP = P
+		visP = tf.concat([x0, x1, x2, x3], 1)
+		P = b*visP
+	elif topo==6:
+		# real projective 2D plance:
+		a, b = 40, 10
+		P0, P1 = a*P[:,0:1], a*P[:,1:2]
+		x = tf.math.cos(P0)*tf.math.sin(P1) 
+		y = tf.math.sin(P0)*tf.math.sin(P1)
+		z = tf.math.cos(P1)
+		visP = tf.concat([x, y, z], 1)
+		P = b*tf.concat([x*y, x*z, y*y - z*z, 2*y*z], 1)
 
 	mdPre = keras.Model(input, visP)
 	mdPre.topo = topo
@@ -356,8 +368,9 @@ def ShowInMap(title):
 		ShowMap(pX, title = title)
 		return
 
+	title = title + f'; topo:{mdPre.topo}'
+
 	pX = mdPre(X).numpy()
-	#mm.ToTable(pX, bodyList).ShowHeatMap()
 	if mdPre.topo == 1:  # rectangle
 		pX = Fit2Map(pX)
 		xMap = ShowMap(pX, title = title)
@@ -381,12 +394,19 @@ def ShowInMap(title):
 		xMap.RedrawAll()
 	elif mdPre.topo == 5: # 3D sphere
 		sp3d = New.Sphere3D(bodyList, mm.ToMatrix64(pX), False)
-		sp3d.Title = title
-		sp3d.Show()
+		sp3d.Show().Title = title
+		ShowMap3D(200*X.numpy(), title)
+	elif mdPre.topo == 6: # 2D real projective plane
+		pX = Fit2Map(pX, size=400)
+		sMap = New.ProjectiveSphereView(ToBodyList(pX))
+		sMap.Title = title
+		sMap.Show()
+		ShowMap(1000*X.numpy(), None, title)
 
 def DeepScalingModel(X, Y, dimList, DR):
+	global drTopology
 	P = input = keras.Input(shape=(X.shape[1]), dtype=tf.float32)
-	P = ManifoldLayer(P, topo=4)
+	P = ManifoldLayer(P, topo=drTopology)
 
 	for k, dim in enumerate(dimList):
 		P = DenseLayer(dim, 'leaky_relu') (P)
@@ -411,14 +431,22 @@ def DeepScalingModel(X, Y, dimList, DR):
 md, xyMap, spMap = None, None, None
 vmd.reportFreq = 20
 bodyList = vv.Dataset.BodyListEnabled()
-dY = GetMapData()
-#dY = GetDatasetData()
+#dY = GetMapData()
+dY = GetDatasetData()
 
 inDim, dimList = 2, 6*[256]
-spread, batchSize, DR, LR, epochs = 0.0, 25, 0.25, 0.000_5, 1000
+spread, batchSize, DR, LR, epochs = 0, 25, 0.25, 0.000_25, 1000
+drTopology =  0
 
-for repeats in range(1):
+X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
+Main()
+
+'''
+for repeats in range(7):
+	drTopology = repeats
+	inDim = 3 if drTopology==5 else 2
 	ClearSession()
 	X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
 	Main()
 	if vmd.stopTraining:	break
+'''
