@@ -154,27 +154,24 @@ def ToBatchList(dY, inDim, spread, batchSize):
 	Y = tf.convert_to_tensor(dY)
 	dX = RandomMatrix(spread, N, inDim)
 	X = tf.Variable(dX, trainable=True)
-	outDim = dY.shape[1]
 	
-	if outDim == 3: 
-		keyItem = 'k3d'
-	elif outDim == 2:
-		keyItem = 'k2d'
-	else:
-		keyItem = None
-
-	if keyItem is not None:	
+	keyItem = None   # None, '$Fixed', '$Type', 'k3d', 'k2d', 'allFeatures'
+	if keyItem is None: # randomizing data
+		indexList = np.array(range(N))
+		np.random.shuffle(indexList)
+	elif keyItem=='$Fixed':  # keep the original order
+		indexList = np.array(range(N))
+	elif keyItem=='$Type':  # order data by cluster types.
+		sortKey = [b.Type for b in vv.Dataset.BodyListEnabled()]
+		indexList = np.argsort(sortKey)
+	else:	# order data by sorting keys.
 		keyList = vv.AtlasManager.ReadValueList('Instance1', keyItem)
 		if keyList is None or keyList.Count != N:
 			vv.Message('Invalid sorting keys')
 			vv.Return()
 		sortKey = [it.Value for it in keyList]
-		#sortKey = [b.Type for b in vv.Dataset.BodyListEnabled()]
 		indexList = np.argsort(sortKey)
-	else:
-		indexList = np.array(range(N))
 
-	#np.random.shuffle(indexList)
 	batchList = []
 	for n in range(0, N, batchSize):
 		batchList.append( tf.convert_to_tensor(indexList[n:n+batchSize]) )
@@ -365,7 +362,7 @@ def ShowInMap(title):
 		pX = Fit2Map(X.numpy())
 		pX -= np.min(pX, axis=0)
 		pX *= 700 / np.average(np.max(pX,axis=0))
-		ShowMap(pX, title = title)
+		ShowMap(pX, title = title).NormalizeView()
 		return
 
 	title = title + f'; topo:{mdPre.topo}'
@@ -373,18 +370,18 @@ def ShowInMap(title):
 	pX = mdPre(X).numpy()
 	if mdPre.topo == 1:  # rectangle
 		pX = Fit2Map(pX)
-		xMap = ShowMap(pX, title = title)
+		ShowMap(pX, title = title).NormalizeView()
 	elif mdPre.topo == 2: # cirle x line: 
 		pX = Fit2Map(pX, size=400)
 		pX[:,2] *= 1000
 		xMap = New.Map3DView(ToBodyList(pX))
 		xMap.Title = title
-		xMap.Show()
-		xMap.NormalizeView()
+		xMap.Show().NormalizeView()
 	elif mdPre.topo == 3:  # sphere
 		pX = Fit2Map(pX, size=400)
 		sMap = New.SphereView(ToBodyList(pX))
 		sMap.Title = title
+		sMap.ShowSphere = False
 		sMap.Show()
 	elif mdPre.topo == 4:  # torus
 		xMap = ShowMap(pX, title = title)	
@@ -395,13 +392,14 @@ def ShowInMap(title):
 	elif mdPre.topo == 5: # 3D sphere
 		sp3d = New.Sphere3D(bodyList, mm.ToMatrix64(pX), False)
 		sp3d.Show().Title = title
-		ShowMap3D(200*X.numpy(), title)
+		ShowMap3D(200*X.numpy(), title=title)
 	elif mdPre.topo == 6: # 2D real projective plane
 		pX = Fit2Map(pX, size=400)
 		sMap = New.ProjectiveSphereView(ToBodyList(pX))
 		sMap.Title = title
+		sMap.ShowSphere = True
 		sMap.Show()
-		ShowMap(1000*X.numpy(), None, title)
+		ShowMap(1000*X.numpy(), title=title).NormalizeView()
 
 def DeepScalingModel(X, Y, dimList, DR):
 	global drTopology
@@ -431,17 +429,16 @@ def DeepScalingModel(X, Y, dimList, DR):
 md, xyMap, spMap = None, None, None
 vmd.reportFreq = 20
 bodyList = vv.Dataset.BodyListEnabled()
-#dY = GetMapData()
-dY = GetDatasetData()
+dY = GetMapData()
+#dY = GetDatasetData()
 
 inDim, dimList = 2, 6*[256]
 spread, batchSize, DR, LR, epochs = 0, 25, 0.25, 0.000_25, 1000
 drTopology =  0
 
-X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
-Main()
+#X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
+#Main()
 
-'''
 for repeats in range(7):
 	drTopology = repeats
 	inDim = 3 if drTopology==5 else 2
@@ -449,4 +446,3 @@ for repeats in range(7):
 	X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
 	Main()
 	if vmd.stopTraining:	break
-'''
