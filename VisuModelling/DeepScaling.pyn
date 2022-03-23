@@ -149,12 +149,16 @@ def TrainScalingModel(md, epochs, dsBatchs, LR):
 		ReportTraining(epoch, cost, Logger)
 	vmd.trainingTime = time.time() - vmd.startTime
 
-def ToBatchList(dY, inDim, spread, batchSize):
+def InitInputData(spread, N, inDim):
+	dX = RandomMatrix(spread, N, inDim)
+	X = tf.Variable(dX, trainable=True)
+	return dX, X
+
+def InitTrainingData(dY, inDim, spread, batchSize):
 	global keyItem
 	N = dY.shape[0]
 	Y = tf.convert_to_tensor(dY)
-	dX = RandomMatrix(spread, N, inDim)
-	X = tf.Variable(dX, trainable=True)
+	dX, X = InitInputData(spread, N, inDim)
 	
 	if keyItem is None: # randomizing data
 		indexList = np.array(range(N))
@@ -211,21 +215,21 @@ def Main():
 	if seqHist is not None:
 		ShowHeatmap(seqHist, 'SeqHist', bodyList)
 
-def MainX(N):
-	global md, X, Y, inDim, DR, LR, dsBatchs
+def MainX(inDimList):
+	global md, dX, dY, X, Y, inDim, DR, LR, dsBatchs, spread
 	pX, pY, outY = [], 0, 0
+	N = dY.shape[0]
 
-	for dim in range(N):
+	for inDim in inDimList:
+		del dX, X, md
+		dX, X =InitInputData(spread, N, inDim)
 		Y =  Y - outY
-		X.assign(dX)
-		vv.Echo(f'Training dimension {1+dim}')
-		del md
+		vv.Echo(f'Input dimension {inDim}')
 		md = NewModel(X, Y, dimList, DR, epochs, dsBatchs, LR)
 		if vmd.stopTraining:	return
 		pX.append(X.numpy())
 		outY = md(X, training=False).numpy()
 		pY += outY
-		DR *= 0.5
 	
 	pX = np.concatenate(pX, axis=1)
 	meanErr = np.sum(np.abs(pY-dY))/dY.shape[0]
@@ -392,18 +396,18 @@ drTopology =  0
 #dY = GetMapData()
 dY = GetDatasetData()
 
-inDim, dimList = 1, 6*[256]
-spread, batchSize, DR, LR, epochs = 0, 25, 0.5, 0.000_25, 1000
+inDim, dimList = 5, 6*[256]
+spread, batchSize, DR, LR, epochs = 0, 25, 0, 0.000_5, 1000
 
-X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
-MainX(5)
+X, Y, dX, dsBatchs = InitTrainingData(dY, inDim, spread, batchSize)
+MainX([4,1])
 
 '''
 for repeats in range(7):
 	drTopology = repeats
 	inDim = 3 if drTopology==5 else 2
 	ClearSession()
-	X, Y, dX, dsBatchs = ToBatchList(dY, inDim, spread, batchSize)
+	X, Y, dX, dsBatchs = InitTrainingData(dY, inDim, spread, batchSize)
 	Main()
 	if vmd.stopTraining:	break
 '''
