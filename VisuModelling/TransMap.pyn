@@ -21,15 +21,16 @@ class RBFLayer1D(keras.layers.Layer):
 		D = self.beta * tf.math.reduce_sum(tf.abs(H), axis=1)
 		return tf.exp(-D)
 
-def NewTransModel(layerDims, X, Y, dropoutRatio=0.25, rbfDim=256):
+def NewTransModel(layerDims, X, Y, dropoutRatio=0.25, rbfDim=0):
 	input = keras.Input(shape=(X.shape[1]))
 	P = input
 	if rbfDim > 0:
 		P = RBFLayer1D(X, rbfDim)(P)
 	for k, dim in enumerate(layerDims):
-		P = DenseLayer(dim, 'leaky_relu') (P)
-		if (k == 1) and (dropoutRatio>0): 
+		P = DenseLayer(dim, 'sigmoid') (P)
+		if (k == 0) and (dropoutRatio>0): 
 			P = keras.layers.Dropout(dropoutRatio)(P)
+
 	P = DenseLayer(Y.shape[1], 'sigmoid') (P)
 	output = OutScaling(Y, gape=0.0) (P)
 
@@ -45,14 +46,18 @@ def Logger(epoch, cost):
 	vmd.logMap.MoveBodiesTo(mm.ToMatrix32(P))
 	err = np.sum(np.abs(vmd.ds.Y-P))/P.shape[0]
 	#err = np.mean(np.linalg.norm(vmd.ds.Y-P, axis=1))
-	vmd.logMap.Title = f'Ep:{epoch+1}, Cost:{cost:.2f}, L1:{err:.2f}, T:{tm:.3f}s'
+	vmd.logMap.Title = f'{epoch+1}: Cost/L1: {cost:.1f}/{err:.1f}, T: {tm:.3f}s'
 
 def Tracing(N, M):
 	x0, y0 = np.min(X, axis=0)
 	x1, y1 = np.max(X, axis=0)
 	h, w = y1 - y0, x1 - x0
 	V = np.zeros([N, 2], dtype=np.float32)
-	pMap = New.MapSnapshot2(New.BodyList(N), vmd.logMap.MapLayout).Show()
+	bsList = New.BodyList(N)
+	secN = int(N/15)
+	for i in range(N):
+		bsList[i].Type = int(i/secN)
+	pMap = New.MapSnapshot2(bsList, vmd.logMap.MapLayout).Show()
 	for i in range(N):
 		V[i,0] = x0 + (i/N)*w
 	posList = None
@@ -63,47 +68,26 @@ def Tracing(N, M):
 		pMap.MoveBodiesTo(posList)
 		pMap.Title = f'height: {m}'
 
-
 #------------------------------------------------------------------------------
 
 #X, Y = GetMaps('A1', 'Space 2D')
 X, Y = GetMaps('Tst', 'C2')
 
-sKey = [v.Value for v in vv.AtlasManager.ReadValueList('Instance1', 'k2d')]
-vmd.ds = TrainDataset(X, Y, batchSize=25, shuffle=False, sortKey=sKey)
-
-rbfs = 0  # possible value: 64*64
-dimList = [8, 32, 128, 256, 128, 32, 8]
-DR, LR = 0.125, 0.000_1
-epochs = 5000
+#sKey = [v.Value for v in vv.AtlasManager.ReadValueList('Instance1', 'k2d')]
+rbfs = 0  # possible value: 4096
+dimList = 3*[512]
+DR, LR = 0.25, 0.0005
+epochs = 2000
 vmd.reportFreq = 50
 
-
-vmd.model = NewTransModel(dimList, X, Y, DR, rbfDim=rbfs)
-TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger, shuffleBatchs=False)
-
-vmd.logMap.NewSnapshot()
-vmd.ds = TrainDataset(X, Y, batchSize=25, shuffle=True, sortKey=None)
-
-vmd.model = NewTransModel(dimList, X, Y, DR, rbfDim=rbfs)
-TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger, shuffleBatchs=True)
+for k in range(1):
+	vmd.ds = TrainDataset(X, Y, batchSize=25, shuffle=True, sortKey=None)
+	vmd.model = NewTransModel(dimList, X, Y, DR, rbfDim=rbfs)
+	TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger, shuffleBatchs=True)
+	vmd.logMap.NewSnapshot()
+	if vmd.stopTraining: break
 
 '''
-
-LR=0.000_1: 73.245/100.15
-LR=0.000_25: 67/97
-LR=0.000_1; sKey='k2d': 79.91/95.37
-LR:0.000_1;Shuffle^2: 71.5/105.87
-LR:0.000_2;Shuffle^2: 63.87/104.52
-LR:0.000_5;Shuffle^2: 60.99/122.58
-
-Tracing(5000, 200)
-
-for LR in [0.0005, 0.0005, 0.0005]:
-	del vmd.model
-	vmd.model = NewTransModel(dimList, X, Y, DR, rbfDim=rbfs)
-	TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
-	vv.Echo(vmd.logMap.Title + f', LR: {LR}')
-ShowPred(vmd.model, X, Y)
-ShowPred(vmd.model, GetMaps('A1'), refMapName='A1')
+Tracing(2000, 200)
+0.0005: 73.5/55.9; 75.2/55.7
 '''
