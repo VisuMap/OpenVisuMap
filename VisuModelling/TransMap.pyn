@@ -71,11 +71,12 @@ def Tracing(N, M):
 #------------------------------------------------------------------------------
 
 #X, Y = GetMaps('A1', 'Space 2D')
-X, Y = GetMaps('Tst', 'C2')
+#X, Y = GetMaps('Tst', 'C2')
+X, Y = GetMaps('C2', 'Tst')
 
 #sKey = [v.Value for v in vv.AtlasManager.ReadValueList('Instance1', 'k2d')]
 rbfs = 0  # possible value: 4096
-dimList = 3*[512]
+dimList = 3*[256]
 DR, LR = 0.25, 0.0005
 epochs = 2000
 vmd.reportFreq = 50
@@ -89,5 +90,4 @@ for k in range(1):
 
 '''
 Tracing(2000, 200)
-0.0005: 73.5/55.9; 75.2/55.7
 '''

@@ -1,0 +1,22 @@
+#File: LocalView.pyn
+#
+# Creates a tSNE map with cosine metric for data centralized at selected data points.
+#
+import numpy as np
+def RelativeView():
+	nt = pp.GetNumberTable().Clone()
+	nt.CentralizeAt( pp.GetSelectedNumberTable() )
+	mds = New.MdsCluster(nt)
+	mds.Metric = 'Correlation.Cosine Distance'
+	mds.RefreshFreq = 50
+	mds.ExaggerationFactor = 12.0
+	mds.StagedTrainingTsne = True
+	mds.ExaggerationSmoothen = True
+	mds.AutoNormalizing = True
+	mds.MaxLoops = 2000
+	mds.MdsAlgorithm = 2  # for tSNE
+	mds.Show()
+	mds.Start()
+
+
+RelativeView()
