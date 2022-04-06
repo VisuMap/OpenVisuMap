@@ -13,8 +13,8 @@ def RelativeView():
 	mds.StagedTrainingTsne = True
 	mds.ExaggerationSmoothen = True
 	mds.AutoNormalizing = True
-	mds.MaxLoops = 2000
-	mds.MdsAlgorithm = 2  # for tSNE
+	mds.MaxLoops = 5000
+	mds.MdsAlgorithm = 2  # for tSNE	
 	mds.Show()
 	mds.Start()
 

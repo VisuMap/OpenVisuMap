@@ -1,0 +1,25 @@
+#File MergeMaps.pyn
+#
+def MergeMaps():
+	#maps = ['Cosine', 'Cosine-Centralized', 'UMAP']
+	maps = ['Cosine-Centralized']
+	bList = vv.Dataset.ReadMapBodyList(maps[0], True)
+	t = New.NumberTable(bList, 2)
+	maps.pop(0)
+	for nm in maps:
+		bList = vv.Dataset.ReadMapBodyList(nm, True)
+		t.AppendColumns(New.NumberTable(bList, 2))
+
+	mds = New.MdsCluster(t)
+	mds.Metric = 'EuclidianMetric'
+	mds.RefreshFreq = 50
+	mds.ExaggerationFactor = 12.0
+	mds.StagedTrainingTsne = True
+	mds.ExaggerationSmoothen = True
+	mds.AutoNormalizing = True
+	mds.MaxLoops = 2000
+	mds.MdsAlgorithm = 2  # for tSNE		
+	mds.Show()
+	mds.Start()
+
+MergeMaps()
