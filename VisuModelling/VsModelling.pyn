@@ -135,6 +135,7 @@ def ShowClusterPred(P, epoch, cost, map, refY=None):
 			else:
 				pBodyList[i].Highlighted = False
 		map.Title = f'Epoch: {epoch+1}, Cost: {cost:.2g}, Misses: {mismatchs}'
+		vmd.model.trainState = map.Title
 
 def ShowModel(md):
 	md.summary(print_fn = lambda x: vv.Echo(x))

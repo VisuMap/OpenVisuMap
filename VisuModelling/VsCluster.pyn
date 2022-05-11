@@ -20,6 +20,7 @@ def NewCluster(layerDims, X, Y, dropoutRatio=0.25):
 	md = keras.Model(input, output, name='ClusterMd')
 	md.modelType = vmd.CLUSTERING
 	md.lossFct = keras.losses.CategoricalCrossentropy()
+	md.trainState = 'Initialized'
 	return md
 
 def Logger(epoch, cost):

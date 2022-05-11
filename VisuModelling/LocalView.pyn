@@ -3,20 +3,31 @@
 # Creates a tSNE map with cosine metric for data centralized at selected data points.
 #
 import numpy as np
-def RelativeView():
-	nt = pp.GetNumberTable().Clone()
+
+def LocalView(epochs, exaFactor):
+	nt = pp.GetNumberTableView(True).Clone()	
+	nt.CentralizeAt( pp.GetSelectedNumberTable() )
+	ts = New.TsneMap()
+	ts.MaxLoops = epochs
+	ts.ExaggerationFactor = exaFactor
+	ts.RefreshFreq = 10
+	ts.StagedTraining = True
+	ts.ExaggerationSmoothen = True
+	ts.AutoNormalizing = True
+	ts.Show().ChangeTrainingData(nt).Start()
+
+def LocalViewEx(epochs, exaFactor):
+	nt = pp.GetNumberTableView(True).Clone()	
 	nt.CentralizeAt( pp.GetSelectedNumberTable() )
 	mds = New.MdsCluster(nt)
+	mds.MaxLoops = epochs
+	mds.ExaggerationFactor = exaFactor
+	mds.MdsAlgorithm = 2  # for tSNE	
 	mds.Metric = 'Correlation.Cosine Distance'
-	mds.RefreshFreq = 50
-	mds.ExaggerationFactor = 12.0
+	mds.RefreshFreq = 10
 	mds.StagedTrainingTsne = True
 	mds.ExaggerationSmoothen = True
 	mds.AutoNormalizing = True
-	mds.MaxLoops = 5000
-	mds.MdsAlgorithm = 2  # for tSNE	
-	mds.Show()
-	mds.Start()
+	mds.Show().Start()
 
-
-RelativeView()
+LocalView(epochs=1000, exaFactor=12.0)

@@ -22,7 +22,7 @@ def GetInputData(md):
 	return X
 
 def SaveModel(md, mdPath):
-	mdInfo = {'modelType': md.modelType}
+	mdInfo = {'modelType': md.modelType, 'trainState':md.trainState}
 	if md.modelType == vmd.FULL_MODEL:
 		mdInfo['mapDim'] = md.mapDim
 	md.info = tf.Variable(str(mdInfo), trainable=False)
@@ -32,6 +32,7 @@ def SaveModel(md, mdPath):
 def AcceptModel(md):
 	mdInfo = eval( md.info.numpy().decode('ascii') )
 	type = md.modelType = mdInfo['modelType']
+	trainState = mdInfo['trainState']
 	if type == vmd.CLUSTERING:
 		mdType = 'Clustering'
 		md.lossFct = keras.losses.CategoricalCrossentropy()
@@ -46,7 +47,7 @@ def AcceptModel(md):
 		md.modelType = vmd.REGRESSION
 		md.lossFct = keras.losses.MeanSquaredError()
 		mdType = "Unknown"
-	vv.Message(f'Loaded model: {mdType} {md.input_shape[1]}=>{md.output_shape[1]}')
+	vv.Message(f'Loaded model: {mdType} {md.input_shape[1]}=>{md.output_shape[1]}\nTraining state:{trainState}')
 	#ShowModel(md)
 	return md
 

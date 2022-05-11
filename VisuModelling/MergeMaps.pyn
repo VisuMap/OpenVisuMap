@@ -2,7 +2,8 @@
 #
 def MergeMaps():
 	#maps = ['Cosine', 'Cosine-Centralized', 'UMAP']
-	maps = ['Cosine-Centralized']
+	#maps = ['A2', 'A3']
+	maps = ['Cosine', 'Cosine1']
 	bList = vv.Dataset.ReadMapBodyList(maps[0], True)
 	t = New.NumberTable(bList, 2)
 	maps.pop(0)

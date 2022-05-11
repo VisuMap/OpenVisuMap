@@ -20,6 +20,7 @@ def NewMapModel(layerDims, X, Y, dropoutRatio=0.25):
 	md = keras.Model(input, output, name='RegressionMd')
 	md.modelType = vmd.REGRESSION
 	md.lossFct = keras.losses.MeanSquaredError()
+	md.trainState = 'Initialized'
 	return md
 
 def Logger(epoch, cost):
@@ -28,6 +29,7 @@ def Logger(epoch, cost):
 	vmd.logMap.MoveBodiesTo(mm.ToMatrix32(P))
 	err = np.mean(np.linalg.norm(vmd.ds.Y-P, axis=1))
 	vmd.logMap.Title = f'Epoch: {epoch+1}, Cost: {cost:.4f},  L2: {err:.2f}'
+	vmd.model.trainState = vmd.logMap.Title
 
 vmd.reportFreq = 50
 X, Y = GetDatasetData(), GetMapData()
