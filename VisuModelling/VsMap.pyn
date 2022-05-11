@@ -54,7 +54,7 @@ def Logger(epoch, cost):
 			b.Highlighted = False
 	vmd.logMap.RedrawBodies()
 	vmd.logMap.Title = f'{epoch+1}: Cost: {cost:.2f}, L2: {err:.2f}, Mises: {misses}'
-   vmd.model.trainState = vmd.logMap.Title
+	vmd.model.trainState = vmd.logMap.Title
 
 #------------------------------------------------------------------------
 
