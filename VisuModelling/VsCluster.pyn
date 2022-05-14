@@ -5,16 +5,16 @@
 #------------------------------------------------------------------------
 vv.Import('CommonUtil.pyn')
 vv.Import('VsModelling.pyn')
+from tensorflow.keras.layers import BatchNormalization, Dropout
 InitVmd()
 vmd.Clear()
 
-def NewCluster(layerDims, X, Y, dropoutRatio=0.25):
+def NewCluster(layerDims, X, Y, DR=0.25):
 	input = keras.Input(shape=(X.shape[1]))
 	P = InScaling(X)(input)
 	for k, dim in enumerate(layerDims):
 		P = DenseLayer(dim, 'leaky_relu')(P)
-		if (k == 0) and (dropoutRatio>0): 
-			P = keras.layers.Dropout(dropoutRatio)(P)
+		if (k in [0]) and (DR>0): P = Dropout(DR)(P)
 	P = DenseLayer(Y.shape[1], 'leaky_relu')(P)
 	output = keras.layers.Softmax()(P)
 	md = keras.Model(input, output, name='ClusterMd')
