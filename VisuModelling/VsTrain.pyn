@@ -40,7 +40,7 @@ dimList, DR, LR, epochs = [inDim, 256] + 6*[100], 0.5, 0.001, 1500  # 12.94/13.0
 
 vmd.model = NewMapModel(dimList, X, Y, DR)
 TrainModel(vmd, epochs=epochs, initial_lr=LR, logCallback=Logger)
-ShowPred(vmd.model, X, Y)
+#ShowPred(vmd.model, X, Y)
 
 '''
 tMap = 'A1'

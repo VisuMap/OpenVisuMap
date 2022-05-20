@@ -1,26 +1,37 @@
 #File MergeMaps.pyn
 #
-def MergeMaps():
-	#maps = ['Cosine', 'Cosine-Centralized', 'UMAP']
-	#maps = ['A2', 'A3']
-	maps = ['Cosine', 'Cosine1']
-	bList = vv.Dataset.ReadMapBodyList(maps[0], True)
-	t = New.NumberTable(bList, 2)
-	maps.pop(0)
-	for nm in maps:
-		bList = vv.Dataset.ReadMapBodyList(nm, True)
-		t.AppendColumns(New.NumberTable(bList, 2))
-
-	mds = New.MdsCluster(t)
+def BuildMap(numTable, msg):
+	mds = New.MdsCluster(numTable)
 	mds.Metric = 'EuclidianMetric'
-	mds.RefreshFreq = 50
+	mds.RefreshFreq = 20
+	mds.PerplexityRatio = 0.15
 	mds.ExaggerationFactor = 12.0
 	mds.StagedTrainingTsne = True
 	mds.ExaggerationSmoothen = True
 	mds.AutoNormalizing = True
 	mds.MaxLoops = 2000
+	mds.Is3D = False
 	mds.MdsAlgorithm = 2  # for tSNE		
 	mds.Show()
 	mds.Start()
+	mds.Title = msg
 
-MergeMaps()
+	mds.Show2DView().Title = msg
+	mds.Reset().Start()
+
+	return mds
+
+def NextMaps(count):
+	allMap = list(vv.Dataset.MapNameList)
+	i = allMap.index(vv.Map.Name)
+	return allMap[i:i+count]
+
+def MergeMaps(mapList):
+	t = None
+	for nm in mapList:
+		bList = vv.Dataset.ReadMapBodyList(nm, True)
+		nt = New.NumberTable(bList, 2)
+		t = nt if t is None else t.AppendColumns(nt)
+	BuildMap(t, 'Maps: ' + str(mapList))
+
+MergeMaps( NextMaps(3) )
