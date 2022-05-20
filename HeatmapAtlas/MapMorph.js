@@ -7,7 +7,7 @@
 //
 
 var msg = "Moved bodies: ";
-var [loopPause, framePause, frames] = [500, 50, 20];
+var [loopPause, framePause, frames] = [500, 20, 50];
 var repeats = 2;
 
 function Animation(mp, bodyList) {
@@ -30,16 +30,14 @@ if ( (pp==vv) && (mapList.length==1) ) {
     var f = pp.TheForm;
     var bsCount = pp.BodyList.Count;
 
-    for (var vw of vv.FindFormList(pp.Name)) {
+    for (var vw of vv.FindFormList(pp.Name))
         if ((vw.TheForm !== f) && (vw.BodyList.Count == bsCount))
             vwList.Add(vw);
-    }
+
     for (rep = 0; rep<repeats; rep++) {
 	    for (var vw of vwList) {
-	        var g = vw.TheForm;
-	        g.BringToFront();
-	        var newTop = host.toInt32(f.Top - Math.floor((g.Height - f.Height) / 2));	 
-	        [g.Left, g.Top] = [host.toInt32(f.Left + f.Width - 15), newTop];
+	        vw.TheForm.BringToFront();
+           vw.TheForm.SetDesktopLocation(f.Left+f.Width, f.Top);
 	        msg += Animation(pp, vw.BodyList) + ", ";
 	    }
 	    msg += Animation(pp, initBody) + ", ";
