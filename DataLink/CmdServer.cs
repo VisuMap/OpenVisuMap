@@ -473,7 +473,9 @@ namespace VisuMap.DataLink {
                         var bsList = app.Map.SelectedBodies;
                         if (bsList.Count == 0)
                             bsList = app.Dataset.BodyListEnabled();
-                        double[][] xyz = bsList.Select(b => new double[] { b.X, b.Y, b.Z }).ToArray();
+                        double[][] xyz = (app.Map.Dimension == 3) ?
+                            bsList.Select(b => new double[] { b.X, b.Y, b.Z }).ToArray()
+                            : bsList.Select(b => new double[] { b.X, b.Y }).ToArray();
                         using (var bw = new BinaryWriter(new BufferedStream(tcpCnt.GetStream()))) {
                             WriteMatrix(xyz, bw);
                             bw.Flush();
