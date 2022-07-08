@@ -3,21 +3,24 @@
 def BuildMap(numTable, msg):
 	mds = New.MdsCluster(numTable)
 	mds.Metric = 'EuclidianMetric'
-	mds.RefreshFreq = 20
-	mds.PerplexityRatio = 0.15
+	mds.RefreshFreq = 50
+	mds.PerplexityRatio = 0.1
 	mds.ExaggerationFactor = 12.0
 	mds.StagedTrainingTsne = True
 	mds.ExaggerationSmoothen = True
 	mds.AutoNormalizing = True
-	mds.MaxLoops = 2000
+	mds.MaxLoops = 1000
 	mds.Is3D = False
 	mds.MdsAlgorithm = 2  # for tSNE		
+	mds.Title = msg
 	mds.Show()
 	mds.Start()
-	mds.Title = msg
 
+	for rp in range(1):
+		mds.Show2DView().Title = msg
+		mds.Reset().Start()
 	mds.Show2DView().Title = msg
-	mds.Reset().Start()
+	mds.Close()
 
 	return mds
 
@@ -34,4 +37,4 @@ def MergeMaps(mapList):
 		t = nt if t is None else t.AppendColumns(nt)
 	BuildMap(t, 'Maps: ' + str(mapList))
 
-MergeMaps( NextMaps(3) )
+MergeMaps( NextMaps(2) )
