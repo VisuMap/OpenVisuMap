@@ -6,7 +6,7 @@ import numpy as np
 
 print("Running Open-Tsne...")
 metric = {'e':'euclidean', 'c':'correlation', 's':'cosine'}['e']
-repeats, epochs, perplexity = 1, 2000, 30
+repeats, epochs, perplexity = 1, 2000, 50
 
 print('Loading data from VisuMap...')
 log = DataLinkCmd.DataLinkCmd()
@@ -24,7 +24,7 @@ print("Loaded table: ", ds.shape)
 print('Fitting data...')
 for k in range(repeats):
     t0 = time.time()
-    tsne = TSNE(perplexity=perplexity, metric=metric, n_jobs=4, random_state=42, verbose=True)
+    tsne = TSNE(perplexity=perplexity, metric=metric, n_jobs=4, n_iter=epochs, random_state=42, verbose=True)
     map = tsne.fit(ds)
     tm = time.time() - t0
     title = f'Open-Tsne: Perplexity: {perplexity}, Time: {tm:.1f}'
