@@ -37,7 +37,8 @@ if ( (pp==vv) && (mapList.length==1) ) {
     for (rep = 0; rep<repeats; rep++) {
 	    for (var vw of vwList) {
 	        vw.TheForm.BringToFront();
-           vw.TheForm.SetDesktopLocation(f.Left+f.Width, f.Top);
+			  var [left, top] = (f.Width < f.Height) ? [f.Left+f.Width-10, f.Top] : [f.Left, f.Top+f.Height-6]
+			  vw.TheForm.SetDesktopLocation(left, top)
 	        msg += Animation(pp, vw.BodyList) + ", ";
 	    }
 	    msg += Animation(pp, initBody) + ", ";
