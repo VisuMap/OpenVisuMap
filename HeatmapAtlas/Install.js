@@ -10,7 +10,7 @@ for(var [label, script, view, img] of [
   ["Active Genes",		"ShowActiveGenes.js","HeatMap", null],
   ["Active Cells",		"ShowActiveCells.js","HeatMap", null],
   ["Save Data",		"SaveDataset.js",	"HeatMap", null],
-  ["Compare Maps",		"MapMorph.js",	"MainForm|MapSnapshot", icon],
+  ["Compare Maps",		"MapMorph.js",	"MainForm|MapSnapshot|D3dRender", icon],
   ["Variation Tracing",	"VariationTracing.js","MainForm", null],
 ]) mgr.SetCustomMenu("Atlas/"+label, true, script, view, img);
 
