@@ -6,9 +6,9 @@
 //Then, activate one map in the main window and run this script.
 //
 
-var msg = "Moved bodies: ";
-var [loopPause, framePause, frames] = [500, 20, 50];
+var [loopPause, framePause, frames] = [500, 50, 50];
 var repeats = 2;
+var movedList = [];
 
 function Animation(mp, bodyList) {
     var moved = mp.MoveBodiesTo(bodyList, frames, framePause, 0);
@@ -16,14 +16,7 @@ function Animation(mp, bodyList) {
     return moved;
 }
 
-var mapList = vv.FindFormList("MapSnapshot");
-var enabledBodies = vv.Dataset.BodyListEnabled();
-var mapList = Array.from(mapList).filter(m=>m.BodyList.Count==enabledBodies.Count);
-
-if ( (pp==vv) && (mapList.length==1) ) {
-    var moved = vv.Map.MoveBodiesTo(mapList[0].BodyList, frames, framePause, repeats, loopPause);
-    msg = msg + moved;
-} else if ( (pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster") || (pp.Name == "D3dRender") ) {
+if ( (pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster") || (pp.Name == "D3dRender") ) {
     // Morphing between calling view and other open map snapshots.
     var initBody = New.BodyListClone(pp.BodyList);
     var vwList = New.ObjectArray();
@@ -39,33 +32,37 @@ if ( (pp==vv) && (mapList.length==1) ) {
 	        vw.TheForm.BringToFront();
 			  var [left, top] = (f.Width < f.Height) ? [f.Left+f.Width-10, f.Top] : [f.Left, f.Top+f.Height-6]
 			  vw.TheForm.SetDesktopLocation(left, top)
-	        msg += Animation(pp, vw.BodyList) + ", ";
+	        movedList.push ( Animation(pp, vw.BodyList) );
 	    }
-	    msg += Animation(pp, initBody) + ", ";
+	    movedList.push( Animation(pp, initBody) );
     }
+
 } else {
     // Morphing between maps with the same name prefix.
-    var initBody = New.BodyListClone(enabledBodies);
+    var initBody = New.BodyListClone(vv.Dataset.BodyListEnabled());
     var initName = vv.Map.Name;
     var mpList = New.StringArray();
     var prefix = initName.substring(0, 1);
     for (var nm of vv.Dataset.MapNameList)
         if (nm.startsWith(prefix) && (nm != initName))
             mpList.Add(nm);
+    var movedList = [];
 
     for (rep = 0; rep<repeats; rep++) {
-    	    var fromName = initName;
+    	 var fromName = initName;
 	    for (var nm of mpList) {
-		 var mpBodies = vv.Dataset.ReadMapBodyList(nm, true);
-		 if ( mpBodies.Count == enabledBodies.Count) {
-		        vv.Title = fromName + "<->" + nm;
-		        msg += Animation(vv.Map, mpBodies) + ", ";
-		        fromName = nm;
-		}
+		     var mpBodies = vv.Dataset.ReadMapBodyList(nm, true);
+		     if ( mpBodies.Count == enabledBodies.Count) {
+		         vv.Title = fromName + "<->" + nm;
+		         movedList.push( Animation(vv.Map, mpBodies) );
+		         fromName = nm;
+		     }
 	    }
 	    vv.Title = fromName + "<->" + initName;
-	    msg += Animation(vv.Map, initBody) + ", ";
+	    movedList.push( Animation(vv.Map, initBody) );
     }
+
 }
 
-pp.Title = msg;
+var avg = movedList.reduce((a,b)=>a+b) / movedList.length;
+pp.Title = "Moved bodies: " + movedList.toString() + ".  Average: " + avg.toFixed(2);
