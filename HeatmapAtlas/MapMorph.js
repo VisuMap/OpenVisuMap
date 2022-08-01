@@ -16,7 +16,7 @@ function Animation(mp, bodyList) {
     return moved;
 }
 
-if ( (pp.Name == "MapSnapshot") || (pp.Name == "MdsCluster") || (pp.Name == "D3dRender") ) {
+if ( "MapSnapshot|D3dRender|MdsCluster".includes(pp.Name) ) {
     // Morphing between calling view and other open map snapshots.
     var initBody = New.BodyListClone(pp.BodyList);
     var vwList = New.ObjectArray();
