@@ -39,7 +39,8 @@ if ( "MapSnapshot|D3dRender|MdsCluster".includes(pp.Name) ) {
 
 } else {
     // Morphing between maps with the same name prefix.
-    var initBody = New.BodyListClone(vv.Dataset.BodyListEnabled());
+	 var enabledBodies = vv.Dataset.BodyListEnabled();
+    var initBody = New.BodyListClone(enabledBodies);
     var initName = vv.Map.Name;
     var mpList = New.StringArray();
     var prefix = initName.substring(0, 1);
