@@ -46,4 +46,5 @@ def ShowHeatmap(nt, fileName):
 	hm = New.HeatMap(nt).Show()
 	hm.CentralizeColorSpectrum()
 	hm.Description = 'Data imported from: ' + fileName
+	hm.Title = 'Data Source: ' + fileName
 	return hm

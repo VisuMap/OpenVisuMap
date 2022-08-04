@@ -6,7 +6,7 @@ import umap, time, sys, DataLinkCmd
 import numpy as np
 
 mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['e']
-initType = ['spectral', 'random'][0]
+initType = ['spectral', 'random'][1]
 repeats, epochs = 1, 2000
 mapDim, nn, md, lc, ns, sp = 2, 2000, 0.25, 5.0, 15, 0.5
 randomizeOrder = True

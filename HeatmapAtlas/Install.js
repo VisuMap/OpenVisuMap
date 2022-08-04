@@ -18,7 +18,7 @@ for(var [label, img, script] of [
 	["Import Loom", 	icon, "LoomRead.pyn"],
 	["Import H5AD", 	null, "H5adRead.pyn"],
 	["Import H5", 	null, "H5Read.pyn"],
-	["Import Matrix", 	null, "MatrixRead.pyn"], 
+	["Imp Cnt Mtx (*.mtx.gz)", 	null, "MatrixRead.pyn"], 
        ["Show Maps",		null, "ShowMaps.js"],
 ]) mgr.SetCustomButton("Atlas/"+label, img, script);
 

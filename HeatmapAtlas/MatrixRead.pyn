@@ -1,12 +1,14 @@
 # Import matrix.mtx.gz files
 #
+# Samples can be found at https://singlecell.broadinstitute.org/single_cell
+#
 import gzip
 import numpy as np
 import os
 from scipy.io import mmread
 vv.Import('AtlasHelp.pyn')
 
-fileName = PromptFile("Matrix Counts|*matrix.mtx.gz")
+fileName = PromptFile("Count Matrix|*.mtx.gz")
 prefix = fileName[:-13]
 
 tb = mmread(fileName)
