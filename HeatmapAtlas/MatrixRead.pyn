@@ -8,7 +8,7 @@ import os
 from scipy.io import mmread
 vv.Import('AtlasHelp.pyn')
 
-fileName = PromptFile("Count Matrix|*.mtx.gz")
+fileName = PromptFile("Count Matrix|*.mtx.gz|CntMtx|*.mtx")
 prefix = fileName[:-13]
 
 tb = mmread(fileName)
@@ -44,7 +44,6 @@ def LoadRowId(fname):
 LoadColumnId(prefix+'features.tsv.gz')
 LoadColumnId(prefix+'genes.tsv.gz')
 LoadRowId(prefix+'barcodes.tsv.gz')
-
 
 ShowHeatmap(nt, fileName)
 
