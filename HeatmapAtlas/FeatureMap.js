@@ -114,13 +114,13 @@ var cs = New.CsObject(`
 
 `);
 
-function SetImages3(sm) {
+function SetImages3(sm, mapSize=100) {
 	var xy = vv.GetObject('xy');
 	if ( xy == null ) {
 	  xy = cs.GetFeatureCfg('FeatureMaps', 'FM1');
 	  vv.SetObject('xy', xy);
 	}
-	cs.SetImages3(sm.Items, xy, 50.0);
+	cs.SetImages3(sm.Items, xy, mapSize);
 }
 
 
@@ -131,9 +131,9 @@ sm.Clear();
 cs.AddBodyImages(sm, vv.Map.SelectedBodies);
 
 
-//SetImages3(sm);
+SetImages3(sm, 100);
 //cs.SetImages2(sm.Items, 0.5);
-cs.SetImagesMNIST(sm.Items, 0.5); sm.BackColor = New.Color("White");
+//cs.SetImagesMNIST(sm.Items, 0.5); sm.BackColor = New.Color("White");
 
 sm.Show();
 
