@@ -53,19 +53,25 @@ var cs = New.CsObject(`
 		});
 	}
 
-	public Bitmap ArrayImage3(double[] values, IList<float> xy, double minValue, double scale, double mapSize) {
+	public Bitmap ArrayImage3(double[] values, IList<float> xy, double minValue, double scale, double mapSize, bool showFrame = false) {
 	  int mSz = (int) mapSize;
 	  var bm = new Bitmap(mSz, mSz);
 	  using(Graphics g = Graphics.FromImage(bm)) {
+		  g.SmoothingMode = SmoothingMode.HighQuality;
 	     g.Clear(Color.Transparent);
 	     for(int i=0; i<values.Length; i++) {
 			   int v = (int) ((values[i] - minValue) * scale);
 		      if ( v > 0 ) {
 	           v = 255 - Math.Min(255, v);
-				  Color clr = Color.FromArgb(255, v, v, v);
+				  Color clr = Color.FromArgb(128, v, v, v);
 				  using(Brush brush = new SolidBrush(clr))
-		          g.FillRectangle(brush, mSz*xy[2*i], mSz*xy[2*i+1], 1.0f, 1.0f);
+		          g.FillRectangle(brush, mSz*xy[2*i]-1, mSz*xy[2*i+1]-1, 2.0f, 2.0f);
 			   }
+		  }
+		  if ( showFrame ) {
+			  float s = mSz - 0.75f;
+			  using(Pen pen = new Pen(Color.FromArgb(64, Color.Yellow), 0.25f))
+				  g.DrawRectangle(pen, 0, 0, s, s);
 		  }
 	  }
 	  return bm;
@@ -75,9 +81,7 @@ var cs = New.CsObject(`
 	   var ds = vv.Dataset;
 		var nt = ds.GetNumberTableView();
 		double minValue = nt.MinimumValue();
-		double maxValue = nt.MaximumValue();
-		double scale = 255.0/(maxValue - minValue);
-
+		double scale = 255.0/(nt.MaximumValue() - minValue);
 		double[][] M = ds.GetNumberTableView().Matrix as double[][];
 
       MT.ForEach(items, item=>{
@@ -100,6 +104,8 @@ var cs = New.CsObject(`
 
    public float[] GetFeatureCfg(string atlasName, string fmItemId) {
 		var fm = vv.AtlasManager.OpenMap(atlasName, fmItemId);
+      if ( fm == null ) 
+		   return null;
 		var bs = fm.BodyList;
 		float[] xy = new float[2*bs.Count];
 		float mWidth = fm.MapLayout.Width;
@@ -108,30 +114,37 @@ var cs = New.CsObject(`
 			xy[2*k] = (float)(bs[k].X/mWidth);
 		   xy[2*k+1] = (float)(bs[k].Y/mHeight);
 		}
+		vv.Sleep(1000);
 		fm.Close();
 	   return xy;
    }
 
 `);
 
-function SetImages3(sm, mapSize=100) {
+//	  vv.SetObject('xy', null);
+
+function SetImages3(sm, mapSize=100, mapId) {
 	var xy = vv.GetObject('xy');
 	if ( xy == null ) {
-	  xy = cs.GetFeatureCfg('FeatureMaps', 'FM1');
+	  xy = cs.GetFeatureCfg('FeatureMaps', mapId);
+     if ( xy == null ) {
+	     vv.Message("Cannot load feature map " + mapId);
+		  vv.Return();
+	  }
 	  vv.SetObject('xy', xy);
 	}
 	cs.SetImages3(sm.Items, xy, mapSize);
 }
 
-
 var sm = New.SiteMap('<Temp>');
 sm.ReadOnly = false;
+sm.ShowLabel = true;
 sm.BackColor = New.Color("Black");
 sm.Clear();
 cs.AddBodyImages(sm, vv.Map.SelectedBodies);
 
 
-SetImages3(sm, 100);
+SetImages3(sm, 50, 'FM2');
 //cs.SetImages2(sm.Items, 0.5);
 //cs.SetImagesMNIST(sm.Items, 0.5); sm.BackColor = New.Color("White");
 

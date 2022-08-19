@@ -22,7 +22,7 @@ if ( "MapSnapshot|D3dRender|MdsCluster".includes(pp.Name) ) {
     var vwList = New.ObjectArray();
     var f = pp.TheForm;
     var bsCount = pp.BodyList.Count;
-
+	 f.BringToFront();
     for (var vw of vv.FindFormList(pp.Name))
         if ((vw.TheForm !== f) && (vw.BodyList.Count == bsCount))
             vwList.Add(vw);
