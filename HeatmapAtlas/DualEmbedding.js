@@ -27,16 +27,25 @@ function RunEmbedding(mds, epochs, mtr, initExa, ppRatio) {
 	return mpView;
 };
 
+var nt = vv.GetNumberTable();
+
+
 function DEmbeddingMain() {
 	var nt = cfg.hm.GetNumberTable();
 	var mds = New.MdsCluster(nt);
 	mds.Show();
 
+	if (cfg.cMtr == mtrs.cos)
+		mds.SetTrainingData(cs.ShiftTable(nt.Clone(), cfg.cPrShift));
+	
 	cfg.cellMap = RunEmbedding(mds, cfg.cEpochs, cfg.cMtr, cfg.cExa, cfg.cPpr);
 
 	var nt2 = nt.Transpose2();
-	cs.ShiftTable(nt2, cfg.gPrShift);
+	if (cfg.gMtr == mtrs.cos) 
+		nt2 = cs.ShiftTable(nt2, cfg.gPrShift);
+	
 	mds.SetTrainingData(nt2);
+
 	cfg.geneMap = RunEmbedding(mds, cfg.gEpochs, cfg.gMtr, cfg.gExa, cfg.gPpr);
 	nt2.FreeRef();
 	mds.Close();

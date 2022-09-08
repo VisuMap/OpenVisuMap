@@ -3,35 +3,35 @@
 // Help functions.
 //
 
-var cfg = { 
+var mtrs = { 
 	cos:'Correlation.Cosine Distance', 
 	euc:'EuclideanMetric', 
 	cor:'Correlation.Standard Correlation'
 };
 
 cfg = {
-	 cEpochsSrt:3000,  gEpochsSrt:3000,
-        cExaSrt:12,	     gExaSrt:12,
-	 cPprSrt:0.1,     gPprSrt:0.1,
+	cEpochsSrt:5000,	gEpochsSrt:5000,
+	cExaSrt:4,			gExaSrt:4,
+	cPprSrt:0.05,		gPprSrt:0.05,
 
-        cEpochs:2000,      gEpochs:2000,       // training epochs for cell/gene profiles.
-        cPpr:0.15,         gPpr:0.15,          // perplexity ratio    
-        cExa:12.0,         gExa:8.0,           // initial exaggreation
+	cEpochs:2000,		gEpochs:2000,    // training epochs for cell/gene profiles.
+	cPpr:0.15,			gPpr:0.15,       // perplexity ratio    
+	cExa:8.0,			gExa:8.0,        // initial exaggreation
+	cPrShift:0.5,     gPrShift:0.5,    // cell/gene profile shift towards arithmetric center.
+	cMtr:mtrs.cos,		gMtr:mtrs.euc,   // metric 
+	cMinPoint:5,		gMinPoint:10,           
+	cMinSize:50,		gMinSize:100,
+	RowSrtKeys:null,	ColumnSrtKeys:null,
+	cellMap:null,		geneMap:null, 
 
-        cMtr:cfg.euc,      gMtr:cfg.euc,       // metric 
-        cMinPoint:5,       gMinPoint:10,           
-        cMinSize:50,       gMinSize:100,
-        RowSrtKeys:null,   ColumnSrtKeys:null,
-        cellMap:null,      geneMap:null,
- 
-        gPrShift:0.5,     // gene profile shift
-        hm:null,
-        Is3D:false,
+	hm:null,
+	Is3D:false,
 };
 
 function CheckMaps() {
 	if ( (cfg.cellMap==null) || (cfg.geneMap==null) 
-		|| !cfg.cellMap.TheForm.Visible || !cfg.geneMap.TheForm.Visible ) {
+		|| !cfg.cellMap.TheForm.Visible 
+		|| !cfg.geneMap.TheForm.Visible ) {
 		vv.Message("Cell or gene map not created!\nPlease run DualClustering!");
 		vv.Return();
 	}
@@ -50,7 +50,7 @@ function SortTable(T, mt, epochs, ex, pr) {
 	tsne.MaxLoops = epochs;
 	tsne.InitExaggeration = ex;
 	tsne.PerplexityRatio = pr;
-	tsne.RefreshFreq = 50;
+	tsne.RefreshFreq = 100;
 	tsne.StagedTraining = true;
 	tsne.Show().Start();
 	if (isNaN(tsne.ItemList[0].Value)) {
@@ -111,11 +111,12 @@ function LayoutMaps() {
 }
 
 var cs = New.CsObject(`
-	public void ShiftTable(INumberTable nt, double shiftFactor) {
+	public INumberTable ShiftTable(INumberTable nt, double shiftFactor) {
 		double[] cm = nt.ColumnMean().Select(it=>it.Value * shiftFactor).ToArray();
 		for(int row=0; row<nt.Rows; row++)
 			for(int col=0; col<nt.Columns; col++)
 				nt.Matrix[row][col] -= cm[col];
+		return nt;
 	}
 
        // permut the cluster index, so that similar data have equal cluster indexes.

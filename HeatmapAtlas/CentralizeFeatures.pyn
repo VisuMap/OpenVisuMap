@@ -1,0 +1,15 @@
+# Move all feature maps to the common centers.
+#
+x, y = 0, 0
+selected = pp.SelectedItems
+
+for item in selected:
+  x += item.X
+  y += item.Y
+x /= selected.Count
+y /= selected.Count
+
+for item in selected:
+  item.X = x;
+  item.Y = y;
+pp.Redraw();
