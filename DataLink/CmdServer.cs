@@ -930,12 +930,25 @@ namespace VisuMap.DataLink {
                 
                 IForm activeFrm = app.LastView;
                 bool typeSet = false;
-                if ((activeFrm != null) && (!activeFrm.TheForm.IsDisposed) && (activeFrm is IExportNumberTable)) {
-                    var nt2 = (activeFrm as IExportNumberTable).GetSelectedNumberTable();
-                    if( (nt2!=null) && (nt2.Rows == nt.Rows)) { 
-                        for (int row = 0; row < nt.Rows; row++) 
-                            nt.RowSpecList[row].CopyFrom(nt2.RowSpecList[row]);
-                        typeSet = true;
+                if ((activeFrm != null) && (!activeFrm.TheForm.IsDisposed)) { 
+                    if (activeFrm is IExportNumberTable) {
+                        var nt2 = (activeFrm as IExportNumberTable).GetSelectedNumberTable();
+                        if ((nt2 != null) && (nt2.Rows == nt.Rows)) {
+                            for (int row = 0; row < nt.Rows; row++)
+                                nt.RowSpecList[row].CopyFrom(nt2.RowSpecList[row]);
+                            typeSet = true;
+                        }
+                    } else {
+                        List<IBody> bList = null;
+                        var bsProperty = activeFrm.GetType().GetProperty("BodyList");
+                        if (bsProperty != null) {
+                            bList = bsProperty.GetValue(activeFrm) as List<IBody>;
+                            if (bList?.Count == nt.Rows) {
+                                for (int row = 0; row < bList.Count; row++)
+                                    nt.RowSpecList[row].CopyFromBody(bList[row]);
+                                typeSet = true;
+                            }
+                        }
                     }
                 }
 

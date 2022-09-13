@@ -5,9 +5,9 @@ print('Loading libraries...')
 import umap, time, sys, DataLinkCmd
 import numpy as np
 
-mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['s']
+mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['e']
 initType = ['spectral', 'random'][1]
-repeats, epochs = 2, 1000
+repeats, epochs = 2, 500
 mapDim, nn, md, lc, ns, sp = 2, 500, 0.25, 5.0, 25, 0.5
 randomizeOrder = True
 
