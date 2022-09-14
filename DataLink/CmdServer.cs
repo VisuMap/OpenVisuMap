@@ -939,10 +939,9 @@ namespace VisuMap.DataLink {
                             typeSet = true;
                         }
                     } else {
-                        List<IBody> bList = null;
                         var bsProperty = activeFrm.GetType().GetProperty("BodyList");
                         if (bsProperty != null) {
-                            bList = bsProperty.GetValue(activeFrm) as List<IBody>;
+                            List<IBody>  bList = bsProperty.GetValue(activeFrm) as List<IBody>;
                             if (bList?.Count == nt.Rows) {
                                 for (int row = 0; row < bList.Count; row++)
                                     nt.RowSpecList[row].CopyFromBody(bList[row]);
