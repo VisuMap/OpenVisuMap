@@ -52,6 +52,7 @@ function SortTable(T, mt, epochs, ex, pr) {
 	tsne.PerplexityRatio = pr;
 	tsne.RefreshFreq = 100;
 	tsne.StagedTraining = true;
+	tsne.Repeats = 1;
 	tsne.Show().Start();
 	if (isNaN(tsne.ItemList[0].Value)) {
 		vv.Message("Training degraded!\nPlease try with smaller initial exaggeration.");
