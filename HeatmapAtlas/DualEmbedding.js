@@ -13,6 +13,7 @@ function RunEmbedding(mds, epochs, mtr, initExa, ppRatio) {
 	mds.AutoNormalizing = false;
 	mds.StagedTraining = true;
 	mds.RefreshFreq = 10;
+	mds.Repeats = 1;
 	mds.GlyphSet = "36 Clusters|36 Clusters|36 Clusters";
 
 	mds.MaxLoops = epochs;
