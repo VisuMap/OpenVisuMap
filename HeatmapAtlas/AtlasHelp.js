@@ -10,7 +10,7 @@ var mtrs = {
 };
 
 cfg = {
-	cEpochsSrt:5000,	gEpochsSrt:5000,
+	cEpochsSrt:2000,	gEpochsSrt:2000,
 	cExaSrt:4,			gExaSrt:4,
 	cPprSrt:0.05,		gPprSrt:0.05,
 
