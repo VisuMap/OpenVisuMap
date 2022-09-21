@@ -14,7 +14,8 @@ function DoClustering(map, minSize, minPoint) {
 		(map == cfg.cellMap), null, "Push the cluster coloring to the heatmap");
 	map.ClusterAlgorithm = 1;
 	map.MinClusterSize = minSize;
-	map.MinClusterPoint = minPoint;
+	map.HdMinPoints = minPoint;
+	map.ClusterNoise = true;
 	map.DoDataClustering();
 	return map.Clusters;
 }

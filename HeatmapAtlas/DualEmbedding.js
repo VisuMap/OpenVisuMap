@@ -5,14 +5,13 @@
 //
 ValidateHeatMap(pp);
 
-function RunEmbedding(mds, epochs, mtr, initExa, ppRatio) {
-	mds.Is3D = cfg.Is3D;
+function RunEmbedding(mds, epochs, mtr, initExa, ppRatio, is3D) {
+	mds.Is3D = is3D;
 	mds.Metric = mtr;
-	mds.ClusterAlgorithm = 4;  // for HDBSCAN algorithm
 	mds.AutoClustering = false;
 	mds.AutoNormalizing = false;
 	mds.StagedTraining = true;
-	mds.RefreshFreq = 10;
+	mds.RefreshFreq = cfg.refFreq;
 	mds.Repeats = 1;
 	mds.GlyphSet = "36 Clusters|36 Clusters|36 Clusters";
 
@@ -30,7 +29,6 @@ function RunEmbedding(mds, epochs, mtr, initExa, ppRatio) {
 
 var nt = vv.GetNumberTable();
 
-
 function DEmbeddingMain() {
 	var nt = cfg.hm.GetNumberTable();
 	var mds = New.MdsCluster(nt);
@@ -39,7 +37,7 @@ function DEmbeddingMain() {
 	if (cfg.cMtr == mtrs.cos)
 		mds.SetTrainingData(cs.ShiftTable(nt.Clone(), cfg.cPrShift));
 	
-	cfg.cellMap = RunEmbedding(mds, cfg.cEpochs, cfg.cMtr, cfg.cExa, cfg.cPpr);
+	cfg.cellMap = RunEmbedding(mds, cfg.cEpochs, cfg.cMtr, cfg.cExa, cfg.cPpr, cfg.cIs3D);
 
 	var nt2 = nt.Transpose2();
 	if (cfg.gMtr == mtrs.cos) 
@@ -47,7 +45,7 @@ function DEmbeddingMain() {
 	
 	mds.SetTrainingData(nt2);
 
-	cfg.geneMap = RunEmbedding(mds, cfg.gEpochs, cfg.gMtr, cfg.gExa, cfg.gPpr);
+	cfg.geneMap = RunEmbedding(mds, cfg.gEpochs, cfg.gMtr, cfg.gExa, cfg.gPpr, cfg.gIs3D);
 	nt2.FreeRef();
 	mds.Close();
 

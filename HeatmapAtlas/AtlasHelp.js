@@ -10,22 +10,27 @@ var mtrs = {
 };
 
 cfg = {
+	// Sorting parameters:
 	cEpochsSrt:2000,	gEpochsSrt:2000,
 	cExaSrt:10,			gExaSrt:10,
 	cPprSrt:0.1,		gPprSrt:0.1,
 
+	// Embedding parameters:
 	cEpochs:2000,		gEpochs:2000,    // training epochs for cell/gene profiles.
-	cPpr:0.15,			gPpr:0.15,       // perplexity ratio    
-	cExa:10.0,			gExa:10.0,        // initial exaggreation
+	cExa:10.0,			gExa:10.0,       // initial exaggreation
+	cPpr:0.1,			gPpr:0.1,        // perplexity ratio    
 	cPrShift:0.5,     gPrShift:0.5,    // cell/gene profile shift towards arithmetric center.
 	cMtr:mtrs.cos,		gMtr:mtrs.euc,   // metric 
-	cMinPoint:5,		gMinPoint:10,           
-	cMinSize:50,		gMinSize:100,
+	cIs3D:false,		gIs3D:false,
+
+	// Clustering parameters:
+	cMinPoint:100,		gMinPoint:100,           
+	cMinSize:20,		gMinSize:20,
 	RowSrtKeys:null,	ColumnSrtKeys:null,
 	cellMap:null,		geneMap:null, 
 
 	hm:null,
-	Is3D:false,
+	refFreq:50,
 };
 
 function CheckMaps() {
@@ -50,7 +55,7 @@ function SortTable(T, mt, epochs, ex, pr) {
 	tsne.MaxLoops = epochs;
 	tsne.InitExaggeration = ex;
 	tsne.PerplexityRatio = pr;
-	tsne.RefreshFreq = 100;
+	tsne.RefreshFreq = cfg.refFreq;
 	tsne.StagedTraining = true;
 	tsne.Repeats = 1;
 	tsne.Show().Start();

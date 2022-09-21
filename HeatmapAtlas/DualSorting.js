@@ -3,11 +3,10 @@
 //
 vv.Import("AtlasHelp.js");
 
-var doAllService = vv.ModifierKeys.ControlPressed;
-
+var doAll = vv.ModifierKeys.ControlPressed;
 ValidateHeatMap(pp);
 
-function DSMain() {
+function DSortMain() {
 	cfg.hm = pp;
 	cfg.hm.DisableReorder = false;
 	var dsTable = pp.GetNumberTable();
@@ -35,10 +34,11 @@ function DSMain() {
 	cfg.hm.DisableReorder = true;
 }
 
-DSMain();
+DSortMain();
 
-if ( doAllService ) {
+if ( doAll ) {
   cfg.hm.ClickContextMenu("Atlas/Dual Embedding");
   cfg.hm.ClickContextMenu("Atlas/Dual Clustering");
   cfg.hm.ClickContextMenu("Atlas/Active Cells");
 }
+
