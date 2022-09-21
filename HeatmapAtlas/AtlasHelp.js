@@ -11,12 +11,12 @@ var mtrs = {
 
 cfg = {
 	cEpochsSrt:2000,	gEpochsSrt:2000,
-	cExaSrt:4,			gExaSrt:4,
-	cPprSrt:0.05,		gPprSrt:0.05,
+	cExaSrt:10,			gExaSrt:10,
+	cPprSrt:0.1,		gPprSrt:0.1,
 
 	cEpochs:2000,		gEpochs:2000,    // training epochs for cell/gene profiles.
 	cPpr:0.15,			gPpr:0.15,       // perplexity ratio    
-	cExa:8.0,			gExa:8.0,        // initial exaggreation
+	cExa:10.0,			gExa:10.0,        // initial exaggreation
 	cPrShift:0.5,     gPrShift:0.5,    // cell/gene profile shift towards arithmetric center.
 	cMtr:mtrs.cos,		gMtr:mtrs.euc,   // metric 
 	cMinPoint:5,		gMinPoint:10,           
