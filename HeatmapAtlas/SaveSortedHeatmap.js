@@ -7,5 +7,3 @@
 
 SaveSortedTable();
 
-
-var item = pp.FindItemById('i1')

@@ -132,7 +132,7 @@ function SaveSortedTable() {
 		ii.Left+= 20*idx;
 	}
 	ii.IconHeight = ii.IconWidth = 40;
-	ii.Script = `!
+	ii.Script = `!//!import "AtlasHelp.js"
 		var vs = New.StringSplit(vv.EventSource.Item.Name);
 		var rows = vs[0] - 0;
 		var rowIds = vs.GetRange(1, rows);
@@ -140,7 +140,7 @@ function SaveSortedTable() {
 		var nt = vv.GetNumberTable();
 		nt = nt.SelectRowsById2(rowIds);
 		nt = nt.SelectColumnsById2(colIds, 0);
-		nt.ShowHeatMap();`;
+		cfg.hm = nt.ShowHeatMap();`;
 	at.Close();
 	return ii.Id;
 }
