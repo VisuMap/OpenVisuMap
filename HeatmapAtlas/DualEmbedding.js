@@ -1,8 +1,8 @@
-//!import "AtlasHelp.js"
 //
 // DualEmbedding.js
 // Create t-SNE embedding for rows and columns of heatmap.
 //
+vv.Import("AtlasHelp.js");
 ValidateHeatMap(pp);
 
 function RunEmbedding(mds, epochs, mtr, initExa, ppRatio, is3D) {

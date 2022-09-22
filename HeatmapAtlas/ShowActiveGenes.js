@@ -1,9 +1,8 @@
-//!import "AtlasHelp.js"
 //
 // ShowActiveGenes.js
 // Highlight active genes for selected cells.
 //
-
+vv.Import("AtlasHelp.js");
 ValidateHeatMap(pp);
 CheckMaps();
 

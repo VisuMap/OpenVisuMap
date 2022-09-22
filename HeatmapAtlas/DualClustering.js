@@ -1,9 +1,8 @@
-//!import "AtlasHelp.js"
 //
 // DualClustering.js
 // Cluster the rows and columns of a number table of the parent data view.
 //
-
+vv.Import("AtlasHelp.js");
 ValidateHeatMap(pp);
 CheckMaps();
 

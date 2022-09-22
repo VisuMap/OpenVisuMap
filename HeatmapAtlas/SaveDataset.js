@@ -1,9 +1,8 @@
-//!import "AtlasHelp.js"
 //
 // SaveDatset.js
 // Save the sorted dataset with the trained MDS maps.
 //
-
+vv.Import("AtlasHelp.js");
 ValidateHeatMap(pp);
 CheckMaps();
 
@@ -23,7 +22,7 @@ function SaveMaps(hmItemId) {
 	gItem.Left = hmItem.Left + 20;
 	gItem.Top = hmItem.Top + 20;
 
-	cItem.Script = `!//!import "AtlasHelp.js"
+	cItem.Script = `!vv.Import("AtlasHelp.js");
 		var mp = vv.EventSource.Item.Open();
 		mp.AddContextMenu('Atlas/Capture Coloring', 
 			'!cs.CopyType(pp, pp.BodyList, cfg.hm)', 
@@ -33,7 +32,7 @@ function SaveMaps(hmItemId) {
 		mp.ClickContextMenu('Atlas/Capture Coloring');
 		cfg.cellMap = mp;		
 		`;
-	gItem.Script = `!//!import "AtlasHelp.js"
+	gItem.Script = `!vv.Import("AtlasHelp.js");
 		var mp = vv.EventSource.Item.Open();
 		mp.AddContextMenu('Atlas/Capture Coloring', 
 			'!cs.CopyType(pp, pp.BodyList, cfg.hm)', 
@@ -57,7 +56,7 @@ function SaveMaps(hmItemId) {
 	itemRow.IconHeight = 60;
 	itemRow.Top = hmItem.Top;
 	itemRow.Left = hmItem.Left - 18;
-	itemRow.Script = `!//!import "AtlasHelp.js"`;
+	itemRow.Script = `!vv.Import("AtlasHelp.js");`;
 	sp.Close();
 	
 	sp = New.SpectrumView(cfg.ColumnSrtKeys).Show();
@@ -69,7 +68,7 @@ function SaveMaps(hmItemId) {
 	itemCol.IconHeight = 15;
 	itemCol.Top = hmItem.Top - 18;
 	itemCol.Left = hmItem.Left;
-	itemCol.Script = `!//!import "AtlasHelp.js"`;
+	itemCol.Script = `!vv.Import("AtlasHelp.js");`;
 	sp.Close();
 	
 	atlas.GroupItems( hmItem, cItem, gItem, itemRow, itemCol );
