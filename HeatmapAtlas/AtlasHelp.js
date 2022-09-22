@@ -20,12 +20,12 @@ cfg = {
 	cExa:10.0,			gExa:10.0,       // initial exaggreation
 	cPpr:0.1,			gPpr:0.1,        // perplexity ratio    
 	cPrShift:0.5,     gPrShift:0.5,    // cell/gene profile shift towards arithmetric center.
-	cMtr:mtrs.cos,		gMtr:mtrs.euc,   // metric 
+	cMtr:mtrs.cos,		gMtr:mtrs.cos,   // metric 
 	cIs3D:false,		gIs3D:false,
 
 	// Clustering parameters:
-	cMinPoint:100,		gMinPoint:100,           
-	cMinSize:20,		gMinSize:20,
+	cMinPoint:15,		gMinPoint:15,           
+	cMinSize:40,		gMinSize:40,
 	RowSrtKeys:null,	ColumnSrtKeys:null,
 	cellMap:null,		geneMap:null, 
 
@@ -114,6 +114,35 @@ function LayoutMaps() {
 	cfg.geneMap.TheForm.SetBounds(cfg.hm.TheForm.Left, cfg.hm.TheForm.Top - sz + 8, sz, sz);
 	cfg.cellMap.Title = "Cell Map";
 	cfg.geneMap.Title = "Gene Map";
+}
+
+function SaveSortedTable() {
+	var nt = pp.GetNumberTable();
+	var info = [];	
+	info.push(nt.Rows.toString());	
+	for(var rs of nt.RowSpecList) info.push(rs.Id);
+	for(var cs of nt.ColumnSpecList) info.push(cs.Id);
+
+	var at = New.Atlas().Show();
+	var ii = at.NewHeatMapItem(New.HeatMap(New.NumberTable(1,1)));
+	ii.Name = info.join('|');
+	if ( ii.Id.length > 1 ) {
+		var idx = ii.Id.substr(1) - 0;
+		ii.Top += 30*idx;
+		ii.Left+= 20*idx;
+	}
+	ii.IconHeight = ii.IconWidth = 40;
+	ii.Script = `!
+		var vs = New.StringSplit(vv.EventSource.Item.Name);
+		var rows = vs[0] - 0;
+		var rowIds = vs.GetRange(1, rows);
+		var colIds = vs.GetRange(1+rows, vs.Count-1-rows);
+		var nt = vv.GetNumberTable();
+		nt = nt.SelectRowsById2(rowIds);
+		nt = nt.SelectColumnsById2(colIds, 0);
+		nt.ShowHeatMap();`;
+	at.Close();
+	return ii.Id;
 }
 
 var cs = New.CsObject(`
