@@ -23,3 +23,5 @@ for(var [label, img, script] of [
    ["Show Maps",		null, "ShowMaps.js"],
 ]) mgr.SetCustomButton("Atlas/"+label, img, script);
 
+if (vv.ScriptDirectories.indexOf(vv.CurrentScriptDirectory) < 0)
+    vv.ScriptDirectories += ";" + vv.CurrentScriptDirectory;
