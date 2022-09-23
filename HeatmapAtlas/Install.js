@@ -22,6 +22,3 @@ for(var [label, img, script] of [
 	["Imp Cnt Mtx (*.mtx.gz)", 	null, "MatrixRead.pyn"], 
    ["Show Maps",		null, "ShowMaps.js"],
 ]) mgr.SetCustomButton("Atlas/"+label, img, script);
-
-if (vv.ScriptDirectories.indexOf(vv.CurrentScriptDirectory) < 0)
-    vv.ScriptDirectories += ";" + vv.CurrentScriptDirectory;

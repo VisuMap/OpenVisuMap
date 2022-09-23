@@ -132,15 +132,7 @@ function SaveSortedTable() {
 		ii.Left+= 20*idx;
 	}
 	ii.IconHeight = ii.IconWidth = 40;
-	ii.Script = `!//!import "AtlasHelp.js"
-		var vs = New.StringSplit(vv.EventSource.Item.Name);
-		var rows = vs[0] - 0;
-		var rowIds = vs.GetRange(1, rows);
-		var colIds = vs.GetRange(1+rows, vs.Count-1-rows);
-		var nt = vv.GetNumberTable();
-		nt = nt.SelectRowsById2(rowIds);
-		nt = nt.SelectColumnsById2(colIds, 0);
-		cfg.hm = nt.ShowHeatMap();`;
+	ii.Script = vv.CurrentScriptDirectory + "\\LoadSortedHeatmap.js";
 	at.Close();
 	return ii.Id;
 }
