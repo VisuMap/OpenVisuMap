@@ -122,8 +122,10 @@ function SaveSortedTable() {
 	info.push(nt.Rows.toString());	
 	for(var rs of nt.RowSpecList) info.push(rs.Id);
 	for(var cs of nt.ColumnSpecList) info.push(cs.Id);
+	
+	var atList = vv.FindFormList("Atlas");
+	var at = (atList.Count>0) ? atList[0] : New.Atlas().Show();
 
-	var at = New.Atlas().Show();
 	var ii = at.NewHeatMapItem(New.HeatMap(New.NumberTable(1,1)));
 	ii.Name = info.join('|');
 	if ( ii.Id.length > 1 ) {
@@ -133,7 +135,7 @@ function SaveSortedTable() {
 	}
 	ii.IconHeight = ii.IconWidth = 40;
 	ii.Script = vv.CurrentScriptDirectory + "\\LoadSortedHeatmap.js";
-	at.Close();
+	at.Redraw();
 	return ii.Id;
 }
 

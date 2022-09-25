@@ -7,8 +7,8 @@ ValidateHeatMap(pp);
 CheckMaps();
 
 function SaveMaps(hmItemId) {
-	var atlas = New.Atlas();
-	atlas.Show();
+	var atList = vv.FindFormList("Atlas");
+	var atlas = (atList.Count>0) ? atList[0] : New.Atlas().Show();
 	
 	var cItem = atlas.CaptureItem(cfg.cellMap);
 	var gItem = atlas.CaptureItem(cfg.geneMap);
@@ -17,10 +17,11 @@ function SaveMaps(hmItemId) {
 	cItem.IconWidth = hmItem.IconWidth;
 	gItem.IconHeight = hmItem.IconHeight;
 	gItem.IconWidth = hmItem.IconWidth;
-	cItem.Left = hmItem.Left + 10;
-	cItem.Top = hmItem.Top + 10;
-	gItem.Left = hmItem.Left + 20;
-	gItem.Top = hmItem.Top + 20;
+	var w2 = hmItem.IconWidth/2 + 1;
+	cItem.Left = hmItem.Left - w2;
+	gItem.Left = hmItem.Left + w2;
+	cItem.Top = gItem.Top = hmItem.Top + 10;
+	gItem.Opacity = cItem.Opacity = 0.75;
 
 	cItem.Script = `!vv.Import("AtlasHelp.js");
 		var mp = vv.EventSource.Item.Open();
@@ -42,9 +43,6 @@ function SaveMaps(hmItemId) {
 		mp.ClickContextMenu('Atlas/Capture Coloring');
 		cfg.geneMap = mp;
 		`;
-
-
-	atlas.Redraw();
 	
 	/*
 	var sp = New.SpectrumView(cfg.RowSrtKeys).Show();
@@ -75,7 +73,7 @@ function SaveMaps(hmItemId) {
 	*/
 
 	atlas.GroupItems( hmItem, cItem, gItem );
-	atlas.Close();
+	atlas.Redraw();
 }
 
 SaveMaps(SaveSortedTable());
