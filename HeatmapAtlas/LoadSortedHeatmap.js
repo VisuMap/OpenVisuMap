@@ -6,11 +6,21 @@ vv.Import("AtlasHelp.js")
 function LoadSortedHeatmap() {
 	var tbItem = vv.EventSource.Item;
 	var vs = New.StringSplit(tbItem.Name);
-	var dsName = vs[0];
-	var rows = vs[1] - 0;
-   var columns = vs.Count-2-rows;
-	var rowIds = vs.GetRange(2, rows);	
-	var colIds = vs.GetRange(2 + rows, columns);
+	var fs = New.StringSplit(vs[0], '&');
+
+	var dsName = "";
+	var rows = 0;
+	if ( fs.Count == 2 ){
+		dsName = fs[0];
+		rows = fs[1] - 0;
+	} else {
+		dsName = vv.Dataset.Name;
+		rows = fs[0] - 0;
+	}
+
+   var columns = vs.Count-1-rows;
+	var rowIds = vs.GetRange(1, rows);	
+	var colIds = vs.GetRange(1 + rows, columns);
 	if ( dsName != vv.Dataset.Name )
 		vv.Folder.OpenDataset(dsName);
 	var nt = vv.GetNumberTable();

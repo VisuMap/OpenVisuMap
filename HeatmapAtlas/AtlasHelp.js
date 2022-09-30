@@ -119,8 +119,7 @@ function LayoutMaps() {
 function SaveSortedTable() {
 	var nt = pp.GetNumberTable();
 	var info = [];	
-	info.push(vv.Dataset.Name);
-	info.push(nt.Rows.toString());	
+	info.push(vv.Dataset.Name + '&' + nt.Rows.toString());
 	for(var rs of nt.RowSpecList) info.push(rs.Id);
 	for(var cs of nt.ColumnSpecList) info.push(cs.Id);
 	
