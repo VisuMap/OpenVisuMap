@@ -1,4 +1,7 @@
 # Import a h5ad format file into a heatmap view.
+# 
+# The following site offers some sample datasets:
+# https://figshare.com/articles/dataset/Zebrahub_single_cell_dataset/20510367
 #
 import clr, scanpy, numpy
 vv.Import('AtlasHelp.pyn')

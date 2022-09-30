@@ -5,7 +5,7 @@ vv.Import("AtlasHelp.js")
 
 function LoadSortedHeatmap() {
 	var tbItem = vv.EventSource.Item;
-	var vs = New.StringSplit(tbItem.Name);
+	var vs = New.StringSplit(tbItem.Tag);
 	var fs = New.StringSplit(vs[0], '&');
 
 	var dsName = "";

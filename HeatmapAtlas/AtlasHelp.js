@@ -127,7 +127,7 @@ function SaveSortedTable() {
 	var at = (atList.Count>0) ? atList[0] : New.Atlas().Show();
 
 	var ii = at.NewHeatMapItem(New.HeatMap(New.NumberTable(1,1)));
-	ii.Name = info.join('|');
+	ii.Tag = info.join('|');
 	if ( ii.Id.length > 1 ) {
 		var idx = ii.Id.substr(1) - 0;
 		ii.Top += 30*idx;
@@ -196,9 +196,11 @@ var cs = New.CsObject(`
 			return;
 		var colMean = selected.ColumnMean().Select(it=>it.Value).ToArray();
 
+		var bv = map.Tag as IBarView;
+		if (bv.TheForm.IsDisposed || map.TheForm.IsDisposed) return;
 		bool is2D = (map.Name == "MapSnapshot");
 		var bList = is2D ? (map as IMapSnapshot).BodyList : (map as IMap3DView).BodyList;
-		var bv = map.Tag as IBarView;
+
 		double minExpr = colMean.Min();
 		double maxExpr = colMean.Max();
 		double stepSize = (maxExpr - minExpr)/64;
@@ -221,9 +223,11 @@ var cs = New.CsObject(`
 		INumberTable selected = expTable.SelectColumnsById(selectedItems);
 		if ( selected.Columns == 0 )
 			return;
+		var bv = map.Tag as IBarView;
+		if (bv.TheForm.IsDisposed || map.TheForm.IsDisposed) return;
 		bool is2D = (map.Name == "MapSnapshot");
 		var bList = is2D ? (map as IMapSnapshot).BodyList : (map as IMap3DView).BodyList;
-		var bv = map.Tag as IBarView;
+
 		var items = bv.ItemList;
 		double overflow = 0;
 		int overCount = 0;
