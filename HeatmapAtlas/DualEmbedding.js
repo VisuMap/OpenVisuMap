@@ -34,18 +34,18 @@ function DEmbeddingMain() {
 	var mds = New.MdsCluster(nt);
 	mds.Show();
 
-	if (cfg.cMtr == mtrs.cos)
-		mds.SetTrainingData(cs.ShiftTable(nt.Clone(), cfg.cPrShift));
+	if (cfg.Mtr.c == mtrs.cos)
+		mds.SetTrainingData(cs.ShiftTable(nt.Clone(), cfg.PrShift.c));
 	
-	cfg.cellMap = RunEmbedding(mds, cfg.cEpochs, cfg.cMtr, cfg.cExa, cfg.cPpr, cfg.cIs3D);
+	cfg.cellMap = RunEmbedding(mds, cfg.Epochs.c, cfg.Mtr.c, cfg.Exa.c, cfg.Ppr.c, cfg.Is3D.c);
 
 	var nt2 = nt.Transpose2();
-	if (cfg.gMtr == mtrs.cos) 
-		nt2 = cs.ShiftTable(nt2, cfg.gPrShift);
+	if (cfg.Mtr.g == mtrs.cos) 
+		nt2 = cs.ShiftTable(nt2, cfg.PrShift.g);
 	
 	mds.SetTrainingData(nt2);
 
-	cfg.geneMap = RunEmbedding(mds, cfg.gEpochs, cfg.gMtr, cfg.gExa, cfg.gPpr, cfg.gIs3D);
+	cfg.geneMap = RunEmbedding(mds, cfg.Epochs.g, cfg.Mtr.g, cfg.Exa.g, cfg.Ppr.g, cfg.Is3D.c);
 	nt2.FreeRef();
 	mds.Close();
 
@@ -57,6 +57,10 @@ function DEmbeddingMain() {
 	cfg.geneMap.TheForm.SetBounds(cfg.hm.TheForm.Left, cfg.hm.TheForm.Top - sz + 8, sz, sz);
 	cfg.cellMap.Title = "Cell Map";
 	cfg.geneMap.Title = "Gene Map";
+	cfg.cellMap.BackgroundColor = New.Color(0, 0, 64);
+	cfg.geneMap.BackgroundColor = New.Color(0, 64, 64);
+	cfg.geneMap.Refresh();
+	cfg.cellMap.Refresh();
 }
 
 DEmbeddingMain();

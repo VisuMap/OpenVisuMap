@@ -9,26 +9,39 @@ var mtrs = {
 	cor:'Correlation.Standard Correlation'
 };
 
+function PairValues(v1, v2) {
+	this.c = v1;
+	this.g = v2;
+}
+
+function PP(v1, v2){
+   return new PairValues(v1, v2);
+}
+
 cfg = {
 	// Sorting parameters:
-	cEpochsSrt:2000,	gEpochsSrt:2000,
-	cExaSrt:10,			gExaSrt:10,
-	cPprSrt:0.1,		gPprSrt:0.1,
+	EpochsSrt: PP(2000,	2000),
+	ExaSrt:    PP(10, 10),
+	PprSrt:    PP(0.1, 0.1),
+	Mtr:       PP(mtrs.cos, mtrs.cos),
 
 	// Embedding parameters:
-	cEpochs:2000,		gEpochs:2000,    // training epochs for cell/gene profiles.
-	cExa:10.0,			gExa:10.0,       // initial exaggreation
-	cPpr:0.1,			gPpr:0.1,        // perplexity ratio    
-	cPrShift:0.5,     gPrShift:0.5,    // cell/gene profile shift towards arithmetric center.
-	cMtr:mtrs.cos,		gMtr:mtrs.cos,   // metric 
-	cIs3D:false,		gIs3D:false,
+	Epochs:PP(2000, 2000),    // training epochs for cell/gene profiles.
+	Exa:   PP(10.0, 10.0),    // initial exaggreation
+	Ppr:   PP(0.15, 0.15),    // perplexity ratio    
+   PrShift: PP(0.5, 0.5),    // cell/gene profile shift towards arithmetric center.
+	Is3D:  PP(false,false),
+
 
 	// Clustering parameters:
-	cMinPoint:15,		gMinPoint:15,           
-	cMinSize:40,		gMinSize:40,
+	DbMinPoint: PP(30, 30),   	// for DBSCAN
+	Epsilon:    PP(2.0, 3.0),  // for DBSCAN
+	Alg:        PP(0,	0),      // 0: for DBSCAN; 1: for HDBSCAN.
+	MinPoint:   PP(15, 15),    // for HDBSCAN       
+	MinSize: 	PP(40, 40),    // for HDBSCAN
+
 	RowSrtKeys:null,	ColumnSrtKeys:null,
 	cellMap:null,		geneMap:null, 
-
 	hm:null,
 	refFreq:50,
 };
@@ -76,7 +89,7 @@ function SortTable(T, mt, epochs, ex, pr) {
 function NewExpressionMap(parent, winTitle) {
 	vv.SelectedItems = null;
 	var exMap;
-	if ( cfg.Is3D ) {
+	if ( parent.Name == "D3dRender" ) {
 		exMap = parent.NewWindow();
 	} else {
 		exMap = parent.NewSnapshot();
@@ -93,9 +106,11 @@ function NewExpressionMap(parent, winTitle) {
 }
 
 function FlushMarkers(map1, map2, map3) {
-	if (!cfg.Is3D) {
-		map2.ShowMarker(false);
-		map3.ShowMarker(false);
+	if (map1.Name == "MapSnapshot") {
+		if (map2.Name == "MapSnapshot")
+			map2.ShowMarker(false);
+		if (map3.Name == "MapSnapshot")
+			map3.ShowMarker(false);
 		for(var i=0; i<4; i++) {
 			map1.ShowMarker(false);
 			vv.Sleep(250);
