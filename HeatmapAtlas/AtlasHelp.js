@@ -129,13 +129,15 @@ function SaveSortedTable() {
 	var ii = at.NewHeatMapItem(New.HeatMap(New.NumberTable(1,1)));
 	ii.Tag = info.join('|');
 	if ( ii.Id.length > 1 ) {
-		var idx = ii.Id.substr(1) - 0;
-		ii.Top += 30*idx;
-		ii.Left+= 20*idx;
+		var idx = (ii.Id.substr(1) - 0)%15;
+		ii.Top += 15*idx;
+		ii.Left+= 10*idx;
 	}
    
 	ii.IconHeight = ii.IconWidth = 40;
 	ii.Script = vv.CurrentScriptDirectory + "\\LoadSortedHeatmap.js";
+
+	at.SetSelectedItems( ii );
 	at.Redraw();
 	return ii.Id;
 }

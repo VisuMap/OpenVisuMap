@@ -44,34 +44,6 @@ function SaveMaps(hmItemId) {
 		cfg.geneMap = mp;
 		`;
 	
-	/*
-	var sp = New.SpectrumView(cfg.RowSrtKeys).Show();
-	sp.NormalizeView();
-	sp.Horizontal = false;
-	sp.Width =70; sp.Height=450;
-	var itemRow = atlas.NewSpectrumItem(sp);
-	itemRow.IconWidth = 15;
-	itemRow.IconHeight = 60;
-	itemRow.Top = hmItem.Top;
-	itemRow.Left = hmItem.Left - 18;
-	itemRow.Script = `!vv.Import("AtlasHelp.js");`;
-	sp.Close();
-	
-	sp = New.SpectrumView(cfg.ColumnSrtKeys).Show();
-	sp.NormalizeView();
-	sp.Horizontal = true;
-	sp.Width =450; sp.Height=70;
-	var itemCol = atlas.NewSpectrumItem(sp);
-	itemCol.IconWidth = 60;
-	itemCol.IconHeight = 15;
-	itemCol.Top = hmItem.Top - 18;
-	itemCol.Left = hmItem.Left;
-	itemCol.Script = `!vv.Import("AtlasHelp.js");`;
-	sp.Close();
-	
-	atlas.GroupItems( hmItem, cItem, gItem, itemRow, itemCol );
-	*/
-
 	atlas.GroupItems( hmItem, cItem, gItem );
 	atlas.Redraw();
 }
