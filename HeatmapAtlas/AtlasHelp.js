@@ -9,28 +9,22 @@ var mtrs = {
 	cor:'Correlation.Standard Correlation'
 };
 
-function PairValues(v1, v2) {
-	this.c = v1;
-	this.g = v2;
-}
-
-function PP(v1, v2){
-   return new PairValues(v1, v2);
-}
+function PP(v1, v2){   return {c:v1, g:v2}; }
 
 cfg = {
 	// Sorting parameters:
 	EpochsSrt: PP(2000,	2000),
 	ExaSrt:    PP(10, 10),
 	PprSrt:    PP(0.1, 0.1),
-	Mtr:       PP(mtrs.cos, mtrs.cos),
+	MtrSrt:    PP(mtrs.cos, mtrs.cos),
 
 	// Embedding parameters:
-	Epochs:PP(2000, 2000),    // training epochs for cell/gene profiles.
-	Exa:   PP(10.0, 10.0),    // initial exaggreation
-	Ppr:   PP(0.15, 0.15),    // perplexity ratio    
-   PrShift: PP(0.5, 0.5),    // cell/gene profile shift towards arithmetric center.
-	Is3D:  PP(false,false),
+	Epochs:	PP(2000, 2000),    // training epochs for cell/gene profiles.
+	Exa:		PP(10.0, 10.0),    // initial exaggreation
+	Ppr:		PP(0.15, 0.15),    // perplexity ratio    
+   PrShift:	PP(0.5, 0.5),      // cell/gene profile shift towards arithmetric center.
+	Mtr:		PP(mtrs.cos, mtrs.cos),
+	Is3D:		PP(false,false),
 
 
 	// Clustering parameters:

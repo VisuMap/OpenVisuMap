@@ -15,19 +15,19 @@ function DSortMain() {
 	cfg.hm.SelectionMode = 0;
 	
 	var dsTable1 = dsTable;
-	if ( cfg.Mtr.c == mtrs.cos ) {
+	if ( cfg.MtrSrt.c == mtrs.cos ) {
 		dsTable1 = dsTable.Clone();
 		cs.ShiftTable(dsTable1, cfg.PrShift.c);
 	}
 
-	SortTable(dsTable1, cfg.Mtr.c, cfg.EpochsSrt.c, cfg.ExaSrt.c, cfg.PprSrt.c);
+	SortTable(dsTable1, cfg.MtrSrt.c, cfg.EpochsSrt.c, cfg.ExaSrt.c, cfg.PprSrt.c);
 
 	cfg.hm.Title = 'Sorting Columns...';
 	cfg.hm.SelectionMode = 1;
 	var dsTable2 = dsTable.Transpose2();
-	if ( cfg.Mtr.g == mtrs.cos )
+	if ( cfg.MtrSrt.g == mtrs.cos )
 		cs.ShiftTable(dsTable2, cfg.PrShift.g);
-	SortTable(dsTable2, cfg.Mtr.g, cfg.EpochsSrt.g, cfg.ExaSrt.g, cfg.PprSrt.g);
+	SortTable(dsTable2, cfg.MtrSrt.g, cfg.EpochsSrt.g, cfg.ExaSrt.g, cfg.PprSrt.g);
 
 	dsTable2.FreeRef();
 	cfg.hm.Title = 'Sorted';	
