@@ -1,0 +1,17 @@
+# 
+# SparseNpzRead.pyn
+#
+import scipy.sparse
+import numpy as np
+
+vv.Import('AtlasHelp.pyn')
+
+def SparseReadMain():
+	fileName = PromptFile("SparseNpz|*.npz")
+	M = scipy.sparse.load_npz(fileName)
+	M = M.todense('C').astype(np.float32)
+	nt = mm.ToTable(M)
+	ShowHeatmap(nt, fileName)
+
+
+SparseReadMain()
