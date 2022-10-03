@@ -52,7 +52,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="VisuMapApi">
-      <HintPath>..\..\..\Program Files\VisuMap Technologies\VisuMap5\bin\VisuMapApi.dll</HintPath>
+      <HintPath>..\..\..\Program Files\VisuMap Technologies\VisuMap6\bin\VisuMapApi.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

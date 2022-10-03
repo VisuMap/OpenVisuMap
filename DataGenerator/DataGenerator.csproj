@@ -64,7 +64,7 @@
     </Reference>
     <Reference Include="VisuMapApi, Version=4.0.890.0, Culture=neutral, PublicKeyToken=be268d35b7fdc692, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\VisuMap\bin\Debug\VisuMapApi.dll</HintPath>
+      <HintPath>..\..\..\Program Files\VisuMap Technologies\VisuMap6\bin\VisuMapApi.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

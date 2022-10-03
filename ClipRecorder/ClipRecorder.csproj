@@ -75,9 +75,8 @@
     <Reference Include="VisuMap">
       <HintPath>..\..\VisuMap\bin\Debug\VisuMap.exe</HintPath>
     </Reference>
-    <Reference Include="VisuMapApi, Version=4.0.890.0, Culture=neutral, PublicKeyToken=be268d35b7fdc692, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Program Files\VisuMap Technologies\VisuMap5\bin\VisuMapApi.dll</HintPath>
+    <Reference Include="VisuMapApi">
+      <HintPath>..\..\..\Program Files\VisuMap Technologies\VisuMap6\bin\VisuMapApi.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
