@@ -20,7 +20,7 @@ cfg = {
 
 	// Embedding parameters:
 	Epochs:	PP(2000, 2000),    // training epochs for cell/gene profiles.
-	Exa:		PP(10.0, 10.0),    // initial exaggreation
+	Exa:		PP(8.0, 8.0),      // initial exaggreation
 	Ppr:		PP(0.15, 0.15),    // perplexity ratio    
    PrShift:	PP(0.5, 0.5),      // cell/gene profile shift towards arithmetric center.
 	Mtr:		PP(mtrs.cos, mtrs.cos),
