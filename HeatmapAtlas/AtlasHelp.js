@@ -34,8 +34,8 @@ cfg = {
 	MinPoint:   PP(15, 15),    // for HDBSCAN       
 	MinSize: 	PP(40, 40),    // for HDBSCAN
 
-	RowSrtKeys:null,	ColumnSrtKeys:null,
-	cellMap:null,		geneMap:null, 
+	cellMap:null, 
+	geneMap:null, 
 	hm:null,
 	refFreq:50,
 };
@@ -72,11 +72,6 @@ function SortTable(T, mt, epochs, ex, pr) {
 	}
 	if ( tsne.CurrentLoops != tsne.MaxLoops)
 		vv.Return();
-
-	if (pp.SelectionMode == 0)
-		cfg.RowSrtKeys = tsne.ItemList;
-	else
-		cfg.ColumnSrtKeys = tsne.ItemList;
 	tsne.Close();
 };
 
@@ -161,31 +156,6 @@ var cs = New.CsObject(`
 	}
 
        // permut the cluster index, so that similar data have equal cluster indexes.
-	public void NormalizeColoring(IList<IBody> bList, IList<IValueItem> keys, int cN) {
-		if ( keys == null )
-			return;
-		if ( keys.Count != bList.Count ) {
-			vv.Message("Invalid sorting keys!");
-			return;
-		}
-		double[] cWeight = new double[cN];
-		int[] cCount = new int[cN];
-		for(int i=0; i<bList.Count; i++) {
-              	cWeight[bList[i].Type] += keys[i].Value;
-			cCount[bList[i].Type] += 1;
-		}
-		for(int i=0; i<cN; i++)
-			if ( cCount[i] != 0 )
-				cWeight[i] /= cCount[i];
-		int[] idxOrder = new int[cN];
-		for(int i=0; i<cN; i++) idxOrder[i] = i;
-		Array.Sort(idxOrder, cWeight);
-		int[] idxMap = new int[cN];
-		for(int i=0; i<cN; i++)
-              	idxMap[idxOrder[i]] = i;
-		foreach(IBody b in bList)
-              	b.Type = (short)idxMap[b.Type];		
-	}
 
 	public void CopyType(IForm map, IList<IBody> bList, IHeatMap hm) {
 		INumberTable nt = hm.GetNumberTable();

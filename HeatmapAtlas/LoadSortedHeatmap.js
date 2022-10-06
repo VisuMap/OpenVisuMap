@@ -28,6 +28,7 @@ function LoadSortedHeatmap() {
 	nt = nt.SelectRowsById2(rowIds);
 	nt = nt.SelectColumnsById2(colIds, 0);
 	cfg.hm = nt.ShowHeatMap();
+	cfg.hm.SelectionMode=2;
 
    //var t1 = (new Date()).getTime();
    //cfg.hm.Title = "Time: " + (t1 - t0)/1000;

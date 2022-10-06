@@ -26,11 +26,9 @@ function DCMain() {
 	var nt = cfg.hm.GetNumberTable();
 
 	var rowClusters = DoClustering(cfg.cellMap, cfg.Alg.c, cfg.MinSize.c, cfg.MinPoint.c, cfg.Epsilon.c, cfg.DbMinPoint.c);
-	cs.NormalizeColoring(cfg.cellMap.BodyList, cfg.RowSrtKeys, rowClusters);
 	cfg.cellMap.ClickContextMenu("Atlas/Capture Coloring");
 
 	var colClusters = DoClustering(cfg.geneMap, cfg.Alg.g, cfg.MinSize.g, cfg.MinPoint.g, cfg.Epsilon.g, cfg.DbMinPoint.g);
-	cs.NormalizeColoring(cfg.geneMap.BodyList, cfg.ColumnSrtKeys, colClusters);
 	cfg.geneMap.ClickContextMenu("Atlas/Capture Coloring");
 
 	cfg.hm.Title = "Row/Column Clusters: " + rowClusters + "/" + colClusters;
