@@ -24,13 +24,13 @@ function ShowActiveCells() {
 	bv.Title = "Gene Expression Profile";
 	bv.BaseLineType = 4;
 
-	cs.SetRange(expTable, bv);
+	csFct.SetRange(expTable, bv);
 	bv.Redraw();
 	
 	sp.Tag = bv;
 	cfg.hm.SelectionMode = 1;
 	vv.EventManager.OnItemsSelected(
-		"!cs.ShowActiveCells(vv.EventSource.Item, cfg.hm.GetNumberTable(), vv.EventSource.Argument);",
+		"!csFct.ShowActiveCells(vv.EventSource.Item, cfg.hm.GetNumberTable(), vv.EventSource.Argument);",
 		sp, sp);
 
 	FlushMarkers(cfg.geneMap, cfg.cellMap, sp);

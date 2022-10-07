@@ -35,13 +35,13 @@ function DEmbeddingMain() {
 	mds.Show();
 
 	if (cfg.Mtr.c == mtrs.cos)
-		mds.SetTrainingData(cs.ShiftTable(nt.Clone(), cfg.PrShift.c));
+		mds.SetTrainingData(csFct.ShiftTable(nt.Clone(), cfg.PrShift.c));
 	
 	cfg.cellMap = RunEmbedding(mds, cfg.Epochs.c, cfg.Mtr.c, cfg.Exa.c, cfg.Ppr.c, cfg.Is3D.c);
 
 	var nt2 = nt.Transpose2();
 	if (cfg.Mtr.g == mtrs.cos) 
-		nt2 = cs.ShiftTable(nt2, cfg.PrShift.g);
+		nt2 = csFct.ShiftTable(nt2, cfg.PrShift.g);
 	
 	mds.SetTrainingData(nt2);
 
@@ -49,7 +49,7 @@ function DEmbeddingMain() {
 	nt2.FreeRef();
 	mds.Close();
 
-	var sz = 450;
+	var sz = 600;
 	var winWidth = sz;
 	var winHeight = sz;
 	cfg.hm.TheForm.SetBounds(1000, 700, winWidth, winHeight);

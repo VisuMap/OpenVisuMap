@@ -11,9 +11,9 @@ var mtrs = {
 
 function PP(v1, v2){   return {c:v1, g:v2}; }
 
-cfg = {
+var cfg = {
 	// Sorting parameters:
-	EpochsSrt: PP(2000,	2000),
+	EpochsSrt: PP(2500,	2500),
 	ExaSrt:    PP(10, 10),
 	PprSrt:    PP(0.1, 0.1),
 	MtrSrt:    PP(mtrs.cos, mtrs.cos),
@@ -25,7 +25,6 @@ cfg = {
    PrShift:	PP(0.5, 0.5),      // cell/gene profile shift towards arithmetric center.
 	Mtr:		PP(mtrs.cos, mtrs.cos),
 	Is3D:		PP(false,false),
-
 
 	// Clustering parameters:
 	DbMinPoint: PP(30, 30),   	// for DBSCAN
@@ -123,7 +122,7 @@ function LayoutMaps() {
 function SaveSortedTable() {
 	var nt = pp.GetNumberTable();
 	var info = [];	
-	info.push(vv.Dataset.Name + '&' + nt.Rows.toString());
+	info.push(vv.Dataset.Name+'&'+nt.Rows.toString()+'&'+pp.Width+'&'+pp.Height);
 	for(var rs of nt.RowSpecList) info.push(rs.Id);
 	for(var cs of nt.ColumnSpecList) info.push(cs.Id);
 	
@@ -146,7 +145,7 @@ function SaveSortedTable() {
 	return ii.Id;
 }
 
-var cs = New.CsObject(`
+var csFct = New.CsObject(`
 	public INumberTable ShiftTable(INumberTable nt, double shiftFactor) {
 		double[] cm = nt.ColumnMean().Select(it=>it.Value * shiftFactor).ToArray();
 		for(int row=0; row<nt.Rows; row++)

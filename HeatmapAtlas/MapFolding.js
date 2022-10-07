@@ -3,7 +3,7 @@
 // Gradually folds a t-SNE map by progressively disable features guided
 // by a 1-D t-SNE map.
 //
-var cs = New.CsObject(`
+var csFct = New.CsObject(`
 	public List<IValueItem> SortValueList(List<IValueItem> items) {
 		return items.OrderBy(x=>x.Value).ToList();
 	}
@@ -53,12 +53,12 @@ var cfg = {
 };
 
 function ShiftTable() {
-	cs.ShiftTable(vv.GetNumberTableView(false), 0.5)
+	csFct.ShiftTable(vv.GetNumberTableView(false), 0.5)
 }
 
 function SortColumns(mtr, epochs, ex, pr, reverseOrder) {
 	var T = vv.GetNumberTableView(true).Transpose2();
-	cs.ShiftTable(T, 1.0);
+	csFct.ShiftTable(T, 1.0);
 	var tsne = New.TsneSorter(T, mtr);
 	tsne.MaxLoops = epochs;
 	tsne.InitExaggeration = ex;
@@ -72,12 +72,12 @@ function SortColumns(mtr, epochs, ex, pr, reverseOrder) {
 	tsne.Close();
 
 	if ( reverseOrder ) {
-		var maxV = cs.MaxItemValue(ColumnSrtKeys);
+		var maxV = csFct.MaxItemValue(ColumnSrtKeys);
 		for(var it of ColumnSrtKeys)
 			it.Value = maxV - it.Value;
 	}
 	
-	return cs.SortValueList(ColumnSrtKeys);
+	return csFct.SortValueList(ColumnSrtKeys);
 }
 
 function NewTsne(mtr, loops, exa, pp) {
@@ -126,7 +126,7 @@ function FoldingMap(geneList, tsne, loops, exa, accelerated) {
 	var preFeatures = 0;
 	for(var i in L) {
 		var limit = L[i];
-		var selected = cs.GetAboveLimit(geneList, limit);
+		var selected = csFct.GetAboveLimit(geneList, limit);
 		if ( selected.Count < 2 ) break;
 		if ( selected.Count == preFeatures ) continue;		
 		preFeatures = selected.Count;
@@ -152,7 +152,7 @@ function HighlightFeatures() {
 	var HFeatureProc = `!
 		var srcFrm = vv.EventSource.Form;
 		if ( srcFrm == mapRec ) {
-			var selected = cs.GetAboveLimit(geneList, srcFrm.Timestamp);
+			var selected = csFct.GetAboveLimit(geneList, srcFrm.Timestamp);
 			vv.EventManager.RaiseItemsSelected(selected);
 			vv.Title = "Selected Features: " + selected.Count;
 		}

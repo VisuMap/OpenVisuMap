@@ -27,7 +27,7 @@ function ShowActiveGenes() {
 
 	cfg.hm.SelectionMode = 0;
 	vv.EventManager.OnItemsSelected(
-		"!cs.ShowActiveGenes(vv.EventSource.Item, cfg.hm.GetNumberTable(), vv.EventSource.Argument);",
+		"!csFct.ShowActiveGenes(vv.EventSource.Item, cfg.hm.GetNumberTable(), vv.EventSource.Argument);",
 		sp, sp);
 
 	FlushMarkers(cfg.cellMap, cfg.geneMap, sp);	

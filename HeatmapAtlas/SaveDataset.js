@@ -21,12 +21,12 @@ function SaveMaps(hmItemId) {
 	cItem.Left = hmItem.Left - w2;
 	gItem.Left = hmItem.Left + w2;
 	cItem.Top = gItem.Top = hmItem.Top + 10;
-	gItem.Opacity = cItem.Opacity = 0.75;
+	gItem.Opacity = cItem.Opacity = 1.0;
 
 	cItem.Script = `!vv.Import("AtlasHelp.js");
 		var mp = vv.EventSource.Item.Open();
 		mp.AddContextMenu('Atlas/Capture Coloring', 
-			'!cs.CopyType(pp, pp.BodyList, cfg.hm)', 
+			'!csFct.CopyType(pp, pp.BodyList, cfg.hm)', 
 			true, null, 'Push the cluster coloring to the heatmap');
 		mp.Left = cfg.hm.Left - mp.Width + 15;
 		mp.Top = cfg.hm.Top;		
@@ -36,7 +36,7 @@ function SaveMaps(hmItemId) {
 	gItem.Script = `!vv.Import("AtlasHelp.js");
 		var mp = vv.EventSource.Item.Open();
 		mp.AddContextMenu('Atlas/Capture Coloring', 
-			'!cs.CopyType(pp, pp.BodyList, cfg.hm)', 
+			'!csFct.CopyType(pp, pp.BodyList, cfg.hm)', 
 			false, null, 'Push the cluster coloring to the heatmap');
 		mp.Left = cfg.hm.Left;
 		mp.Top = cfg.hm.Top - mp.Height + 8;

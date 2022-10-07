@@ -1,6 +1,6 @@
 //VariationTracing.js
 
-var cs = New.CsObject(`
+var csFct = New.CsObject(`
 	public void UpdateValues(IBarView bv, INumberTable ntBase, 
 			IList<string> selected, double[] refValues) {
 		var htSelected = new HashSet<string>(selected);
@@ -29,12 +29,12 @@ var cs = New.CsObject(`
 var refBase = ntBase.SelectRowsByIdView(vv.SelectedItems).ColumnMean();
 
 var bv = New.BarView(refBase);
-bv.Tag = cs.ItemsToArray(refBase);
+bv.Tag = csFct.ItemsToArray(refBase);
 bv.ReadOnly = true;
 bv.AutoScaling = false;
 bv.DisableReorder = true;
 bv.Horizontal=false;
-var maxV = cs.MaxValue(bv.Tag);
+var maxV = csFct.MaxValue(bv.Tag);
 if ( maxV == 0 ) maxV = 40;
 bv.UpperLimit = 1.2*maxV;
 bv.LowerLimit = -1.2*bv.UpperLimit;
@@ -46,5 +46,5 @@ bv.AddEventHandler("ItemsSelected", `!
 	if ( vv.EventSource.Item == pp.TheForm ) 
 		vv.Return();
 	pp.Title = "Data points selected: " + vv.SelectedItems.Count;
-	cs.UpdateValues(pp, vv.Tag, vv.SelectedItems, pp.Tag);
+	csFct.UpdateValues(pp, vv.Tag, vv.SelectedItems, pp.Tag);
 `);

@@ -9,7 +9,7 @@ CheckMaps();
 function DoClustering(map, alg, minSize, minPoint, epsilon, dbMinPoint) {
 	// Setup context menu to synchronize clusters with the heatmap.
 	map.AddContextMenu("Atlas/Capture Coloring", 
-		"!cs.CopyType(pp, pp.BodyList, cfg.hm)", 
+		"!csFct.CopyType(pp, pp.BodyList, cfg.hm)", 
 		(map == cfg.cellMap), null, "Push the cluster coloring to the heatmap");
 	map.ClusterAlgorithm = alg;
 	map.MinClusterSize = minSize;

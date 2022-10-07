@@ -17,7 +17,7 @@ function DSortMain() {
 	var dsTable1 = dsTable;
 	if ( cfg.MtrSrt.c == mtrs.cos ) {
 		dsTable1 = dsTable.Clone();
-		cs.ShiftTable(dsTable1, cfg.PrShift.c);
+		csFct.ShiftTable(dsTable1, cfg.PrShift.c);
 	}
 
 	SortTable(dsTable1, cfg.MtrSrt.c, cfg.EpochsSrt.c, cfg.ExaSrt.c, cfg.PprSrt.c);
@@ -26,7 +26,7 @@ function DSortMain() {
 	cfg.hm.SelectionMode = 1;
 	var dsTable2 = dsTable.Transpose2();
 	if ( cfg.MtrSrt.g == mtrs.cos )
-		cs.ShiftTable(dsTable2, cfg.PrShift.g);
+		csFct.ShiftTable(dsTable2, cfg.PrShift.g);
 	SortTable(dsTable2, cfg.MtrSrt.g, cfg.EpochsSrt.g, cfg.ExaSrt.g, cfg.PprSrt.g);
 
 	dsTable2.FreeRef();
