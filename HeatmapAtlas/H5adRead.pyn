@@ -20,6 +20,7 @@ if nt.Rows == len(f.obs_names):
 	for row, id in enumerate(f.obs_names):
 		#nt.RowSpecList[row].Id = uf.LookupName(str(id))
 		nt.RowSpecList[row].Name = str(id)
+		nt.RowSpecList[row].Id = str(row)
 uf.Reset()
 if nt.Columns == len(f.var_names):
 	for col, id in enumerate(f.var_names):

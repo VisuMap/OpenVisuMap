@@ -38,6 +38,8 @@ function DEmbeddingMain() {
 		mds.SetTrainingData(csFct.ShiftTable(nt.Clone(), cfg.PrShift.c));
 	
 	cfg.cellMap = RunEmbedding(mds, cfg.Epochs.c, cfg.Mtr.c, cfg.Exa.c, cfg.Ppr.c, cfg.Is3D.c);
+	cfg.cellMap.AddContextMenu("Atlas/Capture Coloring", "!csFct.CopyType(pp.BodyList, cfg.hm)",
+      true, null, "Push the cluster coloring to the heatmap");
 
 	var nt2 = nt.Transpose2();
 	if (cfg.Mtr.g == mtrs.cos) 
@@ -46,6 +48,10 @@ function DEmbeddingMain() {
 	mds.SetTrainingData(nt2);
 
 	cfg.geneMap = RunEmbedding(mds, cfg.Epochs.g, cfg.Mtr.g, cfg.Exa.g, cfg.Ppr.g, cfg.Is3D.c);
+	cfg.geneMap.AddContextMenu("Atlas/Capture Coloring", "!csFct.CopyType(pp.BodyList, cfg.hm)", 
+      false, null, "Push the cluster coloring to the heatmap");
+
+
 	nt2.FreeRef();
 	mds.Close();
 

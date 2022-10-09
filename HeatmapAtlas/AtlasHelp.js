@@ -156,7 +156,7 @@ var csFct = New.CsObject(`
 
        // permut the cluster index, so that similar data have equal cluster indexes.
 
-	public void CopyType(IForm map, IList<IBody> bList, IHeatMap hm) {
+	public void CopyType(IList<IBody> bList, IHeatMap hm) {
 		INumberTable nt = hm.GetNumberTable();
 		bool isCellMap = (bool) vv.EventSource.Item;
 		if ( isCellMap )
