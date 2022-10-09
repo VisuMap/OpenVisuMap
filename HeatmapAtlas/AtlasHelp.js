@@ -145,6 +145,23 @@ function SaveSortedTable() {
 	return ii.Id;
 }
 
+function OpenMapItem(isCellMap) {
+		var mp = vv.EventSource.Item.Open();
+		mp.AddContextMenu('Atlas/Capture Coloring', '!csFct.CopyType(pp.BodyList, cfg.hm)', 
+			isCellMap, null, 'Push the cluster coloring to the heatmap');
+		if (isCellMap) {
+			mp.Left = cfg.hm.Left - mp.Width + 15;
+			mp.Top = cfg.hm.Top;		
+			mp.ClickContextMenu('Atlas/Capture Coloring');
+			cfg.cellMap = mp;
+		} else {
+			mp.Left = cfg.hm.Left;
+			mp.Top = cfg.hm.Top - mp.Height + 8;
+			mp.ClickContextMenu('Atlas/Capture Coloring');
+			cfg.geneMap = mp;
+		}
+}
+
 var csFct = New.CsObject(`
 	public INumberTable ShiftTable(INumberTable nt, double shiftFactor) {
 		double[] cm = nt.ColumnMean().Select(it=>it.Value * shiftFactor).ToArray();
