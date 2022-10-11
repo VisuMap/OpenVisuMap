@@ -13,17 +13,17 @@ function PP(v1, v2){   return {c:v1, g:v2}; }
 
 var cfg = {
 	// Sorting parameters:
-	EpochsSrt: PP(2500,	2500),
+	EpochsSrt: PP(5000,	5000),
 	ExaSrt:    PP(10, 10),
 	PprSrt:    PP(0.1, 0.1),
-	MtrSrt:    PP(mtrs.cos, mtrs.cos),
+	MtrSrt:    PP(mtrs.cos, mtrs.cor),
 
 	// Embedding parameters:
-	Epochs:	PP(2000, 2000),    // training epochs for cell/gene profiles.
+	Epochs:	PP(5000, 5000),    // training epochs for cell/gene profiles.
 	Exa:		PP(8.0, 8.0),      // initial exaggreation
 	Ppr:		PP(0.15, 0.15),    // perplexity ratio    
    PrShift:	PP(0.5, 0.5),      // cell/gene profile shift towards arithmetric center.
-	Mtr:		PP(mtrs.cos, mtrs.cos),
+	Mtr:		PP(mtrs.cos, mtrs.cor),
 	Is3D:		PP(false,false),
 
 	// Clustering parameters:
@@ -36,7 +36,7 @@ var cfg = {
 	cellMap:null, 
 	geneMap:null, 
 	hm:null,
-	refFreq:50,
+	refFreq:100,
 };
 
 function CheckMaps() {
@@ -125,7 +125,13 @@ function SaveSortedTable() {
 	info.push(vv.Dataset.Name+'&'+nt.Rows.toString()+'&'+pp.Width+'&'+pp.Height);
 	for(var rs of nt.RowSpecList) info.push(rs.Id);
 	for(var cs of nt.ColumnSpecList) info.push(cs.Id);
-	
+
+	if ( vv.ModifierKeys.ControlPressed ) {
+		if (pp.Tag != null)
+			pp.Tag.Tag = info.join('|');
+		return;
+	}
+
 	var atList = vv.FindFormList("Atlas");
 	var at = (atList.Count>0) ? atList[0] : New.Atlas().Show();
 

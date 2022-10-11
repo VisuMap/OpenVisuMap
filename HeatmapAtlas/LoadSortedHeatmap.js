@@ -33,6 +33,7 @@ function LoadSortedHeatmap() {
 		cfg.hm.Height = fs[3] - 0;
 	}
 	cfg.hm.Show2();
+	cfg.hm.Tag = tbItem;
 
    //var t1 = (new Date()).getTime();
    //cfg.hm.Title = "Time: " + (t1 - t0)/1000;
