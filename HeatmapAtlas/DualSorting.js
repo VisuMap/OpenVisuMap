@@ -7,11 +7,11 @@ var doAll = vv.ModifierKeys.ControlPressed;
 ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
-	EpochsSrt: PP(5000,	5000),
-	ExaSrt:    PP(10, 10),
-	PprSrt:    PP(0.15, 0.15),
+	EpochsSrt: PP(5000, 5000),
+	ExaSrt:    PP(6,	  6),
+	PprSrt:    PP(0.1,  0.1),
 	MtrSrt:    PP(mtrs.cos, mtrs.cos),
-   PrShSrt:   PP(0.5,  0.5),      // cell/gene profile shift towards arithmetric center.
+   PrShSrt:   PP(1.0,  1.0),      
 }};
 
 function DSortMain() {

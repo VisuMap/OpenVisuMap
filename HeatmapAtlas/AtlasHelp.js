@@ -9,12 +9,12 @@ var mtrs = {
 	cor:'Correlation.Standard Correlation'
 };
 
-function PP(v1, v2){   return {c:v1, g:v2}; }
-
 var cfg = {
 	hm:null,
 	refFreq:100,
 };
+
+function PP(v1, v2){ return {c:v1, g:v2}; }
 
 function CheckMaps() {
 	if ( (cfg.cellMap==null) || (cfg.geneMap==null) 

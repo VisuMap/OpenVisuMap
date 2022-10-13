@@ -7,11 +7,11 @@ ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
 	Epochs:	PP(5000,  5000),    // training epochs for cell/gene profiles.
-	Exa:		PP(10.0, 10.0),      // initial exaggreation
-	Ppr:		PP(0.15, 0.15),      // perplexity ratio    
-   PrShift:	PP(0.5,  0.25),      // cell/gene profile shift towards arithmetric center.
+	Exa:		PP(4,     4),      // initial exaggreation
+	Ppr:		PP(0.1,   0.1),      // perplexity ratio    
+   PrShift:	PP(1.0,   1.0),      // cell/gene profile shift towards arithmetric center.
 	Mtr:		PP(mtrs.cos, mtrs.cos),
-	Is3D:		PP(false,false),
+	Is3D:		PP(false, false),
 	cellMap:null, 
 	geneMap:null,
 }};
