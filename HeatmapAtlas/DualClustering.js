@@ -6,6 +6,15 @@ vv.Import("AtlasHelp.js");
 ValidateHeatMap(pp);
 CheckMaps();
 
+cfg = {...cfg, ...{
+	DbMinPoint: PP(30, 30),   	// for DBSCAN
+	Epsilon:    PP(2.0, 3.0),  // for DBSCAN
+	Alg:        PP(0,	0),      // 0: for DBSCAN; 1: for HDBSCAN.
+	MinPoint:   PP(15, 15),    // for HDBSCAN       
+	MinSize: 	PP(40, 40),    // for HDBSCAN
+}};
+
+
 function DoClustering(map, alg, minSize, minPoint, epsilon, dbMinPoint) {
 	// Setup context menu to synchronize clusters with the heatmap.
 	map.AddContextMenu("Atlas/Capture Coloring", "!csFct.CopyType(pp.BodyList, cfg.hm)", 

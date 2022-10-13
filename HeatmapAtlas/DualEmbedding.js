@@ -5,7 +5,19 @@
 vv.Import("AtlasHelp.js");
 ValidateHeatMap(pp);
 
-function RunEmbedding(mds, isCellMap, epochs, mtr, initExa, ppRatio, is3D) {
+cfg = {...cfg, ...{
+	Epochs:	PP(5000,  5000),    // training epochs for cell/gene profiles.
+	Exa:		PP(10.0, 10.0),      // initial exaggreation
+	Ppr:		PP(0.15, 0.15),      // perplexity ratio    
+   PrShift:	PP(0.5,  0.25),      // cell/gene profile shift towards arithmetric center.
+	Mtr:		PP(mtrs.cos, mtrs.cos),
+	Is3D:		PP(false,false),
+	cellMap:null, 
+	geneMap:null,
+}};
+
+function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, ppRatio, is3D) {
+	mds.SetTrainingData(nt);
 	mds.Is3D = is3D;
 	mds.Metric = mtr;
 	mds.AutoClustering = false;
@@ -34,25 +46,20 @@ function RunEmbedding(mds, isCellMap, epochs, mtr, initExa, ppRatio, is3D) {
 function DEmbeddingMain() {
 	var nt = cfg.hm.GetNumberTable();
 	var mds = New.MdsCluster().Show();
-
-	/*
-	var nt1 = nt1;
+	
+	var nt1 = nt;
 	if ( (cfg.Mtr.c == mtrs.cos) && (cfg.PrShift.c!=0) )
-		nt1 = mds.SetTrainingData(csFct.ShiftTable(nt.Clone(), cfg.PrShift.c));
-	mds.SetTrainingData(nt1);
-	cfg.cellMap = RunEmbedding(mds, true, cfg.Epochs.c, cfg.Mtr.c, cfg.Exa.c, cfg.Ppr.c, cfg.Is3D.c);
-	*/
+		nt1 = csFct.ShiftTable(nt1.Clone(), cfg.PrShift.c);
+	cfg.cellMap = RunEmbedding(mds, nt1, true, cfg.Epochs.c, cfg.Mtr.c, cfg.Exa.c, cfg.Ppr.c, cfg.Is3D.c);
 
 	var nt2 = nt.Transpose2();
-	if ( (cfg.Mtr.g == mtrs.cos) && (cfg.PrShift.g !=0) )
+	if ( (cfg.Mtr.g == mtrs.cos) && (cfg.PrShift.g!=0) )
 		nt2 = csFct.ShiftTable(nt2, cfg.PrShift.g);	
-	mds.SetTrainingData(nt2);
-	cfg.geneMap = RunEmbedding(mds, false, cfg.Epochs.g, cfg.Mtr.g, cfg.Exa.g, cfg.Ppr.g, cfg.Is3D.g);
+	cfg.geneMap = RunEmbedding(mds, nt2, false, cfg.Epochs.g, cfg.Mtr.g, cfg.Exa.g, cfg.Ppr.g, cfg.Is3D.g);
 
 	nt2.FreeRef();
 	mds.Close();
 
-	/*
 	var sz = 600;
 	var winWidth = sz;
 	var winHeight = sz;
@@ -63,7 +70,6 @@ function DEmbeddingMain() {
 	cfg.geneMap.BackgroundColor = New.Color(0, 64, 64);
 	cfg.geneMap.Refresh();
 	cfg.cellMap.Refresh();
-	*/
 }
 
 DEmbeddingMain();

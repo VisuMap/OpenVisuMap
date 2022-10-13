@@ -12,29 +12,6 @@ var mtrs = {
 function PP(v1, v2){   return {c:v1, g:v2}; }
 
 var cfg = {
-	// Sorting parameters:
-	EpochsSrt: PP(5000,	5000),
-	ExaSrt:    PP(10, 10),
-	PprSrt:    PP(0.1, 0.1),
-	MtrSrt:    PP(mtrs.cos, mtrs.cor),
-
-	// Embedding parameters:
-	Epochs:	PP(5000, 5000),    // training epochs for cell/gene profiles.
-	Exa:		PP(8.0, 8.0),      // initial exaggreation
-	Ppr:		PP(0.15, 0.15),    // perplexity ratio    
-   PrShift:	PP(0.5, 0.5),      // cell/gene profile shift towards arithmetric center.
-	Mtr:		PP(mtrs.cos, mtrs.cor),
-	Is3D:		PP(false,false),
-
-	// Clustering parameters:
-	DbMinPoint: PP(30, 30),   	// for DBSCAN
-	Epsilon:    PP(2.0, 3.0),  // for DBSCAN
-	Alg:        PP(0,	0),      // 0: for DBSCAN; 1: for HDBSCAN.
-	MinPoint:   PP(15, 15),    // for HDBSCAN       
-	MinSize: 	PP(40, 40),    // for HDBSCAN
-
-	cellMap:null, 
-	geneMap:null, 
 	hm:null,
 	refFreq:100,
 };
@@ -153,18 +130,24 @@ function SaveSortedTable() {
 
 function OpenMapItem(isCellMap) {
 		var mp = vv.EventSource.Item.Open();
+		if ( isCellMap ) 
+			cfg.cellMap = mp;
+		else
+			cfg.geneMap = mp;
+
+		if ( (cfg.hm==null) || (cfg.hm.TheForm.IsDisposed) ) 
+			return;
+
 		mp.AddContextMenu('Atlas/Capture Coloring', '!csFct.CopyType(pp.BodyList, cfg.hm)', 
 			isCellMap, null, 'Push the cluster coloring to the heatmap');
 		if (isCellMap) {
 			mp.Left = cfg.hm.Left - mp.Width + 15;
 			mp.Top = cfg.hm.Top;		
 			mp.ClickContextMenu('Atlas/Capture Coloring');
-			cfg.cellMap = mp;
 		} else {
 			mp.Left = cfg.hm.Left;
 			mp.Top = cfg.hm.Top - mp.Height + 8;
 			mp.ClickContextMenu('Atlas/Capture Coloring');
-			cfg.geneMap = mp;
 		}
 }
 
@@ -177,9 +160,9 @@ var csFct = New.CsObject(`
 		return nt;
 	}
 
-       // permut the cluster index, so that similar data have equal cluster indexes.
-
 	public void CopyType(IList<IBody> bList, IHeatMap hm) {
+		if ( (hm==null) || (hm.TheForm.IsDisposed) )
+			return;
 		INumberTable nt = hm.GetNumberTable();
 		bool isCellMap = (bool) vv.EventSource.Item;
 		if ( isCellMap )
