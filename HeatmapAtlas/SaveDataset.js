@@ -17,7 +17,7 @@ function SaveMaps(hmItemId) {
 	cItem.IconWidth = hmItem.IconWidth;
 	gItem.IconHeight = hmItem.IconHeight;
 	gItem.IconWidth = hmItem.IconWidth;
-	var w2 = hmItem.IconWidth/2 + 1;
+	var w2 = hmItem.IconWidth/2.0 ;
 	cItem.Left = hmItem.Left - w2;
 	gItem.Left = hmItem.Left + w2;
 	cItem.Top = gItem.Top = hmItem.Top + 10;

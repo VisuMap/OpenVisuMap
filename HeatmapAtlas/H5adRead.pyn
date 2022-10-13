@@ -24,6 +24,8 @@ if nt.Rows == len(f.obs_names):
 uf.Reset()
 if nt.Columns == len(f.var_names):
 	for col, id in enumerate(f.var_names):
-		nt.ColumnSpecList[col].Id = uf.LookupName(str(id))
-
+		cs = nt.ColumnSpecList[col]
+		cs.Id = uf.LookupName(str(id))
+		if cs.Id.startswith('mt-'):
+			cs.Group = 1
 ShowHeatmap(nt, fileName)
