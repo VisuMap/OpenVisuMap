@@ -28,6 +28,9 @@ else:
 ds = np.nan_to_num(ds)
 print("Loaded table: ", ds.shape)
 
+# centralize the training data
+# if mtr == 'cosine': ds = ds - np.mean(ds, axis=0)
+
 print('Fitting data...')
 for k in range(repeats):
     if randomizeOrder:
