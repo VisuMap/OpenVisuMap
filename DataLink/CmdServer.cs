@@ -939,6 +939,9 @@ namespace VisuMap.DataLink {
                             for (int row = 0; row < nt.Rows; row++)
                                 nt.RowSpecList[row].CopyFrom(nt2.RowSpecList[row]);
                             typeSet = true;
+                            if ( nt.Columns == nt2.Columns)
+                                for (int col = 0; col < nt.Columns; col++)
+                                    nt.ColumnSpecList[col].CopyFrom(nt2.ColumnSpecList[col]);
                         }
                     } else {
                         var bsProperty = activeFrm.GetType().GetProperty("BodyList");
