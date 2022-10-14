@@ -7,7 +7,7 @@ import numpy as np
 
 mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['e']
 initType = ['spectral', 'random'][1]
-repeats, epochs = 2, 500
+repeats, epochs = 1, 500
 mapDim, nn, md, lc, ns, sp = 2, 500, 0.25, 5.0, 25, 0.5
 randomizeOrder = True
 
@@ -52,7 +52,10 @@ for k in range(repeats):
             ds[:,:] = ds[:, perm]
 
     log = DataLinkCmd.DataLinkCmd()
-    if mapDim == 2:
+    if mapDim == 1:
+        log.ShowMatrix(map, view=14, title=title)
+        log.RunScript('pp.SortItems(true)')
+    elif mapDim == 2:
         log.ShowMatrix(map, view=12, title=title)
         log.RunScript('pp.NormalizeView()')
     elif mapDim == 3:

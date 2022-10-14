@@ -43,7 +43,7 @@ namespace VisuMap.DataLink {
         }
 
         public string Name {
-            get { return "DataLink"; }
+            get { return "Data Link"; }
             set { }
         }
     }
