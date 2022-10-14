@@ -57,7 +57,7 @@ for k in range(repeats):
     log = DataLinkCmd.DataLinkCmd()
     if mapDim == 1:
         log.ShowMatrix(map, view=14, title=title)
-        log.RunScript('pp.SortItems(true)')
+        log.RunScript('pp.NormalizeView();pp.SortItems(true);')
     elif mapDim == 2:
         log.ShowMatrix(map, view=12, title=title)
         log.RunScript('pp.NormalizeView()')
