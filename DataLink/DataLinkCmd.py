@@ -402,12 +402,11 @@ class DataLinkCmd:
           view: the view type to display the data; 0: heatmap; 1: curve chart; 
             2: PCA; 3: bar band; 4: XY-Plot; 5: spectrum band; 6: mount view; 
             7: digram grid; 8: mapping rows; 9: mapping columns; 10: sort rows; 
-            11: sort columns; 12: 2D map; 13: 3D map; 17: The main view map;
+            11: sort columns; 12: 2D map; 13: 3D map; 14: Bar view; 
+            15: Spectrum view; 16: Big bar view; 17: The main view map;
           access: relationship to previous data view: 'r' for replacing 
             existing view; 'n' for a new view; 'a' appending to previous view; 
-            'R': For view type 13: the map will be additionally recorded; 14: Bar view;
-            15: Spectrum view; 16: Big bar view.
-            by a clip-recorder.
+            'R': For view type 13: the map will be additionally recorded by a clip-recorder.
           title: the window title.
           viewIdx: an index to support multiple views of the same view type.
         """

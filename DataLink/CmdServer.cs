@@ -926,13 +926,15 @@ namespace VisuMap.DataLink {
                 }
             }
 
-            if ((rowTypes == null) && (rowFlags == null) && (app.Dataset != null)) {                
-                
+            if ((rowTypes == null) && (rowFlags == null) && (app.Dataset != null)) {                                
                 IForm activeFrm = app.LastView;
                 bool typeSet = false;
-                if ((activeFrm != null) && (!activeFrm.TheForm.IsDisposed)) { 
-                    if (activeFrm is IExportNumberTable) {
-                        var nt2 = (activeFrm as IExportNumberTable).GetSelectedNumberTable();
+                if ((activeFrm != null) && (!activeFrm.TheForm.IsDisposed)) {
+                    var nmForm = activeFrm as IExportNumberTable;
+                    if (nmForm != null) {
+                        var nt2 = nmForm.GetSelectedNumberTable();
+                        if ((nt2 == null) || (nt.Rows == 0))
+                            nt2 = nmForm.GetNumberTable();
                         if ((nt2 != null) && (nt2.Rows == nt.Rows)) {
                             for (int row = 0; row < nt.Rows; row++)
                                 nt.RowSpecList[row].CopyFrom(nt2.RowSpecList[row]);
