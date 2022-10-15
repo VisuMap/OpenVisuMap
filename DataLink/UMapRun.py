@@ -7,8 +7,8 @@ import numpy as np
 
 mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['e']
 initType = ['spectral', 'random'][1]
-repeats, epochs = 1, 500
-mapDim, nn, md, lc, ns, sp = 2, 500, 0.25, 5.0, 25, 0.5
+repeats, epochs = 1, 1000
+mapDim, nn, md, lc, ns, sp = 2, 750, 0.25, 10.0, 25, 0.85
 randomizeOrder = True
 
 log = DataLinkCmd.DataLinkCmd()
