@@ -933,7 +933,7 @@ namespace VisuMap.DataLink {
                     var nmForm = activeFrm as IExportNumberTable;
                     if (nmForm != null) {
                         var nt2 = nmForm.GetSelectedNumberTable();
-                        if ((nt2 == null) || (nt.Rows == 0))
+                        if ( (nt2?.Rows == 0) || (nt2?.Columns==0) )
                             nt2 = nmForm.GetNumberTable();
                         if ((nt2 != null) && (nt2.Rows == nt.Rows)) {
                             for (int row = 0; row < nt.Rows; row++)
