@@ -8,9 +8,9 @@ ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
 	EpochsSrt: PP(5000, 5000),
-	ExaSrt:    PP(6,	  6),
-	PprSrt:    PP(0.1,  0.1),
-	MtrSrt:    PP(mtrs.cos, mtrs.cos),
+	ExaSrt:    PP(10,	  6),
+	PprSrt:    PP(0.15,  0.1),
+	MtrSrt:    PP(cfg.cos, cfg.cos),
    PrShSrt:   PP(1.0,  1.0),      
 }};
 
@@ -23,7 +23,7 @@ function DSortMain() {
 	cfg.hm.SelectionMode = 0;
 	
 	var dsTable1 = dsTable;
-	if ( cfg.MtrSrt.c == mtrs.cos ) {
+	if ( cfg.MtrSrt.c == cfg.cos ) {
 		dsTable1 = dsTable.Clone();
 		csFct.ShiftTable(dsTable1, cfg.PrShSrt.c);
 	}
@@ -33,7 +33,7 @@ function DSortMain() {
 	cfg.hm.Title = 'Sorting Columns...';
 	cfg.hm.SelectionMode = 1;
 	var dsTable2 = dsTable.Transpose2();
-	if ( cfg.MtrSrt.g == mtrs.cos )
+	if ( cfg.MtrSrt.g == cfg.cos )
 		csFct.ShiftTable(dsTable2, cfg.PrShSrt.g);
 	SortTable(dsTable2, cfg.MtrSrt.g, cfg.EpochsSrt.g, cfg.ExaSrt.g, cfg.PprSrt.g);
 

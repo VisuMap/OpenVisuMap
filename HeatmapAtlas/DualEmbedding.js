@@ -10,7 +10,7 @@ cfg = {...cfg, ...{
 	Exa:		PP(4,     4),      // initial exaggreation
 	Ppr:		PP(0.1,   0.1),      // perplexity ratio    
    PrShift:	PP(1.0,   1.0),      // cell/gene profile shift towards arithmetric center.
-	Mtr:		PP(mtrs.cos, mtrs.cos),
+	Mtr:		PP(cfg.cos, cfg.cos),
 	Is3D:		PP(false, false),
 	cellMap:null, 
 	geneMap:null,
@@ -48,12 +48,12 @@ function DEmbeddingMain() {
 	var mds = New.MdsCluster().Show();
 	
 	var nt1 = nt;
-	if ( (cfg.Mtr.c == mtrs.cos) && (cfg.PrShift.c!=0) )
+	if ( (cfg.Mtr.c == cfg.cos) && (cfg.PrShift.c!=0) )
 		nt1 = csFct.ShiftTable(nt1.Clone(), cfg.PrShift.c);
 	cfg.cellMap = RunEmbedding(mds, nt1, true, cfg.Epochs.c, cfg.Mtr.c, cfg.Exa.c, cfg.Ppr.c, cfg.Is3D.c);
 
 	var nt2 = nt.Transpose2();
-	if ( (cfg.Mtr.g == mtrs.cos) && (cfg.PrShift.g!=0) )
+	if ( (cfg.Mtr.g == cfg.cos) && (cfg.PrShift.g!=0) )
 		nt2 = csFct.ShiftTable(nt2, cfg.PrShift.g);	
 	cfg.geneMap = RunEmbedding(mds, nt2, false, cfg.Epochs.g, cfg.Mtr.g, cfg.Exa.g, cfg.Ppr.g, cfg.Is3D.g);
 

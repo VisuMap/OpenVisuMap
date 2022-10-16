@@ -3,15 +3,12 @@
 // Help functions.
 //
 
-var mtrs = { 
-	cos:'Correlation.Cosine Distance', 
-	euc:'EuclideanMetric', 
-	cor:'Correlation.Standard Correlation'
-};
-
 var cfg = {
 	hm:null,
 	refFreq:100,
+	cos:'Correlation.Cosine Distance', 
+	euc:'EuclideanMetric', 
+	cor:'Correlation.Standard Correlation'
 };
 
 function PP(v1, v2){ return {c:v1, g:v2}; }
