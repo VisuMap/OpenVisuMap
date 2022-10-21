@@ -8,6 +8,8 @@ function LoadSortedHeatmap() {
 	var tbItem = vv.EventSource.Item;
 	var vs = New.StringSplit(tbItem.Tag);
 
+	var hmId = (tbItem.Name == "") ? tbItem.Id : tbItem.Name;
+
 	var fs = New.StringSplit(vs[0], '&');
 	if ( fs.Count == 1 ) {
 		var dsName = vv.Dataset.Name;
@@ -34,6 +36,7 @@ function LoadSortedHeatmap() {
 	}
 	cfg.hm.Show2();
 	cfg.hm.Tag = tbItem;
+	cfg.hm.Title = hmId + ": Sorted table; " + dsName + ": " + rows + "x" + columns;
 
    //var t1 = (new Date()).getTime();
    //cfg.hm.Title = "Time: " + (t1 - t0)/1000;
