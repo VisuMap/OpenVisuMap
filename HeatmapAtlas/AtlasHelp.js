@@ -120,12 +120,11 @@ function SaveSortedTable() {
 	ii.Filled = true;
 	ii.IsEllipse = false;
 	ii.Opacity = 0.5;
+	ii.LabelStyle = 1;
 	ii.IconHeight = ii.IconWidth = 40;
 	ii.Script = vv.CurrentScriptDirectory + "\\LoadSortedHeatmap.js";
 	
-
-	at.SetSelectedItems( ii );
-	at.Redraw();
+	at.RedrawItem(ii);
 	return ii.Id;
 }
 
