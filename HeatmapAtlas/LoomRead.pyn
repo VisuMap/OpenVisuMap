@@ -1,25 +1,28 @@
 # Import a loom format file into a heatmap view.
+# The following site offers some sample datasets:
+#   https://flycellatlas.org/#data
 #
 import scanpy, numpy
 vv.Import('AtlasHelp.pyn')
 
-fileName = PromptFile("Loom Files|*.loom")
+def ImportLoom():
+	fileName = PromptFile("Loom Files|*.loom")	
+	f = scanpy.read_loom(fileName, validate=False)
+	
+	M = f.X
+	if hasattr(M, 'todense'): M = M.todense()
+	M = numpy.ascontiguousarray(M, dtype=numpy.float32)
+	
+	nt = mm.ToTable(M)
+	uf = New.UniqueNameFinder()
+	if nt.Rows == len(f.obs_names):
+		for row, id in enumerate(f.obs_names):
+			nt.RowSpecList[row].Id = uf.LookupName(str(id))
+	uf.Reset();
+	if nt.Columns == len(f.var_names):
+		for col, id in enumerate(f.var_names):
+			nt.ColumnSpecList[col].Id = uf.LookupName(str(id))
+	
+	ShowHeatmap(nt, fileName)
 
-f = scanpy.read_loom(fileName, validate=False)
-
-M = f.X
-if hasattr(M, 'todense'): M = M.todense()
-M = numpy.ascontiguousarray(M, dtype=numpy.float32)
-
-
-nt = mm.ToTable(M)
-uf = New.UniqueNameFinder()
-if nt.Rows == len(f.obs_names):
-	for row, id in enumerate(f.obs_names):
-		nt.RowSpecList[row].Id = uf.LookupName(str(id))
-uf.Reset();
-if nt.Columns == len(f.var_names):
-	for col, id in enumerate(f.var_names):
-		nt.ColumnSpecList[col].Id = uf.LookupName(str(id))
-
-ShowHeatmap(nt, fileName)
+ImportLoom()

@@ -46,7 +46,7 @@ DSortMain();
 
 if ( doAll ) {
   cfg.hm.ClickContextMenu("Atlas/Dual Embedding");
-  cfg.hm.ClickContextMenu("Atlas/Dual Clustering");
+  //cfg.hm.ClickContextMenu("Atlas/Dual Clustering");
   //cfg.hm.ClickContextMenu("Atlas/Save Data");
   //cfg.hm.ClickContextMenu("Atlas/Active Cells");
 }
