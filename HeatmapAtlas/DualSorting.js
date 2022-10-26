@@ -3,7 +3,6 @@
 //
 vv.Import("AtlasHelp.js");
 
-var doAll = vv.ModifierKeys.ControlPressed;
 ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
@@ -42,12 +41,13 @@ function DSortMain() {
 	cfg.hm.DisableReorder = true;
 }
 
+var doAll = vv.ModifierKeys.ControlPressed;
 DSortMain();
 
 if ( doAll ) {
-  cfg.hm.ClickContextMenu("Atlas/Dual Embedding");
-  //cfg.hm.ClickContextMenu("Atlas/Dual Clustering");
-  //cfg.hm.ClickContextMenu("Atlas/Save Data");
-  //cfg.hm.ClickContextMenu("Atlas/Active Cells");
+  cfg.hm.ClickMenu("Atlas/Dual Embedding");
+  //cfg.hm.ClickMenu("Atlas/Dual Clustering");
+  //cfg.hm.ClickMenu("Atlas/Save Data");
+  //cfg.hm.ClickMenu("Atlas/Active Cells");
 }
 

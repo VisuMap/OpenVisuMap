@@ -62,6 +62,6 @@ def ImportH5():
 	for col, id in enumerate(colIdList):
 		nt.ColumnSpecList[col].Id = uf.LookupName(id.decode('utf-8'))
 	
-	ShowHeatmap(nt, fileName).ClickContextMenu('Utilities/Transpose Table')
+	ShowHeatmap(nt, fileName).ClickMenu('Utilities/Transpose Table')
 
 ImportH5()

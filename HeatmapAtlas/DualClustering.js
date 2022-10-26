@@ -34,10 +34,10 @@ function DCMain() {
 	var nt = cfg.hm.GetNumberTable();
 
 	var rowClusters = DoClustering(cfg.cellMap, cfg.Alg.c, cfg.MinSize.c, cfg.MinPoint.c, cfg.Epsilon.c, cfg.DbMinPoint.c);
-	cfg.cellMap.ClickContextMenu("Atlas/Capture Coloring");
+	cfg.cellMap.ClickMenu("Atlas/Capture Coloring");
 
 	var colClusters = DoClustering(cfg.geneMap, cfg.Alg.g, cfg.MinSize.g, cfg.MinPoint.g, cfg.Epsilon.g, cfg.DbMinPoint.g);
-	cfg.geneMap.ClickContextMenu("Atlas/Capture Coloring");
+	cfg.geneMap.ClickMenu("Atlas/Capture Coloring");
 
 	cfg.hm.Title = "Row/Column Clusters: " + rowClusters + "/" + colClusters;
 }

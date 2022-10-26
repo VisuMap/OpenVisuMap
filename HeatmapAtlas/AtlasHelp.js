@@ -143,11 +143,11 @@ function OpenMapItem(isCellMap) {
 		if (isCellMap) {
 			mp.Left = cfg.hm.Left - mp.Width + 15;
 			mp.Top = cfg.hm.Top;		
-			mp.ClickContextMenu('Atlas/Capture Coloring');
+			mp.ClickMenu('Atlas/Capture Coloring');
 		} else {
 			mp.Left = cfg.hm.Left;
 			mp.Top = cfg.hm.Top - mp.Height + 8;
-			mp.ClickContextMenu('Atlas/Capture Coloring');
+			mp.ClickMenu('Atlas/Capture Coloring');
 		}
 }
 
