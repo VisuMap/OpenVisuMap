@@ -9,9 +9,29 @@ cfg = {...cfg, ...{
 	EpochsSrt: PP(5000, 5000),
 	ExaSrt:    PP(10,	  6),
 	PprSrt:    PP(0.15,  0.1),
-	MtrSrt:    PP(cfg.cos, cfg.cos),
+	MtrSrt:    PP(cfg.cor, cfg.cor),
    PrShSrt:   PP(1.0,  1.0),      
 }};
+
+function SortTable(T, mt, epochs, ex, pr) {
+	var tsne = New.TsneSorter(T, mt);
+	tsne.MaxLoops = epochs;
+	tsne.InitExaggeration = ex;
+	tsne.PerplexityRatio = pr;
+	tsne.RefreshFreq = cfg.refFreq;
+	tsne.StagedTraining = true;
+	tsne.Repeats = 1;
+	tsne.Show().Start();
+	if (isNaN(tsne.ItemList[0].Value)) {
+		vv.Message("Training degraded!\nPlease try with smaller initial exaggeration.");
+		vv.Return(1);
+	}
+	if ( tsne.CurrentLoops != tsne.MaxLoops) {
+		vv.GuiManager.StopFlag = true;
+		vv.Return();
+	}
+	tsne.Close();
+};
 
 function DSortMain() {
 	cfg.hm = pp;

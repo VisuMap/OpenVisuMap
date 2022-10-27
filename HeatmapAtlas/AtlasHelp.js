@@ -30,23 +30,11 @@ function ValidateHeatMap(parent) {
 	cfg.hm = parent;
 }
 
-function SortTable(T, mt, epochs, ex, pr) {
-	var tsne = New.TsneSorter(T, mt);
-	tsne.MaxLoops = epochs;
-	tsne.InitExaggeration = ex;
-	tsne.PerplexityRatio = pr;
-	tsne.RefreshFreq = cfg.refFreq;
-	tsne.StagedTraining = true;
-	tsne.Repeats = 1;
-	tsne.Show().Start();
-	if (isNaN(tsne.ItemList[0].Value)) {
-		vv.Message("Training degraded!\nPlease try with smaller initial exaggeration.");
-		vv.Return(1);
-	}
-	if ( tsne.CurrentLoops != tsne.MaxLoops)
-		vv.Return();
-	tsne.Close();
-};
+function OpenAtlas() {
+	var atList = vv.FindFormList("Atlas");
+	return (atList.Count>0) ? atList[0] : New.Atlas().Show();
+}
+
 
 function NewExpressionMap(parent, winTitle) {
 	vv.SelectedItems = null;
@@ -105,9 +93,7 @@ function SaveSortedTable() {
 			pp.Tag.Tag = info.join('|');
 		return;
 	}
-
-	var atList = vv.FindFormList("Atlas");
-	var at = (atList.Count>0) ? atList[0] : New.Atlas().Show();
+	var at = OpenAtlas();
 
 	var ii = at.NewRectItem();	
 	ii.Tag = info.join('|');

@@ -9,7 +9,7 @@ cfg = {...cfg, ...{
 	Epochs:	PP(5000,  5000),    // training epochs for cell/gene profiles.
 	Exa:		PP(4,     4),      // initial exaggreation
 	Ppr:		PP(0.1,   0.1),      // perplexity ratio    
-   PrShift:	PP(1.0,   1.0),      // cell/gene profile shift towards arithmetric center.
+	PrShift:	PP(1.0,   1.0),      // cell/gene profile shift towards arithmetric center.
 	Mtr:		PP(cfg.cos, cfg.cos),
 	Is3D:		PP(false, false),
 	cellMap:null, 
@@ -31,8 +31,10 @@ function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, ppRatio, is3D) {
 	mds.PerplexityRatio = ppRatio;
 	mds.ExaggerationFactor = initExa;
 	mds.Reset().Start();
-	if ( mds.LoopsTsne != mds.MaxLoops )
+	if ( mds.LoopsTsne != mds.MaxLoops ) {
+		vv.GuiManager.StopFlag = true;
 		vv.Return();
+	}
 
 	var mpView = mds.Is3D ? mds.Show3DView() : mds.Show2DView();
 
