@@ -6,6 +6,7 @@
 var cfg = {
 	hm:null,
 	refFreq:100,
+	seq:0,
 	cos:'Correlation.Cosine Distance', 
 	euc:'EuclideanMetric', 
 	cor:'Correlation.Standard Correlation'
@@ -96,18 +97,17 @@ function SaveSortedTable() {
 	var at = OpenAtlas();
 
 	var ii = at.NewRectItem();	
+	ii.Name = vv.Dataset.Name.substr(0,4);
 	ii.Tag = info.join('|');
-	if ( ii.Id.length > 1 ) {
-		var idx = (ii.Id.substr(1) - 0)%15;
-		ii.Top += 15*idx;
-		ii.Left+= 10*idx;
-	}
+	ii.Top = 50*(++cfg.seq % 15);
+	ii.Left = 25;
 	ii.FillColor = New.Color('Green');
 	ii.Filled = true;
 	ii.IsEllipse = false;
-	ii.Opacity = 0.5;
-	ii.LabelStyle = 1;
-	ii.IconHeight = ii.IconWidth = 40;
+	ii.Opacity = 0.75;
+	ii.LabelStyle = 3;
+	ii.IconHeight = 30;
+	ii.IconWidth = 50;
 	ii.Script = vv.CurrentScriptDirectory + "\\LoadSortedHeatmap.js";
 	
 	at.RedrawItem(ii);

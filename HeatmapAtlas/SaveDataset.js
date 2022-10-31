@@ -13,14 +13,11 @@ function SaveMaps(hmItemId) {
 	var cItem = atlas.CaptureItem(cfg.cellMap);
 	var gItem = atlas.CaptureItem(cfg.geneMap);
 	var hmItem = atlas.FindItemById(hmItemId);
-	cItem.IconHeight = hmItem.IconHeight;
-	cItem.IconWidth = hmItem.IconWidth;
-	gItem.IconHeight = hmItem.IconHeight;
-	gItem.IconWidth = hmItem.IconWidth;
-	var w2 = hmItem.IconWidth/2.0 ;
-	cItem.Left = hmItem.Left - w2;
-	gItem.Left = hmItem.Left + w2;
-	cItem.Top = gItem.Top = hmItem.Top + 10;
+	var mpSize = 40;
+	cItem.IconHeight = cItem.IconWidth = gItem.IconHeight = gItem.IconWidth = mpSize;
+	gItem.Left = hmItem.Left + hmItem.IconWidth/2;
+	cItem.Left = gItem.Left - mpSize;
+	cItem.Top = gItem.Top = hmItem.Top + 12;
 	gItem.Opacity = cItem.Opacity = 1.0;
 
 	cItem.Script = '!OpenMapItem(true)';

@@ -7,9 +7,9 @@ ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
 	EpochsSrt: PP(5000, 5000),
-	ExaSrt:    PP(10,	  6),
+	ExaSrt:    PP(10,  6),
 	PprSrt:    PP(0.15,  0.1),
-	MtrSrt:    PP(cfg.cor, cfg.cor),
+	MtrSrt:    PP(cfg.cos, cfg.cos),
    PrShSrt:   PP(1.0,  1.0),      
 }};
 
