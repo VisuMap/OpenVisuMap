@@ -36,6 +36,27 @@ function OpenAtlas() {
 	return (atList.Count>0) ? atList[0] : New.Atlas().Show();
 }
 
+function TrainDatasets(dsList, doEmbedding) {
+	vv.GuiManager.StopFlag = false;
+	for(var nm of dsList) {
+		vv.Folder.OpenDataset(nm);
+		vv.Folder.DataChanged = false;
+		var hm = New.HeatMap().Show();
+		hm.ClickMenu("Atlas/Dual Sorting");
+		if ( vv.GuiManager.StopFlag ) 
+			return;
+		if ( doEmbedding ) {
+			hm.ClickMenu("Atlas/Dual Embedding");
+			hm.ClickMenu("Atlas/Save Data");
+			cfg.cellMap.Close(); 
+			cfg.geneMap.Close();
+		} else {
+			hm.ClickMenu("Atlas/Save HeatMap");
+		}
+		hm.Close(); 
+		OpenAtlas().Close();
+	}
+}
 
 function NewExpressionMap(parent, winTitle) {
 	vv.SelectedItems = null;
