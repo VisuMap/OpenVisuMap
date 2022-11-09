@@ -6,11 +6,12 @@ vv.Import("AtlasHelp.js");
 ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
+	hm:null,
 	EpochsSrt: PP(5000, 5000),
-	ExaSrt:    PP(10,  6),
+	ExaSrt:    PP(10,	6),
 	PprSrt:    PP(0.15,  0.1),
 	MtrSrt:    PP(cfg.cos, cfg.cos),
-   PrShSrt:   PP(1.0,  1.0),      
+   PrShSrt:   PP(1.0, 1.0),      
 }};
 
 function SortTable(T, mt, epochs, ex, pr) {
@@ -42,7 +43,7 @@ function DSortMain() {
 	cfg.hm.SelectionMode = 0;
 	
 	var dsTable1 = dsTable;
-	if ( cfg.MtrSrt.c == cfg.cos ) {
+	if ( (cfg.MtrSrt.c == cfg.cos ) && (cfg.PrShSrt.c != 0) ) {
 		dsTable1 = dsTable.Clone();
 		csFct.ShiftTable(dsTable1, cfg.PrShSrt.c);
 	}
@@ -52,7 +53,7 @@ function DSortMain() {
 	cfg.hm.Title = 'Sorting Columns...';
 	cfg.hm.SelectionMode = 1;
 	var dsTable2 = dsTable.Transpose2();
-	if ( cfg.MtrSrt.g == cfg.cos )
+	if ( (cfg.MtrSrt.g == cfg.cos)  && (cfg.PrShSrt.c != 0) )
 		csFct.ShiftTable(dsTable2, cfg.PrShSrt.g);
 	SortTable(dsTable2, cfg.MtrSrt.g, cfg.EpochsSrt.g, cfg.ExaSrt.g, cfg.PprSrt.g);
 

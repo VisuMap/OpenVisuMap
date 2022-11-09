@@ -36,7 +36,7 @@ function OpenAtlas() {
 	return (atList.Count>0) ? atList[0] : New.Atlas().Show();
 }
 
-function TrainDatasets(dsList, doEmbedding) {
+function TrainDatasets(dsList, doEmbedding=false, capturing=false) {
 	vv.GuiManager.StopFlag = false;
 	for(var nm of dsList) {
 		vv.Folder.OpenDataset(nm);
@@ -48,15 +48,80 @@ function TrainDatasets(dsList, doEmbedding) {
 		if ( doEmbedding ) {
 			hm.ClickMenu("Atlas/Dual Embedding");
 			hm.ClickMenu("Atlas/Save Data");
-			cfg.cellMap.Close(); 
+			if ( capturing )
+				cfg.cellMap.ClickMenu("Utilities/Capture Map");
+			cfg.cellMap.Close();
 			cfg.geneMap.Close();
 		} else {
 			hm.ClickMenu("Atlas/Save HeatMap");
 		}
 		hm.Close(); 
-		OpenAtlas().Close();
 	}
+	OpenAtlas().Close();
 }
+
+function Merge2Datasets(dsList, maxRows=0, refGenes=null) {
+	if ( dsList.length != 2 ) {
+		vv.Message("The dataset list must have only two datasets");
+		return;
+	}
+	var nt1 = vv.Folder.ReadDataset(dsList[0]).GetNumberTable();
+	var nt2 = vv.Folder.ReadDataset(dsList[1]).GetNumberTable();
+
+	if ( maxRows != 0 ) {
+		var rowList = New.Range(maxRows);
+		nt1 = nt1.SelectRowsView(rowList);
+		nt2 = nt2.SelectRowsView(rowList);
+	}
+
+	if ( refGenes != null ) {
+		nt1 = nt1.SelectColumnsById2(refGenes, 0);
+		nt2 = nt2.SelectColumnsById2(refGenes, 0);
+	} else {
+		var colIds = nt1.ColumnSpecList.ToIdList();
+		nt2 = nt2.SelectColumnsById2(colIds, 0);
+	}
+
+	for(var rs of nt2.RowSpecList) 
+		rs.Id = 'A' + rs.Id;
+   var rows1 = nt1.Rows;
+	var nt = nt1.Append(nt2);
+	for(var row=0; row<nt.Rows; row++)
+		nt.RowSpecList[row].Type = (row<rows1) ? 0 : 1;
+	var hm = nt.ShowHeatMap();
+	hm.Description = dsList.join('|');
+	return hm;
+}
+
+function ConcatDatasets(dsList, maxRows=0, refGenes=null) {
+	var nt = New.NumberTable(0,0);
+	for(var n=0; n<dsList.length; n++) {
+		var t = vv.Folder.ReadDataset(dsList[n]);
+		vv.Echo("Dataset: " + dsList[n] + ": " + t.Rows + ", " + t.Columns);
+		t = t.GetNumberTableView();
+		if ( maxRows != 0 )
+			t = t.SelectRowsView(New.Range(maxRows));
+		if (n == 0) {
+			if (refGenes == null) {
+				var colIds = t.ColumnSpecList.ToIdList();
+			} else {
+				var colIds = refGenes;
+				t = t.SelectColumnsById2(colIds, 0.0);		
+			}
+		} else
+			t = t.SelectColumnsById2(colIds, 0.0);
+		for(var rs of t.RowSpecList) 
+			rs.Type = n;
+		var prefix = String.fromCharCode(65+n);
+		for(var rs of t.RowSpecList)
+			rs.Id = prefix + rs.Id;
+		nt.Append(t);
+	}
+	var hm = nt.ShowHeatMap();
+	hm.Title = "Datasets: " + dsList.join();
+	return hm;
+}
+
 
 function NewExpressionMap(parent, winTitle) {
 	vv.SelectedItems = null;
