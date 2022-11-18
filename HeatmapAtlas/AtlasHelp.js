@@ -60,39 +60,6 @@ function TrainDatasets(dsList, doEmbedding=false, capturing=false) {
 	OpenAtlas().Close();
 }
 
-function Merge2Datasets(dsList, maxRows=0, refGenes=null) {
-	if ( dsList.length != 2 ) {
-		vv.Message("The dataset list must have only two datasets");
-		return;
-	}
-	var nt1 = vv.Folder.ReadDataset(dsList[0]).GetNumberTable();
-	var nt2 = vv.Folder.ReadDataset(dsList[1]).GetNumberTable();
-
-	if ( maxRows != 0 ) {
-		var rowList = New.Range(maxRows);
-		nt1 = nt1.SelectRowsView(rowList);
-		nt2 = nt2.SelectRowsView(rowList);
-	}
-
-	if ( refGenes != null ) {
-		nt1 = nt1.SelectColumnsById2(refGenes, 0);
-		nt2 = nt2.SelectColumnsById2(refGenes, 0);
-	} else {
-		var colIds = nt1.ColumnSpecList.ToIdList();
-		nt2 = nt2.SelectColumnsById2(colIds, 0);
-	}
-
-	for(var rs of nt2.RowSpecList) 
-		rs.Id = 'A' + rs.Id;
-   var rows1 = nt1.Rows;
-	var nt = nt1.Append(nt2);
-	for(var row=0; row<nt.Rows; row++)
-		nt.RowSpecList[row].Type = (row<rows1) ? 0 : 1;
-	var hm = nt.ShowHeatMap();
-	hm.Description = dsList.join('|');
-	return hm;
-}
-
 function ConcatDatasets(dsList, maxRows=0, refGenes=null) {
 	var nt = New.NumberTable(0,0);
 	for(var n=0; n<dsList.length; n++) {
@@ -119,6 +86,7 @@ function ConcatDatasets(dsList, maxRows=0, refGenes=null) {
 	}
 	var hm = nt.ShowHeatMap();
 	hm.Title = "Datasets: " + dsList.join();
+	hm.Description = dsList.join('|');
 	return hm;
 }
 

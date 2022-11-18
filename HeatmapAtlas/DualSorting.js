@@ -8,10 +8,10 @@ ValidateHeatMap(pp);
 cfg = {...cfg, ...{
 	hm:null,
 	EpochsSrt: PP(5000, 5000),
-	ExaSrt:    PP(10,	6),
+	ExaSrt:    PP(10,  6),
 	PprSrt:    PP(0.15,  0.1),
 	MtrSrt:    PP(cfg.cos, cfg.cos),
-   PrShSrt:   PP(1.0, 1.0),      
+	PrShSrt:   PP(0, 0.5),      
 }};
 
 function SortTable(T, mt, epochs, ex, pr) {
@@ -65,7 +65,7 @@ function DSortMain() {
 var doAll = vv.ModifierKeys.ControlPressed;
 DSortMain();
 
-if ( doAll ) {
+if ( doAll ) {  // doAll = false;
   cfg.hm.ClickMenu("Atlas/Dual Embedding");
   //cfg.hm.ClickMenu("Atlas/Dual Clustering");
   //cfg.hm.ClickMenu("Atlas/Save Data");
