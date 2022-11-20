@@ -935,11 +935,19 @@ namespace ClipRecorder {
             throw new Exception("AddContextMenu not supported for RecorderForm!");
         }
 
+        public bool SetEventHandler(string eventName, string scriptPath) {
+            throw new Exception("SetContextMenu not supported for RecorderForm!");
+        }
+
         public bool RemoveEventHandler(string eventName) {
             throw new Exception("AddContextMenu not supported for RecorderForm!");
         }
 
         public bool ClickContextMenu(string label) {
+            return new FormImp(this).ClickContextMenu(label);
+        }
+
+        public bool ClickMenu(string label) {
             return new FormImp(this).ClickContextMenu(label);
         }
 
