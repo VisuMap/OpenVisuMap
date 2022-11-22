@@ -10,7 +10,7 @@ cfg = {...cfg, ...{
 	EpochsSrt: PP(5000, 5000),
 	ExaSrt:    PP(10,  6),
 	PprSrt:    PP(0.15,  0.1),
-	MtrSrt:    PP(cfg.cos, cfg.cos),
+	MtrSrt:    PP(cfg.euc, cfg.cos),
 	PrShSrt:   PP(0, 0.5),      
 }};
 

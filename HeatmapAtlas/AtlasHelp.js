@@ -60,7 +60,7 @@ function TrainDatasets(dsList, doEmbedding=false, capturing=false) {
 	OpenAtlas().Close();
 }
 
-function ConcatDatasets(dsList, maxRows=0, refGenes=null) {
+function ConcatDatasets0(dsList, maxRows=0, refGenes=null) {
 	var nt = New.NumberTable(0,0);
 	for(var n=0; n<dsList.length; n++) {
 		var t = vv.Folder.ReadDataset(dsList[n]);
@@ -84,6 +84,11 @@ function ConcatDatasets(dsList, maxRows=0, refGenes=null) {
 			rs.Id = prefix + rs.Id;
 		nt.Append(t);
 	}
+	return nt;
+}
+
+function ConcatDatasets(dsList, maxRows=0, refGenes=null) {
+	var nt = ConcatDatasets0(dsList, maxRows, refGenes);
 	var hm = nt.ShowHeatMap();
 	hm.Title = "Datasets: " + dsList.join();
 	hm.Description = dsList.join('|');

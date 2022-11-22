@@ -7,13 +7,14 @@ ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
 	Epochs:	PP(5000,  5000),    // training epochs for cell/gene profiles.
-	Exa:		PP(4,    4),      // initial exaggreation
+	Exa:		PP(4,     4),      // initial exaggreation
 	Ppr:		PP(0.1,   0.1),      // perplexity ratio    
 	PrShift:	PP(0,     0.5),      // cell/gene profile shift towards arithmetric center.
-	Mtr:		PP(cfg.cos, cfg.cos),
+	Mtr:		PP(cfg.euc, cfg.cos),
 	Is3D:		PP(false, false),
 	cellMap:null, 
 	geneMap:null,
+	hpSize:400,
 }};
 
 function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, ppRatio, is3D) {
@@ -62,7 +63,7 @@ function DEmbeddingMain() {
 	nt2.FreeRef();
 	mds.Close();
 
-	var sz = 600;
+	var sz = cfg.hpSize;
 	var winWidth = sz;
 	var winHeight = sz;
 	cfg.hm.TheForm.SetBounds(1000, 700, winWidth, winHeight);
