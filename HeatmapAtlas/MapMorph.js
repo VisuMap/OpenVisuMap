@@ -30,7 +30,7 @@ if ( "MapSnapshot|D3dRender|MdsCluster".includes(pp.Name) ) {
     for (rep = 0; rep<repeats; rep++) {
 	    for (var vw of vwList) {
 	        vw.TheForm.BringToFront();
-			  var [left, top] = (f.Width < f.Height) ? [f.Left+f.Width-10, f.Top] : [f.Left, f.Top+f.Height-6]
+			  var [left, top] = (f.Width <= f.Height) ? [f.Left+f.Width-10, f.Top] : [f.Left, f.Top+f.Height-6]
 			  vw.TheForm.SetDesktopLocation(left, top)
 	        movedList.push ( Animation(pp, vw.BodyList) );
 	    }
