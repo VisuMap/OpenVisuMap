@@ -7,14 +7,14 @@ ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
 	Epochs:	PP(5000,  5000),    // training epochs for cell/gene profiles.
-	Exa:		PP(4,     4),      // initial exaggreation
-	Ppr:		PP(0.1,   0.1),      // perplexity ratio    
-	PrShift:	PP(0,     0.5),      // cell/gene profile shift towards arithmetric center.
-	Mtr:		PP(cfg.euc, cfg.cos),
-	Is3D:		PP(false, false),
+	Exa:    PP(6,     4),      // initial exaggreation
+	Ppr:    PP(0.1,   0.1),      // perplexity ratio    
+ 	PrShift:PP(0,     0.5),      // cell/gene profile shift towards arithmetric center.
+	Mtr:	PP(cfg.euc, cfg.cos),
+	Is3D:	PP(false, false),
 	cellMap:null, 
 	geneMap:null,
-	hpSize:400,
+	hpSize: 400,
 }};
 
 function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, ppRatio, is3D) {
@@ -49,30 +49,35 @@ function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, ppRatio, is3D) {
 function DEmbeddingMain() {
 	var nt = cfg.hm.GetNumberTable();
 	var mds = New.MdsCluster().Show();
-	
-	var nt1 = nt;
-	if ( (cfg.Mtr.c == cfg.cos) && (cfg.PrShift.c!=0) )
-		nt1 = csFct.ShiftTable(nt1.Clone(), cfg.PrShift.c);
-	cfg.cellMap = RunEmbedding(mds, nt1, true, cfg.Epochs.c, cfg.Mtr.c, cfg.Exa.c, cfg.Ppr.c, cfg.Is3D.c);
-
-	var nt2 = nt.Transpose2();
-	if ( (cfg.Mtr.g == cfg.cos) && (cfg.PrShift.g!=0) )
-		nt2 = csFct.ShiftTable(nt2, cfg.PrShift.g);	
-	cfg.geneMap = RunEmbedding(mds, nt2, false, cfg.Epochs.g, cfg.Mtr.g, cfg.Exa.g, cfg.Ppr.g, cfg.Is3D.g);
-
-	nt2.FreeRef();
-	mds.Close();
+	cfg.cellMap = cfg.geneMap = null;
 
 	var sz = cfg.hpSize;
-	var winWidth = sz;
-	var winHeight = sz;
-	cfg.hm.TheForm.SetBounds(1000, 700, winWidth, winHeight);
-	cfg.cellMap.TheForm.SetBounds(cfg.hm.TheForm.Left - sz + 15, cfg.hm.TheForm.Top, sz, sz);
-	cfg.geneMap.TheForm.SetBounds(cfg.hm.TheForm.Left, cfg.hm.TheForm.Top - sz + 8, sz, sz);
-	cfg.cellMap.BackgroundColor = New.Color(0, 0, 64);
-	cfg.geneMap.BackgroundColor = New.Color(0, 64, 64);
-	cfg.geneMap.Refresh();
-	cfg.cellMap.Refresh();
+	cfg.hm.TheForm.SetBounds(1000, 700, sz, sz);
+	
+	if (cfg.Epochs.c > 0) {
+		var nt1 = nt;
+		if ( (cfg.Mtr.c == cfg.cos) && (cfg.PrShift.c!=0) )
+			nt1 = csFct.ShiftTable(nt1.Clone(), cfg.PrShift.c);
+		cfg.cellMap = RunEmbedding(mds, nt1, true, cfg.Epochs.c, cfg.Mtr.c, cfg.Exa.c, cfg.Ppr.c, cfg.Is3D.c);
+
+		cfg.cellMap.TheForm.SetBounds(cfg.hm.TheForm.Left - sz + 15, cfg.hm.TheForm.Top, sz, sz);
+		cfg.cellMap.BackgroundColor = New.Color(0, 0, 64);
+		cfg.cellMap.Refresh();
+	}
+
+	if (cfg.Epochs.g > 0) {
+		var nt2 = nt.Transpose2();
+		if ( (cfg.Mtr.g == cfg.cos) && (cfg.PrShift.g!=0) )
+			nt2 = csFct.ShiftTable(nt2, cfg.PrShift.g);	
+		cfg.geneMap = RunEmbedding(mds, nt2, false, cfg.Epochs.g, cfg.Mtr.g, cfg.Exa.g, cfg.Ppr.g, cfg.Is3D.g);
+		nt2.FreeRef();
+
+		cfg.geneMap.TheForm.SetBounds(cfg.hm.TheForm.Left, cfg.hm.TheForm.Top - sz + 8, sz, sz);
+		cfg.geneMap.BackgroundColor = New.Color(0, 64, 64);
+		cfg.geneMap.Refresh();
+	}
+
+	mds.Close();
 }
 
 DEmbeddingMain();

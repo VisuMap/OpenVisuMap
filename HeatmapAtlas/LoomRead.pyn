@@ -1,11 +1,33 @@
 # Import a loom format file into a heatmap view.
-# The following site offers some sample datasets:
-#   https://flycellatlas.org/#data
 #
-import scanpy, numpy
 vv.Import('AtlasHelp.pyn')
 
+#The following function works for loom files from https://scope.aertslab.org/.
+def ImportLoomX10():
+	import loompy, numpy
+	fileName = PromptFile("Loom Files|*.loom")	
+	ds = loompy.connect(fileName, mode='r', validate=False)
+	nt = mm.ToTable(ds[:,:])
+
+	if ('Gene' in ds.ra.keys()) and (nt.Rows == len(ds.ra.Gene)):
+		uf = New.UniqueNameFinder()
+		for row, id in enumerate(ds.ra.Gene):
+			nt.RowSpecList[row].Id = uf.LookupName(str(id))
+
+	if ('CellID' in ds.ca.keys()) and (nt.Columns == len(ds.ca.CellID)):
+		for row, id in enumerate(ds.ca.CellID):
+			nt.ColumnSpecList[row].Name = str(id)
+
+	if ('louvain' in ds.ca.keys()) and (nt.Columns == len(ds.ca.louvain)):
+		for row, id in enumerate(ds.ca.louvain):
+			nt.ColumnSpecList[row].Type = int(id)
+
+	del ds
+	ShowHeatmap(nt.Transpose2(), fileName)
+
+# The following function works for loom fiels from  https://flycellatlas.org/#data
 def ImportLoom():
+	import scanpy, numpy
 	fileName = PromptFile("Loom Files|*.loom")	
 	f = scanpy.read_loom(fileName, validate=False)
 	
@@ -26,3 +48,4 @@ def ImportLoom():
 	ShowHeatmap(nt, fileName)
 
 ImportLoom()
+#ImportLoomX10()
