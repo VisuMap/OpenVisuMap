@@ -7,9 +7,7 @@ ValidateHeatMap(pp);
 CheckMaps();
 
 function SaveMaps(hmItemId) {
-	var atList = vv.FindFormList("Atlas");
-	var atlas = (atList.Count>0) ? atList[0] : New.Atlas().Show();
-	
+	var atlas = OpenAtlas();	
 	var cItem = atlas.CaptureItem(cfg.cellMap);
 	var gItem = atlas.CaptureItem(cfg.geneMap);
 	var hmItem = atlas.FindItemById(hmItemId);
@@ -24,7 +22,9 @@ function SaveMaps(hmItemId) {
 	gItem.Script = '!OpenMapItem(false)';
 	
 	atlas.GroupItems( hmItem, cItem, gItem );
+	atlas.SetSelectedItems(); // Clear the selections.
 	atlas.Redraw();
 }
 
 SaveMaps(SaveSortedTable());
+
