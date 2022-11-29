@@ -1,19 +1,26 @@
 # Import a loom format file into a heatmap view.
 #
+import scanpy, numpy
 vv.Import('AtlasHelp.pyn')
+
+'''
+import loompy
+fileName = "C:\\Users\\james\\OneDrive\\Desktop\\SCope Data\\580f1168_20200313__Hung_et_al_2020_Adult_Gut.BBKNN.loom"
+fileName = "C:\\Users\\james\\OneDrive\\Desktop\\s_fca_biohub_leg_10x.loom"
+ds = loompy.connect(fileName, mode='r',validate=False)
+del ds
+'''
 
 #The following function works for loom files from https://scope.aertslab.org/.
 def ImportLoomX10():
-	import loompy, numpy
+	import loompy as lp
 	fileName = PromptFile("Loom Files|*.loom")	
-	ds = loompy.connect(fileName, mode='r', validate=False)
+	ds = lp.connect(fileName, mode='r',validate=False)
 	nt = mm.ToTable(ds[:,:])
-
 	if ('Gene' in ds.ra.keys()) and (nt.Rows == len(ds.ra.Gene)):
 		uf = New.UniqueNameFinder()
 		for row, id in enumerate(ds.ra.Gene):
 			nt.RowSpecList[row].Id = uf.LookupName(str(id))
-
 	if ('CellID' in ds.ca.keys()) and (nt.Columns == len(ds.ca.CellID)):
 		for row, id in enumerate(ds.ca.CellID):
 			nt.ColumnSpecList[row].Name = str(id)
@@ -21,13 +28,15 @@ def ImportLoomX10():
 	if ('louvain' in ds.ca.keys()) and (nt.Columns == len(ds.ca.louvain)):
 		for row, id in enumerate(ds.ca.louvain):
 			nt.ColumnSpecList[row].Type = int(id)
+	elif ('leiden' in ds.ca.keys()) and (nt.Columns == len(ds.ca.leiden)):
+		for row, id in enumerate(ds.ca.leiden):
+			nt.ColumnSpecList[row].Type = int(id)
 
 	del ds
 	ShowHeatmap(nt.Transpose2(), fileName)
 
 # The following function works for loom fiels from  https://flycellatlas.org/#data
 def ImportLoom():
-	import scanpy, numpy
 	fileName = PromptFile("Loom Files|*.loom")	
 	f = scanpy.read_loom(fileName, validate=False)
 	
@@ -37,15 +46,16 @@ def ImportLoom():
 	
 	nt = mm.ToTable(M)
 	uf = New.UniqueNameFinder()
-	if nt.Rows == len(f.obs_names):
+	if hasattr(f, 'obs_names') and (nt.Rows == len(f.obs_names)):
 		for row, id in enumerate(f.obs_names):
 			nt.RowSpecList[row].Id = uf.LookupName(str(id))
 	uf.Reset();
-	if nt.Columns == len(f.var_names):
+	if hasattr(f, 'var_names') and (nt.Columns == len(f.var_names)):
 		for col, id in enumerate(f.var_names):
 			nt.ColumnSpecList[col].Id = uf.LookupName(str(id))
 	
 	ShowHeatmap(nt, fileName)
 
-ImportLoom()
-#ImportLoomX10()
+#ImportLoom()
+
+ImportLoomX10()

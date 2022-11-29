@@ -4,27 +4,36 @@
 //
 vv.Import("AtlasHelp.js");
 ValidateHeatMap(pp);
-CheckMaps();
 
 function SaveMaps(hmItemId) {
 	var atlas = OpenAtlas();	
-	var cItem = atlas.CaptureItem(cfg.cellMap);
-	var gItem = atlas.CaptureItem(cfg.geneMap);
-	var hmItem = atlas.FindItemById(hmItemId);
 	var mpSize = 40;
-	cItem.IconHeight = cItem.IconWidth = gItem.IconHeight = gItem.IconWidth = mpSize;
-	gItem.Left = hmItem.Left + hmItem.IconWidth/2;
-	cItem.Left = gItem.Left - mpSize;
-	cItem.Top = gItem.Top = hmItem.Top + 12;
-	gItem.Opacity = cItem.Opacity = 1.0;
+	var cItem = null;
+	var gItem = null;
+	var hmItem = atlas.FindItemById(hmItemId);
 
-	cItem.Script = '!OpenMapItem(true)';
-	gItem.Script = '!OpenMapItem(false)';
+	//vv.Message("AA:" + cfg.cellMap.TheForm.IsDisposed + " | " + cfg.geneMap.TheForm.IsDisposed);
+
+	if ( (cfg.cellMap != null) && !cfg.cellMap.TheForm.IsDisposed) {
+		cItem = atlas.CaptureItem(cfg.cellMap);
+		cItem.IconHeight = cItem.IconWidth = mpSize;
+		cItem.Left = hmItem.Left + hmItem.IconWidth/2 - mpSize;
+		cItem.Top = hmItem.Top + 12;
+		cItem.Opacity = 1.0;
+		cItem.Script = '!OpenMapItem(true)';
+	}
+
+	if ( (cfg.geneMap != null) && !cfg.geneMap.TheForm.IsDisposed) {
+		gItem = atlas.CaptureItem(cfg.geneMap);
+		gItem.IconHeight = gItem.IconWidth = mpSize;
+		gItem.Left = hmItem.Left + hmItem.IconWidth/2;
+		gItem.Top = hmItem.Top + 12;
+		gItem.Opacity = 1.0;	
+		gItem.Script = '!OpenMapItem(false)';
+	}
 	
 	atlas.GroupItems( hmItem, cItem, gItem );
-	atlas.SetSelectedItems(); // Clear the selections.
 	atlas.Redraw();
 }
 
 SaveMaps(SaveSortedTable());
-
