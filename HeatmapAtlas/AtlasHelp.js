@@ -306,9 +306,7 @@ function SaveDsHm(hmParent) {
 	ii.LabelStyle = 2;
 	ii.IconHeight = 40; 
 	ii.IconWidth = 60;
-	//var sPath = vv.CurrentScriptPath.replaceAll('\\', '/');
-	//ii.Script = `!vv.Import('${sPath}');ShowBiHeatmap()`;
-    ii.Script = '!vv.Import('AtlasHelp.js');ShowDsHm();';
+    ii.Script = "!vv.Import('AtlasHelp.js');ShowDsHm();";
 	ii.Name = dsList.join('|');
 	at.RedrawItem(ii);
 }
