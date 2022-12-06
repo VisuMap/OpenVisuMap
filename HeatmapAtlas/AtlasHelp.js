@@ -95,6 +95,9 @@ function ConcatDatasets(dsList, maxRows=0, refGenes=null) {
 	return hm;
 }
 
+function SelectedDs() {
+	return Array.from(GetRectItems(), x=>x.Name);
+}
 
 function NewExpressionMap(parent, winTitle) {
 	vv.SelectedItems = null;
@@ -233,6 +236,77 @@ function LoadSortedHeatmap() {
 
    //var t1 = (new Date()).getTime();
    //cfg.hm.Title = "Time: " + (t1 - t0)/1000;
+}
+
+
+function ShowDsHm() {	
+	var vs = New.StringSplit(vv.EventSource.Item.Tag);
+	var fs = New.StringSplit(vs[0], '&');
+	var L = fs.Count;
+	var dsList = Array.from(fs.GetRange(0, L-2));
+	var rows = fs[L-2]-0;
+	var columns = fs[L-1]-0;
+	var rowIds = vs.GetRange(1,rows);
+	var colIds = vs.GetRange(1+rows, columns)
+
+	var ntList = [];
+	for(var k in dsList) {
+		var ds = dsList[k];
+		var nt = vv.Folder.ReadDataset(ds).GetNumberTableView();
+		nt = nt.SelectColumnsById2(colIds, 0);
+		for(var rs of nt.RowSpecList) {	
+			rs.Type = k-0;
+			rs.Id = String.fromCharCode(65+rs.Type)+rs.Id;
+		}		
+		ntList.push( nt );
+	}
+
+	var nt = New.NumberTable(0,0);
+	for(var t of ntList)
+		nt = nt.Append(t);
+	nt = nt.SelectRowsById2(rowIds);
+	var hm = nt.ShowHeatMap();
+	hm.Description = dsList.join('|');
+	hm.Title = "Datasets: " + dsList.join(',');
+	return hm;
+}
+
+function SaveDsHm(hmParent) {
+	if ((hmParent==null)||(hmParent.Name!="HeatMap")) {
+		vv.Message("The parent form is not a heatmap");
+		vv.Return();
+	}
+	var dsList = hmParent.Description.split('|');
+	if (dsList.length==0 ) {
+		vv.Message("The parent heatmap does not have dataset list set.");
+		vv.Return();
+	}
+
+	var nt = pp.GetNumberTable();
+	var rsList = nt.RowSpecList;
+	var info = [];
+	info.push( dsList.join('&') + '&' + nt.Rows + '&' + nt.Columns );	
+	info.push(...nt.RowSpecList.ToIdList());
+	info.push(...nt.ColumnSpecList.ToIdList());
+
+	var at = OpenAtlas();
+
+	var ii = at.NewRectItem();	
+	ii.Tag = info.join('|');
+	ii.Top = 60*(++cfg.seq % 15);
+	ii.Left = 25;
+	ii.FillColor = New.Color('Yellow');
+	ii.Filled = true;
+	ii.IsEllipse = false;
+	ii.Opacity = 0.75;
+	ii.LabelStyle = 2;
+	ii.IconHeight = 40; 
+	ii.IconWidth = 60;
+	//var sPath = vv.CurrentScriptPath.replaceAll('\\', '/');
+	//ii.Script = `!vv.Import('${sPath}');ShowBiHeatmap()`;
+	ii.Script = '!ShowDsHm()';
+	ii.Name = dsList.join('|');
+	at.RedrawItem(ii);
 }
 
 

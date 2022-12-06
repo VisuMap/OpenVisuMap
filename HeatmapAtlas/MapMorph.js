@@ -27,7 +27,12 @@ if ( "MapSnapshot|D3dRender|MdsCluster".includes(pp.Name) ) {
         if ((vw.TheForm !== f) && (vw.BodyList.Count == bsCount))
             vwList.Add(vw);
 
-    for (rep = 0; rep<repeats; rep++) {
+	if ( vwList.Count == 0 ){
+		vv.Message("No similar maps have been found for comparison");
+		vv.Return();
+	}
+
+   for (rep = 0; rep<repeats; rep++) {
 	    for (var vw of vwList) {
 	        vw.TheForm.BringToFront();
 			  var [left, top] = (f.Width <= f.Height) ? [f.Left+f.Width-10, f.Top] : [f.Left, f.Top+f.Height-6]
@@ -35,7 +40,7 @@ if ( "MapSnapshot|D3dRender|MdsCluster".includes(pp.Name) ) {
 	        movedList.push ( Animation(pp, vw.BodyList) );
 	    }
 	    movedList.push( Animation(pp, initBody) );
-    }
+   }
 
 } else {
     // Morphing between maps with the same name prefix.

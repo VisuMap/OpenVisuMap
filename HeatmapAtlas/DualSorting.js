@@ -8,8 +8,8 @@ ValidateHeatMap(pp);
 cfg = {...cfg, ...{
 	hm:null,
 	EpochsSrt: PP(5000, 5000),
-	ExaSrt:    PP(10,  6),
-	PprSrt:    PP(0.15,  0.1),
+	ExaSrt:    PP(6,  4),
+	PprSrt:    PP(0.025, 0.025),
 	MtrSrt:    PP(cfg.cos, cfg.cos),
    PrShSrt:   PP(0, 0.5),      
 }};
@@ -20,7 +20,7 @@ function SortTable(T, mt, epochs, ex, pr) {
 	tsne.InitExaggeration = ex;
 	tsne.PerplexityRatio = pr;
 	tsne.RefreshFreq = cfg.refFreq;
-	tsne.StagedTraining = true;
+	tsne.StagedTraining = false;
 	tsne.Repeats = 1;
 	tsne.Show().Start();
 	if (isNaN(tsne.ItemList[0].Value)) {
@@ -37,6 +37,7 @@ function SortTable(T, mt, epochs, ex, pr) {
 function DSortMain() {
 	cfg.hm = pp;
 	cfg.hm.DisableReorder = false;
+	cfg.hm.RandomizeRows().RandomizeColumns();
 	var dsTable = pp.GetNumberTable();
 	
 	cfg.hm.Title = 'Sorting Rows...';

@@ -11,6 +11,8 @@ for(var [label, script, view, img] of [
   ["Active Cells",		"ShowActiveCells.js","HeatMap", null],
   ["Save Data",		   "SaveDataset.js",	"HeatMap", null],
   ["Save HeatMap",		"SaveSortedHeatmap.js",	"HeatMap", null],
+  ["Save DsHm",			"!SaveDsHm(pp)", "HeatMap", null],
+  ["Merge DS",          "!ConcatDatasets(SelectedDs(), 5000, null)", "Atlas", null],
   ["Compare Maps",		"MapMorph.js",	"MainForm|MapSnapshot|D3dRender", icon],
   ["Variation Tracing",	"VariationTracing.js","MainForm", null],
 ]) mgr.SetCustomMenu("Atlas/"+label, true, script, view, img);
