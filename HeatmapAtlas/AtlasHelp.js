@@ -83,7 +83,8 @@ function ConcatDatasets0(dsList, maxRows=0, refGenes=null) {
 		for(var rs of t.RowSpecList)
 			rs.Id = prefix + rs.Id;
 		nt.Append(t);
-	}
+    }
+
 	return nt;
 }
 
@@ -96,7 +97,10 @@ function ConcatDatasets(dsList, maxRows=0, refGenes=null) {
 }
 
 function SelectedDs() {
-	return Array.from(GetRectItems(), x=>x.Name);
+    var atlas = OpenAtlas();
+    var selectedItems = Array.from(atlas.GetSelectedItems())
+        .filter(x => x.ItemType == 'RectItem');
+    return Array.from(selectedItems, x=>x.Name);
 }
 
 function NewExpressionMap(parent, winTitle) {
@@ -304,7 +308,7 @@ function SaveDsHm(hmParent) {
 	ii.IconWidth = 60;
 	//var sPath = vv.CurrentScriptPath.replaceAll('\\', '/');
 	//ii.Script = `!vv.Import('${sPath}');ShowBiHeatmap()`;
-	ii.Script = '!ShowDsHm()';
+    ii.Script = '!vv.Import('AtlasHelp.js');ShowDsHm();';
 	ii.Name = dsList.join('|');
 	at.RedrawItem(ii);
 }
