@@ -61,6 +61,11 @@ function TrainDatasets(dsList, doEmbedding=false, capturing=false) {
 }
 
 function ConcatDatasets0(dsList, maxRows=0, refGenes=null) {
+   if (dsList.length==0) {
+		vv.Message("No dataset selected!");
+		vv.Return();
+	}
+
 	var nt = New.NumberTable(0,0);
 	for(var n=0; n<dsList.length; n++) {
 		var t = vv.Folder.ReadDataset(dsList[n]);
@@ -97,10 +102,9 @@ function ConcatDatasets(dsList, maxRows=0, refGenes=null) {
 }
 
 function SelectedDs() {
-    var atlas = OpenAtlas();
-    var selectedItems = Array.from(atlas.GetSelectedItems())
-        .filter(x => x.ItemType == 'RectItem');
-    return Array.from(selectedItems, x=>x.Name);
+    var dsList = Array.from(OpenAtlas().GetSelectedItems(), x=>x.Name.trim());
+	 dsList = dsList.filter(x=>x.length>0);
+	 return dsList;
 }
 
 function NewExpressionMap(parent, winTitle) {
@@ -306,6 +310,8 @@ function SaveDsHm(hmParent) {
 	ii.LabelStyle = 2;
 	ii.IconHeight = 40; 
 	ii.IconWidth = 60;
+	//var sPath = vv.CurrentScriptPath.replaceAll('\\', '/');
+	//ii.Script = `!vv.Import('${sPath}');ShowBiHeatmap()`;
     ii.Script = "!vv.Import('AtlasHelp.js');ShowDsHm();";
 	ii.Name = dsList.join('|');
 	at.RedrawItem(ii);
@@ -439,3 +445,4 @@ var csFct = New.CsObject(`
 		return true;
 	}
 `);
+
