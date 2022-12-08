@@ -21,6 +21,7 @@ function SortTable(T, mt, epochs, ex, pr) {
 	tsne.PerplexityRatio = pr;
 	tsne.RefreshFreq = cfg.refFreq;
 	tsne.StagedTraining = false;
+	tsne.Broadcasting = true;
 	tsne.Repeats = 1;
 	tsne.Show().Start();
 	if (isNaN(tsne.ItemList[0].Value)) {
