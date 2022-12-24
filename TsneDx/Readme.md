@@ -18,9 +18,6 @@ This GPU based implementation gives a 10x to 40x speedup comparing to CPU implem
 ### Requirements:
   Windows 10/64bit; DirectX 11 or higher; GPU NVIDIA or AMD.
 
-### Limitations:
-  The program only supports the Euclidean distance. All numerical calculations are done with float32 precision.
-
 ### Installation:
   Download and unzip TsneDx.zip; Then add the directory to the PATH environment variable, and to the PYTHONPATH if needed use from python scripts.
 
@@ -42,5 +39,11 @@ This GPU based implementation gives a 10x to 40x speedup comparing to CPU implem
     * Load the visual studio project TsneDx.csproj into Visual Studio and build the Release configuration.
     
     * Run the batch script Package.bat to package executables and sample code into a zip file for deployment.
+
+### Advantages and Limitations:
+  One advantage of this implementation is that it uses special pre-calculation with O(N) memory complexity to calculate the probability affinities on-fly. This reduces the memory complexity from O(N^2) to O(N); and enables it to run on GPU for data sets with significantly larger number of data points, e.g. N>100K. Notice that calculation perplexity is still O(N^2) as required by the t-SNE algorithm.
   
+  For comparison, most speeding-up varations of t-SNE (e.g. bh-Tsne, flt-SNE, LargeVis, UMAP) approximate the algorithm by focusing on a subset of affinities, typically, within the neighborhood of each data points. Those methods, reduce both the memory complexity and the calculation complexity to O(log(N)*N). They can typically be applied to datasets with millions of data points. However, all those algorithms ignore a large part of the data, and potentially distort the embedding map. Especially, those embedding often miss out large, inter-cluster characteristics.  
+  
+  The library only supports vector data with Euclidean distance; and all numerical calculations are done with float32 precision. For more extended needs, please see the commercial software package VisuMap, that supports many more distances, data types and embedding algorithms.
 
