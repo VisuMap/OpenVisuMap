@@ -45,5 +45,5 @@ This GPU based implementation gives a 10x to 40x speedup comparing to CPU implem
   
   For comparison, most speeding-up varations of t-SNE (e.g. bh-Tsne, flt-SNE, LargeVis, UMAP) approximate the algorithm by focusing on a subset of affinities, typically, within the neighborhood of each data points. Those methods, reduce both the memory complexity and the calculation complexity to O(N*log(N)). They can typically be applied to datasets with millions of data points. However, all those algorithms ignore a large part of the data; and potentially distort the embedding maps; and miss out large, inter-cluster characteristics. Especially, those embeddings are often shaped as a single disc.
   
-  The library only supports vector data with Euclidean distance; and all numerical calculations are done with float32 precision. For more extended needs, please see the commercial software package VisuMap, that supports many more distances, data types and embedding algorithms.
+  The library only supports vector data with Euclidean or Pearson correlation distances; and all numerical calculations are done with 32 bits precision. For more extended needs, please see the commercial software package VisuMap, that supports many more distances, data types and embedding algorithms.
 
