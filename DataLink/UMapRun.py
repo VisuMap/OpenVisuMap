@@ -5,10 +5,15 @@ print('Loading libraries...')
 import umap, time, sys, DataLinkCmd
 import numpy as np
 
-mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['e']
+mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['s']
 initType = ['spectral', 'random'][1]
-repeats, epochs = 1, 1000
-mapDim, nn, md, lc, ns, sp = 2, 750, 0.25, 10.0, 25, 0.85
+epochs = 2000
+mapDim = 2
+nn = 2500
+md = 0.25
+lc = 20.0
+ns = 25
+sp = 25.0
 randomizeOrder = True
 
 log = DataLinkCmd.DataLinkCmd()
@@ -31,8 +36,11 @@ print("Loaded table: ", ds.shape)
 # centralize the training data
 # if mtr == 'cosine': ds = ds - np.mean(ds, axis=0)
 
+parList = [0, 1]
+//parList = [10.0, 20.0, 30.0, 40.0, 50.0]
+
 print('Fitting data...')
-for k in range(repeats):
+for par in parList:
     if randomizeOrder:
         perm = np.random.permutation(ds.shape[0])
         ds = ds[perm]
@@ -41,6 +49,7 @@ for k in range(repeats):
         perm = np.arange(ds.shape[0])[np.argsort(perm)]
 
     t0 = time.time()
+    //ns = par
     um = umap.UMAP(n_neighbors=nn, min_dist=md, local_connectivity=lc, 
         n_components=mapDim, metric=mtr, negative_sample_rate=ns,
         n_epochs=epochs, init=initType, learning_rate=1, verbose=True, spread=sp)
