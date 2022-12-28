@@ -37,10 +37,11 @@ print("Loaded table: ", ds.shape)
 # if mtr == 'cosine': ds = ds - np.mean(ds, axis=0)
 
 parList = [0, 1]
-//parList = [10.0, 20.0, 30.0, 40.0, 50.0]
+#parList = [10.0, 20.0, 30.0, 40.0, 50.0]
 
 print('Fitting data...')
 for par in parList:
+    #ns = par
     if randomizeOrder:
         perm = np.random.permutation(ds.shape[0])
         ds = ds[perm]
@@ -49,7 +50,6 @@ for par in parList:
         perm = np.arange(ds.shape[0])[np.argsort(perm)]
 
     t0 = time.time()
-    //ns = par
     um = umap.UMAP(n_neighbors=nn, min_dist=md, local_connectivity=lc, 
         n_components=mapDim, metric=mtr, negative_sample_rate=ns,
         n_epochs=epochs, init=initType, learning_rate=1, verbose=True, spread=sp)
