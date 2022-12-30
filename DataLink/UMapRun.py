@@ -1,20 +1,23 @@
 # File: UMapRun.py
 # Script to run UMAP on selected data in VisuMap.
-print("Running UMAP...")
 print('Loading libraries...')
 import umap, time, sys, DataLinkCmd
 import numpy as np
 
+pyVersion = sys.version.split(' ')[0]
+print('Python: %s; UMAP: %s'%(pyVersion, str(umap.__version__)))
+
 mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['s']
-initType = ['spectral', 'random'][1]
+initType = ['spectral', 'random', 'pca'][0]
 epochs = 2000
 mapDim = 2
 nn = 2500
 md = 0.25
-lc = 20.0
+lc = 20
 ns = 25
-sp = 25.0
+sp = 35
 randomizeOrder = True
+stateSeed = None
 
 log = DataLinkCmd.DataLinkCmd()
 
@@ -36,12 +39,9 @@ print("Loaded table: ", ds.shape)
 # centralize the training data
 # if mtr == 'cosine': ds = ds - np.mean(ds, axis=0)
 
-parList = [0, 1]
-#parList = [10.0, 20.0, 30.0, 40.0, 50.0]
-
 print('Fitting data...')
-for par in parList:
-    #ns = par
+for k in range(2):
+#for ns in [20, 30, 40, 50]:
     if randomizeOrder:
         perm = np.random.permutation(ds.shape[0])
         ds = ds[perm]
@@ -50,12 +50,12 @@ for par in parList:
         perm = np.arange(ds.shape[0])[np.argsort(perm)]
 
     t0 = time.time()
-    um = umap.UMAP(n_neighbors=nn, min_dist=md, local_connectivity=lc, 
-        n_components=mapDim, metric=mtr, negative_sample_rate=ns,
+    um = umap.UMAP(n_neighbors=nn, min_dist=md, local_connectivity=lc,
+        n_components=mapDim, metric=mtr, negative_sample_rate=ns, random_state=stateSeed,
         n_epochs=epochs, init=initType, learning_rate=1, verbose=True, spread=sp)
     map = um.fit_transform(ds)
     tm = time.time() - t0
-    title = 'UMAP: Neighbors: %d, MinDist: %g, LocCnt: %g, N.Smpl: %d, Spread: %.1f, Metric: %s, Time: %.1f'%(nn, md, lc, ns, sp, mtr, tm)
+    title = 'UMAP: Nbs:%d, MinDist:%g, L.Cnt:%g, N.S.:%d, Spr:%.1f, Mtr:%s, T:%.1fs'%(nn, md, lc, ns, sp, mtr, tm)
     
     if randomizeOrder: # reverse the random order.
         map = map[perm]
