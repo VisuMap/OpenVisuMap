@@ -40,6 +40,12 @@ class DataLinkCmd:
         self.port = portNumber
         self.vmHost = vmHost
         self.skt.connect((self.vmHost, portNumber))
+
+    def Close(self):
+        if self.skt != None:
+            self.skt.shutdown(socket.SHUT_RDWR)
+            self.skt.close()
+            self.skt = None
         
     def IsOK(self):
         r""" Receive a single response and check whether it OK.

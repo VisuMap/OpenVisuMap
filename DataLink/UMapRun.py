@@ -15,7 +15,7 @@ mtrList = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}
 initList = {'s':'spectral', 'r':'random', 'p':'pca'}
 
 mtr = mtrList['e']
-initType = initList['p']
+initType = initList['s']
 epochs = 2500
 mapDim = 2
 nn = 2000
@@ -26,9 +26,8 @@ sp = 10
 randomizeOrder = True
 stateSeed = None
 
-log = DataLinkCmd.DataLinkCmd()
-
 print('Loading data from VisuMap...')
+log = DataLinkCmd.DataLinkCmd()
 if mtr == 'precomputed':
     ds = log.LoadDistances(tmout=600)
 else:
@@ -39,6 +38,7 @@ else:
             print('No data has been selected')
             time.sleep(4.0)
             quit()
+log.Close()
 
 ds = np.nan_to_num(ds)
 print("Loaded table: ", ds.shape)
@@ -70,13 +70,14 @@ for k in range(2):
         if mtr == 'precomputed':
             ds[:,:] = ds[:, perm]
 
-    log = DataLinkCmd.DataLinkCmd()
+    cmd = DataLinkCmd.DataLinkCmd()
     if mapDim == 1:
-        log.ShowMatrix(map, view=14, title=title)
-        log.RunScript('pp.NormalizeView();pp.SortItems(true);')
+        cmd.ShowMatrix(map, view=14, title=title)
+        cmd.RunScript('pp.NormalizeView();pp.SortItems(true);')
     elif mapDim == 2:
-        log.ShowMatrix(map, view=12, title=title)
-        log.RunScript('pp.NormalizeView()')
+        cmd.ShowMatrix(map, view=12, title=title)
+        cmd.RunScript('pp.NormalizeView()')
     elif mapDim == 3:
-        log.ShowMatrix(map, view=13, title=title)
-        log.RunScript('pp.DoPcaCentralize()')
+        cmd.ShowMatrix(map, view=13, title=title)
+        cmd.RunScript('pp.DoPcaCentralize()')
+    cmd.Close()
