@@ -1,21 +1,28 @@
 # File: UMapRun.py
-# Script to run UMAP on selected data in VisuMap.
+# 
+# Run UMAP on selected data from VisuMap and show the result to VisuMap.
+#====================================================================================
 print('Loading libraries...')
-import umap, time, sys, DataLinkCmd
+import sys
+#sys.path.insert(0, 'C:/temp/umap-master/umap-master')
+import time, umap, DataLinkCmd
 import numpy as np
 
 pyVersion = sys.version.split(' ')[0]
 print('Python: %s; UMAP: %s'%(pyVersion, str(umap.__version__)))
 
-mtr = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}['s']
-initType = ['spectral', 'random', 'pca'][0]
-epochs = 2000
+mtrList = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}
+initList = {'s':'spectral', 'r':'random', 'p':'pca'}
+
+mtr = mtrList['e']
+initType = initList['p']
+epochs = 2500
 mapDim = 2
-nn = 2500
-md = 0.25
+nn = 2000
+md = 0.99
 lc = 20
 ns = 25
-sp = 35
+sp = 10
 randomizeOrder = True
 stateSeed = None
 
@@ -41,7 +48,7 @@ print("Loaded table: ", ds.shape)
 
 print('Fitting data...')
 for k in range(2):
-#for ns in [20, 30, 40, 50]:
+#for md in [3.0, 4.0, 5.0, 10.0]:
     if randomizeOrder:
         perm = np.random.permutation(ds.shape[0])
         ds = ds[perm]
