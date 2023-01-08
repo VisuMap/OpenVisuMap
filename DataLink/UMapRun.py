@@ -5,24 +5,22 @@
 print('Loading libraries...')
 import sys
 #sys.path.insert(0, 'C:/temp/umap-master/umap-master')
-import time, umap, DataLinkCmd
+import time, types, umap, DataLinkCmd
 import numpy as np
+from types import SimpleNamespace
 
 pyVersion = sys.version.split(' ')[0]
 print('Python: %s; UMAP: %s'%(pyVersion, str(umap.__version__)))
 
-mtrList = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}
-initList = {'s':'spectral', 'r':'random', 'p':'pca'}
-
-mtr = mtrList['e']
-initType = initList['p']
+mtr = SimpleNamespace(e='euclidean', c='correlation', s='cosine', p='precomputed').e
+initType = SimpleNamespace(s='spectral', r='random', p='pca').p
 epochs = 2500
 mapDim = 2
 nn = 2000
 md = 0.99
 lc = 20
 ns = 25
-sp = 20
+sp = 50
 randomizeOrder = True
 stateSeed = None
 

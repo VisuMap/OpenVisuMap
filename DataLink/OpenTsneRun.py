@@ -2,7 +2,7 @@
 # Script to run OpenTsne on selected data in VisuMap.
 #=====================================================
 
-import time, sys, numpy, DataLinkCmd, openTSNE
+import time, sys, types, numpy, DataLinkCmd, openTSNE
 pyVersion = sys.version.split(' ')[0]
 print('Python: %s; openTSNE: %s'%(pyVersion, str(openTSNE.__version__)))
 
@@ -20,10 +20,8 @@ ds = numpy.nan_to_num(ds)
 print("Loaded table: ", ds.shape)
 
 print('Fitting data...')
-mtrList = {'e':'euclidean', 'c':'correlation', 's':'cosine'}
-initList = {'s':'spectral', 'r':'random', 'p':'pca'}
-metric = mtrList['e']
-initType = initList['s']
+metric = types.SimpleNamespace(e='euclidean', c='correlation', s='cosine').e
+initType = types.SimpleNamespace(s='spectral', r='random', p='pca').r
 epochs = 1000
 pp = 400
 randomizeOrder = True
@@ -36,8 +34,7 @@ for k in range(4):
         perm = numpy.arange(ds.shape[0])[numpy.argsort(perm)]
 
     t0 = time.time()
-    tsne = openTSNE.TSNE(perplexity=pp, metric=metric, n_jobs=4, n_iter=epochs, 
-	initialization=initType, random_state=42, verbose=True)
+    tsne = openTSNE.TSNE(perplexity=pp, metric=metric, n_jobs=4, n_iter=epochs, initialization=initType, verbose=True)
     map = tsne.fit(ds)
     tm = time.time() - t0
     title = f'OpenTsne: Epochs:{epochs}, Mtr:{metric}, Perplexity:{pp}, Init:{initType}, T:{tm:.1f}'
