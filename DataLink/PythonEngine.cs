@@ -16,6 +16,8 @@ namespace VisuMap.DataLink {
         public PythonEngine() {
             scriptEditor = DataLink.App.ScriptApp.GetProperty("DataLink.PythonEditor", scriptEditor);
             pythonProgamm = DataLink.App.ScriptApp.GetProperty("DataLink.PythonProg", "python.exe");
+            if (pythonProgamm.Length == 0)
+                pythonProgamm = "python";
         }
 
         public string ScriptEditor { get => scriptEditor; set => scriptEditor = value; }
