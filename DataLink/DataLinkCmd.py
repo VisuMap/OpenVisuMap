@@ -46,6 +46,11 @@ class DataLinkCmd:
             self.skt.shutdown(socket.SHUT_RDWR)
             self.skt.close()
             self.skt = None
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.Close()
+
         
     def IsOK(self):
         r""" Receive a single response and check whether it OK.

@@ -15,30 +15,30 @@ mtrList = {'e':'euclidean', 'c':'correlation', 's':'cosine', 'p':'precomputed'}
 initList = {'s':'spectral', 'r':'random', 'p':'pca'}
 
 mtr = mtrList['e']
-initType = initList['s']
+initType = initList['p']
 epochs = 2500
 mapDim = 2
 nn = 2000
 md = 0.99
 lc = 20
 ns = 25
-sp = 10
+sp = 20
 randomizeOrder = True
 stateSeed = None
 
 print('Loading data from VisuMap...')
-log = DataLinkCmd.DataLinkCmd()
-if mtr == 'precomputed':
-    ds = log.LoadDistances(tmout=600)
-else:
-    ds = log.LoadTable(dsName='+')
-    if (ds is None) or (ds.shape[0]==0) or (ds.shape[1]==0):
-        ds = log.LoadTable('@', tmout=180)
-        if (ds.shape[0]==0) or (ds.shape[1]==0):
-            print('No data has been selected')
-            time.sleep(4.0)
-            quit()
-log.Close()
+
+with DataLinkCmd.DataLinkCmd() as log:
+	if mtr == 'precomputed':
+	    ds = log.LoadDistances(tmout=600)
+	else:
+	    ds = log.LoadTable(dsName='+')
+	    if (ds is None) or (ds.shape[0]==0) or (ds.shape[1]==0):
+	        ds = log.LoadTable('@', tmout=180)
+	        if (ds.shape[0]==0) or (ds.shape[1]==0):
+	            print('No data has been selected')
+	            time.sleep(4.0)
+	            quit()
 
 ds = np.nan_to_num(ds)
 print("Loaded table: ", ds.shape)
