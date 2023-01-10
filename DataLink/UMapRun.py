@@ -12,41 +12,31 @@ from types import SimpleNamespace
 pyVersion = sys.version.split(' ')[0]
 print('Python: %s; UMAP: %s'%(pyVersion, str(umap.__version__)))
 
-mtr = SimpleNamespace(e='euclidean', c='correlation', s='cosine', p='precomputed').e
-initType = SimpleNamespace(s='spectral', r='random', p='pca').p
-epochs = 2500
+mtrList = SimpleNamespace(e='euclidean', c='correlation', s='cosine', p='precomputed')
+initList = SimpleNamespace(s='spectral', r='random', p='pca')
+
+mtr = mtrList.e
+initType = initList.s
+epochs = 1000
 mapDim = 2
 nn = 2000
 md = 0.99
 lc = 20
-ns = 25
-sp = 50
+ns = 20
+sp = 25
 randomizeOrder = True
 stateSeed = None
+zeroMean = False
 
-print('Loading data from VisuMap...')
-
-with DataLinkCmd.DataLinkCmd() as log:
-	if mtr == 'precomputed':
-	    ds = log.LoadDistances(tmout=600)
-	else:
-	    ds = log.LoadTable(dsName='+')
-	    if (ds is None) or (ds.shape[0]==0) or (ds.shape[1]==0):
-	        ds = log.LoadTable('@', tmout=180)
-	        if (ds.shape[0]==0) or (ds.shape[1]==0):
-	            print('No data has been selected')
-	            time.sleep(4.0)
-	            quit()
-
-ds = np.nan_to_num(ds)
-print("Loaded table: ", ds.shape)
+ds = DataLinkCmd.LoadFromVisuMap(mtr)
 
 # centralize the training data
-# if mtr == 'cosine': ds = ds - np.mean(ds, axis=0)
+if zeroMean:
+   ds = ds - np.mean(ds, axis=0)
 
 print('Fitting data...')
 for k in range(2):
-#for md in [3.0, 4.0, 5.0, 10.0]:
+#for sp in [20, 30, 40, 50]:
     if randomizeOrder:
         perm = np.random.permutation(ds.shape[0])
         ds = ds[perm]
@@ -67,15 +57,6 @@ for k in range(2):
         ds = ds[perm]
         if mtr == 'precomputed':
             ds[:,:] = ds[:, perm]
+  
+    DataLinkCmd.ShowToVisuMap(map, title)
 
-    cmd = DataLinkCmd.DataLinkCmd()
-    if mapDim == 1:
-        cmd.ShowMatrix(map, view=14, title=title)
-        cmd.RunScript('pp.NormalizeView();pp.SortItems(true);')
-    elif mapDim == 2:
-        cmd.ShowMatrix(map, view=12, title=title)
-        cmd.RunScript('pp.NormalizeView()')
-    elif mapDim == 3:
-        cmd.ShowMatrix(map, view=13, title=title)
-        cmd.RunScript('pp.DoPcaCentralize()')
-    cmd.Close()

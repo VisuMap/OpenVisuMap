@@ -6,35 +6,28 @@ import time, sys, types, numpy, DataLinkCmd, openTSNE
 pyVersion = sys.version.split(' ')[0]
 print('Python: %s; openTSNE: %s'%(pyVersion, str(openTSNE.__version__)))
 
-print('Loading data from VisuMap...')
-log = DataLinkCmd.DataLinkCmd()
-ds = log.LoadTable(dsName='+')
-if (ds is None) or (ds.shape[0]==0) or (ds.shape[1]==0):
-    ds = log.LoadTable('@', tmout=180)
-    if (ds.shape[0]==0) or (ds.shape[1]==0):
-        print('No data has been selected')
-        time.sleep(4.0)
-        quit()
-log.Close()
-ds = numpy.nan_to_num(ds)
-print("Loaded table: ", ds.shape)
-
 print('Fitting data...')
-metric = types.SimpleNamespace(e='euclidean', c='correlation', s='cosine').e
-initType = types.SimpleNamespace(s='spectral', r='random', p='pca').r
+initList = types.SimpleNamespace(s='spectral', r='random', p='pca')
+mtrList = types.SimpleNamespace(e='euclidean', c='correlation', s='cosine')
+metric = mtrList.e
+initType = initList.s
 epochs = 1000
-pp = 400
+pp = 200
 randomizeOrder = True
+exa = 4.0
 
-for k in range(4):
-#for pp in [50, 100, 200, 400]:
+ds = DataLinkCmd.LoadFromVisuMap(metric)
+
+for k in range(2):
+#for initType in [initList.s, initList.r, initList.p]:
     if randomizeOrder:
         perm = numpy.random.permutation(ds.shape[0])
         ds = ds[perm]
         perm = numpy.arange(ds.shape[0])[numpy.argsort(perm)]
 
     t0 = time.time()
-    tsne = openTSNE.TSNE(perplexity=pp, metric=metric, n_jobs=4, n_iter=epochs, initialization=initType, verbose=True)
+    tsne = openTSNE.TSNE(perplexity=pp, metric=metric, early_exaggeration=exa,
+        n_jobs=6, n_iter=epochs, initialization=initType, verbose=True)
     map = tsne.fit(ds)
     tm = time.time() - t0
     title = f'OpenTsne: Epochs:{epochs}, Mtr:{metric}, Perplexity:{pp}, Init:{initType}, T:{tm:.1f}'
@@ -43,6 +36,4 @@ for k in range(4):
         map = map[perm]
         ds = ds[perm]
 
-    with DataLinkCmd.DataLinkCmd() as cmd:
-        cmd.ShowMatrix(map, view=12, title=title)
-        cmd.RunScript('pp.NormalizeView()')
+    DataLinkCmd.ShowToVisuMap(map, title)

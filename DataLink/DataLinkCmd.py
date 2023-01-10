@@ -459,3 +459,33 @@ class DataLinkCmd:
         if tmout != 0:
             tcpCnt.settimeout(tmout)
         return tcpCnt
+
+def LoadFromVisuMap(mtr):
+    print('Loading data from VisuMap...')
+    with DataLinkCmd() as log:
+        if mtr == 'precomputed':
+            ds = log.LoadDistances(tmout=600)
+        else:
+            ds = log.LoadTable(dsName='+')
+            if (ds is None) or (ds.shape[0]==0) or (ds.shape[1]==0):
+                ds = log.LoadTable('@', tmout=180)
+                if (ds.shape[0]==0) or (ds.shape[1]==0):
+                    print('No data has been selected')
+                    time.sleep(4.0)
+                    quit()
+    ds = np.nan_to_num(ds)
+    print("Loaded table: ", ds.shape)
+    return ds
+
+def ShowToVisuMap(map, title):
+  with DataLinkCmd() as cmd:
+    mapDim = map.shape[1]
+    if mapDim == 1:
+        cmd.ShowMatrix(map, view=14, title=title)
+        cmd.RunScript('pp.NormalizeView();pp.SortItems(true);')
+    elif mapDim == 2:
+        cmd.ShowMatrix(map, view=12, title=title)
+        cmd.RunScript('pp.NormalizeView()')
+    elif mapDim == 3:
+        cmd.ShowMatrix(map, view=13, title=title)
+        cmd.RunScript('pp.DoPcaCentralize()')
