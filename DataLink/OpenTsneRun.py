@@ -7,19 +7,18 @@ pyVersion = sys.version.split(' ')[0]
 print('Python: %s; openTSNE: %s'%(pyVersion, str(openTSNE.__version__)))
 
 print('Fitting data...')
-initList = types.SimpleNamespace(s='spectral', r='random', p='pca')
-mtrList = types.SimpleNamespace(e='euclidean', c='correlation', s='cosine')
-metric = mtrList.e
-initType = initList.s
-epochs = 1000
-pp = 200
+A = types.SimpleNamespace(s='spectral', r='random', p='pca')
+M = types.SimpleNamespace(e='euclidean', c='correlation', s='cosine')
+metric = M.e
+initType = A.r
+epochs = 2000
+pp = 1500
 randomizeOrder = True
 exa = 4.0
-
 ds = DataLinkCmd.LoadFromVisuMap(metric)
 
-for k in range(2):
-#for initType in [initList.s, initList.r, initList.p]:
+for k in [0,1,2]:
+#for initType in [A.r,A.r,A.r]:
     if randomizeOrder:
         perm = numpy.random.permutation(ds.shape[0])
         ds = ds[perm]
@@ -35,5 +34,4 @@ for k in range(2):
     if randomizeOrder: # reverse the random order.
         map = map[perm]
         ds = ds[perm]
-
     DataLinkCmd.ShowToVisuMap(map, title)

@@ -12,18 +12,18 @@ from types import SimpleNamespace
 pyVersion = sys.version.split(' ')[0]
 print('Python: %s; UMAP: %s'%(pyVersion, str(umap.__version__)))
 
-mtrList = SimpleNamespace(e='euclidean', c='correlation', s='cosine', p='precomputed')
-initList = SimpleNamespace(s='spectral', r='random', p='pca')
+A = SimpleNamespace(s='spectral', r='random', p='pca')
+M = SimpleNamespace(e='euclidean', c='correlation', s='cosine', p='precomputed')
 
-mtr = mtrList.e
-initType = initList.s
-epochs = 1000
+mtr = M.e
+initType = A.s
+epochs = 500
 mapDim = 2
 nn = 2000
-md = 0.99
-lc = 20
-ns = 20
-sp = 25
+md = 0.75
+lc = 5
+ns = 25
+sp = 20
 randomizeOrder = True
 stateSeed = None
 zeroMean = False
@@ -35,8 +35,8 @@ if zeroMean:
    ds = ds - np.mean(ds, axis=0)
 
 print('Fitting data...')
-for k in range(2):
-#for sp in [20, 30, 40, 50]:
+for k in [0,1]:
+#for initType in [A.s, A.r, A.p]:
     if randomizeOrder:
         perm = np.random.permutation(ds.shape[0])
         ds = ds[perm]
