@@ -91,9 +91,9 @@ namespace TsneDx {
 
         public int MetricType { get; set; } = 0;
 
-        public double ExaggerationFactor { get; set; } = 12.0;
+        public double ExaggerationFactor { get; set; } = 4.0;
 
-        public double ExaggerationRatio { get; set; } = 0.7;
+        public double ExaggerationRatio { get; set; } = 0.99;
 
         public int ExaggerationLength { 
             get { return (int) (MaxEpochs* ExaggerationRatio); }

@@ -11,7 +11,7 @@ namespace TsneDx {
     public class TsneDx {
         static void Main(string[] args) {
             if (args.Length == 0) {
-                Console.WriteLine("Usage:  TsneDx.exe <input-file>.csv [perplexity-ratio] [epochs] [out-dim]");
+                Console.WriteLine("Usage:  TsneDx.exe <input-file>.csv [perplexity-ratio] [epochs] [out-dim] [exaggeration]");
                 Console.WriteLine("PCA Usage:  TsneDx.exe <out-dim> <input-file>.csv");
                 return;
             }
@@ -44,8 +44,9 @@ namespace TsneDx {
             double perplexityRatio = (args.Length >= 2) ? double.Parse(args[1]) : 0.05;
             int epochs = (args.Length >= 3) ? int.Parse(args[2]) : 500;
             int outDim = (args.Length >= 4) ? int.Parse(args[3]) : 2;
+            double initExaggeration = (args.Length >= 5) ? double.Parse(args[4]) : 4.0;
             if ( ! (inFile.EndsWith(".csv")||inFile.EndsWith(".npy")) ) {
-                Console.WriteLine("Usage:  TsneDx.exe <input-file>.csv [perplexity-ratio] [epochs] [out-dim]");
+                Console.WriteLine("Usage:  TsneDx.exe <input-file>.csv [perplexity-ratio] [epochs] [out-dim] [exaggeration]");
                 return;
             }
             string outFile = inFile.Substring(0, inFile.Length - 4) + "_map.csv";
@@ -54,13 +55,14 @@ namespace TsneDx {
             float[][] X = inFile.EndsWith(".csv") ? ReadCsvFile(inFile) : TsneMap.ReadNumpyFile(inFile);
             Console.WriteLine("Loaded table: " + X.Length + "x" + X[0].Length);
             Console.WriteLine(string.Format(
-                "Running tSNE: Perpelxity Ratio: {0}, Epochs: {1}, Out Dimension: {2}...",
-                perplexityRatio, epochs, outDim));
+                "Running tSNE: Perpelxity Ratio:{0}, Epochs:{1}, Out Dimension:{2}, Exaggeration:{3} ...",
+                perplexityRatio, epochs, outDim, initExaggeration));
 
             using (TsneMap tsne = new TsneMap() {
                 PerplexityRatio = perplexityRatio,
                 MaxEpochs = epochs,
-                OutDim = outDim
+                OutDim = outDim,
+                ExaggerationFactor = initExaggeration,
             }) {
                 float[][] Y = tsne.Fit(X);
                 WriteCsvFile(Y, outFile);
