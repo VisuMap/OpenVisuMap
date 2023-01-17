@@ -4,7 +4,7 @@
 #====================================================================================
 print('Loading libraries...')
 import sys
-sys.path.insert(0, 'C:/temp/umap-master/umap-master')
+#sys.path.insert(0, 'C:/temp/umap-master/umap-master')
 import time, types, umap, DataLinkCmd
 import numpy as np
 from types import SimpleNamespace
@@ -30,7 +30,6 @@ def ResetTest():
     global sp
     global randomizeOrder
     global stateSeed
-    global zeroMean
 
     mtr = M.e
     initType = A.p
@@ -43,7 +42,6 @@ def ResetTest():
     sp = 10
     randomizeOrder = True
     stateSeed = None
-    zeroMean = False
 
 def DoTest():
     global ds
@@ -73,11 +71,9 @@ def DoTest():
 
 #====================================================================================
 
-
 ds = DataLinkCmd.LoadFromVisuMap()
 # centralize the training data
-if zeroMean:
-   ds = ds - np.mean(ds, axis=0)
+# ds = ds - np.mean(ds, axis=0)
 
 #====================================================================================
 
@@ -97,3 +93,4 @@ for md in [0.1, 0.5, 0.9]: DoTest()
 ResetTest()
 for lc in [3, 5, 10]: DoTest()
 '''
+

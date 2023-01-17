@@ -463,7 +463,7 @@ class DataLinkCmd:
 def LoadFromVisuMap(metric='euclidean'):
     print('Loading data from VisuMap...')
     with DataLinkCmd() as log:
-        if mtr == 'precomputed':
+        if metric == 'precomputed':
             ds = log.LoadDistances(tmout=600)
         else:
             ds = log.LoadTable(dsName='+')
