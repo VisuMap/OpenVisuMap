@@ -4,7 +4,7 @@
 #====================================================================================
 print('Loading libraries...')
 import sys
-#sys.path.insert(0, 'C:/temp/umap-master/umap-master')
+sys.path.insert(0, 'C:/temp/umap-master/umap-master')
 import time, types, umap, DataLinkCmd
 import numpy as np
 from types import SimpleNamespace
@@ -15,28 +15,39 @@ print('Python: %s; UMAP: %s'%(pyVersion, str(umap.__version__)))
 A = SimpleNamespace(s='spectral', r='random', p='pca')
 M = SimpleNamespace(e='euclidean', c='correlation', s='cosine', p='precomputed')
 
-mtr = M.e
-initType = A.s
-epochs = 500
-mapDim = 2
-nn = 2000
-md = 0.75
-lc = 5
-ns = 25
-sp = 20
-randomizeOrder = True
-stateSeed = None
-zeroMean = False
 
-ds = DataLinkCmd.LoadFromVisuMap(mtr)
+#====================================================================================
 
-# centralize the training data
-if zeroMean:
-   ds = ds - np.mean(ds, axis=0)
+def ResetTest():
+    global mtr
+    global initType
+    global epochs
+    global mapDim
+    global nn
+    global md
+    global lc
+    global ns
+    global sp
+    global randomizeOrder
+    global stateSeed
+    global zeroMean
 
-print('Fitting data...')
-for k in [0,1]:
-#for initType in [A.s, A.r, A.p]:
+    mtr = M.e
+    initType = A.p
+    epochs = 2000
+    mapDim = 2
+    nn = 200
+    md = 0.1
+    lc = 5
+    ns = 20
+    sp = 10
+    randomizeOrder = True
+    stateSeed = None
+    zeroMean = False
+
+def DoTest():
+    global ds
+    print('Fitting data...')
     if randomizeOrder:
         perm = np.random.permutation(ds.shape[0])
         ds = ds[perm]
@@ -60,3 +71,29 @@ for k in [0,1]:
   
     DataLinkCmd.ShowToVisuMap(map, title)
 
+#====================================================================================
+
+
+ds = DataLinkCmd.LoadFromVisuMap()
+# centralize the training data
+if zeroMean:
+   ds = ds - np.mean(ds, axis=0)
+
+#====================================================================================
+
+ResetTest()
+for k in [0,1,2]: DoTest()
+
+'''
+ResetTest()
+for initType in [A.s, A.r, A.p]: DoTest()
+
+ResetTest()
+for nn in [200, 1000, 2000]: DoTest()
+
+ResetTest()
+for md in [0.1, 0.5, 0.9]: DoTest()
+
+ResetTest()
+for lc in [3, 5, 10]: DoTest()
+'''
