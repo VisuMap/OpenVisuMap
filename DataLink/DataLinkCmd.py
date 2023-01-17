@@ -460,7 +460,7 @@ class DataLinkCmd:
             tcpCnt.settimeout(tmout)
         return tcpCnt
 
-def LoadFromVisuMap(mtr):
+def LoadFromVisuMap(metric='euclidean'):
     print('Loading data from VisuMap...')
     with DataLinkCmd() as log:
         if mtr == 'precomputed':
