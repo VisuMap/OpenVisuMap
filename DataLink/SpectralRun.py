@@ -13,4 +13,4 @@ t0 = time.time()
 spr = SpectralEmbedding(n_components=2, n_jobs=-1)
 map = spr.fit_transform(ds)
 tm = time.time() - t0
-DataLinkCmd.ShowToVisuMap(map, 'Spectral-Embedding')
+DataLinkCmd.ShowToVisuMap(map, 'Spectral-Embedding: T:%.1fs'%(tm))
