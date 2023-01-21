@@ -84,8 +84,9 @@ namespace VisuMap.DataLink {
                 progName = progName.Substring(0, idx);
             }
             var proc = StartCmd(progName, argList, showWindow);
-            while (!proc.WaitForExit(100))
+            while (!proc.WaitForExit(100)) {
                 Application.DoEvents();
+            }
         }
 
         public void Dispose() {
