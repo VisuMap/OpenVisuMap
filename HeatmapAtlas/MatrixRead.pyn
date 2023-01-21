@@ -25,7 +25,7 @@ def LoadColumnId(nt, fname):
 		uf = New.UniqueNameFinder()
 		for i in range(nt.Columns):
 			fs = lines[i].split()
-			nt.ColumnSpecList[i].Id = uf.LookupName(fs[0])
+			nt.ColumnSpecList[i].Id = uf.LookupName(fs[0].strip())
 			if len(fs)>1:
 				nt.ColumnSpecList[i].Name = fs[1]
 	
@@ -36,7 +36,7 @@ def LoadRowId(nt, fname):
 	if (len(lines)) == nt.Rows:
 		uf = New.UniqueNameFinder()
 		for i in range(nt.Rows):
-			nt.RowSpecList[i].Id = uf.LookupName(lines[i])
+			nt.RowSpecList[i].Id = uf.LookupName(lines[i].strip())
 
 def ImportMtx():
 	fileName = PromptFile("Count Matrix|*.mtx.gz|CntMtx|*.mtx")
