@@ -83,8 +83,17 @@ namespace VisuMap.DataLink {
                 argList = progName.Substring(idx) + " " + argList;
                 progName = progName.Substring(0, idx);
             }
+
+            /*
             var proc = StartCmd(progName, argList, showWindow);
-            while (!proc.WaitForExit(100)) {
+            while (!proc.WaitForExit(100))
+                Application.DoEvents();
+            */
+
+            var thr = new Thread(() => {StartCmd(progName, argList, showWindow).WaitForExit();});
+            thr.Start();
+            while (!thr.Join(100)) {
+                Thread.Sleep(100);
                 Application.DoEvents();
             }
         }
