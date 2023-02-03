@@ -62,7 +62,7 @@ namespace TsneDx {
                 PerplexityRatio = perplexityRatio,
                 MaxEpochs = epochs,
                 OutDim = outDim,
-                ExaggerationFactor = initExaggeration,
+                ExaggerationInit = initExaggeration,
             }) {
                 float[][] Y = tsne.Fit(X);
                 WriteCsvFile(Y, outFile);

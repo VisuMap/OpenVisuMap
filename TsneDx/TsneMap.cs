@@ -61,7 +61,7 @@ namespace TsneDx {
             int OutDim=2,
             double ExaggerationRatio = 0.7,
             int CacheLimit = 23000,
-            double ExaggerationFactor = 12.0,
+            double ExaggerationInit = 10.0,
             int MetricType = 0
             )  {
             this.PerplexityRatio = PerplexityRatio;
@@ -69,7 +69,7 @@ namespace TsneDx {
             this.OutDim = OutDim;
             this.ExaggerationRatio = ExaggerationRatio;
             this.CacheLimit = CacheLimit;
-            this.ExaggerationFactor = ExaggerationFactor;
+            this.ExaggerationInit = ExaggerationInit;
             this.MetricType = MetricType;
         }
 
@@ -83,7 +83,7 @@ namespace TsneDx {
 
         public int MaxCpuCacheSize { get; set; } = 26000;
 
-        public double PerplexityRatio { get; set; } = 0.15;
+        public double PerplexityRatio { get; set; } = 0.05;
 
         public int OutDim { get; set; } = 2;
 
@@ -91,7 +91,9 @@ namespace TsneDx {
 
         public int MetricType { get; set; } = 0;
 
-        public double ExaggerationFactor { get; set; } = 4.0;
+        public double ExaggerationInit { get; set; } = 10.0;
+
+        public double ExaggerationFinal { get; set; } = 1.0;
 
         public double ExaggerationRatio { get; set; } = 0.99;
 
@@ -103,7 +105,7 @@ namespace TsneDx {
 
         public bool AutoNormalize { get; set; } = true;
 
-        public bool StagedTraining { get; set; } = true;
+        public bool StagedTraining { get; set; } = false;
         #endregion        
 
         #region FitNumpy
@@ -473,7 +475,7 @@ namespace TsneDx {
         }
 
         public float[][] Fit(float[][] X) {
-            int exaggerationLength = (int)(MaxEpochs * ExaggerationRatio);
+            int exaggerationLength = ExaggerationLength;
 
             gpu = new GpuDevice();
             cc = gpu.CreateConstantBuffer<TsneMapConstants>(0);
@@ -597,18 +599,12 @@ namespace TsneDx {
             List<double> stages = StagedTraining ? new List<double>() { 0.5, 0.75, 0.9 } : new List<double>();
 
             while (true) {
-                if (stepCounter < exaggerationLength) {
-                    if (ExaggerationSmoothen) {
-                        int len = (int)(0.9 * MaxEpochs);
-                        if (stepCounter < len) {
-                            double t = (double)stepCounter / len;
-                            cc.c.PFactor = (float)((1 - t) * ExaggerationFactor + t);
-                        } else
-                            cc.c.PFactor = 1.0f;
-                    } else
-                        cc.c.PFactor = (float)ExaggerationFactor;
-                } else
-                    cc.c.PFactor = 1.0f;
+                if (ExaggerationSmoothen) {
+                    double t = (double)(1 + stepCounter) / MaxEpochs;
+                    cc.c.PFactor = (float)(ExaggerationInit * Math.Pow((double)ExaggerationFinal / ExaggerationInit, t * t));
+                } else {
+                    cc.c.PFactor = (stepCounter < exaggerationLength) ? (float)ExaggerationInit : (float) ExaggerationFinal;
+                }
 
                 if (stages.Count > 0) {
                     double r = stages[0];
