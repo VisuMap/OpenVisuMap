@@ -50,7 +50,7 @@ namespace ClipRecorder {
             int n = e.Delta / 120;
             PlaySteps(-Math.Sign(n) * (n * n));
         }
-        void PlaySteps(int steps) {
+        public Form PlaySteps(int steps) {
             bool needRedraw = false;
             if (steps > 0) {
                 if (currentFrame < (frameList.Count - 1)) {
@@ -67,6 +67,7 @@ namespace ClipRecorder {
             if (needRedraw) {
                 ShowFrame(GetBodyList(), frameList[currentFrame]);
             }
+            return this;
         }
 
         public IForm PlayTarget
@@ -197,7 +198,7 @@ namespace ClipRecorder {
             return true;
         }
 
-        public void DeleteFrame(int frameIndex = -1) {
+        public Form DeleteFrame(int frameIndex = -1) {
             if (frameIndex == -1)
                 frameIndex = currentFrame;
             frameList.RemoveAt(frameIndex);
@@ -210,6 +211,7 @@ namespace ClipRecorder {
             }
             SetCurrentValue(currentFrame);
             SetMaximum(frameList.Count);
+            return this;
         }
 
         public bool ReplaceFrame(int frameIndex, IList<IBody> bodyList) {
@@ -270,15 +272,17 @@ namespace ClipRecorder {
             }
         }
 
-        void StopPlaying() {
+        public void StopPlaying() {
             stopFlag = true;
         }
 
-        public void Play() {
+        public Form Play() {
             isRecording = false;
             isPlaying = true;
             ReplayFrameList();
+            return this;
         }
+
         public bool InterpolateClip(int interFrames) {
             return InterpolateClip(interFrames, 0, frameList.Count);
         }
@@ -385,9 +389,9 @@ namespace ClipRecorder {
             return true;
         }
 
-        void ReplayFrameList() {
+        public Form ReplayFrameList() {
             if (frameList.Count <= 1)
-                return;
+                return this;
             currentFrame = Math.Max(0, currentFrame);
             currentFrame = Math.Min(frameList.Count - 1, currentFrame);
             List<IBody> bodyList = GetBodyList();
@@ -407,6 +411,7 @@ namespace ClipRecorder {
             }
             isPlaying = false;
             SyncMode();
+            return this;
         }
 
         void ShowFrame(List<IBody> bodyList, FrameSpec frame) {
@@ -709,6 +714,18 @@ namespace ClipRecorder {
             set { isRecording = value; SyncMode(); }
         }
 
+        public Form StartRecording() {
+            isRecording = true;
+            SyncMode();
+            return this;
+        }
+
+        public Form StopRecording() {
+            isRecording = false;
+            SyncMode();
+            return this;
+        }
+
         void btnConfigure_Click(object sender, EventArgs e) {
             propMan.StartEditor("Configure Clip Recorder", 300, 250);
         }
@@ -849,16 +866,18 @@ namespace ClipRecorder {
         }
 
         #region Some Script Interfaces
-        public void ClearRecorder() {
+        public Form ClearRecorder() {
             frameList.Clear();
             SetMaximum(0);
             SetCurrentValue(0);
+            return this;
         }
 
-        public void Reset() {
+        public Form Reset() {
             StopPlaying();
             SetCurrentValue((frameList.Count > 0) ? 0 : -1);
             SyncCurrentFrame();
+            return this;
         }
 
         public bool LoadClip(string filePath) {
@@ -1041,9 +1060,14 @@ namespace ClipRecorder {
         }
 
         private void miReverseFrames_Click(object sender, EventArgs e) {
+            ReverseFrameList();
+        }
+
+        public Form ReverseFrameList() { 
             frameList.Reverse();
             if ( (frameList.Count>0) && (currentFrame >= 0) ) 
                 SetCurrentValue(frameList.Count - 1 - currentFrame);
+            return this;
         }
     }
 }
