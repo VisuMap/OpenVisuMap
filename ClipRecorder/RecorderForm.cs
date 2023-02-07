@@ -584,7 +584,8 @@ namespace ClipRecorder {
                     ClipTitle = fs[0];
                     string dsFile = fs[1];
                     string dsName = fs[2];
-                    if ((dsFile != GetFolderFileName()) || (dsName != ds.Name) || (bodies != ds.BodyCount) ) {
+                    int dsBodyCount = ds.BodyListEnabled().Count;
+                    if ((dsFile != GetFolderFileName()) || (dsName != ds.Name) || (bodies != dsBodyCount) ) {
                         var ret = MessageBox.Show("The origine of the clips (" + dsFile + ":" + dsName + ":" + bodies + ") doesn't match the current dataset!"
                             + "\nClick Yes to continue or No to cancel.", "Invalid Clip File", MessageBoxButtons.YesNo);
                         if (ret == DialogResult.No)
