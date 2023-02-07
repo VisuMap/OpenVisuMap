@@ -113,7 +113,7 @@ namespace ClipRecorder {
             CreateSnapshot((float)0);
         }
 
-        ushort Flags(IBody body) {
+        public static ushort Flags(IBody body) {
             ushort flags = 0;
             if (body.IsFixed) flags |= 0x0001;
             if (body.Disabled) flags |= 0x0002;
@@ -124,7 +124,7 @@ namespace ClipRecorder {
             return flags;
         }
 
-        void SetFlags(IBody body, ushort flags) {
+        public static void SetFlags(IBody body, ushort flags) {
             body.IsFixed = ((flags & 0x0001) != 0);
             body.Disabled = ((flags & 0x0002) != 0);
             body.Hidden = ((flags & 0x0004) != 0);

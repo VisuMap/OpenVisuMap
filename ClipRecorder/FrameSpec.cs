@@ -1,6 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
+using VisuMap.Script;
 
 namespace ClipRecorder {
     public class FrameSpec {
@@ -19,5 +18,18 @@ namespace ClipRecorder {
         public float Timestamp;
         public BodyInfo[] BodyInfoList;
         public short MapType;
+
+        public List<IBody> GetBodyList() {
+            var app = ClipRecorder.App.ScriptApp;
+            var bsList = app.New.BodyListClone(app.Dataset.BodyListEnabled());
+            for(int i=0; i<Size; i++) {
+                bsList[i].X = BodyInfoList[i].x;
+                bsList[i].Y = BodyInfoList[i].y;
+                bsList[i].Z = BodyInfoList[i].z;
+                bsList[i].Type = BodyInfoList[i].type;
+                RecorderForm.SetFlags(bsList[i], BodyInfoList[i].flags);
+            }
+            return bsList;
+        }
     }
 }
