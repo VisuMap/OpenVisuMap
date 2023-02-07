@@ -158,7 +158,7 @@ namespace ClipRecorder {
         }
 
         public int CreateSnapshot(float timestamp = 0) {
-            List<IBody> bodyList = app.ScriptApp.Map.BodyList as List<IBody>;
+            List<IBody> bodyList = app.ScriptApp.Dataset.BodyListEnabled() as List<IBody>;
             var frm = NewFrame(bodyList);
             frm.Timestamp = timestamp;
             frameList.Add(frm);
@@ -231,7 +231,7 @@ namespace ClipRecorder {
 
         List<IBody> GetBodyList() {
             if (playTarget == null) {
-                return app.ScriptApp.Dataset.BodyList as List<IBody>;
+                return app.ScriptApp.Dataset.BodyListEnabled() as List<IBody>;
             } else {
                 if (playTarget is IMapSnapshot) {
                     return (playTarget as IMapSnapshot).BodyList as List<IBody>;
