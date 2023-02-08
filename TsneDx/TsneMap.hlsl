@@ -44,7 +44,7 @@
 		GroupMemoryBarrierWithGroupSync(); \
 	} \
 
-#define IsEpsilon(x) ( (abs(x)<2.22e-14f) || isnan(x) || isinf(x) )
+#define IsEpsilon(x) (abs(x)<2.22e-14f) 
 
 //============= structs ====================================================
 
