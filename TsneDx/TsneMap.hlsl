@@ -44,6 +44,8 @@
 		GroupMemoryBarrierWithGroupSync(); \
 	} \
 
+#define IsEpsilon(x) ( (abs(x)<2.22e-14f) || isnan(x) || isinf(x) )
+
 //============= structs ====================================================
 
 cbuffer GlobalConstants : register(b0) {
@@ -181,7 +183,7 @@ float Entropy(uint rowIdx, float beta) {
             sumP += aff;
             h += Pij * aff;
         }
-    return (sumP == 0) ? 0 : (log(sumP) + beta * h / sumP);
+    return IsEpsilon(sumP) ? 0 : (log(sumP) + beta * h / sumP);
 }
 
 void ToAffinity(uint rowIdx) {
@@ -316,7 +318,7 @@ float Entropy2(uint rowIdx, uint tIdx, float beta) {
             sumP += aff;
             h += Pij * aff;
         }
-    return (sumP == 0) ? 0 : (log(sumP) + beta * h / sumP);
+    return IsEpsilon(sumP) ? 0 : (log(sumP) + beta * h / sumP);
 }
 
 float2 ToAffinity2(uint rowIdx, uint gid) {
@@ -870,7 +872,7 @@ float Entropy3(uint rowIdx, uint refJ, float beta) {
 			h += Pij * aff;
 		}
 	}
-	return (sumP == 0) ? 0 : (log(sumP) + beta * h / sumP);
+	return IsEpsilon(sumP) ? 0 : (log(sumP) + beta * h / sumP);
 }
 
 // Convert a block of symmetrized and scaled distance matrix distanceMatrix[] to affinity.
