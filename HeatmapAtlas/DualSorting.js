@@ -8,21 +8,23 @@ ValidateHeatMap(pp);
 cfg = {...cfg, ...{
 	hm:null,
 	EpochsSrt: PP(5000, 5000),
-	ExaSrt:    PP(6,  4),
-	PprSrt:    PP(0.025, 0.025),
-	MtrSrt:    PP(cfg.cos, cfg.cos),
-   PrShSrt:   PP(0, 0.5),      
+	ExaSrt:    PP(6,  6),
+	ExaSrtF:   PP(1.0, 1.0),
+	PprSrt:    PP(0.1, 0.1),
+	MtrSrt:    PP(cfg.cos, cfg.euc),
+	PrShSrt:   PP(0, 0),      
 }};
 
-function SortTable(T, mt, epochs, ex, pr) {
+function SortTable(T, mt, epochs, ex, exF, pr) {
 	var tsne = New.TsneSorter(T, mt);
 	tsne.MaxLoops = epochs;
 	tsne.InitExaggeration = ex;
+	tsne.FinalExaggeration = exF;
 	tsne.PerplexityRatio = pr;
 	tsne.RefreshFreq = cfg.refFreq;
 	tsne.StagedTraining = false;
-	tsne.Broadcasting = true;
 	tsne.Repeats = 1;
+	tsne.Broadcasting = true;
 	tsne.Show().Start();
 	if (isNaN(tsne.ItemList[0].Value)) {
 		vv.Message("Training degraded!\nPlease try with smaller initial exaggeration.");
@@ -50,14 +52,14 @@ function DSortMain() {
 		csFct.ShiftTable(dsTable1, cfg.PrShSrt.c);
 	}
 
-	SortTable(dsTable1, cfg.MtrSrt.c, cfg.EpochsSrt.c, cfg.ExaSrt.c, cfg.PprSrt.c);
+	SortTable(dsTable1, cfg.MtrSrt.c, cfg.EpochsSrt.c, cfg.ExaSrt.c, cfg.ExaSrtF.c,  cfg.PprSrt.c);
 
 	cfg.hm.Title = 'Sorting Columns...';
 	cfg.hm.SelectionMode = 1;
 	var dsTable2 = dsTable.Transpose2();
 	if ( (cfg.MtrSrt.g == cfg.cos)  && (cfg.PrShSrt.c != 0) )
 		csFct.ShiftTable(dsTable2, cfg.PrShSrt.g);
-	SortTable(dsTable2, cfg.MtrSrt.g, cfg.EpochsSrt.g, cfg.ExaSrt.g, cfg.PprSrt.g);
+	SortTable(dsTable2, cfg.MtrSrt.g, cfg.EpochsSrt.g, cfg.ExaSrt.g, cfg.ExaSrtF.g, cfg.PprSrt.g);
 
 	dsTable2.FreeRef();
 	cfg.hm.Title = 'Sorted';	
