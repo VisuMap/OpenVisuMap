@@ -1,0 +1,79 @@
+# Import a VCF (variation call format) file into a heatmap view.
+# 
+# The following site offers some sample datasets:
+#
+#  https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/supporting/hd_genotype_chip/
+#
+import clr, gzip
+import numpy as np
+vv.Import('AtlasHelp.pyn')
+
+def ImportVCF(maxRows=0, skipSize=0):
+	fileName = PromptFile("VCF GZ Files|*.vcf.gz|VCF Files|*.vcf")
+	if fileName.endswith('.gz'):
+		f = gzip.open(fileName,'rt')
+	else:
+		f = open(fileName, 'rt')
+	rows = 0
+	matrix = []
+	rowIds = []
+	rowNames = []
+	if skipSize != 0: maxRows = 0
+	lineCount = 0
+
+	for line in f:
+		lineCount += 1
+		if (skipSize != 0) and (lineCount % skipSize != 0):
+			continue
+		if line.startswith('#'): 
+			continue
+		fs = line.split()
+		if len(fs) < 6: 
+			continue
+		if not fs[0].isdigit(): 
+			continue
+ 
+		chrom = fs[0]
+		position = fs[1]
+		rid = fs[2]
+		refAllele = fs[3]
+		altAllele = fs[4]
+		if refAllele not in ["A","C","G","T"] or altAllele not in ["A","C","G","T"]: 
+			continue
+		filter = fs[6]
+		if filter not in ['PASS', '.']: 
+			continue
+
+		genotypeStrings = fs[9:]
+		genotypeArray = np.zeros(len(genotypeStrings), dtype = np.int8)
+		for idx, gType in enumerate(genotypeStrings):
+			if gType == './.':
+				genotypeArray[idx]=-1
+				continue 
+			a0 = gType[0] # Get the first allele (as a string)
+			a1 = gType[2]
+			if (a0=='1' and a1=='1'): 
+				genotypeArray[idx]=2
+			elif ((a0=='0' and a1=='1') or (a0=='1' and a1=='0')):
+				genotypeArray[idx]=1   
+			elif (a0=='0' and a1=='0'):
+				continue
+			else:
+				break
+
+		rows += 1
+		matrix.append(genotypeArray)
+		rowIds.append(rid)
+		rowNames.append(refAllele + altAllele + '.' + chrom + '.' + position )
+		if (maxRows != 0) and (rows>=maxRows):
+			break
+	f.close()
+	
+	matrix = np.ascontiguousarray(np.array(matrix))
+	nt = mm.ToTable(np.float64(matrix))
+	for row, b in enumerate(nt.RowSpecList):
+		b.Id += '_' + rowIds[row]
+		b.Name = rowNames[row]
+	nt.ShowHeatMap()
+
+ImportVCF(maxRows=0, skipSize=500)
