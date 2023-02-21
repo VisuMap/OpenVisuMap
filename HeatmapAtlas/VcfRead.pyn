@@ -3,47 +3,71 @@
 # The following site offers some sample datasets:
 #
 #  https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/supporting/hd_genotype_chip/
+#  https://www.internationalgenome.org/data-portal/sample/HG00138
 #
-import clr, gzip
+import clr, gzip, math
 import numpy as np
 vv.Import('AtlasHelp.pyn')
 
+'''
+
+def ClusterBySNP()
+	bList = vv.Dataset.BodyList
+	SNPtoType = {'AG':0,'AC':1,'AT':2,'GC':3,'GT':4,'CT':5, 						   'GA':0,'CA':1,'TA':2,'CG':3,'TG':4,'TC':5}
+	for b in bList:
+		b.Type = SNPtoType[ b.Name.split('.')[0] ] 
+	vv.Map.RedrawAll()
+
+def ClusterByPositions():
+	bList = vv.Dataset.BodyList
+	pList = np.zeros(bList.Count, dtype=np.float64)
+	for idx, b in enumerate(bList):
+		pList[idx] = np.float64(b.Name.split('.')[2])
+	pMin, pMax = np.min(pList), np.max(pList)
+	stepSize = (pMax - pMin)/15.0
+	for idx, b in enumerate(bList):
+		b.Type = int(math.floor((pList[idx] - pMin)/stepSize))
+	vv.Map.RedrawAll()
+
+'''
+
 def ImportVCF(maxRows=0, skipSize=0):
-	fileName = PromptFile("VCF GZ Files|*.vcf.gz|VCF Files|*.vcf")
-	if fileName.endswith('.gz'):
-		f = gzip.open(fileName,'rt')
-	else:
-		f = open(fileName, 'rt')
+	fn = PromptFile("VCF GZ Files|*.vcf.gz|VCF Files|*.vcf")
+	vf = gzip.open(fn,'rt') if fn.endswith('.gz') else open(fn, 'rt')
 	rows = 0
 	matrix = []
 	rowIds = []
 	rowNames = []
-	if skipSize != 0: maxRows = 0
+	if skipSize != 0:
+		maxRows = 0
 	lineCount = 0
 
-	for line in f:
+	for line in vf:
 		lineCount += 1
+		if lineCount%25000 == 0:
+			vv.Echo("Lines processed: %d, imported: %d"%(lineCount, rows))
 		if (skipSize != 0) and (lineCount % skipSize != 0):
 			continue
 		if line.startswith('#'): 
 			continue
 		fs = line.split()
-		if len(fs) < 6: 
+		if len(fs) < 10: 
 			continue
-		if not fs[0].isdigit(): 
-			continue
- 
+
 		chrom = fs[0]
 		position = fs[1]
 		rid = fs[2]
 		refAllele = fs[3]
 		altAllele = fs[4]
-		if refAllele not in ["A","C","G","T"] or altAllele not in ["A","C","G","T"]: 
-			continue
+		quality = fs[5]
 		filter = fs[6]
+		info = fs[7]
+		fmt = fs[8]
+ 
+		if refAllele not in "ACGT" or altAllele not in "ACGT": 
+			continue
 		if filter not in ['PASS', '.']: 
 			continue
-
 		genotypeStrings = fs[9:]
 		genotypeArray = np.zeros(len(genotypeStrings), dtype = np.int8)
 		for idx, gType in enumerate(genotypeStrings):
@@ -64,16 +88,20 @@ def ImportVCF(maxRows=0, skipSize=0):
 		rows += 1
 		matrix.append(genotypeArray)
 		rowIds.append(rid)
-		rowNames.append(refAllele + altAllele + '.' + chrom + '.' + position )
+		rowNames.append(refAllele + altAllele + '|' + chrom + '|' + position + '|' + info + '|' + fmt)
 		if (maxRows != 0) and (rows>=maxRows):
 			break
-	f.close()
-	
+	vf.close()
+	if rows == 0:
+		vv.Message("No data imported")
+		quit()
+
 	matrix = np.ascontiguousarray(np.array(matrix))
 	nt = mm.ToTable(np.float64(matrix))
 	for row, b in enumerate(nt.RowSpecList):
-		b.Id += '_' + rowIds[row]
+		if rowIds[row] != '.':
+			b.Id += '_' + rowIds[row]
 		b.Name = rowNames[row]
 	nt.ShowHeatMap()
 
-ImportVCF(maxRows=0, skipSize=500)
+ImportVCF(maxRows=0, skipSize=50)
