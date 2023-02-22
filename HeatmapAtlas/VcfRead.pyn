@@ -5,7 +5,7 @@
 #  https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/supporting/hd_genotype_chip/
 #  https://www.internationalgenome.org/data-portal/sample/HG00138
 #
-import clr, gzip, math
+import clr, gzip, math, traceback
 import numpy as np
 vv.Import('AtlasHelp.pyn')
 
@@ -13,7 +13,7 @@ vv.Import('AtlasHelp.pyn')
 
 def ClusterBySNP()
 	bList = vv.Dataset.BodyList
-	SNPtoType = {'AG':0,'AC':1,'AT':2,'GC':3,'GT':4,'CT':5, 						   'GA':0,'CA':1,'TA':2,'CG':3,'TG':4,'TC':5}
+	SNPtoType = {'AG':0,'AC':1,'AT':2,'GC':3,'GT':4,'CT':5, 	'GA':0,'CA':1,'TA':2,'CG':3,'TG':4,'TC':5}
 	for b in bList:
 		b.Type = SNPtoType[ b.Name.split('.')[0] ] 
 	vv.Map.RedrawAll()
@@ -41,56 +41,70 @@ def ImportVCF(maxRows=0, skipSize=0):
 	if skipSize != 0:
 		maxRows = 0
 	lineCount = 0
+	personId = []
 
 	for line in vf:
 		lineCount += 1
-		if lineCount%25000 == 0:
+		if lineCount%100_000 == 0:
 			vv.Echo("Lines processed: %d, imported: %d"%(lineCount, rows))
-		if (skipSize != 0) and (lineCount % skipSize != 0):
-			continue
 		if line.startswith('#'): 
+			if line.startswith('#CHROM'):
+				personId = line.split()[9:]
+				vv.Echo("Samples: " + str(len(personId)))
+			continue
+		if (skipSize != 0) and (lineCount % skipSize != 0):
 			continue
 		fs = line.split()
 		if len(fs) < 10: 
 			continue
 
 		chrom = fs[0]
-		position = fs[1]
+		pos = fs[1]
 		rid = fs[2]
-		refAllele = fs[3]
-		altAllele = fs[4]
+		refA = fs[3]
+		altA = fs[4]
 		quality = fs[5]
-		filter = fs[6]
+		filter = fs[6]	
 		info = fs[7]
 		fmt = fs[8]
- 
-		if refAllele not in "ACGT" or altAllele not in "ACGT": 
+
+		# skip also lines with too low allele count
+		skipLine = False
+		for ifs in info.split(';'):
+			if ifs.startswith('AC=') and ifs[3:].isnumeric():
+				skipLine = (int(ifs[3:]) <= 3)
+				break
+		if skipLine:
+			continue
+		if refA not in "ACGT" or altA not in "ACGT": 
 			continue
 		if filter not in ['PASS', '.']: 
 			continue
-		genotypeStrings = fs[9:]
-		genotypeArray = np.zeros(len(genotypeStrings), dtype = np.int8)
-		for idx, gType in enumerate(genotypeStrings):
-			if gType == './.':
-				genotypeArray[idx]=-1
+
+		gtStrings = fs[9:]
+		gtArray = np.zeros(len(gtStrings), dtype = np.int8)
+		for idx, gType in enumerate(gtStrings):
+			if (gType == './.') or (len(gType)<3):
+				gtArray[idx]=-1
 				continue 
 			a0 = gType[0] # Get the first allele (as a string)
 			a1 = gType[2]
 			if (a0=='1' and a1=='1'): 
-				genotypeArray[idx]=2
+				gtArray[idx]=2
 			elif ((a0=='0' and a1=='1') or (a0=='1' and a1=='0')):
-				genotypeArray[idx]=1   
+				gtArray[idx]=1   
 			elif (a0=='0' and a1=='0'):
 				continue
 			else:
 				break
 
 		rows += 1
-		matrix.append(genotypeArray)
+		matrix.append(gtArray)
 		rowIds.append(rid)
-		rowNames.append(refAllele + altAllele + '|' + chrom + '|' + position + '|' + info + '|' + fmt)
+		rowNames.append(refA+altA+'|'+chrom+'|'+pos+'|'+info+'|'+fmt)
 		if (maxRows != 0) and (rows>=maxRows):
 			break
+
 	vf.close()
 	if rows == 0:
 		vv.Message("No data imported")
@@ -99,9 +113,16 @@ def ImportVCF(maxRows=0, skipSize=0):
 	matrix = np.ascontiguousarray(np.array(matrix))
 	nt = mm.ToTable(np.float64(matrix))
 	for row, b in enumerate(nt.RowSpecList):
-		if rowIds[row] != '.':
+		if rowIds[row] == '.':
+			b.Id = 'p_' + pos
+		else:
 			b.Id += '_' + rowIds[row]
 		b.Name = rowNames[row]
+	if len(personId) == nt.Columns:
+		csList = nt.ColumnSpecList
+		for col, id in enumerate(personId):
+			csList[col].Id = id
 	nt.ShowHeatMap()
+
 
 ImportVCF(maxRows=0, skipSize=50)
