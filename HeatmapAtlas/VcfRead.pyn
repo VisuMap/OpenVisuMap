@@ -5,29 +5,46 @@
 #  https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/supporting/hd_genotype_chip/
 #  https://www.internationalgenome.org/data-portal/sample/HG00138
 #
-import clr, gzip, math, traceback
+import clr, gzip, math
 import numpy as np
 vv.Import('AtlasHelp.pyn')
 
-'''
-
-def ClusterBySNP()
+def ClusterBySNP():
 	bList = vv.Dataset.BodyList
-	SNPtoType = {'AG':0,'AC':1,'AT':2,'GC':3,'GT':4,'CT':5, 	'GA':0,'CA':1,'TA':2,'CG':3,'TG':4,'TC':5}
+	SNPtoType = {'AG':0,'AC':1,'AT':2,'GC':3,'GT':4,'CT':5,	'GA':0,'CA':1,'TA':2,'CG':3,'TG':4,'TC':5}
 	for b in bList:
-		b.Type = SNPtoType[ b.Name.split('.')[0] ] 
+		b.Type = SNPtoType[ b.Name.split('|')[0] ] 
+	vv.Map.RedrawAll()
+
+def ClusterByKeys(bList, keys):
+	pMin, pMax = np.min(keys), np.max(keys)
+	stepSize = (pMax - pMin)/32.0
+	for idx, b in enumerate(bList):
+		b.Type = int(math.floor((keys[idx] - pMin)/stepSize))
 	vv.Map.RedrawAll()
 
 def ClusterByPositions():
 	bList = vv.Dataset.BodyList
 	pList = np.zeros(bList.Count, dtype=np.float64)
 	for idx, b in enumerate(bList):
-		pList[idx] = np.float64(b.Name.split('.')[2])
-	pMin, pMax = np.min(pList), np.max(pList)
-	stepSize = (pMax - pMin)/15.0
+		pList[idx] = np.float64(b.Name.split('|')[2])
+	ClusterByKeys(bList, pList)
+
+
+def ClusterByInfo(fieldName):
+	bList = vv.Dataset.BodyList
+	pList = np.zeros(bList.Count, dtype=np.float64)
+	L = len(fieldName)
 	for idx, b in enumerate(bList):
-		b.Type = int(math.floor((pList[idx] - pMin)/stepSize))
-	vv.Map.RedrawAll()
+		nm = b.Name
+		i = nm.index(fieldName) + L
+		j = nm.index(';', i)
+		pList[idx] = np.float64(nm[i:j])
+	ClusterByKeys(bList, pList)
+
+'''
+ClusterByInfo('AC=')
+ClusterByInfo('SAS_AF=')
 
 '''
 
@@ -38,8 +55,6 @@ def ImportVCF(maxRows=0, skipSize=0):
 	matrix = []
 	rowIds = []
 	rowNames = []
-	if skipSize != 0:
-		maxRows = 0
 	lineCount = 0
 	personId = []
 
@@ -125,4 +140,4 @@ def ImportVCF(maxRows=0, skipSize=0):
 	nt.ShowHeatMap()
 
 
-ImportVCF(maxRows=0, skipSize=50)
+ImportVCF(maxRows=23000, skipSize=100)
