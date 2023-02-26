@@ -5,7 +5,7 @@
 #  https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/supporting/hd_genotype_chip/
 #  https://www.internationalgenome.org/data-portal/sample/HG00138
 #
-import clr, gzip, math
+import clr, gzip, math, time
 import numpy as np
 vv.Import('AtlasHelp.pyn')
 
@@ -45,27 +45,25 @@ def ClusterByInfo(fieldName):
 '''
 ClusterByInfo('AC=')
 ClusterByInfo('SAS_AF=')
-
 '''
 
 def ImportVCF(maxRows=0, skipSize=0):
 	fn = PromptFile("VCF GZ Files|*.vcf.gz|VCF Files|*.vcf")
 	vf = gzip.open(fn,'rt') if fn.endswith('.gz') else open(fn, 'rt')
 	rows = 0
+	lineCount = 0
 	matrix = []
 	rowIds = []
 	rowNames = []
-	lineCount = 0
 	personId = []
-
+	startTime = time.time()
 	for line in vf:
 		lineCount += 1
 		if lineCount%100_000 == 0:
-			vv.Echo("Lines processed: %d, imported: %d"%(lineCount, rows))
+			pp.Title = f'Lines processed: %d, imported: %d'%(lineCount, rows)
 		if line.startswith('#'): 
 			if line.startswith('#CHROM'):
 				personId = line.split()[9:]
-				vv.Echo("Samples: " + str(len(personId)))
 			continue
 		if (skipSize != 0) and (lineCount % skipSize != 0):
 			continue
@@ -81,7 +79,7 @@ def ImportVCF(maxRows=0, skipSize=0):
 		quality = fs[5]
 		filter = fs[6]	
 		info = fs[7]
-		fmt = fs[8]
+		fmt = fs[8]	
 
 		# skip also lines with too low allele count
 		skipLine = False
@@ -94,6 +92,8 @@ def ImportVCF(maxRows=0, skipSize=0):
 		if refA not in "ACGT" or altA not in "ACGT": 
 			continue
 		if filter not in ['PASS', '.']: 
+			continue
+		if fmt != 'GT':
 			continue
 
 		gtStrings = fs[9:]
@@ -115,7 +115,7 @@ def ImportVCF(maxRows=0, skipSize=0):
 
 		rows += 1
 		matrix.append(gtArray)
-		rowIds.append(rid)
+		rowIds.append('p_' + pos if rid == '.' else rid)
 		rowNames.append(refA+altA+'|'+chrom+'|'+pos+'|'+info+'|'+fmt)
 		if (maxRows != 0) and (rows>=maxRows):
 			break
@@ -128,16 +128,18 @@ def ImportVCF(maxRows=0, skipSize=0):
 	matrix = np.ascontiguousarray(np.array(matrix))
 	nt = mm.ToTable(np.float64(matrix))
 	for row, b in enumerate(nt.RowSpecList):
-		if rowIds[row] == '.':
-			b.Id = 'p_' + pos
-		else:
-			b.Id += '_' + rowIds[row]
+		b.Id = rowIds[row]
 		b.Name = rowNames[row]
 	if len(personId) == nt.Columns:
 		csList = nt.ColumnSpecList
 		for col, id in enumerate(personId):
 			csList[col].Id = id
-	nt.ShowHeatMap()
+
+	runTime = time.time() - startTime
+	vv.Echo(f'Time in seconds:%4g'%runTime)
+	hm = nt.ShowHeatMap()
+	fn = fn[fn.rfind('\\')+1:]
+	hm.Title = f'Table: %dx%d; Imported from %s'%(nt.Rows, nt.Columns, fn)
 
 
-ImportVCF(maxRows=23000, skipSize=100)
+ImportVCF(maxRows=50000, skipSize=20)

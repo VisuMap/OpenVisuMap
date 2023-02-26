@@ -7,12 +7,12 @@ ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
 	hm:null,
-	EpochsSrt: PP(5000, 5000),
-	ExaSrt:    PP(6,  6),
-	ExaSrtF:   PP(1.0, 1.0),
-	PprSrt:    PP(0.1, 0.1),
-	MtrSrt:    PP(cfg.cos, cfg.euc),
-	PrShSrt:   PP(0, 0),      
+	EpochsSrt: PP(2000, 2000),
+	ExaSrt:    PP(5,  5),
+	ExaSrtF:   PP(1.5, 1.5),
+	PprSrt:    PP(0.05, 0.05),
+	MtrSrt:    PP(cfg.cor, cfg.cor),
+   PrShSrt:   PP(0, 0),      
 }};
 
 function SortTable(T, mt, epochs, ex, exF, pr) {
@@ -40,28 +40,25 @@ function SortTable(T, mt, epochs, ex, exF, pr) {
 function DSortMain() {
 	cfg.hm = pp;
 	cfg.hm.DisableReorder = false;
-	cfg.hm.RandomizeRows().RandomizeColumns();
-	var dsTable = pp.GetNumberTable();
-	
 	cfg.hm.Title = 'Sorting Rows...';
 	cfg.hm.SelectionMode = 0;
+	var dsTable = pp.RandomizeRows().GetNumberTable();	
 	
-	var dsTable1 = dsTable;
+	var ds1 = dsTable;
 	if ( (cfg.MtrSrt.c == cfg.cos ) && (cfg.PrShSrt.c != 0) ) {
-		dsTable1 = dsTable.Clone();
-		csFct.ShiftTable(dsTable1, cfg.PrShSrt.c);
+		ds1 = dsTable.Clone();
+		csFct.ShiftTable(ds1, cfg.PrShSrt.c);
 	}
-
-	SortTable(dsTable1, cfg.MtrSrt.c, cfg.EpochsSrt.c, cfg.ExaSrt.c, cfg.ExaSrtF.c,  cfg.PprSrt.c);
+	SortTable(ds1, cfg.MtrSrt.c, cfg.EpochsSrt.c, cfg.ExaSrt.c, cfg.ExaSrtF.c,  cfg.PprSrt.c);
 
 	cfg.hm.Title = 'Sorting Columns...';
 	cfg.hm.SelectionMode = 1;
-	var dsTable2 = dsTable.Transpose2();
+	var ds2 = pp.RandomizeColumns().GetNumberTable().Transpose2();
 	if ( (cfg.MtrSrt.g == cfg.cos)  && (cfg.PrShSrt.c != 0) )
-		csFct.ShiftTable(dsTable2, cfg.PrShSrt.g);
-	SortTable(dsTable2, cfg.MtrSrt.g, cfg.EpochsSrt.g, cfg.ExaSrt.g, cfg.ExaSrtF.g, cfg.PprSrt.g);
+		csFct.ShiftTable(ds2, cfg.PrShSrt.g);
+	SortTable(ds2, cfg.MtrSrt.g, cfg.EpochsSrt.g, cfg.ExaSrt.g, cfg.ExaSrtF.g, cfg.PprSrt.g);
 
-	dsTable2.FreeRef();
+	ds2.FreeRef();
 	cfg.hm.Title = 'Sorted';	
 	cfg.hm.DisableReorder = true;
 }

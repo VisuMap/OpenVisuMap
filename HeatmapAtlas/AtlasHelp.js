@@ -228,7 +228,10 @@ function LoadSortedHeatmap() {
 	var rowIds = vs.GetRange(1, rows);	
 	var colIds = vs.GetRange(1 + rows, columns);
 	if ( dsName != vv.Dataset.Name )
-		vv.Folder.OpenDataset(dsName);
+		if (! vv.Folder.OpenDataset(dsName) ) {
+			vv.Message('Cannot open dataset "' + dsName + '".');
+			vv.Return();
+		}
 	var nt = vv.GetNumberTableView(false);
 	nt = nt.SelectRowsById2(rowIds);
 	nt = nt.SelectColumnsById2(colIds, 0);
