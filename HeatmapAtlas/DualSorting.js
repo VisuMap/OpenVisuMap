@@ -7,17 +7,18 @@ ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
 	hm:null,
-	EpochsSrt: PP(2000),
+	EpochsSrt: PP(200),
 	ExaSrt:    PP(10),
 	ExaSrtF:   PP(1.5),
 	PprSrt:    PP(0.05),
 	MtrSrt:    PP(cfg.cos),
-   	PrShSrt:   PP(0, 0),
+   PrShSrt:   PP(0, 0),
 }};
 
+
 /*
-cfg.ExaSrt, cfgExaSrtF = PP(5.0), PP(1.25)
-cfg.PprSrt = PP(0.1);
+[cfg.ExaSrt, cfgExaSrtF] = [PP(5.0), PP(1.25)]
+cfg.PprSrt = PP(0.05, 0.0125);
 cfg.MtrSrt = PP(cfg.cor)
 */
 
