@@ -42,9 +42,23 @@ def ClusterByInfo(fieldName):
 		pList[idx] = np.float64(nm[i:j])
 	ClusterByKeys(bList, pList)
 
+def ShowSNPPositions():
+	bv = New.SpectrumView()
+	if pp.Name == 'MapSnapshot':
+		itemList = pp.BodyList
+	elif pp.Name == 'MainForm':
+		itemList = pp.Map.BodyList
+	else:
+		itemList = pp.GetNumberTable().RowSpecList
+	for b in itemList:
+		fs = b.Name.split('|')
+		bv.ItemList.Add(New.ValueItem(b.Id, fs[0], float(fs[2])))
+	bv.Show()
+
 '''
 ClusterByInfo('AC=')
 ClusterByInfo('SAS_AF=')
+ShowSNPPositions()
 '''
 
 def ImportVCF(maxRows=0, skipSize=0):
@@ -142,4 +156,4 @@ def ImportVCF(maxRows=0, skipSize=0):
 	hm.Title = f'Table: %dx%d; Imported from %s'%(nt.Rows, nt.Columns, fn)
 
 
-ImportVCF(maxRows=50000, skipSize=20)
+ImportVCF(maxRows=50000, skipSize=60)

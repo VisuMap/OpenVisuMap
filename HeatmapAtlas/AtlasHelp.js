@@ -12,7 +12,7 @@ var cfg = {
 	cor:'Correlation.Standard Correlation'
 };
 
-function PP(v1, v2){ return {c:v1, g:v2}; }
+function PP(cVal,gVal=cVal){ return {c:cVal, g:gVal}; }
 
 function CheckMaps() {
 	if ( (cfg.cellMap==null) || (cfg.geneMap==null) 

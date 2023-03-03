@@ -6,17 +6,24 @@ vv.Import("AtlasHelp.js");
 ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
-	Epochs:	PP(5000, 5000),    // training epochs for cell/gene profiles.
-	Exa:    PP(6,     6),       // initial exaggreation
-	ExaF:   PP(1.0,   1.0),     // final exaggeration.
-	Ppr:    PP(0.1,   0.1),     // perplexity ratio    
- 	PrShift:PP(0,     0),       // cell/gene profile shift towards arithmetric center.
-	Mtr:	PP(cfg.cos, cfg.euc),
-	Is3D:	PP(false,   false),
+	Epochs:PP(2000),    // training epochs for cell/gene profiles.
+	Exa:   PP(10),       // initial exaggreation
+	ExaF:  PP(1.5),     // final exaggeration.
+	Ppr:   PP(0.05),   // perplexity ratio    
+	Mtr:   PP(cfg.cos), // distance metric
+ 	PrShift:PP(0),      // cell/gene profile shift towards arithmetric center.
+	Is3D:	PP(false, false),
 	cellMap:null, 
 	geneMap:null,
 	hpSize: 400,
 }};
+
+/*
+cfg.Exa, cfgExaF = PP(5.0), PP(1.25)
+cfg.Ppr = PP(0.1);
+cfg.Mtr = PP(cfg.cor)
+*/
+
 
 function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, finalExa, ppRatio, is3D) {
 	mds.SetTrainingData(nt);

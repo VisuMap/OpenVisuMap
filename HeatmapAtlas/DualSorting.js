@@ -7,13 +7,19 @@ ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
 	hm:null,
-	EpochsSrt: PP(2000, 2000),
-	ExaSrt:    PP(5,  5),
-	ExaSrtF:   PP(1.5, 1.5),
-	PprSrt:    PP(0.05, 0.05),
-	MtrSrt:    PP(cfg.cor, cfg.cor),
-   PrShSrt:   PP(0, 0),      
+	EpochsSrt: PP(2000),
+	ExaSrt:    PP(10),
+	ExaSrtF:   PP(1.5),
+	PprSrt:    PP(0.05),
+	MtrSrt:    PP(cfg.cos),
+   	PrShSrt:   PP(0, 0),
 }};
+
+/*
+cfg.ExaSrt, cfgExaSrtF = PP(5.0), PP(1.25)
+cfg.PprSrt = PP(0.1);
+cfg.MtrSrt = PP(cfg.cor)
+*/
 
 function SortTable(T, mt, epochs, ex, exF, pr) {
 	var tsne = New.TsneSorter(T, mt);
@@ -42,7 +48,8 @@ function DSortMain() {
 	cfg.hm.DisableReorder = false;
 	cfg.hm.Title = 'Sorting Rows...';
 	cfg.hm.SelectionMode = 0;
-	var dsTable = pp.RandomizeRows().GetNumberTable();	
+	pp.RandomizeRows();
+	var dsTable = pp.GetNumberTable();	
 	
 	var ds1 = dsTable;
 	if ( (cfg.MtrSrt.c == cfg.cos ) && (cfg.PrShSrt.c != 0) ) {
@@ -53,7 +60,8 @@ function DSortMain() {
 
 	cfg.hm.Title = 'Sorting Columns...';
 	cfg.hm.SelectionMode = 1;
-	var ds2 = pp.RandomizeColumns().GetNumberTable().Transpose2();
+	pp.RandomizeColumns();
+	var ds2 = pp.GetNumberTable().Transpose2();
 	if ( (cfg.MtrSrt.g == cfg.cos)  && (cfg.PrShSrt.c != 0) )
 		csFct.ShiftTable(ds2, cfg.PrShSrt.g);
 	SortTable(ds2, cfg.MtrSrt.g, cfg.EpochsSrt.g, cfg.ExaSrt.g, cfg.ExaSrtF.g, cfg.PprSrt.g);
