@@ -6,7 +6,7 @@ vv.Import("AtlasHelp.js");
 ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
-	Epochs:PP(200),    // training epochs for cell/gene profiles.
+	Epochs:PP(2000),    // training epochs for cell/gene profiles.
 	Exa:   PP(10),     // initial exaggreation
 	ExaF:  PP(1.5),    // final exaggeration.
 	Ppr:   PP(0.05),   // perplexity ratio    
