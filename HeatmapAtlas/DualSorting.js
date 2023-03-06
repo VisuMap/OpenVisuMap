@@ -15,11 +15,14 @@ cfg = {...cfg, ...{
    PrShSrt:   PP(0, 0),
 }};
 
+
 /*
-[cfg.ExaSrt, cfgExaSrtF] = [PP(5.0), PP(1.25)]
-cfg.PprSrt = PP(0.05, 0.0125);
-cfg.MtrSrt = PP(cfg.cor)
+cfg.ExaSrt = PP(3.0);
+cfgExaSrtF = PP(1.5);
+cfg.PprSrt = PP(0.025);
+cfg.MtrSrt = PP(cfg.cos);
 */
+
 
 function SortTable(T, mt, epochs, ex, exF, pr) {
 	var tsne = New.TsneSorter(T, mt);
@@ -48,8 +51,8 @@ function DSortMain() {
 	cfg.hm.DisableReorder = false;
 	cfg.hm.Title = 'Sorting Rows...';
 	cfg.hm.SelectionMode = 0;
-	pp.RandomizeRows();
-	var dsTable = pp.GetNumberTable();	
+	cfg.hm.RandomizeRows();
+	var dsTable = cfg.hm.GetNumberTable();	
 	
 	var ds1 = dsTable;
 	if ( (cfg.MtrSrt.c == cfg.cos ) && (cfg.PrShSrt.c != 0) ) {
@@ -60,8 +63,8 @@ function DSortMain() {
 
 	cfg.hm.Title = 'Sorting Columns...';
 	cfg.hm.SelectionMode = 1;
-	pp.RandomizeColumns();
-	var ds2 = pp.GetNumberTable().Transpose2();
+	cfg.hm.RandomizeColumns();
+	var ds2 = cfg.hm.GetNumberTable().Transpose2();
 	if ( (cfg.MtrSrt.g == cfg.cos)  && (cfg.PrShSrt.c != 0) )
 		csFct.ShiftTable(ds2, cfg.PrShSrt.g);
 	SortTable(ds2, cfg.MtrSrt.g, cfg.EpochsSrt.g, cfg.ExaSrt.g, cfg.ExaSrtF.g, cfg.PprSrt.g);
@@ -80,4 +83,3 @@ if ( doAll ) {  // doAll = false;
   //cfg.hm.ClickMenu("Atlas/Save Data");
   //cfg.hm.ClickMenu("Atlas/Active Cells");
 }
-

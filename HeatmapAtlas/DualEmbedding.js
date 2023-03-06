@@ -18,10 +18,14 @@ cfg = {...cfg, ...{
 	hpSize: 400,
 }};
 
+
 /*
-[cfg.Exa, cfg.ExaF, cfg.Ppr] = [PP(5.0), PP(1.25), PP(0.05)]
+cfg.Exa = PP(3.0);
+cfg.ExaF = PP(1.5);
+cfg.Ppr = PP(0.025);
 cfg.Mtr = PP(cfg.cor);
 */
+
 
 function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, finalExa, ppRatio, is3D) {
 	mds.SetTrainingData(nt);
