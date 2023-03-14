@@ -19,7 +19,7 @@ cfg = {...cfg, ...{
 /*
 cfg.ExaSrt = PP(3.0);
 cfgExaSrtF = PP(1.5);
-cfg.PprSrt = PP(0.025);
+cfg.PprSrt = PP(0.05);
 cfg.MtrSrt = PP(cfg.cos);
 */
 

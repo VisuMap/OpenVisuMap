@@ -22,10 +22,9 @@ cfg = {...cfg, ...{
 /*
 cfg.Exa = PP(3.0);
 cfg.ExaF = PP(1.5);
-cfg.Ppr = PP(0.025);
+cfg.Ppr = PP(0.05);
 cfg.Mtr = PP(cfg.cor);
 */
-
 
 function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, finalExa, ppRatio, is3D) {
 	mds.SetTrainingData(nt);
