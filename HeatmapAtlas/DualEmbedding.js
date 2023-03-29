@@ -6,7 +6,7 @@ vv.Import("AtlasHelp.js");
 ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
-	Epochs:PP(2000),    // training epochs for cell/gene profiles.
+	Epochs:PP(1000),    // training epochs for cell/gene profiles.
 	Exa:   PP(10),     // initial exaggreation
 	ExaF:  PP(1.5),    // final exaggeration.
 	Ppr:   PP(0.05),   // perplexity ratio    
@@ -16,14 +16,15 @@ cfg = {...cfg, ...{
 	cellMap:null, 
 	geneMap:null,
 	hpSize: 400,
+	MapLimit: PP(0,0),
 }};
 
-
 /*
-cfg.Exa = PP(3.0);
-cfg.ExaF = PP(1.5);
-cfg.Ppr = PP(0.05);
+cfg.Exa = PP(5.0);
+cfg.ExaF = PP(1.25);
+cfg.Ppr = PP(0.1);
 cfg.Mtr = PP(cfg.cor);
+cfg.MapLimit = PP(400, 50000);
 */
 
 function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, finalExa, ppRatio, is3D) {
@@ -66,6 +67,7 @@ function DEmbeddingMain() {
 	
 	if (cfg.Epochs.c > 0) {
 		var nt1 = nt;
+		nt1 = SqueezeFeatures(nt1, cfg.MapLimit.c);      		
 		if ( (cfg.Mtr.c == cfg.cos) && (cfg.PrShift.c!=0) )
 			nt1 = csFct.ShiftTable(nt1.Clone(), cfg.PrShift.c);
 		cfg.cellMap = RunEmbedding(mds, nt1, true, cfg.Epochs.c, cfg.Mtr.c, cfg.Exa.c, cfg.ExaF.c, cfg.Ppr.c, cfg.Is3D.c);
@@ -77,6 +79,7 @@ function DEmbeddingMain() {
 
 	if (cfg.Epochs.g > 0) {
 		var nt2 = nt.Transpose2();
+		nt2 = SqueezeFeatures(nt2, cfg.MapLimit.g);
 		if ( (cfg.Mtr.g == cfg.cos) && (cfg.PrShift.g!=0) )
 			nt2 = csFct.ShiftTable(nt2, cfg.PrShift.g);	
 		cfg.geneMap = RunEmbedding(mds, nt2, false, cfg.Epochs.g, cfg.Mtr.g, cfg.Exa.g, cfg.ExaF.g, cfg.Ppr.g, cfg.Is3D.g);

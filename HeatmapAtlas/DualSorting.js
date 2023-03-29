@@ -13,16 +13,16 @@ cfg = {...cfg, ...{
 	PprSrt:    PP(0.05),
 	MtrSrt:    PP(cfg.cos),
    PrShSrt:   PP(0, 0),
+   SrtLimit:  PP(0, 0),
 }};
 
-
 /*
-cfg.ExaSrt = PP(3.0);
-cfgExaSrtF = PP(1.5);
-cfg.PprSrt = PP(0.05);
-cfg.MtrSrt = PP(cfg.cos);
+cfg.ExaSrt = PP(5.0);
+cfg.ExaSrtF = PP(1.25);
+cfg.PprSrt = PP(0.1);
+cfg.MtrSrt = PP(cfg.cor);
+cfg.SrtLimit = PP(400, 50000);
 */
-
 
 function SortTable(T, mt, epochs, ex, exF, pr) {
 	var tsne = New.TsneSorter(T, mt);
@@ -46,6 +46,7 @@ function SortTable(T, mt, epochs, ex, exF, pr) {
 	tsne.Close();
 };
 
+
 function DSortMain() {
 	cfg.hm = pp;
 	cfg.hm.DisableReorder = false;
@@ -53,19 +54,24 @@ function DSortMain() {
 	cfg.hm.SelectionMode = 0;
 	cfg.hm.RandomizeRows();
 	var dsTable = cfg.hm.GetNumberTable();	
-	
 	var ds1 = dsTable;
+	ds1 = SqueezeFeatures(ds1, cfg.SrtLimit.c);
+
 	if ( (cfg.MtrSrt.c == cfg.cos ) && (cfg.PrShSrt.c != 0) ) {
 		ds1 = dsTable.Clone();
 		csFct.ShiftTable(ds1, cfg.PrShSrt.c);
 	}
+
+
 	SortTable(ds1, cfg.MtrSrt.c, cfg.EpochsSrt.c, cfg.ExaSrt.c, cfg.ExaSrtF.c,  cfg.PprSrt.c);
 
 	cfg.hm.Title = 'Sorting Columns...';
 	cfg.hm.SelectionMode = 1;
 	cfg.hm.RandomizeColumns();
 	var ds2 = cfg.hm.GetNumberTable().Transpose2();
-	if ( (cfg.MtrSrt.g == cfg.cos)  && (cfg.PrShSrt.c != 0) )
+   ds2 = SqueezeFeatures(ds2, cfg.SrtLimit.g);
+
+	if ( (cfg.MtrSrt.g == cfg.cos)  && (cfg.PrShSrt.g != 0) )
 		csFct.ShiftTable(ds2, cfg.PrShSrt.g);
 	SortTable(ds2, cfg.MtrSrt.g, cfg.EpochsSrt.g, cfg.ExaSrt.g, cfg.ExaSrtF.g, cfg.PprSrt.g);
 

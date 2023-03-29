@@ -60,6 +60,17 @@ function TrainDatasets(dsList, doEmbedding=false, capturing=false) {
 	OpenAtlas().Close();
 }
 
+function SqueezeFeatures(nt, columns) {
+	var N = nt.Columns;
+	if ( (columns <= 0) || (columns>=N) )
+		return nt;
+	var vs = nt.SqueezeRows(1, true);
+	var ids = New.StringArray();
+	for(var i=N-columns; i<N; i++) 
+		ids.Add(vs[i].Id);
+	return nt.SelectColumnsById(ids);
+}
+
 function ConcatDatasets0(dsList, maxRows=0, refGenes=null) {
    if (dsList.length==0) {
 		vv.Message("No dataset selected!");
