@@ -36,7 +36,7 @@ def ResetTest():
 
 def DoTest():
     global ds, nr
-    if ds == None:        
+    if ds is None:        
         ds = DataLinkCmd.LoadFromVisuMap(mtr)
         # centralize the training data
         # ds = ds - np.mean(ds, axis=0)
