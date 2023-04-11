@@ -4,7 +4,7 @@
 #====================================================================================
 print('Loading libraries...')
 import sys
-#sys.path.insert(0, 'C:/temp/umap-master/umap-master')
+sys.path.insert(0, 'C:/temp/umap-master/umap-master')
 import time, types, umap, DataLinkCmd
 import numpy as np
 from types import SimpleNamespace
@@ -14,37 +14,33 @@ print('Python: %s; UMAP: %s'%(pyVersion, str(umap.__version__)))
 
 A = SimpleNamespace(s='spectral', r='random', p='pca')
 M = SimpleNamespace(e='euclidean', c='correlation', s='cosine', p='precomputed')
-
+nr = 0
+ds = None
 
 #====================================================================================
 
 def ResetTest():
-    global mtr
-    global initType
-    global epochs
-    global mapDim
-    global nn
-    global md
-    global lc
-    global ns
-    global sp
-    global randomizeOrder
-    global stateSeed
-
+    global mtr, initType, epochs, mapDim, randomizeOrder, stateSeed
+    global nn, md, lc, ns, sp
     mtr = M.e
-    initType = A.p
+    initType = A.s
     epochs = 2000
     mapDim = 2
-    nn = 200
+    randomizeOrder = True
+    stateSeed = None
+    nn = 500
     md = 0.1
     lc = 5
     ns = 20
-    sp = 10
-    randomizeOrder = True
-    stateSeed = None
+    sp = 15
 
 def DoTest():
-    global ds
+    global ds, nr
+    if ds == None:        
+        ds = DataLinkCmd.LoadFromVisuMap(mtr)
+        # centralize the training data
+        # ds = ds - np.mean(ds, axis=0)
+
     print('Fitting data...')
     if randomizeOrder:
         perm = np.random.permutation(ds.shape[0])
@@ -59,7 +55,8 @@ def DoTest():
         n_epochs=epochs, init=initType, learning_rate=1, verbose=True, spread=sp)
     map = um.fit_transform(ds)
     tm = time.time() - t0
-    title = 'UMAP: Nbs:%d, MinDist:%g, L.Cnt:%g, N.S.:%d, Spr:%.1f, Mtr:%s, T:%.1fs'%(nn, md, lc, ns, sp, mtr, tm)
+    nr += 1
+    title = 'UMAP.%d: nn:%d, md:%g, lc:%g, ns:%d, sp:%.1f, mtr:%s, T:%.1fs'%(nr, nn, md, lc, ns, sp, mtr, tm)
     
     if randomizeOrder: # reverse the random order.
         map = map[perm]
@@ -71,26 +68,25 @@ def DoTest():
 
 #====================================================================================
 
-ds = DataLinkCmd.LoadFromVisuMap()
-# centralize the training data
-# ds = ds - np.mean(ds, axis=0)
-
-#====================================================================================
-
 ResetTest()
+mtr = M.p
+for md in [0.25, 0.5, 0.75]: DoTest()
+
+'''
+
 for k in [0,1,2]: DoTest()
 
-'''
-ResetTest()
 for initType in [A.s, A.r, A.p]: DoTest()
 
-ResetTest()
+for mtr in [M.e, M.c, M.s]: DoTest()
+
 for nn in [200, 1000, 2000]: DoTest()
 
-ResetTest()
 for md in [0.1, 0.5, 0.9]: DoTest()
 
-ResetTest()
 for lc in [3, 5, 10]: DoTest()
-'''
 
+for ns in [5, 15, 25]: DoTest()
+
+for sp in [5, 15, 25]: DoTest()
+'''
