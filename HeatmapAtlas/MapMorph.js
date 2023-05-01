@@ -23,9 +23,11 @@ if ( "MapSnapshot|D3dRender|MdsCluster".includes(pp.Name) ) {
     var f = pp.TheForm;
     var bsCount = pp.BodyList.Count;
 	 f.BringToFront();
-    for (var vw of vv.FindFormList(pp.Name)) 
-        if ((vw.TheForm !== f) && (vw.BodyList.Count == bsCount))
+    for (var vw of vv.FindFormList(pp.Name)) {
+		  var wStat = vw.TheForm.WindowState.ToString();
+        if ((vw.TheForm !== f) && (wStat == "Normal") && (vw.BodyList.Count == bsCount))
             vwList.Add(vw);
+	}
 
 	if ( vwList.Count == 0 ){
 		vv.Message("No similar maps have been found for comparison");
