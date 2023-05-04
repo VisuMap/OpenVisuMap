@@ -5,8 +5,9 @@
 print('Loading libraries...')
 import sys
 sys.path.insert(0, 'C:/temp/umap-master/umap-master')
-import time, types, umap, DataLinkCmd
+import time, types, umap
 import numpy as np
+import DataLinkCmd as vm
 from types import SimpleNamespace
 
 pyVersion = sys.version.split(' ')[0]
@@ -17,13 +18,16 @@ M = SimpleNamespace(e='euclidean', c='correlation', s='cosine', p='precomputed')
 nr = 0
 ds = None
 
+def PX(aList, bList):
+    return [(x,y) for x in aList for y in bList]
+
 #====================================================================================
 
 def ResetTest():
-    global mtr, initType, epochs, mapDim, randomizeOrder, stateSeed
+    global mtr, A0, epochs, mapDim, randomizeOrder, stateSeed
     global nn, md, lc, ns, sp
     mtr = M.e
-    initType = A.s
+    A0 = A.s
     epochs = 2000
     mapDim = 2
     randomizeOrder = True
@@ -37,10 +41,9 @@ def ResetTest():
 def DoTest():
     global ds, nr
     if ds is None:        
-        ds = DataLinkCmd.LoadFromVisuMap(mtr)
+        ds = vm.LoadFromVisuMap(mtr)
         # centralize the training data
         # ds = ds - np.mean(ds, axis=0)
-
     print('Fitting data...')
     if randomizeOrder:
         perm = np.random.permutation(ds.shape[0])
@@ -52,11 +55,11 @@ def DoTest():
     t0 = time.time()
     um = umap.UMAP(n_neighbors=nn, min_dist=md, local_connectivity=lc,
         n_components=mapDim, metric=mtr, negative_sample_rate=ns, random_state=stateSeed,
-        n_epochs=epochs, init=initType, learning_rate=1, verbose=True, spread=sp)
+        n_epochs=epochs, init=A0, learning_rate=1, verbose=True, spread=sp)
     map = um.fit_transform(ds)
     tm = time.time() - t0
     nr += 1
-    title = 'UMAP.%d: nn:%d, md:%g, lc:%g, ns:%d, sp:%.1f, mtr:%s, T:%.1fs'%(nr, nn, md, lc, ns, sp, mtr, tm)
+    title = 'UMAP.%d: nn:%d, md:%g, lc:%g, ns:%d, sp:%.1f, mtr:%s, A0:%s, T:%.1fs'%(nr, nn, md, lc, ns, sp, mtr, A0, tm)
     
     if randomizeOrder: # reverse the random order.
         map = map[perm]
@@ -64,19 +67,22 @@ def DoTest():
         if mtr == 'precomputed':
             ds[:,:] = ds[:, perm]
   
-    DataLinkCmd.ShowToVisuMap(map, title)
+    vm.ShowToVisuMap(map, title)
 
 #====================================================================================
 
 ResetTest()
-mtr = M.p
-for md in [0.25, 0.5, 0.75]: DoTest()
-
-'''
 
 for k in [0,1,2]: DoTest()
 
-for initType in [A.s, A.r, A.p]: DoTest()
+vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
+
+'''
+for mtr, nn in PX([M.s], [500, 1000, 2000]): DoTest()
+
+for k in [0,1,2]: DoTest()
+
+for A0 in [A.s, A.r, A.p]: DoTest()
 
 for mtr in [M.e, M.c, M.s]: DoTest()
 
