@@ -15,17 +15,17 @@ cfg = {...cfg, ...{
 	Is3D:	PP(false, false),
 	cellMap:null, 
 	geneMap:null,
-	hpSize: 400,
+	hpSize: 600,
 	MapLimit: PP(0,0),
 }};
 
-/*
-cfg.Exa = PP(5.0);
+cfg.Epochs = PP(4000, 4000);
+cfg.Exa = PP(8.0);
 cfg.ExaF = PP(1.25);
 cfg.Ppr = PP(0.1);
 cfg.Mtr = PP(cfg.cor);
-cfg.MapLimit = PP(400, 50000);
-*/
+//cfg.MapLimit = PP(400, 50000);
+
 
 function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, finalExa, ppRatio, is3D) {
 	mds.SetTrainingData(nt);

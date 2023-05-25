@@ -18,10 +18,9 @@ M = SimpleNamespace(e='euclidean', c='correlation', s='cosine', p='precomputed')
 nr = 0
 ds = None
 
-def PX(aList, bList):
-    return [(x,y) for x in aList for y in bList]
-
 #====================================================================================
+
+PX = lambda aL, bL: [(x,y) for x in aL for y in bL]
 
 def ResetTest():
     global mtr, A0, epochs, mapDim, randomizeOrder, stateSeed
@@ -72,8 +71,8 @@ def DoTest():
 #====================================================================================
 
 ResetTest()
-
-for k in [0,1,2]: DoTest()
+mtr = M.s
+for A0 in [A.s, A.r]: DoTest()
 
 vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
 

@@ -153,7 +153,7 @@ function FlushMarkers(map1, map2, map3) {
 }
 
 function LayoutMaps() {
-	var sz = 450;
+	var sz = 600;
 	var winWidth = sz;
 	var winHeight = sz;
 	cfg.hm.TheForm.SetBounds(1000, 700, winWidth, winHeight);

@@ -13,6 +13,7 @@ function InstallAtlas() {
         ["Save Data", "SaveDataset.js", "HeatMap", null],
         ["Save HeatMap", "SaveSortedHeatmap.js", "HeatMap", null],
         ["Save DsHm", "!vv.Import('AtlasHelp.js');SaveDsHm(pp);", "HeatMap", null],
+        ["Show Mean", "ShowMeanVector.js", "HeatMap", null],		 
         ["Merge DS", "!vv.Import('AtlasHelp.js');ConcatDatasets(SelectedDs(), 5000, null)", "Atlas", null],
         ["Compare Maps", "MapMorph.js", "MainForm|MapSnapshot|D3dRender", icon],
         ["Variation Tracing", "VariationTracing.js", "MainForm", null],

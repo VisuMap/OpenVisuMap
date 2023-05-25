@@ -14,10 +14,7 @@ metric, A0, epochs, pp, exa = M.e, A.s, 2000, 150, 4.0
 randomizeOrder = True
 ds = vm.LoadFromVisuMap(metric)
 
-epochs = 200
-
-def PX(aList, bList):
-    return [(x,y) for x in aList for y in bList]
+PX = lambda aL, bL: [(x,y) for x in aL for y in bL]
 
 def DoTest():
     global ds
@@ -38,13 +35,16 @@ def DoTest():
         ds = ds[perm]
     vm.ShowToVisuMap(map, title)
 
-for mtr, pp in PX([M.s], [100, 200, 400]):
-    DoTest();
+#=====================================================
+
+for k in [0,1,2]: DoTest()
 
 vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
 
 '''
 for k in [0,1,2]: DoTest()
+
+for mtr, pp in PX([M.e, M.s], [100, 200, 400]): DoTest();
 
 for A0 in [A.s, A.r, A.p]: DoTest()
 

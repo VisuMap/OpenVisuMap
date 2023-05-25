@@ -222,7 +222,7 @@ namespace DataGenerator {
             this.button13.TabIndex = 15;
             this.button13.Text = "Gaussian";
             this.button13.UseVisualStyleBackColor = true;
-            this.button13.Click += new System.EventHandler(this.button13_Click);
+            this.button13.Click += new System.EventHandler(this.Gaussian_Click);
             // 
             // button16
             // 

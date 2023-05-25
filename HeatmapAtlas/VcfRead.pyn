@@ -156,4 +156,4 @@ def ImportVCF(maxRows=0, skipSize=0):
 	hm.Title = f'Table: %dx%d; Imported from %s'%(nt.Rows, nt.Columns, fn)
 
 
-ImportVCF(maxRows=50000, skipSize=50)
+ImportVCF(maxRows=50000, skipSize=10)

@@ -59,7 +59,7 @@ namespace DataGenerator {
         }
 
         private void button7_Click(object sender, EventArgs e) {
-            (new RandomBall(0, 1.0, 2000)).Show();
+            (new RandomBall(0, 1.0, RandomPoints)).Show();
         }
 
         [Configurable, Category("Circle"), Description("Number of data points")]
@@ -77,6 +77,9 @@ namespace DataGenerator {
         private void button9_Click(object sender, EventArgs e) {
             (new Disc(0, DiscRadius, DiscResulotion)).Show();
         }
+
+        [Configurable, Category("Random Ball"), Description("Number of data points")]
+        public int RandomPoints { get; set; } = 2000;
 
         private void button10_Click(object sender, EventArgs e) {
             (new Line(0, 400, 200)).Show();
@@ -108,10 +111,21 @@ namespace DataGenerator {
             (new OpenBox(50)).Show();
         }
 
-        private void button13_Click(object sender, EventArgs e) {
-            Gaussian g1 = new Gaussian(0, 2000);
-            Gaussian g2 = new Gaussian(4, 2000);
-            Gaussian g3 = new Gaussian(8, 2000);
+        [Configurable, Category("Gaussian"), Description("Number of points in the first blob")]
+        public int BlobPoints1 { get; set; } = 2000;
+
+
+        [Configurable, Category("Gaussian"), Description("Number of points in the first blob")]
+        public int BlobPoints2 { get; set; } = 3000;
+
+
+        [Configurable, Category("Gaussian"), Description("Number of points in the first blob")]
+        public int BlobPoints3 { get; set; } = 4000;
+
+        private void Gaussian_Click(object sender, EventArgs e) {
+            Gaussian g1 = new Gaussian(0, BlobPoints1);
+            Gaussian g2 = new Gaussian(4, BlobPoints2);
+            Gaussian g3 = new Gaussian(8, BlobPoints3);
             g2.Scale(1, 0.5, 1).Translate(3.5, 0, 0);
             g3.Scale(1.5, 1, 1).Translate(0, 5, 0);
             (g1 + g2 + g3).Show();
