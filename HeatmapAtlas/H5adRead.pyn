@@ -5,9 +5,15 @@
 # https://www.10xgenomics.com/
 # https://flycellatlas.org/#data
 # https://www.immunesinglecell.org/atlasList
+# https://cellxgene.cziscience.com/collections/4195ab4c-20bd-4cd3-8b3d-65601277e731  : with isAnnData set to True.
 #
 import clr, scanpy, numpy
 vv.Import('AtlasHelp.pyn')
+
+
+isAnnData = True
+if isAnnData:
+	import anndata
 
 def SaveDataset(nt, fileName):
 	idx0 = fileName.index('zf_') + 9
@@ -15,10 +21,70 @@ def SaveDataset(nt, fileName):
 	dsName = fileName[idx0:idx1]
 	nt.SaveAsDataset(dsName, "Imported from " + fileName)
 
+#
+# Added clusters for all category attributes to the cluster manager.
+# This method should be called after the dataset has been saved and loaded
+# as current dataset.
+#
+def AddClusters():
+	nt = pp.GetNumberTable()
+	cm = New.ClusterManager().Show()
+	csList = nt.ColumnSpecList
+	M = nt.Matrix
+	for col in range(nt.Columns):
+		mTypes = [ int(M[row][col]) for row in range(nt.Rows) ]
+		cNames = csList[col].Name.split(',')
+		cm.AddCluster(f'C.{col}.'+csList[col].Id, mTypes, None, cNames)
+
+#
+# Marker (i.e. cluster) the main map with category info in a column of a heatmap table.
+# Installation: pp.AddEventHandler('ItemsSelected', '@MarkerCategory()')
+#
+def MarkerCategory():
+	if pp.SelectionMode != 1:
+		return	
+	if pp.SelectedItems.Count != 1:
+		return
+	nt=pp.GetNumberTable()
+	colIdx = nt.IndexOfColumn(pp.SelectedItems[0])
+	if colIdx < 0:
+		return;
+	M = nt.Matrix
+	bsList = vv.Dataset.BodyList
+	for row in range(nt.Rows):
+		bsList[row].Type = int(M[row][colIdx])
+	vv.Map.RedrawAll()
+
+#
+# Show the category info in a heatmap.
+#
+def ShowCategory(f):
+	ks = []
+	N = len(f.obs)
+	for k in f.obs_keys():
+		if f.obs[k].dtype.name == 'category' and len(f.obs[k])==N and len(f.obs[k].dtype.categories)>1:
+			ks.append(k)
+	
+	ks.sort(key=lambda k: len(f.obs[k].dtype.categories))
+
+	nt = New.NumberTable(N, len(ks))
+	csList = nt.ColumnSpecList
+	for col, key in enumerate(ks):
+		Cat = f.obs[key].dtype.categories.to_list()
+		csList[col].Id = key
+		csList[col].Name = ",".join(Cat)
+		for row, ob in enumerate(f.obs[key]):
+			nt.Matrix[row][col] = Cat.index(ob)
+
+	for row in range(N):
+		nt.RowSpecList[row].Id = str(row)
+	ShowHeatmap(nt, 'Categories')
+
 def ImportH5AD():
 	fileName = PromptFile("H5ad Files|*.h5ad")
 	
-	f = scanpy.read(fileName)
+	f = anndata.read_h5ad(fileName) if isAnnData else scanpy.read(fileName)
+
 	M = f.X
 	if hasattr(M, 'todense'):  M = M.todense()
 	M = numpy.ascontiguousarray(M, dtype=numpy.float32)
@@ -40,4 +106,7 @@ def ImportH5AD():
 				cs.Group = 1
 	ShowHeatmap(nt, fileName)
 	#SaveDataset(nt, fileName)
+
+	ShowCategory(f)
+
 ImportH5AD()
