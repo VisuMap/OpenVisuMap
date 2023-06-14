@@ -178,7 +178,7 @@ function SaveSortedTable() {
 	var at = OpenAtlas();
 
 	var ii = at.NewRectItem();	
-	ii.Name = vv.Dataset.Name.substr(0,4);
+	ii.Name = vv.Dataset.Name.substr(0,8);
 	ii.Tag = info.join('|');
 	ii.Top = 50*(++cfg.seq % 15);
 	ii.Left = 25;

@@ -42,7 +42,7 @@ def DoTest():
     if ds is None:        
         ds = vm.LoadFromVisuMap(mtr)
         # centralize the training data
-        # ds = ds - np.mean(ds, axis=0)
+        ds = ds - np.mean(ds, axis=0)
     print('Fitting data...')
     if randomizeOrder:
         perm = np.random.permutation(ds.shape[0])
@@ -72,7 +72,7 @@ def DoTest():
 
 ResetTest()
 mtr = M.s
-for A0 in [A.s, A.r]: DoTest()
+for k in [0, 1]: DoTest()
 
 vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
 

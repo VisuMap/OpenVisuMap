@@ -11,7 +11,7 @@ cfg = {...cfg, ...{
 	ExaF:  PP(1.5),    // final exaggeration.
 	Ppr:   PP(0.05),   // perplexity ratio    
 	Mtr:   PP(cfg.cos), // distance metric
- 	PrShift:PP(0),      // cell/gene profile shift towards arithmetric center.
+ 	PrShift:PP(1.0),      // cell/gene profile shift towards arithmetric center.
 	Is3D:	PP(false, false),
 	cellMap:null, 
 	geneMap:null,
@@ -20,12 +20,14 @@ cfg = {...cfg, ...{
 }};
 
 cfg.Epochs = PP(4000, 4000);
-cfg.Exa = PP(8.0);
+cfg.Exa = PP(3.0);
 cfg.ExaF = PP(1.25);
-cfg.Ppr = PP(0.1);
-cfg.Mtr = PP(cfg.cor);
-//cfg.MapLimit = PP(400, 50000);
-
+cfg.Ppr = PP(0.05);
+cfg.Mtr = PP(cfg.cos);
+//
+//limits the columns or rows by random selection when creating maps of rows or columns.
+//cfg.MapLimit = PP(400, 50000); 
+//
 
 function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, finalExa, ppRatio, is3D) {
 	mds.SetTrainingData(nt);
@@ -36,12 +38,12 @@ function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, finalExa, ppRati
 	mds.StagedTraining = false;
 	mds.RefreshFreq = cfg.refFreq;
 	mds.Repeats = 1;
-	mds.GlyphSet = "36 Clusters|36 Clusters|36 Clusters";
+	mds.GlyphSet = "12 Clusters|||||";
 
 	mds.MaxLoops = epochs;
 	mds.PerplexityRatio = ppRatio;
-	mds.ExaggerationFactor = initExa;
-	mds.ExaggerationFinal = finalExa;
+	mds.InitialExaggeration = initExa;
+	mds.FinalExaggeration = finalExa;
 	mds.Reset().Start();
 	if ( mds.LoopsTsne != mds.MaxLoops ) {
 		vv.GuiManager.StopFlag = true;
@@ -54,12 +56,14 @@ function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, finalExa, ppRati
 	mpView.AddContextMenu("Atlas/Capture Coloring", "!csFct.CopyType(pp.BodyList, cfg.hm)",
       isCellMap, null, "Push the cluster coloring to the heatmap");
 	mpView.Title = isCellMap ? "Cell Map" : "Gene Map";
+	mpView.Description = `DualEmbedding: ${mds.Metric}; Epochs: ${mds.MaxLoops}; ${mds.PerplexityRatio}/${mds.InitialExaggeration}/${mds.FinalExaggeration}`;
 	return mpView;
 };
 
 function DEmbeddingMain() {
 	var nt = cfg.hm.GetNumberTable();
-	var mds = New.MdsCluster().Show();
+	var mds = New.MdsCluster();
+	mds.Show();
 	cfg.cellMap = cfg.geneMap = null;
 
 	var sz = cfg.hpSize;
