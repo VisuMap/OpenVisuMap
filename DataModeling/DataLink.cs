@@ -248,7 +248,7 @@ namespace VisuMap.DataModeling {
                 cIds = dataset.ColumnSpecList.Where((cs, col) => (cs.IsNumber && filter.Enabled[col])).Select(cs => cs.Id).ToList();
             } else {
                 cIds = new List<string>();
-                var idList = app.Folder.LabelGroupList.GetGroupLabels(groupName);
+                var idList = app.GroupManager.GetGroupLabels(groupName);
                 if (idList != null) {
                     foreach (var id in idList) {
                         if (nt.IndexOfColumn(id) >= 0)
@@ -437,7 +437,7 @@ namespace VisuMap.DataModeling {
             } else {
                 var filter = app.Folder.OpenTableFilter(filterName);
                 if ( filter == null ) { // assume it is group
-                    var g = app.Folder.LabelGroupList.GetGroupLabels(filterName);
+                    var g = app.GroupManager.GetGroupLabels(filterName);
                     if (g != null)
                         return g.Count;
                     else
