@@ -1,0 +1,207 @@
+# CascadingTsne.pyn
+#
+# Creating tSNE embedding by cascading training algorithm
+#
+# -------------------------------------------------------------
+import math, time
+
+dsTable = None
+rmInitSize = 0
+rmStepSize = 0
+recordMarker = 0
+
+# Callback function to extract map during t-SNE training process.
+def BodyMoved():
+	global recordMarker
+	columns = dsTable.Tag
+	mapDim = 3 if pp.Is3D else 2
+	span = pp.GlyphSpan
+
+	if (span < recordMarker) and (pp.CurrentLoops != pp.MaxLoops):
+		return
+	if (pp.CurrentLoops == 0) or ((columns + mapDim) > dsTable.Columns):
+		return	
+	bsList = vv.Dataset.BodyListEnabled()
+	if IsCollapsed(bsList, mapDim, pp.GlyphScale): # the map is still collapsed
+		return
+
+	dsTable.CopyValuesFrom(bsList, pp.Is3D, columns)
+	recordMarker = span + math.ceil(span/3)*rmStepSize   # recordMarker for the next call.
+	dsTable.Tag = columns + mapDim
+	dsTable.ColumnSpecList[columns].Name = f'Sp:{span}'
+	# Mark the cascading stages:
+	curExa = float(pp.TheForm.CurrentExaggeration)+0.1
+	pp.TheForm.Histogram.AddPoint(curExa, span-0.2)
+
+# Run t-SNE with some default behaviors.
+def RunTsne(mds):
+	mds.TracingType = 6
+	mds.Repeats = 1
+	mds.StagedTraining = False
+	mds.ReadOnly = True
+	mds.HistStepSize = 2.0
+	mds.Show().Reset().Start()
+	if mds.CurrentLoops == mds.MaxLoops:
+		mds.Close()
+	else:
+		vv.Title = 'Training aborted'
+		vv.Return()		
+
+# Create dataset from maps extracted during the t-SNE training processes.
+def CreateMapDataset(is3D=True, initSize=0.2, stepSize=0.5, ppl=0.1, ex0=8.0, ex1=1.0, epochs=0):
+	global recordMarker
+	global rmStepSize
+	global rmInitSize
+	global dsTable
+	rmInitSize = initSize
+	rmStepSize = stepSize
+	mds = New.TsneMap()
+	mds.PerplexityRatio = ppl 
+	mds.InitialExaggeration = ex0
+	mds.FinalExaggeration = ex1
+	if epochs != 0: mds.MaxLoops = epochs
+	mds.AutoNormalizing = False
+	mds.AutoScaling = True
+	mds.CentralizingData = True
+	mds.RefreshFreq = 10
+	mds.Is3D = is3D
+	mapDim = 3 if is3D else 2
+	vv.Map.MapType = "Cube" if is3D else "Rectangle"
+	bsList = vv.Dataset.BodyListEnabled()
+	recordMarker = rmInitSize    	# Initial recordMarker.
+	maxRecords = 50
+	dsTable = New.NumberTable(bsList, mapDim*maxRecords)
+	dsTable.Tag = 0
+	csList = dsTable.ColumnSpecList
+	for k in range(maxRecords):
+		csList[mapDim*k].Type = k
+		csList[mapDim*k+1].Type = k
+		if is3D:
+			csList[mapDim*k+2].Type = k
+	vv.EventManager.OnBodyMoved('@BodyMoved()', mds)
+	vv.Map.Depth = 0.5 * (vv.Map.Height + vv.Map.Width)
+	RunTsne(mds)
+	#mds.TheForm.HistorySnapshot()
+	dsTable = dsTable.SliceColumn(0, dsTable.Tag)
+	vv.Echo(f'Dataset created:  {dsTable.Rows}x{dsTable.Columns}')
+
+def Settings(nt, mds):
+	global dsType
+	return f'Settings: {nt.Rows}x{nt.Columns}; {mds.MaxLoops}; {mds.PerplexityRatio}; {mds.InitialExaggeration}/{mds.FinalExaggeration}, {time.asctime()}'
+
+# Create a t-SNE map with specific dataset and metric
+def CreateMdsMap(mtr="EuclideanMetric", is3D=False, ppl=0.1, ex0=8.0, ex1=1.0, epochs=0):
+	mds = New.TsneMap()
+	if epochs != 0: mds.MaxLoops = epochs
+	mds.ChangeTrainingData(dsTable, mtr)
+	mds.Tag = dsTable
+	mds.PerplexityRatio = ppl  # High PP is key for low dimensional data.
+	mds.InitialExaggeration = ex0
+	mds.FinalExaggeration = ex1
+	mds.AutoNormalizing = True
+	mds.AutoScaling = False
+	mds.Is3D = is3D
+	mds.RefreshFreq = 100
+	vv.Map.MapType="Rectangle"
+	vv.Map.Description = Settings(dsTable, mds)
+	RunTsne(mds)
+
+def ShowSelectedMap():
+	nn = pp.SelectedItems.Count
+	if (nn != pp.ScrollingSteps) or (pp.SelectionMode != 1):	
+		return	
+	bList = New.BodyList(pp.GetSelectedNumberTable())
+	if nn==3:
+		map = New.Map3DView(bList)
+		map.ResetView(0)
+	else:
+		map = New.MapSnapshot(bList)
+		map.ResetSize()
+	map.Show()		
+
+def ShowDataset(dsTable):
+	hm = New.HeatMap(dsTable)
+	hm.Show()
+	hm.SelectionMode = 1
+	hm.ScrollingSteps = 3 if dsTable.ColumnSpecList[2].Group == 0 else 2 
+	hm.Title = 'Data Dimension: ' + str(dsTable.Rows) + 'x' + str(dsTable.Columns)
+	hm.AddEventHandler('ItemsSelected', '@ShowSelectedMap()')
+
+def ShowDataset2(ds):
+	mDim = 3 if ds.ColumnSpecList[2].Group == 0 else 2
+	bs = New.BodyList(ds)
+	if mDim == 3:
+		map = New.Map3DView(bs).Show()
+		map.ResetView(0)
+		map.ShowBoundingBox = False
+	else:
+		map = New.MapSnapshot(bs).Show()
+		map.ResetSize()
+	map.CentralizeView()
+	for k in range(2):
+		for col in range(0, ds.Columns, mDim):
+			bodyList = New.BodyList( ds.SliceColumn(col, col+mDim) )
+			map.MoveBodiesTo(bodyList, steps=15, msPause=75, loops=0, loopPause=0)
+			map.Title = f'N: {k}:{col}:{col+mDim}'
+			vv.Sleep(250)
+			if mDim == 2 and col == 3*mDim:
+				map.CentralizeView()
+		vv.Sleep(1000)
+	map.Close()
+
+
+isFirstMap = True
+def SwitchToNewMap():
+	global isFirstMap
+	if isFirstMap:
+		isFirstMap = False
+	else:
+		vv.Dataset.AddMap()
+
+# Check whether a map has collapsed dimensions
+isUnfold = False
+def IsCollapsed(bsList, mapDim, spanFactor):
+	global isUnfold
+	if isUnfold:
+		return False
+	nt = New.NumberTable(bsList, mapDim)
+	ev = New.NumberArray()
+	nt.GetPcaEigenvectors(ev, mapDim)
+	ev = [math.sqrt(v/spanFactor) for v in ev]
+	minEv = ev[1] if mapDim == 3 else ev[0]
+	#msg = f'{ev[0]}, {ev[1]}, {ev[2]}' if mapDim == 3 else f'{ev[0]}, {ev[1]}'
+	#vv.Echo(msg)
+	isUnfold = (minEv > 0.2)
+	return not isUnfold
+
+#==========================================================================
+
+for k in [0, 1]:
+	SwitchToNewMap()
+	CreateMapDataset(ex0=8.0, ex1=1.0, ppl=0.1)
+	CreateMdsMap(ex0=8.0, ex1=1.0, ppl=0.1)
+
+'''-----------------------------------------------------------------------
+
+Various test code:
+
+ShowDataset(dsTable)
+
+ShowDataset2(dsTable)
+
+cm = New.ClusterManager().Show()
+
+for p in [0.1, 0.05, 0.01]:
+	vv.Dataset.AddMap()
+	CreateMdsMap(dsTable, ppl=p)
+
+
+dsTable = dsTable.SliceColumn(3, 0)
+
+vv.GuiManager.ReuseLastWindow = False
+
+hm = New.HeatMap(dsTable).Show()
+hm.SelectedItems = hm.AllItems
+hm.ClickMenu('PyUtils/UMAP')
+
+'''

@@ -26,6 +26,7 @@ function InstallAtlas() {
         ["Import VCF", null, "VcfRead.pyn"],			
         ["Imp Cnt Mtx (*.mtx.gz)", null, "MatrixRead.pyn"],
         ["Show Maps", null, "ShowMaps.js"],
+        ["Cascading Embedding", null, "CascadingTsne.pyn"],			
     ]) mgr.SetCustomButton("Atlas/" + label, img, script);
 }
 

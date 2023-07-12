@@ -29,7 +29,7 @@ def ResetTest():
     A0 = A.s
     epochs = 2000
     mapDim = 2
-    randomizeOrder = True
+    randomizeOrder = False
     stateSeed = None
     nn = 500
     md = 0.1
@@ -46,6 +46,7 @@ def DoTest():
     print('Fitting data...')  
 
     if randomizeOrder:
+        #ds = (2*np.random.randint(2, size=ds.shape[1]) - 1) * ds
         perm = np.random.permutation(ds.shape[0])
         ds = ds[perm]
         if mtr == 'precomputed':
@@ -72,9 +73,8 @@ def DoTest():
 #====================================================================================
 
 ResetTest()
-mtr = M.s
-A0 = A.p
-for k in [0, 1]: DoTest()
+for k in [0, 1, 2]: DoTest()
+
 
 #vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
 

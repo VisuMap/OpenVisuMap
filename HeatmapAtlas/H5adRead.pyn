@@ -78,7 +78,8 @@ def ShowCategory(f):
 
 	for row in range(N):
 		nt.RowSpecList[row].Id = str(row)
-	ShowHeatmap(nt, 'Categories')
+	hm = ShowHeatmap(nt, 'Categories')
+	hm.AddContextMenu('Atlas/Add Categories Clusters', '@AddClusters()')
 
 def ImportH5AD():
 	fileName = PromptFile("H5ad Files|*.h5ad")
