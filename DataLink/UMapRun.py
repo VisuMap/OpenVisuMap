@@ -73,8 +73,9 @@ def DoTest():
 #====================================================================================
 
 ResetTest()
-for k in [0, 1, 2]: DoTest()
-
+mtr = M.s
+A0 = A.r
+for k in [0, 1]: DoTest()
 
 #vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
 
