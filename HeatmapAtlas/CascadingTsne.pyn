@@ -48,7 +48,7 @@ def RunTsne(mds):
 		vv.Return()		
 
 # Create dataset from maps extracted during the t-SNE training processes.
-def CreateMapDataset(is3D=True, initSize=0.2, stepSize=0.5, ppl=0.1, ex0=8.0, ex1=1.0, epochs=0):
+def CreateMapDataset(is3D=True, initSize=0.25, stepSize=0.5, ppl=0.1, ex0=8.0, ex1=1.0, epochs=0):
 	global recordMarker
 	global rmStepSize
 	global rmInitSize
@@ -119,17 +119,20 @@ def ShowSelectedMap():
 		map.ResetSize()
 	map.Show()		
 
+def DsMapDim(ds):
+	csList = ds.ColumnSpecList
+	return 3 if csList[2].Group == csList[1].Group else 2
+
 def ShowDataset(dsTable):
 	hm = New.HeatMap(dsTable)
 	hm.Show()
 	hm.SelectionMode = 1
-	csList = dsTable.ColumnSpecList
-	hm.ScrollingSteps = 3 if (csList[1].Group == csList[2].Group) else 2
+	hm.ScrollingSteps = DsMapDim(dsTable)
 	hm.Title = 'Data Dimension: ' + str(dsTable.Rows) + 'x' + str(dsTable.Columns)
 	hm.AddEventHandler('ItemsSelected', '@ShowSelectedMap()')
 
 def ShowDataset2(ds):
-	mDim = 3 if ds.ColumnSpecList[2].Group == 0 else 2
+	mDim = DsMapDim(ds)
 	bs = New.BodyList(ds)
 	if mDim == 3:
 		map = New.Map3DView(bs).Show()
@@ -144,10 +147,9 @@ def ShowDataset2(ds):
 			bodyList = New.BodyList( ds.SliceColumn(col, col+mDim) )
 			map.MoveBodiesTo(bodyList, steps=15, msPause=75, loops=0, loopPause=0)
 			map.Title = f'N: {k}:{col}:{col+mDim}'
-			vv.Sleep(250)
-			if mDim == 2 and col == 3*mDim:
-				map.CentralizeView()
-		vv.Sleep(1000)
+			vv.Sleep(250)			
+			if col == 3*mDim: map.CentralizeView()
+		vv.Sleep(500)
 	map.Close()
 
 
@@ -173,8 +175,8 @@ def IsCollapsed(bsList, mapDim, spanFactor):
 
 for k in [0, 1]:
 	SwitchToNewMap()
-	CreateMapDataset(ex0=8.0, ex1=1.0, ppl=0.1)
-	CreateMdsMap(ex0=8.0, ex1=1.0, ppl=0.1)
+	CreateMapDataset(is3D=False, ex0=8.0, stepSize=0.25)
+	CreateMdsMap()
 
 '''-----------------------------------------------------------------------
 
@@ -185,12 +187,18 @@ ShowDataset2(dsTable)
 cm = New.ClusterManager().Show()
 
 for p in [0.1, 0.05, 0.01]:
-	vv.Dataset.AddMap()
 	CreateMdsMap(dsTable, ppl=p)
 
-
+# skip the first 6 columns:
 dsTable = dsTable.SliceColumn(6, 0)
 
-vv.GuiManager.ReuseLastWindow = False
+# selected half of the columns:
+CN = dsTable.Columns
+D, DD = 2, 4
+idxList = [i+k for i in range(D, CN, DD) for k in range(D) ]
+if CN % DD != 0: idxList += list( range(CN-D, CN) )
+dsTable = dsTable.SelectColumns( idxList )
+
+vv.GuiManager.ReuseLastWindow = True
 
 '''
