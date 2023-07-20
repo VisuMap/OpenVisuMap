@@ -19,8 +19,10 @@ def BodyMoved():
 
 	if (span < recordMarker) and (pp.CurrentLoops != pp.MaxLoops):
 		return
-	if (pp.CurrentLoops == 0) or ((columns + mapDim) > dsTable.Columns):
-		return	
+	if pp.CurrentLoops < 100:
+		return
+	if (columns + mapDim) > dsTable.Columns:
+		return
 	bsList = vv.Dataset.BodyListEnabled()
 	if IsCollapsed(bsList, mapDim, pp.GlyphScale): # the map is still collapsed
 		return
@@ -48,7 +50,7 @@ def RunTsne(mds):
 		vv.Return()		
 
 # Create dataset from maps extracted during the t-SNE training processes.
-def CreateMapDataset(is3D=True, initSize=0.25, stepSize=0.5, ppl=0.1, ex0=8.0, ex1=1.0, epochs=0):
+def CreateMapDataset(is3D=True, showHistory=False, initSize=0.25, stepSize=0.5, ppl=0.1, ex0=8.0, ex1=1.0, epochs=0):
 	global recordMarker
 	global rmStepSize
 	global rmInitSize
@@ -81,9 +83,17 @@ def CreateMapDataset(is3D=True, initSize=0.25, stepSize=0.5, ppl=0.1, ex0=8.0, e
 	vv.EventManager.OnBodyMoved('@BodyMoved()', mds)
 	vv.Map.Depth = 0.5 * (vv.Map.Height + vv.Map.Width)
 	RunTsne(mds)
-	#mds.TheForm.HistorySnapshot()
 	dsTable = dsTable.SliceColumn(0, dsTable.Tag)
-	vv.Echo(f'Dataset created:  {dsTable.Rows}x{dsTable.Columns}')
+	if showHistory:
+		ctn = New.ViewContainer().Show()
+		mds.TheForm.HistorySnapshot()
+		ctn.Add(vv.LastView)
+		mp = New.Map3DView() if is3D else New.MapSnapshot()
+		ctn.Add(mp)
+		mp.Show()
+		ShowDataset(dsTable)
+		ctn.Add(vv.LastView)
+		ctn.CascadeWindows()
 
 def Settings(nt, mds):
 	global dsType
@@ -171,11 +181,20 @@ def IsCollapsed(bsList, mapDim, spanFactor):
 	mapCollpased = ev[mapDim-2] < 1.0
 	return mapCollpased
 
+def HalfDataset(ds):
+	columns = ds.Columns
+	D = DsMapDim(ds)
+	D2 = 2 * D;
+	idxList = [i+k for i in range(D, columns, D2) for k in range(D) ]
+	if columns % D2 != 0: 
+		idxList += list( range(columns-D, columns) )
+	return ds.SelectColumns( idxList )
+
 #==========================================================================
 
-for k in [0, 1]:
+for k in [0]:
 	SwitchToNewMap()
-	CreateMapDataset(is3D=False, ex0=8.0, stepSize=0.25)
+	CreateMapDataset(is3D=True, showHistory=True, stepSize=0.5, ex0=4.0, ex1=1.0, ppl=0.15)
 	CreateMdsMap()
 
 '''-----------------------------------------------------------------------
@@ -193,11 +212,7 @@ for p in [0.1, 0.05, 0.01]:
 dsTable = dsTable.SliceColumn(6, 0)
 
 # selected half of the columns:
-CN = dsTable.Columns
-D, DD = 2, 4
-idxList = [i+k for i in range(D, CN, DD) for k in range(D) ]
-if CN % DD != 0: idxList += list( range(CN-D, CN) )
-dsTable = dsTable.SelectColumns( idxList )
+dsTable = HalfDataset( dsTable )
 
 vv.GuiManager.ReuseLastWindow = True
 
