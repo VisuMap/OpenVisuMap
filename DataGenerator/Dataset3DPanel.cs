@@ -25,10 +25,7 @@ namespace DataGenerator {
             this.Close();
         }
 
-        private void button3_Click(object sender, EventArgs e) {
-            new SingleCell().Show();
-        }
-
+        
         private void button4_Click(object sender, EventArgs e) {
             Projective4D plane = new Projective4D(10, Math.PI / 500);
             plane.Show();
@@ -152,6 +149,17 @@ namespace DataGenerator {
             pB.Rotate(Math.PI/2, 'y');
             pC.Rotate(Math.PI/2, 'x');
             (pA + pB + pC).Show();
+        }
+
+        [Configurable, Category("Klein Bottle"), Description("Width of klein-bottle")]
+        public int KBottleWidth { get; set; } = 300;
+
+        [Configurable, Category("Klein Bottle"), Description("Width of klein-bottle")]
+        public int KBottleHeight { get; set; } = 400;
+
+        private void button3_Click(object sender, EventArgs e) {
+            KleinBottle4D kb = new KleinBottle4D(KBottleWidth, KBottleHeight);
+            kb.Show();
         }
     }
 }
