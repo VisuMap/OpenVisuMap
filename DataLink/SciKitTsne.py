@@ -13,7 +13,7 @@ mapDim = 2
 pp = 1000
 ds = DataLinkCmd.LoadFromVisuMap('euclidean')
 exa = 4.0
-initType = A.p
+A0 = A.p
 agl = 0.5
 lr = 200.0
 
@@ -25,7 +25,7 @@ def DoTest():
 
     t0 = time.time()
     tsne = TSNE(n_components=mapDim, perplexity=pp, learning_rate=lr, early_exaggeration=exa,
-       n_iter=epochs, n_jobs=-1, verbose=2, init=initType, angle=agl)
+       n_iter=epochs, n_jobs=-1, verbose=2, init=A0, angle=agl)
     map = tsne.fit_transform(ds)
     tm = time.time() - t0
 
@@ -35,6 +35,11 @@ def DoTest():
     DataLinkCmd.ShowToVisuMap(map, title)
 
 print('Fitting data...')
-for initType in [A.r, A.p]:
+for pp in [25, 100, 400]:
+    DoTest()
+
+'''
+for A0 in [A.r, A.p]:
     for pp in [25, 100, 400]:
         DoTest()
+'''
