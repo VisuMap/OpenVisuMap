@@ -34,9 +34,15 @@ def DoTest():
     vm.ShowToVisuMap(map, title)
 
 #=====================================================
-mtr, pp, exa = M.c, 1024, 4.0
+mtr, pp, exa = M.e, 1024, 4.0
+#A0 = A.r
+#for pp in [150, 300, 600]: DoTest()
 
-for pp in [150, 300, 600]: DoTest()
+A0 = A.r
+for pp in [100, 200, 400]: DoTest()
+A0 = A.p
+for pp in [100, 200, 400]: DoTest()
+
 
 vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
 

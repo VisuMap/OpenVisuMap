@@ -13,13 +13,12 @@ mapDim = 2
 pp = 1000
 ds = DataLinkCmd.LoadFromVisuMap('euclidean')
 exa = 4.0
-initType = A.r
+initType = A.p
 agl = 0.5
 lr = 200.0
 
-print('Fitting data...')
-for k in [0,1,3]:
-#for pp in [500, 1000, 1500]:
+def DoTest():
+    global ds
     perm = numpy.random.permutation(ds.shape[0])
     ds = ds[perm]
     perm = numpy.arange(ds.shape[0])[numpy.argsort(perm)]
@@ -34,3 +33,8 @@ for k in [0,1,3]:
     ds = ds[perm]
     title = 'SciKit-TSNE: Perplexity:%.1f, Angle:%.1f, LR:%.1f, T:%.1f'%(pp, agl, lr, tm)
     DataLinkCmd.ShowToVisuMap(map, title)
+
+print('Fitting data...')
+for initType in [A.r, A.p]:
+    for pp in [25, 100, 400]:
+        DoTest()
