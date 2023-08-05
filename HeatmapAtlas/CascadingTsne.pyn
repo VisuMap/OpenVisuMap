@@ -10,6 +10,26 @@ rmInitSize = 0
 rmStepSize = 0
 recordMarker = 0
 
+cs = New.CsObject('''
+public void Merge2Maps(dynamic map, INumberTable nt, int offset1, int offset2, double f ) {
+	var bsList = map.BodyList;
+	int mapDim = (nt.ColumnSpecList[1].Group == nt.ColumnSpecList[2].Group) ? 3 : 2;
+	int lastOffset = nt.Columns - mapDim;
+	offset1 = Math.Min(lastOffset, offset1);
+	offset2 = Math.Min(lastOffset, offset2);
+	f = Math.Max(0, Math.Min(1.0, f/100.0));
+	double g = 1.0 - f;
+   for(int k=0; k<nt.Rows; k++) {
+		var b = bsList[k];
+		double[] R = nt.Matrix[k] as double[];
+		b.X = g*R[offset1]     + f * R[offset2];
+		b.Y = g*R[offset1 + 1] + f * R[offset2+1];
+		b.Z = (mapDim == 2) ? 0 : g*R[offset1 + 2] + f * R[offset2+2];
+	}
+	map.RedrawAll();
+}
+''')
+
 # Callback function to extract map during t-SNE training process.
 def BodyMoved():
 	global recordMarker
@@ -102,7 +122,7 @@ def CreateMapDataset(is3D=True, showHistory=False, initSize=0.25, stepSize=0.5, 
 		mp = New.Map3DView() if is3D else New.MapSnapshot()
 		ctn.Add(mp)
 		mp.Show()
-		ShowDataset(dsTable)
+		ShowDataset1(dsTable)
 		ctn.Add(vv.LastView)
 		ctn.CascadeWindows()
 
@@ -162,7 +182,7 @@ def DsMapDim(ds):
 	csList = ds.ColumnSpecList
 	return 3 if csList[2].Group == csList[1].Group else 2
 
-def ShowDataset(dsTable):
+def ShowDataset1(dsTable):
 	hm = New.HeatMap(dsTable)
 	hm.Show()
 	hm.SelectionMode = 1
@@ -205,6 +225,19 @@ def ShowDataset3(dsTable):
 	hm.Show()
 	hm.SelectionMode = 1
 	hm.AddContextMenu('Cascading Map', '@CollapseDsMap(pp.GetSelectedNumberTable(), DsMapDim(dsTable))')
+
+def ShowDataset4(dsTable):
+	mapDim = DsMapDim(dsTable)
+	mapC = ShowBodyMap(New.BodyList(dsTable), mapDim)
+	c0 = 2*mapDim
+	c1 = 99*mapDim
+	for repeat in range(3):
+		for f in range(100):
+			cs.Merge2Maps(mapC, dsTable, c0, c1, f)
+			vv.Sleep(10)
+		for f in range(100, 0, -1):
+			cs.Merge2Maps(mapC, dsTable, c0, c1, f)
+			vv.Sleep(10)
 
 isFirstMap = True
 def SwitchToNewMap():
@@ -257,11 +290,12 @@ mtrList = [
 	'Vector.WaveHedge',
 	]
 
+
 #==========================================================================
-for k in [0,1,2,3]:
+for k in [1]:
 	SwitchToNewMap()
-	CreateMapDataset(is3D=False, showHistory=False, initSize=1.0, stepSize=1.0, ex0=8.0, ex1=1.0, ppl=0.1)
-	CreateMdsMap(mtrList[6])
+	CreateMapDataset(is3D=False, showHistory=False, initSize=0.2, stepSize=0.2, ex0=4.0, ex1=1.0, ppl=0.1)
+	CreateMdsMap(mtrList[5])
 
 '''-----------------------------------------------------------------------
 
@@ -269,9 +303,12 @@ MergeMaps('B1|B2|B3', 3)
 
 CreateMdsMap('LastMap')
 
-ShowDataset(dsTable)
+dsTable = vv.AtlasManager.ReadNumberTable(None, 'i16')
+
+ShowDataset1(dsTable)
 ShowDataset2(dsTable)
 ShowDataset3(dsTable)
+ShowDataset4(dsTable)
 
 cm = New.ClusterManager().Show()
 
