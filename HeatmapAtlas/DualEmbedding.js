@@ -20,10 +20,10 @@ cfg = {...cfg, ...{
 }};
 
 cfg.Epochs = PP(4000, 4000);
-cfg.Exa = PP(3.0);
-cfg.ExaF = PP(1.25);
-cfg.Ppr = PP(0.05);
-cfg.Mtr = PP(cfg.cos);
+cfg.Exa = PP(6.0);
+cfg.ExaF = PP(1.0);
+cfg.Ppr = PP(0.1);
+cfg.Mtr = PP(cfg.cos, cfg.euc);
 //
 //limits the columns or rows by random selection when creating maps of rows or columns.
 //cfg.MapLimit = PP(400, 50000); 

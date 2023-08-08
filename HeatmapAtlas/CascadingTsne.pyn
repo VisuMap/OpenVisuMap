@@ -104,7 +104,7 @@ def CreateMapDataset(is3D=True, showHistory=False, initSize=0.25, stepSize=0.5, 
 	if epochs != 0: mds.MaxLoops = epochs
 	mds.AutoNormalizing = False
 	mds.AutoScaling = True
-	mds.CentralizingData = True
+	mds.CentralizingData = False
 	mds.RefreshFreq = 10
 	mds.Is3D = is3D
 	mapDim = 3 if is3D else 2
@@ -292,10 +292,10 @@ mtrList = [
 
 
 #==========================================================================
-for k in [1]:
+for k in [0, 1]:
 	SwitchToNewMap()
-	CreateMapDataset(is3D=False, showHistory=False, initSize=0.2, stepSize=0.2, ex0=4.0, ex1=1.0, ppl=0.1)
-	CreateMdsMap(mtrList[5])
+	CreateMapDataset(is3D=False, showHistory=False, initSize=0.2, stepSize=1.0, ex0=5.0, ex1=1.0, ppl=0.1)
+	CreateMdsMap(mtrList[5], ex0=4.0, ex1=1.0)
 
 '''-----------------------------------------------------------------------
 

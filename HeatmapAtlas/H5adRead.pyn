@@ -10,7 +10,6 @@
 import clr, scanpy, numpy
 vv.Import('AtlasHelp.pyn')
 
-
 isAnnData = True
 if isAnnData:
 	import anndata
@@ -81,6 +80,23 @@ def ShowCategory(f):
 	hm = ShowHeatmap(nt, 'Categories')
 	hm.AddContextMenu('Atlas/Add Categories Clusters', '@AddClusters()')
 
+def ShowEmbedding(f, nt):
+	if hasattr(f, 'obsm_keys'):
+		for key in f.obsm_keys():
+			mp = f.obsm[key]
+			shp = mp.shape
+			if (shp[0] == nt.Rows) and (shp[1] == 2):
+				ntMap = mm.ToTable(mp)
+				srcList = nt.RowSpecList
+				dstList = ntMap.RowSpecList
+				for row in range(nt.Rows):
+					dstList[row].CopyFrom(srcList[row])
+				bsList = New.BodyList(ntMap)
+				mdsMap = New.MapSnapshot(bsList).Show()
+				mdsMap.Title = f'2D Embeding; algorithm: {key}'
+				mdsMap.NormalizeView()
+
+
 def ImportH5AD():
 	fileName = PromptFile("H5ad Files|*.h5ad")
 	
@@ -106,8 +122,12 @@ def ImportH5AD():
 			if cs.Id.startswith('mt-'):
 				cs.Group = 1
 	ShowHeatmap(nt, fileName)
+
+
 	#SaveDataset(nt, fileName)
 
 	ShowCategory(f)
+
+	ShowEmbedding(f, nt)
 
 ImportH5AD()
