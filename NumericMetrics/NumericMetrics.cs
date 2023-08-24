@@ -45,6 +45,7 @@ namespace VisuMap.NumericMetrics {
             app.InstallMetric(new ProductAffinity());
             app.InstallMetric(new EuclideanAffinity());
             app.InstallMetric(new GravitationalAffinity());
+            app.InstallMetric(new TimeSpace());
         }
 
         /// <summary>

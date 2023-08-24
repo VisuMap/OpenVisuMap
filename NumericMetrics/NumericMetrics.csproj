@@ -77,6 +77,7 @@
     <Compile Include="ConfigureSettings.cs" />
     <Compile Include="GravitationalAffinity.cs" />
     <Compile Include="EuclideanAffinity.cs" />
+    <Compile Include="TimeSpace.cs" />
     <Compile Include="LogEuclidean.cs" />
     <Compile Include="ProductAffinity.cs" />
     <Compile Include="Covariance.cs" />

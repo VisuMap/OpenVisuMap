@@ -3,6 +3,7 @@ var parentList = "MainForm|HeatMap|MdsCluster";
 mgr.SetCustomMenu("PyUtils/UMAP", true, "UMapRun.py", parentList, null);
 mgr.SetCustomMenu("PyUtils/OpenTsne", true, "OpenTsneRun.py", parentList, null);
 mgr.SetCustomMenu("PyUtils/SciKitTsne", true, "SciKitTsne.py", parentList, null);
+mgr.SetCustomMenu("PyUtils/BH-Sne", true, "BH_SneRun.py", parentList, null);
 
 vv.SetProperty("DataLink.CmdPort", "8877", "DataLink command IP port. Restart needed after change");
 vv.SetProperty("DataLink.PythonEditor", "notepad", "Path to the python script editor.");

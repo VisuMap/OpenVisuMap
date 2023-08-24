@@ -16,6 +16,8 @@ exa = 4.0
 A0 = A.p
 agl = 0.5
 lr = 200.0
+#mt = 'barnes_hut'
+mt = 'exact'
 
 def DoTest():
     global ds
@@ -24,7 +26,7 @@ def DoTest():
     perm = numpy.arange(ds.shape[0])[numpy.argsort(perm)]
 
     t0 = time.time()
-    tsne = TSNE(n_components=mapDim, perplexity=pp, learning_rate=lr, early_exaggeration=exa,
+    tsne = TSNE(n_components=mapDim, perplexity=pp, learning_rate=lr, method=mt, early_exaggeration=exa,
        n_iter=epochs, n_jobs=-1, verbose=2, init=A0, angle=agl)
     map = tsne.fit_transform(ds)
     tm = time.time() - t0
@@ -35,11 +37,15 @@ def DoTest():
     DataLinkCmd.ShowToVisuMap(map, title)
 
 print('Fitting data...')
-for pp in [25, 100, 400]:
+for pp in [2000, 3000, 4000]:
     DoTest()
 
 '''
 for A0 in [A.r, A.p]:
     for pp in [25, 100, 400]:
         DoTest()
+
+for agl in [0.6, 0.3, 0.15]:
+    DoTest()
+
 '''

@@ -11,6 +11,19 @@ rmStepSize = 0
 recordMarker = 0
 
 cs = New.CsObject('''
+public static double WeightedSum(double a, double b, double wa, double wb) {
+	return wa * a + wb * b;
+}
+
+public static double GeoMean(double a, double b) {
+	return Math.Sqrt( a * b);
+}
+
+public static double HarmonicalMean(double a, double b) {
+	return a * b /(a + b);
+}
+
+
 public void Merge2Maps(dynamic map, INumberTable nt, int offset1, int offset2, double f ) {
 	var bsList = map.BodyList;
 	int mapDim = (nt.ColumnSpecList[1].Group == nt.ColumnSpecList[2].Group) ? 3 : 2;
@@ -19,15 +32,34 @@ public void Merge2Maps(dynamic map, INumberTable nt, int offset1, int offset2, d
 	offset2 = Math.Min(lastOffset, offset2);
 	f = Math.Max(0, Math.Min(1.0, f/100.0));
 	double g = 1.0 - f;
+	Func<double, double, double, double, double> Fct = WeightedSum;
    for(int k=0; k<nt.Rows; k++) {
 		var b = bsList[k];
 		double[] R = nt.Matrix[k] as double[];
-		b.X = g*R[offset1]     + f * R[offset2];
-		b.Y = g*R[offset1 + 1] + f * R[offset2+1];
-		b.Z = (mapDim == 2) ? 0 : g*R[offset1 + 2] + f * R[offset2+2];
+		b.X = Fct(R[offset1], R[offset2], g, f);
+		b.Y = Fct(R[offset1 + 1], R[offset2+1], g, f);
+		b.Z = (mapDim == 2) ? 0 : Fct(R[offset1+2], R[offset2+2], g, f);
 	}
 	map.RedrawAll();
 }
+
+public void Merge2MapsB(dynamic map, INumberTable nt, int offset1, int offset2 ) {
+	var bsList = map.BodyList;
+	int mapDim = (nt.ColumnSpecList[1].Group == nt.ColumnSpecList[2].Group) ? 3 : 2;
+	int lastOffset = nt.Columns - mapDim;
+	offset1 = Math.Min(lastOffset, offset1);
+	offset2 = Math.Min(lastOffset, offset2);
+	Func<double, double, double> Fct = HarmonicalMean;
+   for(int k=0; k<nt.Rows; k++) {
+		var b = bsList[k];
+		double[] R = nt.Matrix[k] as double[];
+		b.X = Fct(R[offset1], R[offset2]);
+		b.Y = Fct(R[offset1 + 1], R[offset2+1]);
+		b.Z = (mapDim == 2) ? 0 :  Fct(R[offset1 + 2], R[offset2+2]);
+	}
+	map.RedrawAll();
+}
+
 ''')
 
 # Callback function to extract map during t-SNE training process.
@@ -180,6 +212,8 @@ def ShowSelectedMap():
 
 def DsMapDim(ds):
 	csList = ds.ColumnSpecList
+	if csList.Count <= 3:
+		return csList.Count
 	return 3 if csList[2].Group == csList[1].Group else 2
 
 def ShowDataset1(dsTable):
@@ -231,13 +265,16 @@ def ShowDataset4(dsTable):
 	mapC = ShowBodyMap(New.BodyList(dsTable), mapDim)
 	c0 = 2*mapDim
 	c1 = 99*mapDim
-	for repeat in range(3):
+	cs.Merge2MapsB(mapC, dsTable, c0, c1)
+	'''
+	for repeat in range(2):
 		for f in range(100):
 			cs.Merge2Maps(mapC, dsTable, c0, c1, f)
 			vv.Sleep(10)
 		for f in range(100, 0, -1):
 			cs.Merge2Maps(mapC, dsTable, c0, c1, f)
 			vv.Sleep(10)
+	'''
 
 isFirstMap = True
 def SwitchToNewMap():
@@ -278,6 +315,19 @@ def MergeMaps(mapList, mapDim):
 				bsList[k].Add(b.X, b.Y, b.Z)
 	ShowBodyMap(bsList, mapDim).CentralizeView()
 
+def Snapshots2Dataset():
+	fs = vv.FindFormList('MapSnapshot')
+	if fs.Count == 0:
+		vv.Message('No snapshots present!')
+		return None
+
+	ds = New.NumberTable(fs[0].BodyList, 2*fs.Count)
+	csList = ds.ColumnSpecList
+	for k in range(1, fs.Count):	
+		ds.CopyValuesFrom(fs[k].BodyList, False, 2*k)
+		csList[2*k + 1].Type = csList[2*k].Type = k
+	return ds
+
 mtrList = [
 	'LastMap',
 	'PlainSum',
@@ -292,25 +342,66 @@ mtrList = [
 
 
 #==========================================================================
-for k in [0, 1]:
+for k in []:
 	SwitchToNewMap()
 	CreateMapDataset(is3D=False, showHistory=False, initSize=0.2, stepSize=1.0, ex0=5.0, ex1=1.0, ppl=0.1)
 	CreateMdsMap(mtrList[5], ex0=4.0, ex1=1.0)
 
 '''-----------------------------------------------------------------------
 
-MergeMaps('B1|B2|B3', 3)
-
-CreateMdsMap('LastMap')
-
-dsTable = vv.AtlasManager.ReadNumberTable(None, 'i16')
 
 ShowDataset1(dsTable)
 ShowDataset2(dsTable)
 ShowDataset3(dsTable)
 ShowDataset4(dsTable)
 
+MergeMaps('B1|B2|B3', 3)
+
+CreateMdsMap('LastMap')
+
+dsTable = vv.AtlasManager.ReadNumberTable(None, 'i26')
+
+nt = vv.GetNumberTable()
+nt.CheckForWrite()
+N = int( nt.Rows/2 )
+for row in range(N):
+	R = nt.Matrix[row]
+	D = nt.Matrix[N+row]
+	R[0], R[1] = D[2], D[3]
+nt.ShowHeatMap()
+
+dsTable = Snapshots2Dataset()
+
+fs = vv.FindFormList('MapSnapshot')
+dsTable = New.NumberTable(fs[0].BodyList, 2*fs.Count)
+csList = dsTable.ColumnSpecList
+for k in range(1, fs.Count):	
+	dsTable.CopyValuesFrom(fs[k].BodyList, False, 2*k)
+	csList[2*k + 1].Type = csList[2*k].Type = k
+
 cm = New.ClusterManager().Show()
+
+nt = New.NumberTable(2*nt1.Rows, 5)
+
+nt.ColumnSpecList[0].CopyFrom(nt1.ColumnSpecList[0])
+rsList = nt.RowSpecList
+rsList1 = nt1.RowSpecList
+for i in range(nt1.Rows):
+	rsList[i].CopyFrom(rsList1[i])
+	nt.Matrix[i][0] = nt1.Matrix[i][0]
+	nt.Matrix[i][1] = nt1.Matrix[i][1]
+
+rsList = nt.RowSpecList
+rsList2 = nt1.RowSpecList
+N = nt1.Rows
+for i in range(nt1.Rows):
+	rsList[N+i].CopyFrom(rsList2[i])
+	rsList[N+i].Id =	'_' + rsList[N+1].Id
+	nt.Matrix[N+i][2] = nt2.Matrix[i][0]
+	nt.Matrix[N+i][3] = nt2.Matrix[i][1]
+	nt.Matrix[N+i][4] = 1.0
+
+nt.ShowHeatMap()
 
 for p in [0.1, 0.05, 0.01]:
 	CreateMdsMap(dsTable, ppl=p)
