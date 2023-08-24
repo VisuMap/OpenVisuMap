@@ -14,6 +14,7 @@ import DataLinkCmd as vm
 pyVersion = sys.version.split(' ')[0]
 print('Python: %s'%pyVersion)
 
+# Notice: set theta to 0 to run the 'exact' mode
 mapDim, pp, theta = 2, 500.0, 0.2
 ds = vm.LoadFromVisuMap('euclidean')
 rows = ds.shape[0]
