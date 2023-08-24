@@ -35,7 +35,7 @@ def DoTest():
 
 #=====================================================
 mtr, pp, exa = M.e, 1024, 4.0
-for pp in [800, 1600, 3200]: 
+for pp in [800, 1600]: 
 	DoTest()
 
 #vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')

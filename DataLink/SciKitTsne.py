@@ -37,7 +37,7 @@ def DoTest():
     DataLinkCmd.ShowToVisuMap(map, title)
 
 print('Fitting data...')
-for pp in [2000, 3000, 4000]:
+for pp in [100, 2000]:
     DoTest()
 
 '''
