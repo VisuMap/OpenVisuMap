@@ -4,6 +4,8 @@
 
 import time, sys, types, numpy, openTSNE
 import DataLinkCmd as vm
+
+# tested with python 3.9 and openTSNE 1.0.0
 pyVersion = sys.version.split(' ')[0]
 print('Python: %s; openTSNE: %s'%(pyVersion, str(openTSNE.__version__)))
 
@@ -35,7 +37,7 @@ def DoTest():
 
 #=====================================================
 mtr, pp, exa = M.e, 1024, 4.0
-for pp in [800, 1600]: 
+for k in [0, 1]: 
 	DoTest()
 
 #vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')

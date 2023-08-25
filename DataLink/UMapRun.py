@@ -10,6 +10,7 @@ import numpy as np
 import DataLinkCmd as vm
 from types import SimpleNamespace
 
+# tested with python 3.9 and UMAP 0.5.2
 pyVersion = sys.version.split(' ')[0]
 print('Python: %s; UMAP: %s'%(pyVersion, str(umap.__version__)))
 
@@ -73,7 +74,7 @@ def DoTest():
 #====================================================================================
 
 ResetTest()
-for nn in [200, 1000]:
+for nn in [500, 500]:
 	DoTest()
 
 #vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')

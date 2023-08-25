@@ -47,5 +47,5 @@ def DoTest():
     os.remove(inFile)
     os.remove(outFile)
 
-for pp in [200, 500]:
+for pp in [500, 1000]:
     DoTest()

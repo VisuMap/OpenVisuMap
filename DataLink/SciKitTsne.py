@@ -4,40 +4,31 @@ import sys, time, types, numpy, DataLinkCmd
 import sklearn
 from sklearn.manifold import TSNE
 
-pyVersion = sys.version.split(' ')[0]
+# Tested with python 3.9 and sklear 1.3.0
+pyVersion = sys.version.split(' ')[0]   
 print('Python: %s; sklearn: %s'%(pyVersion, str(sklearn.__version__)))
 A = types.SimpleNamespace(r='random', p='pca')
-
-epochs = 2000
-mapDim = 2
-pp = 1000
+mt = ['barnes_hut', 'exact'][ 0 ]
 ds = DataLinkCmd.LoadFromVisuMap('euclidean')
+
+mapDim, pp, epochs = 2, 1000, 2000
 exa = 4.0
 A0 = A.p
 agl = 0.5
 lr = 200.0
-#mt = 'barnes_hut'
-mt = 'exact'
 
 def DoTest():
-    global ds
-    perm = numpy.random.permutation(ds.shape[0])
-    ds = ds[perm]
-    perm = numpy.arange(ds.shape[0])[numpy.argsort(perm)]
-
     t0 = time.time()
     tsne = TSNE(n_components=mapDim, perplexity=pp, learning_rate=lr, method=mt, early_exaggeration=exa,
        n_iter=epochs, n_jobs=-1, verbose=2, init=A0, angle=agl)
     map = tsne.fit_transform(ds)
     tm = time.time() - t0
-
-    map = map[perm]
-    ds = ds[perm]
     title = 'SciKit-TSNE: Perplexity:%.1f, Angle:%.1f, LR:%.1f, T:%.1f'%(pp, agl, lr, tm)
     DataLinkCmd.ShowToVisuMap(map, title)
 
 print('Fitting data...')
-for pp in [100, 2000]:
+A0 = A.r
+for k in [0, 1]:
     DoTest()
 
 '''
