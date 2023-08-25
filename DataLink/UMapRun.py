@@ -3,14 +3,12 @@
 # Run UMAP on selected data from VisuMap and show the result to VisuMap.
 #====================================================================================
 print('Loading libraries...')
-import sys
-sys.path.insert(0, 'C:/temp/umap-master/umap-master')
-import time, types, umap
+import sys, time, types, umap
 import numpy as np
 import DataLinkCmd as vm
 from types import SimpleNamespace
 
-# tested with python 3.9 and UMAP 0.5.2
+# tested with python 3.9 and UMAP 0.5.3
 pyVersion = sys.version.split(' ')[0]
 print('Python: %s; UMAP: %s'%(pyVersion, str(umap.__version__)))
 
@@ -21,7 +19,7 @@ ds = None
 
 #====================================================================================
 
-PX = lambda aL, bL: [(x,y) for x in aL for y in bL]
+
 
 def ResetTest():
     global mtr, A0, epochs, mapDim, randomizeOrder, stateSeed
@@ -30,13 +28,13 @@ def ResetTest():
     A0 = A.s
     epochs = 2000
     mapDim = 2
-    randomizeOrder = False
+    randomizeOrder = True
     stateSeed = None
-    nn = 500
+    nn = 1000
     md = 0.1
     lc = 5
     ns = 20
-    sp = 15
+    sp = 25
 
 def DoTest():
     global ds, nr
@@ -74,29 +72,20 @@ def DoTest():
 #====================================================================================
 
 ResetTest()
-for nn in [500, 500]:
+#for k in [0,1]:
+#for A0 in [A.s, A.r, A.p]:
+#for md in [0.1, 0.4, 0.8]: 
+#for mtr in [M.e, M.c, M.s]:
+for nn in [200, 1000, 2000]:
+#for lc in [3, 5, 10]:
+#for ns in [5, 15, 25]:
+#for sp in [5, 15, 25]:
 	DoTest()
 
 #vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
 
 '''
-for md in [0.1, 0.4, 0.8]: DoTest()
-
+PX = lambda aL, bL: [(x,y) for x in aL for y in bL]
 for mtr, nn in PX([M.s], [500, 1000, 2000]): DoTest()
 
-for k in [0,1,2]: DoTest()
-
-for A0 in [A.s, A.r, A.p]: DoTest()
-
-for mtr in [M.e, M.c, M.s]: DoTest()
-
-for nn in [200, 1000, 2000]: DoTest()
-
-for md in [0.1, 0.5, 0.9]: DoTest()
-
-for lc in [3, 5, 10]: DoTest()
-
-for ns in [5, 15, 25]: DoTest()
-
-for sp in [5, 15, 25]: DoTest()
 '''

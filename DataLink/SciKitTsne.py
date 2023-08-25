@@ -27,16 +27,13 @@ def DoTest():
     DataLinkCmd.ShowToVisuMap(map, title)
 
 print('Fitting data...')
-A0 = A.r
+
 for k in [0, 1]:
+#for A0 in [A.r, A.p]:
+#for agl in [0.6, 0.3, 0.15]:
     DoTest()
 
 '''
 for A0 in [A.r, A.p]:
     for pp in [25, 100, 400]:
-        DoTest()
-
-for agl in [0.6, 0.3, 0.15]:
-    DoTest()
-
 '''
