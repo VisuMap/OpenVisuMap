@@ -28,12 +28,12 @@ def DoTest():
 
 print('Fitting data...')
 
-for k in [0, 1]:
-#for A0 in [A.r, A.p]:
-#for agl in [0.6, 0.3, 0.15]:
+for k in [0, 1, 2]:
     DoTest()
 
 '''
+for A0 in [A.r, A.p]:
+for agl in np.arange(0.1, 0.9, 0.2):
 for A0 in [A.r, A.p]:
     for pp in [25, 100, 400]:
 '''

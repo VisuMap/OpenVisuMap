@@ -19,22 +19,20 @@ ds = None
 
 #====================================================================================
 
-
-
 def ResetTest():
     global mtr, A0, epochs, mapDim, randomizeOrder, stateSeed
     global nn, md, lc, ns, sp
-    mtr = M.e
-    A0 = A.s
-    epochs = 2000
-    mapDim = 2
     randomizeOrder = True
     stateSeed = None
+    epochs = 2000
     nn = 1000
+    mapDim = 2
+    sp = 1.5
+    mtr = M.e
+    A0 = A.s
     md = 0.1
     lc = 5
-    ns = 20
-    sp = 25
+    ns = 15
 
 def DoTest():
     global ds, nr
@@ -72,20 +70,24 @@ def DoTest():
 #====================================================================================
 
 ResetTest()
-#for k in [0,1]:
-#for A0 in [A.s, A.r, A.p]:
-#for md in [0.1, 0.4, 0.8]: 
-#for mtr in [M.e, M.c, M.s]:
-for nn in [200, 1000, 2000]:
-#for lc in [3, 5, 10]:
-#for ns in [5, 15, 25]:
-#for sp in [5, 15, 25]:
+for sp in np.arange(1, 10.0, 2.0):
 	DoTest()
 
-#vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
+vm.DataLinkCmd().RunScript('vv.GuiManager.TileAllWindows()')
 
 '''
+vm.DataLinkCmd().RunScript('vv.GuiManager.TileAllWindows()')
+vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
+
 PX = lambda aL, bL: [(x,y) for x in aL for y in bL]
 for mtr, nn in PX([M.s], [500, 1000, 2000]): DoTest()
 
+for k in [0,1,2]:
+for A0 in [A.s, A.r, A.p]:
+for mtr in [M.e, M.c, M.s]:
+for nn in [200, 1000, 2000]:
+for lc in [3, 5, 10]:
+for ns in [5, 15, 25]:
+for md in [0.1, 0.4, 0.8]: 
+for sp in np.arange(0.1, 2.0, 0.2):
 '''

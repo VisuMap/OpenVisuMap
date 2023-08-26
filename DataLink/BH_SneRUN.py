@@ -46,7 +46,8 @@ def DoTest():
     os.remove(inFile)
     os.remove(outFile)
 
-for k in [0, 1]:
+for k in [0, 1, 2]:
 #for pp in [500, 1000, 1500]:
-#for theta in [0, 0.2, 0.5]:
+#for theta in np.arange(0, 0.6, 0.2):
     DoTest()
+
