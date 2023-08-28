@@ -20,30 +20,24 @@ ds = None
 #====================================================================================
 
 def ResetTest():
-    global mtr, A0, epochs, mapDim, randomizeOrder, stateSeed
-    global nn, md, lc, ns, sp
-    randomizeOrder = True
-    stateSeed = None
-    epochs = 2000
-    nn = 1000
-    mapDim = 2
-    sp = 1.5
-    mtr = M.e
-    A0 = A.s
-    md = 0.1
-    lc = 5
-    ns = 15
+    global epochs, randomizeOrder, stateSeed
+    global mapDim, mtr, A0, nn, md, lc, ns, sp
+    randomizeOrder, stateSeed = True, None
+    mapDim, mtr, A0 = 2, M.e, A.s
+    epochs, nn = 2000, 1000
+    lc, ns = 5, 30
+    md, sp = 0.1, 1.5
+    #md, sp = 0.23, 1.12
 
 def DoTest():
     global ds, nr
     if ds is None:        
         ds = vm.LoadFromVisuMap(mtr)
         # centralize the training data
-        ds = ds - np.mean(ds, axis=0)
+        # ds = ds - np.mean(ds, axis=0)
     print('Fitting data...')  
 
     if randomizeOrder:
-        #ds = (2*np.random.randint(2, size=ds.shape[1]) - 1) * ds
         perm = np.random.permutation(ds.shape[0])
         ds = ds[perm]
         if mtr == 'precomputed':
@@ -69,18 +63,15 @@ def DoTest():
 
 #====================================================================================
 
+cmd = vm.DataLinkCmd()
 ResetTest()
-for sp in np.arange(1, 10.0, 2.0):
+for k in [0,1,2]:
 	DoTest()
-
-vm.DataLinkCmd().RunScript('vv.GuiManager.TileAllWindows()')
+	cmd.RunScript('vv.GuiManager.TileAllWindows()')
 
 '''
-vm.DataLinkCmd().RunScript('vv.GuiManager.TileAllWindows()')
-vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
-
-PX = lambda aL, bL: [(x,y) for x in aL for y in bL]
-for mtr, nn in PX([M.s], [500, 1000, 2000]): DoTest()
+cmd.RunScript('vv.GuiManager.TileAllWindows()')
+cmd.RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
 
 for k in [0,1,2]:
 for A0 in [A.s, A.r, A.p]:
@@ -89,5 +80,5 @@ for nn in [200, 1000, 2000]:
 for lc in [3, 5, 10]:
 for ns in [5, 15, 25]:
 for md in [0.1, 0.4, 0.8]: 
-for sp in np.arange(0.1, 2.0, 0.2):
+for sp in np.arange(0.5, 10, 1.0):
 '''
