@@ -41,12 +41,12 @@ def DoTest():
     os.system('BH_SNE.exe')
     map = LoadResult()
     t1 = time.time()
-    title = 'bh-SNE: perplexity: %.1f, theta: %.2f, T: %.3f'%(pp, theta, t1-t0)
+    title = 'bh-SNE: pp: %.1f, theta: %.2f, T: %.3f'%(pp, theta, t1-t0)
     vm.ShowToVisuMap(map, title)
     os.remove(inFile)
     os.remove(outFile)
 
-for k in [0, 1, 2]:
+for k in [0, 1]:
 #for pp in [500, 1000, 1500]:
 #for theta in np.arange(0, 0.6, 0.2):
     DoTest()

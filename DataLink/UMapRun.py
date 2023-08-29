@@ -25,9 +25,10 @@ def ResetTest():
     randomizeOrder, stateSeed = True, None
     mapDim, mtr, A0 = 2, M.e, A.s
     epochs, nn = 2000, 1000
-    lc, ns = 5, 30
-    md, sp = 0.1, 1.5
-    #md, sp = 0.23, 1.12
+    lc  = 5
+    #md, sp, ns = 0.1, 1.5, 30
+    md, sp, ns = 0.5, 1.0, 15
+    #md, sp, ns = 0.23, 1.12, 15
 
 def DoTest():
     global ds, nr
@@ -65,7 +66,7 @@ def DoTest():
 
 cmd = vm.DataLinkCmd()
 ResetTest()
-for k in [0,1,2]:
+for k in [0,1]:
 	DoTest()
 	cmd.RunScript('vv.GuiManager.TileAllWindows()')
 

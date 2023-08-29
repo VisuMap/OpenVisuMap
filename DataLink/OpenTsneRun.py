@@ -28,7 +28,7 @@ def DoTest():
         n_jobs=6, n_iter=epochs, initialization=A0, verbose=True)
     map = tsne.fit(ds)
     tm = time.time() - t0
-    title = f'OpenTsne: Epochs:{epochs}, Mtr:{mtr}, Perplexity:{pp}, Init:{A0}, T:{tm:.1f}'
+    title = f'OpenTsne: Epochs:{epochs}, pp:{pp}, Mtr:{mtr}, Init:{A0}, T:{tm:.1f}'
     
     if randomizeOrder: # reverse the random order.
         map = map[perm]

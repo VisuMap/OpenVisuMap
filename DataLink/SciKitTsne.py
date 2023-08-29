@@ -23,12 +23,12 @@ def DoTest():
        n_iter=epochs, n_jobs=-1, verbose=2, init=A0, angle=agl)
     map = tsne.fit_transform(ds)
     tm = time.time() - t0
-    title = 'SciKit-TSNE: Perplexity:%.1f, Angle:%.1f, LR:%.1f, T:%.1f'%(pp, agl, lr, tm)
+    title = 'SciKit-TSNE: pp:%.1f, angle:%.1f, lr:%.1f, T:%.1f'%(pp, agl, lr, tm)
     DataLinkCmd.ShowToVisuMap(map, title)
 
 print('Fitting data...')
 
-for k in [0, 1, 2]:
+for k in [0, 1]:
     DoTest()
 
 '''
