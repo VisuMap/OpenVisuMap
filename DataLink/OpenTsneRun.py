@@ -12,7 +12,7 @@ print('Python: %s; openTSNE: %s'%(pyVersion, str(openTSNE.__version__)))
 print('Fitting data...')
 A = types.SimpleNamespace(s='spectral', r='random', p='pca')
 M = types.SimpleNamespace(e='euclidean', c='correlation', s='cosine')
-mtr, A0, epochs, pp, exa = M.e, A.s, 2000, 150, 4.0
+mtr, A0, epochs, pp, exa = M.e, A.s, 2000, 1000, 4.0
 randomizeOrder = True
 ds = vm.LoadFromVisuMap(mtr)
 
@@ -28,7 +28,7 @@ def DoTest():
         n_jobs=6, n_iter=epochs, initialization=A0, verbose=True)
     map = tsne.fit(ds)
     tm = time.time() - t0
-    title = f'OpenTsne: Epochs:{epochs}, pp:{pp}, Mtr:{mtr}, Init:{A0}, T:{tm:.1f}'
+    title = f'OpenTsne: epochs:{epochs}, pp:{pp}, mtr:{mtr}, A0:{A0}, T:{tm:.1f}'
     
     if randomizeOrder: # reverse the random order.
         map = map[perm]
@@ -36,7 +36,6 @@ def DoTest():
     vm.ShowToVisuMap(map, title)
 
 #=====================================================
-mtr, pp, exa = M.e, 1000, 4.0
 
 for k in [0, 1]: 
 #for pp in [500, 1500]:

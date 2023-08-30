@@ -8,23 +8,24 @@ from sklearn.manifold import TSNE
 pyVersion = sys.version.split(' ')[0]   
 print('Python: %s; sklearn: %s'%(pyVersion, str(sklearn.__version__)))
 A = types.SimpleNamespace(r='random', p='pca')
+M = types.SimpleNamespace(e='euclidean', c='correlation', s='cosine')
 mt = ['barnes_hut', 'exact'][ 0 ]
 ds = DataLinkCmd.LoadFromVisuMap('euclidean')
 
 mapDim, pp, epochs = 2, 1000, 2000
-exa = 4.0
-A0 = A.p
-agl = 0.5
-lr = 200.0
+mtr, A0 = M.e, A.p
+exa, agl, lr = 4.0, 0.5, 200.0
 
 def DoTest():
     t0 = time.time()
-    tsne = TSNE(n_components=mapDim, perplexity=pp, learning_rate=lr, method=mt, early_exaggeration=exa,
+    tsne = TSNE(n_components=mapDim, perplexity=pp, metric=mtr, learning_rate=lr, method=mt, early_exaggeration=exa,
        n_iter=epochs, n_jobs=-1, verbose=2, init=A0, angle=agl)
     map = tsne.fit_transform(ds)
     tm = time.time() - t0
-    title = 'SciKit-TSNE: pp:%.1f, angle:%.1f, lr:%.1f, T:%.1f'%(pp, agl, lr, tm)
+    title = f'SciKit-TSNE: pp:{pp:.1f}, angle:{agl:.1f}, mtr:{mtr}, lr:{lr:.1f}, T:{tm:.1f}'
     DataLinkCmd.ShowToVisuMap(map, title)
+
+#==========================================================================
 
 print('Fitting data...')
 

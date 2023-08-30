@@ -323,6 +323,8 @@ namespace VisuMap.DataLink {
                             IForm frm = DataLink.App.ScriptApp.ToForm(parentForm);
                             if (frm is IExportNumberTable)
                                 dsTable = (frm as IExportNumberTable).GetSelectedNumberTable();
+                            if ( (frm is IVisuMap) && (dsTable != null) && (Root.Data.Map?.FilterName != null) )
+                                dsTable = dsTable.ApplyFilter(Root.Data.Map?.FilterName);
                         } else if (dsName == "$") {  // return the X,Y,Z data point coordinates as a table.
                             IList<IBody> bs = app.Map.SelectedBodies;
                             if ((bs == null) || (bs.Count == 0))

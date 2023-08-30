@@ -52,7 +52,7 @@ def DoTest():
     map = um.fit_transform(ds)
     tm = time.time() - t0
     nr += 1
-    title = 'UMAP.%d: nn:%d, md:%g, lc:%g, ns:%d, sp:%.1f, mtr:%s, A0:%s, T:%.1fs'%(nr, nn, md, lc, ns, sp, mtr, A0, tm)
+    title = f'UMAP.{nr}: nn:{nn}, md:{md:g}, lc:{lc:g}, ns:{ns}, sp:{sp:g}, mtr:{mtr}, A0:{A0}, T:{tm:.1f}s'
     
     if randomizeOrder: # reverse the random order.
         map = map[perm]

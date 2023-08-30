@@ -15,7 +15,7 @@ pyVersion = sys.version.split(' ')[0]
 print('Python: %s'%pyVersion)
 
 # Notice: set theta to 0 to run the 'exact' mode
-mapDim, pp, theta = 2, 1000.0, 0.5
+mapDim, pp, theta = 3, 1000.0, 0.5
 ds = vm.LoadFromVisuMap('euclidean')
 rows = ds.shape[0]
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -41,10 +41,12 @@ def DoTest():
     os.system('BH_SNE.exe')
     map = LoadResult()
     t1 = time.time()
-    title = 'bh-SNE: pp: %.1f, theta: %.2f, T: %.3f'%(pp, theta, t1-t0)
+    title = f'bh-SNE: pp:{pp:.1f}, theta: {theta:.2f}, T: {(t1-t0):.2f}'
     vm.ShowToVisuMap(map, title)
     os.remove(inFile)
     os.remove(outFile)
+
+#====================================================================================
 
 for k in [0, 1]:
 #for pp in [500, 1000, 1500]:
