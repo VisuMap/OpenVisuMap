@@ -69,6 +69,7 @@ ResetTest()
 for k in [0,1]:
 	DoTest()
 	cmd.RunScript('vv.GuiManager.TileAllWindows()')
+cmd.Close()
 
 '''
 cmd.RunScript('vv.GuiManager.TileAllWindows()')
