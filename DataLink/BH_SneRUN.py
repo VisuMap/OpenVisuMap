@@ -18,12 +18,13 @@ print('Python: %s'%pyVersion)
 mapDim, pp, theta = 3, 1000.0, 0.5
 ds = vm.LoadFromVisuMap('euclidean')
 rows = ds.shape[0]
+epochs = 2000
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 inFile, outFile = 'data.dat', 'result.dat'
 
 def SetInputData():
     inData = open(inFile, 'wb')
-    inData.write(struct.pack('iiddi', rows, ds.shape[1], theta, pp, mapDim))
+    inData.write(struct.pack('iiddii', rows, ds.shape[1], theta, pp, mapDim, epochs))
     ds.astype(np.float64).tofile(inData)
     inData.close()
 
