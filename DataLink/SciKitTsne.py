@@ -12,21 +12,21 @@ M = types.SimpleNamespace(e='euclidean', c='correlation', s='cosine')
 mt = ['barnes_hut', 'exact'][ 0 ]
 ds = DataLinkCmd.LoadFromVisuMap('euclidean')
 
-mapDim, pp, epochs = 2, 1000, 2000
-mtr, A0 = M.e, A.p
-exa, agl, lr = 4.0, 0.5, 200.0
+epochs, pp, exa = 1000, 1000, 4.0
+mapDim, mtr, A0 = 2, M.e, A.p
+agl, lr = 0.5, 200.0
 
 def DoTest():
     t0 = time.time()
-    tsne = TSNE(n_components=mapDim, perplexity=pp, metric=mtr, learning_rate=lr, method=mt, early_exaggeration=exa,
+    tsne = TSNE(n_components=mapDim, perplexity=pp, metric=mtr, 
+       learning_rate=lr, method=mt, early_exaggeration=exa,
        n_iter=epochs, n_jobs=-1, verbose=2, init=A0, angle=agl)
     map = tsne.fit_transform(ds)
     tm = time.time() - t0
-    title = f'SciKit-TSNE: pp:{pp:.1f}, angle:{agl:.1f}, mtr:{mtr}, lr:{lr:.1f}, T:{tm:.1f}'
+    title = f'sk-TSNE: pp:{pp:g}, exa:{exa:g}, angle:{agl:g}, init:{A0}, mtr:{mtr}, lr:{lr:g}, T:{tm:.1f}'
     DataLinkCmd.ShowToVisuMap(map, title)
 
 #==========================================================================
-
 print('Fitting data...')
 
 for k in [0, 1]:

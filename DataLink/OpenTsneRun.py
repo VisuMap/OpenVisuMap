@@ -12,7 +12,8 @@ print('Python: %s; openTSNE: %s'%(pyVersion, str(openTSNE.__version__)))
 print('Fitting data...')
 A = types.SimpleNamespace(s='spectral', r='random', p='pca')
 M = types.SimpleNamespace(e='euclidean', c='correlation', s='cosine')
-mtr, A0, epochs, pp, exa = M.e, A.s, 2000, 1000, 4.0
+epochs, pp, exa = 1000, 1000.0, 4.0
+mtr, A0 = M.e, A.s
 randomizeOrder = True
 ds = vm.LoadFromVisuMap(mtr)
 
@@ -36,14 +37,14 @@ def DoTest():
     vm.ShowToVisuMap(map, title)
 
 #=====================================================
-
-for k in [0, 1]: 
-#for pp in [500, 1500]:
-#for A0 in [A.s, A.r, A.p]:
+for k in [0,1]:
 	DoTest()
 
 '''
 vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
+
+#for pp in [500, 1500]:
+#for A0 in [A.s, A.r, A.p]:
 
 PX = lambda aL, bL: [(x,y) for x in aL for y in bL]
 for mtr, pp in PX([M.e, M.s], [100, 200, 400]):

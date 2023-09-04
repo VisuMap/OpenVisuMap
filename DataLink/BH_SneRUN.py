@@ -15,10 +15,10 @@ pyVersion = sys.version.split(' ')[0]
 print('Python: %s'%pyVersion)
 
 # Notice: set theta to 0 to run the 'exact' mode
-mapDim, pp, theta = 3, 1000.0, 0.5
+mapDim = 2
+epochs, pp, theta = 1000, 1000.0, 0.5
 ds = vm.LoadFromVisuMap('euclidean')
 rows = ds.shape[0]
-epochs = 2000
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 inFile, outFile = 'data.dat', 'result.dat'
 
@@ -50,7 +50,11 @@ def DoTest():
 #====================================================================================
 
 for k in [0, 1]:
-#for pp in [500, 1000, 1500]:
-#for theta in np.arange(0, 0.6, 0.2):
     DoTest()
 
+#====================================================================================
+
+'''
+for pp in [500, 1000, 1500]:
+for theta in np.arange(0, 0.6, 0.2):
+'''
