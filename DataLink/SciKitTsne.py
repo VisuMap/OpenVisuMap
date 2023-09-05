@@ -29,8 +29,14 @@ def DoTest():
 #==========================================================================
 print('Fitting data...')
 
-for k in [0, 1]:
+try:
+
+  for k in range(2):
     DoTest()
+
+except:
+  print('Error occured!  Exiting...')
+  time.sleep(7)
 
 '''
 for A0 in [A.r, A.p]:

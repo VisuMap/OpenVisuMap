@@ -37,8 +37,14 @@ def DoTest():
     vm.ShowToVisuMap(map, title)
 
 #=====================================================
-for k in [0,1]:
-	DoTest()
+try:
+
+  for k in range(2):
+    DoTest()
+
+except:
+  print('Error occured!  Exiting...')
+  time.sleep(7)
 
 '''
 vm.DataLinkCmd().RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
