@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 # tested with python 3.9 and UMAP 0.5.3
 pyVersion = sys.version.split(' ')[0]
-print('Python: %s; UMAP: %s'%(pyVersion, str(umap.__version__)))
+print(f'UMAP: {umap.__version__}; Python: {pyVersion}')
 
 A = SimpleNamespace(s='spectral', r='random', p='pca')
 M = SimpleNamespace(e='euclidean', c='correlation', s='cosine', p='precomputed')
@@ -20,22 +20,23 @@ ds = None
 #====================================================================================
 
 def ResetTest():
-    global epochs, randomizeOrder, stateSeed
+    global epochs, randomizeOrder, centralizing, stateSeed
     global mapDim, mtr, A0, nn, md, lc, ns, sp
-    randomizeOrder, stateSeed = True, None
+    randomizeOrder, centralizing, stateSeed = True, False, None
     mapDim, mtr, A0 = 2, M.e, A.s
     epochs, nn = 1000, 1000
     lc  = 5
-    #md, sp, ns = 0.1, 1.5, 30
-    md, sp, ns = 0.5, 1.0, 15
+    md, sp, ns = 0.1, 1.5, 30
+    #md, sp, ns = 0.5, 1.0, 15
     #md, sp, ns = 0.23, 1.12, 15
 
 def DoTest():
     global ds, nr
     if ds is None:        
         ds = vm.LoadFromVisuMap(mtr)
+    if centralizing:
         # centralize the training data
-        # ds = ds - np.mean(ds, axis=0)
+        ds = ds - np.mean(ds, axis=0)
     print('Fitting data...')  
 
     if randomizeOrder:
@@ -64,15 +65,15 @@ def DoTest():
 
 #====================================================================================
 try:
-  cmd = vm.DataLinkCmd()
+  cmd = vm.DataLinkCmd()  
   ResetTest()
-
-  for k in range(2):
+  for k in [0,1]:
     DoTest()
     cmd.RunScript('vv.GuiManager.TileAllWindows()')
 
-except:
-  print('Error occured!  Exiting...')
+except Exception as e:
+  print( 'Exception: ' + str(e) )
+  print('Exiting...')
   time.sleep(7)
 
 cmd.Close()
@@ -81,7 +82,6 @@ cmd.Close()
 cmd.RunScript('vv.GuiManager.TileAllWindows()')
 cmd.RunScript('New.Atlas().Show().CaptureAllOpenViews().Close()')
 
-for k in [0,1,2]:
 for A0 in [A.s, A.r, A.p]:
 for mtr in [M.e, M.c, M.s]:
 for nn in [200, 1000, 2000]:

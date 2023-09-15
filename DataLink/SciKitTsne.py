@@ -6,7 +6,7 @@ from sklearn.manifold import TSNE
 
 # Tested with python 3.9 and sklear 1.3.0
 pyVersion = sys.version.split(' ')[0]   
-print('Python: %s; sklearn: %s'%(pyVersion, str(sklearn.__version__)))
+print(f'sklearn: {sklearn.__version__}; Python: {pyVersion}')
 A = types.SimpleNamespace(r='random', p='pca')
 M = types.SimpleNamespace(e='euclidean', c='correlation', s='cosine')
 mt = ['barnes_hut', 'exact'][ 0 ]
@@ -14,7 +14,7 @@ ds = DataLinkCmd.LoadFromVisuMap('euclidean')
 
 epochs, pp, exa = 1000, 1000, 4.0
 mapDim, mtr, A0 = 2, M.e, A.p
-agl, lr = 0.5, 200.0
+agl, lr = 0.1, 200.0
 
 def DoTest():
     t0 = time.time()
@@ -27,20 +27,22 @@ def DoTest():
     DataLinkCmd.ShowToVisuMap(map, title)
 
 #==========================================================================
-print('Fitting data...')
 
 try:
-
-  for k in range(2):
+  for k in [0,1]:
     DoTest()
 
-except:
-  print('Error occured!  Exiting...')
+except Exception as e:
+  print( 'Exception: ' + str(e) )
+  print('Exiting...')
   time.sleep(7)
 
+#==========================================================================
+
 '''
+for k in range(2):
 for A0 in [A.r, A.p]:
 for agl in np.arange(0.1, 0.9, 0.2):
 for A0 in [A.r, A.p]:
-    for pp in [25, 100, 400]:
+for pp in [25, 100, 400]:
 '''

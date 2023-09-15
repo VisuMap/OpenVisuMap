@@ -12,11 +12,11 @@ import numpy as np
 import DataLinkCmd as vm
 
 pyVersion = sys.version.split(' ')[0]
-print('Python: %s'%pyVersion)
+print('BH-SNE: Apr 23, 2021; VC2017; Python: %s'%pyVersion)
 
 # Notice: set theta to 0 to run the 'exact' mode
 mapDim = 2
-epochs, pp, theta = 1000, 1000.0, 0.5
+epochs, pp, theta = 1000, 1000.0, 0.1
 ds = vm.LoadFromVisuMap('euclidean')
 rows = ds.shape[0]
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -50,12 +50,12 @@ def DoTest():
 #====================================================================================
 
 try:
-
-  for k in range(2):
+  for k in [0,1]:
     DoTest()
 
-except:
-  print('Error occured!  Exiting...')
+except Exception as e:
+  print( 'Exception: ' + str(e) )
+  print('Exiting...')
   time.sleep(7)
 
 #====================================================================================
@@ -63,4 +63,5 @@ except:
 '''
 for pp in [500, 1000, 1500]:
 for theta in np.arange(0, 0.6, 0.2):
+for theta in [0.1, 0.2, 0.3]:
 '''
