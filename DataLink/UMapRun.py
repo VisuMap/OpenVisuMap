@@ -15,7 +15,7 @@ print(f'UMAP: {umap.__version__}; Python: {pyVersion}')
 A = SimpleNamespace(s='spectral', r='random', p='pca')
 M = SimpleNamespace(e='euclidean', c='correlation', s='cosine', p='precomputed')
 nr = 0
-ds = None
+ds = vm.LoadFromVisuMap(M.e)
 
 #====================================================================================
 
@@ -32,13 +32,9 @@ def ResetTest():
 
 def DoTest():
     global ds, nr
-    if ds is None:        
-        ds = vm.LoadFromVisuMap(mtr)
     if centralizing:
         # centralize the training data
         ds = ds - np.mean(ds, axis=0)
-    print('Fitting data...')  
-
     if randomizeOrder:
         perm = np.random.permutation(ds.shape[0])
         ds = ds[perm]
@@ -67,7 +63,7 @@ def DoTest():
 try:
   cmd = vm.DataLinkCmd()  
   ResetTest()
-  for k in [0,1]:
+  for k in [0, 1]:
     DoTest()
     cmd.RunScript('vv.GuiManager.TileAllWindows()')
 

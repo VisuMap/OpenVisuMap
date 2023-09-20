@@ -19,9 +19,9 @@ cfg = {...cfg, ...{
 cfg.EpochsSrt = PP(4000, 4000);
 cfg.ExaSrt = PP(5.0);
 cfg.ExaSrtF = PP(1.0);
-cfg.PprSrt = PP(0.1);
-cfg.MtrSrt = PP(cfg.cos, cfg.euc);
-//cfg.SrtLimit = PP(400, 50000);
+cfg.PprSrt = PP(0.5);
+cfg.MtrSrt = PP(cfg.cos, cfg.cos);
+cfg.SrtLimit = PP(400, 50000);
 
 
 function SortTable(T, mt, epochs, ex, exF, pr) {

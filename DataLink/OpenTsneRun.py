@@ -39,7 +39,7 @@ def DoTest():
 
 #=====================================================
 try:
-  for k in [0,1]:
+  for k in [0, 1]:
     DoTest()
 
 except Exception as e:

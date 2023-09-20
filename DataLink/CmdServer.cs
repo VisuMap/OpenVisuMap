@@ -748,6 +748,9 @@ namespace VisuMap.DataLink {
             // Calculate output...
             //
             var tsne = app.New.TsneMapCore(input);
+            var eng = (tsne as TsneMapCoreImp).tSneEngine;
+            eng.SetReporter(mainForm, (st, n) => mainForm.Text = "epochs: " + n);
+            eng.RefreshFreq = 50;
             tsne.MaxLoops = epochs;
             tsne.OutDim = mapDim;
             tsne.PerplexityRatio = perpR;
