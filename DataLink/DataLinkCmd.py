@@ -65,14 +65,14 @@ class DataLinkCmd:
         else:
             return False
 
-    def DoTsne(self, D, epochs=1000, perplexityRatio=0.05, mapDimension=2):
+    def DoTsne(self, D, epochs=1000, perplexityRatio=0.05, mapDimension=2, exaInitial=4.0, exaFinal=1.0):
         r""" Perform t-SNE dimensionality reduction on a data table.
         """
         self.skt.sendall(struct.pack('<i', self.CMD_TSNE))
         self.IsOK()
         with self.ConnectToVisuMap() as tcpCnt:
             # sends the parameters for the command
-            tcpCnt.send(struct.pack('<iif', epochs, mapDimension, perplexityRatio))
+            tcpCnt.send(struct.pack('<iifff', epochs, mapDimension, perplexityRatio, exaInitial, exaFinal))
             # sends the data for the command
             self.WriteMatrix(tcpCnt, D)
             # receives the map

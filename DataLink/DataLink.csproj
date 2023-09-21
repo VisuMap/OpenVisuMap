@@ -60,8 +60,11 @@
     <Compile Include="PythonEngine.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="BH_SneRUN.py" />
     <Content Include="DataLinkCmd.py" />
     <Content Include="Install.js" />
+    <Content Include="OpenTsneRun.py" />
+    <Content Include="SciKitTsne.py" />
     <Content Include="TsneClient.py" />
     <Content Include="UMapRun.py" />
     <Content Include="UnInstall.js" />

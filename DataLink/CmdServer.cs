@@ -735,13 +735,15 @@ namespace VisuMap.DataLink {
             tcpCnt.Client.DontFragment = true;
             var tcpStream = tcpCnt.GetStream();
 
-            byte[] cmdBuf = ReadBytes(tcpStream, 20);
+            byte[] cmdBuf = ReadBytes(tcpStream, 28);
 
             int epochs = BitConverter.ToInt32(cmdBuf, 0);
             int mapDim = BitConverter.ToInt32(cmdBuf, 4);
             double perpR = BitConverter.ToSingle(cmdBuf, 8);
-            int rows = BitConverter.ToInt32(cmdBuf, 12);
-            int columns = BitConverter.ToInt32(cmdBuf, 16);
+            double exaInitial = BitConverter.ToSingle(cmdBuf, 12);
+            double exaFinal = BitConverter.ToSingle(cmdBuf, 16);
+            int rows = BitConverter.ToInt32(cmdBuf, 20);
+            int columns = BitConverter.ToInt32(cmdBuf, 24);
             double[][] input = ReadMatrix(rows, columns, tcpStream);
 
             //
@@ -749,7 +751,7 @@ namespace VisuMap.DataLink {
             //
             var tsne = app.New.TsneMapCore(input);
             var eng = (tsne as TsneMapCoreImp).tSneEngine;
-            eng.SetReporter(mainForm, (st, n) => mainForm.Text = "epochs: " + n);
+            eng.SetReporter(mainForm, (st, n) => mainForm.Text = "Epochs: " + n);
             eng.RefreshFreq = 50;
             tsne.MaxLoops = epochs;
             tsne.OutDim = mapDim;

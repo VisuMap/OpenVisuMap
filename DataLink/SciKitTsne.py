@@ -14,16 +14,18 @@ M = types.SimpleNamespace(e='euclidean', c='correlation', s='cosine')
 mt = ['barnes_hut', 'exact'][ 0 ]
 ds = vm.LoadFromVisuMap('euclidean')
 
-def PCAandTsne(ds, dim):
+def PCAandTsne(ds, tsneEpochs=1000, pcaDim=100, mapDim=2):
   cmd = vm.DataLinkCmd()
-  print('Doing PCA...')
-  dd = PCA(n_components = dim).fit_transform(ds)
-  print('t-SNE Embedding...')
-  map = cmd.DoTsne(dd, epochs=2000, perplexityRatio=0.1, mapDimension=2)
-  cmd.ShowMatrix(map, view=12)
+  print('Doing PCA reduction...')
+  dd = PCA(n_components = pcaDim).fit_transform(ds)
+  print(f't-SNE Embedding {dd.shape[1]}=>{mapDim}...')
+  map = cmd.DoTsne(dd, epochs=tsneEpochs, perplexityRatio=0.1, mapDimension=mapDim, exaInitial=8.0, exaFinal=1.0)
+  vw = 12 if mapDim == 2 else 13    
+  cmd.ShowMatrix(map, view=vw)
+  return map
 
-PCAandTsne(ds, 1000)
-quit()
+#PCAandTsne(ds, 500, 50, 2)
+#quit()
 
 epochs, pp, exa = 1000, 1000, 4.0
 mapDim, mtr, A0 = 2, M.e, A.p
@@ -37,7 +39,7 @@ def DoTest():
     map = tsne.fit_transform(ds)
     tm = time.time() - t0
     title = f'sk-TSNE: pp:{pp:g}, exa:{exa:g}, angle:{agl:g}, init:{A0}, mtr:{mtr}, lr:{lr:g}, T:{tm:.1f}'
-    DataLinkCmd.ShowToVisuMap(map, title)
+    vm.ShowToVisuMap(map, title)
 
 #==========================================================================
 
