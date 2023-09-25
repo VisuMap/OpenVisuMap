@@ -317,16 +317,26 @@ def MergeMaps(mapList, mapDim):
 
 def Snapshots2Dataset():
 	fs = vv.FindFormList('MapSnapshot')
-	if fs.Count == 0:
+	fs = list(filter(lambda f:f.TheForm.WindowState==0, fs))
+	if len(fs) == 0:
 		vv.Message('No snapshots present!')
 		return None
-
-	ds = New.NumberTable(fs[0].BodyList, 2*fs.Count)
+	dimSum = sum(map(lambda f:f.MapLayout.Dimension, fs))
+	ds = New.NumberTable(fs[0].BodyList, dimSum)
+	mpDim = fs[0].MapLayout.Dimension
+	dim0 = mpDim
 	csList = ds.ColumnSpecList
-	for k in range(1, fs.Count):	
-		ds.CopyValuesFrom(fs[k].BodyList, False, 2*k)
-		csList[2*k + 1].Type = csList[2*k].Type = k
+	for k in range(1, len(fs)):
+		mpDim = fs[k].MapLayout.Dimension
+		ds.CopyValuesFrom(fs[k].BodyList, (mpDim == 3), dim0)
+		for i in range(mpDim):
+			csList[dim0 + i].Type = k
+		dim0 += mpDim
 	return ds
+
+'''
+Snapshots2Dataset().ShowHeatMap()
+'''
 
 mtrList = [
 	'LastMap',

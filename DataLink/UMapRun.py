@@ -7,6 +7,7 @@ import sys, time, types, umap
 import numpy as np
 import DataLinkCmd as vm
 from types import SimpleNamespace
+from sklearn.decomposition import PCA
 
 # tested with python 3.9 and UMAP 0.5.3
 pyVersion = sys.version.split(' ')[0]
@@ -16,6 +17,8 @@ A = SimpleNamespace(s='spectral', r='random', p='pca')
 M = SimpleNamespace(e='euclidean', c='correlation', s='cosine', p='precomputed')
 nr = 0
 ds = vm.LoadFromVisuMap(M.e)
+
+#ds = PCA(n_components = 100).fit_transform(ds)
 
 #====================================================================================
 
@@ -49,7 +52,7 @@ def DoTest():
     map = um.fit_transform(ds)
     tm = time.time() - t0
     nr += 1
-    title = f'UMAP.{nr}: nn:{nn}, md:{md:g}, lc:{lc:g}, ns:{ns}, sp:{sp:g}, mtr:{mtr}, A0:{A0}, T:{tm:.1f}s'
+    title = f'UMAP.{nr}:nn:{nn},md:{md:g},lc:{lc:g},ns:{ns},sp:{sp:g},M:{mtr},A0:{A0},Dm:{ds.shape[1]},T:{tm:.1f}s'
     
     if randomizeOrder: # reverse the random order.
         map = map[perm]
