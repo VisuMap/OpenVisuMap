@@ -25,6 +25,8 @@ cfg.SrtLimit = PP(400, 50000);
 
 
 function SortTable(T, mt, epochs, ex, exF, pr) {
+   if ( mt == "Correlation.Cosine Distance" ) 
+      T.Centralize();
 	var tsne = New.TsneSorter(T, mt);
 	tsne.MaxLoops = epochs;
 	tsne.InitExaggeration = ex;
