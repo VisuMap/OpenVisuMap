@@ -23,7 +23,7 @@ public static double HarmonicalMean(double a, double b) {
 	return a * b /(a + b);
 }
 
-
+// merge two maps stored in nt at column offset1 and offset2 into the map object and redraw it.
 public void Merge2Maps(dynamic map, INumberTable nt, int offset1, int offset2, double f ) {
 	var bsList = map.BodyList;
 	int mapDim = (nt.ColumnSpecList[1].Group == nt.ColumnSpecList[2].Group) ? 3 : 2;
@@ -43,6 +43,7 @@ public void Merge2Maps(dynamic map, INumberTable nt, int offset1, int offset2, d
 	map.RedrawAll();
 }
 
+// merge two maps stored in nt at column offset1 and offset2 into the map object and redraw it.
 public void Merge2MapsB(dynamic map, INumberTable nt, int offset1, int offset2 ) {
 	var bsList = map.BodyList;
 	int mapDim = (nt.ColumnSpecList[1].Group == nt.ColumnSpecList[2].Group) ? 3 : 2;
@@ -93,6 +94,7 @@ def BodyMoved():
 	curExa = float(pp.TheForm.CurrentExaggeration)+0.1
 	pp.TheForm.Histogram.AddPoint(curExa, span-0.2)
 
+# intialize a number-table object to store map during the call-backs.
 def InitDataset(mapDim):
 	bsList = vv.Dataset.BodyListEnabled()
 	maxStages = 50
@@ -239,6 +241,7 @@ def ShowDataset2(ds):
 		vv.Sleep(500)
 	map.Close()
 
+# Merge multiple maps stored in nt into a list of body objects.
 def MergeDataset(bList, nt, mapDim):
 	scaleFactor = 1.0*mapDim/nt.Columns
 	for row, b in enumerate(bList):
@@ -315,13 +318,14 @@ def MergeMaps(mapList, mapDim):
 				bsList[k].Add(b.X, b.Y, b.Z)
 	ShowBodyMap(bsList, mapDim).CentralizeView()
 
-def Snapshots2Dataset():
+# Create a number-table that stores all maps of open snapshots.
+def Snapshots2Dataset(closingMaps = True):
 	fs = vv.FindFormList('MapSnapshot')
-	fs = list(filter(lambda f:f.TheForm.WindowState==0, fs))
+	fs = [f for f in fs if f.TheForm.WindowState==0]
 	if len(fs) == 0:
 		vv.Message('No snapshots present!')
 		return None
-	dimSum = sum(map(lambda f:f.MapLayout.Dimension, fs))
+	dimSum = sum([f.MapLayout.Dimension for f in fs])
 	ds = New.NumberTable(fs[0].BodyList, dimSum)
 	mpDim = fs[0].MapLayout.Dimension
 	dim0 = mpDim
@@ -332,6 +336,8 @@ def Snapshots2Dataset():
 		for i in range(mpDim):
 			csList[dim0 + i].Type = k
 		dim0 += mpDim
+	if closingMaps:
+		for f in fs: f.Close()   
 	return ds
 
 '''
