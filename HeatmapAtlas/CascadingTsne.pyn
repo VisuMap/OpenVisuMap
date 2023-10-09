@@ -7,6 +7,11 @@
 import math, time
 import numpy as np
 
+# storage table for intermediate embedding maps.
+dsMap = None
+
+#-------------------------------------------------------------------------------------
+
 def ArcSegmentation(K):
 	cx, cy = np.average([(b.X, b.Y) for b in pp.BodyList], axis=0)
 	ss = 2.0*math.pi/K
@@ -67,7 +72,7 @@ def CreateCascadingMap( ds, epochs=2000, pp=0.05, repeats=2):
 	tt.Repeats = repeats
 	tt.Reset().Start().Close()
 
-def DoTest_ByFeature(K):
+def Do_ByFeature(K):
 	global dsMap
 	#WeightSegmentation(K)
 	#ArcSegmentation(K)
@@ -110,7 +115,7 @@ def VpExplicite(ds):
 	centers = ds.SelectRowsById(rList)
 	return list( mm.ToNumpy(centers) )
 
-def DoTest_ByViewpoint(K = 16):
+def Do_ByViewpoint(K = 16):
 	global dsMap
 	ds = vv.GetNumberTableView(True)
 	#vpList = VpInterpolation(ds, K)
@@ -133,11 +138,104 @@ def DoTest_ByViewpoint(K = 16):
 	tt.Close()
 	CreateCascadingMap(dsMap, epochs=2000, pp=0.1, repeats=2)
 
-#-----------------------------------------------------------------------
+#-------------------------------------------------------------------------------------
+# Create dataset from maps extracted during the t-SNE training processes.
+def CreateMapDataset(is3D=True, initSize=0.25, stepSize=0.5, ppl=0.1, ex0=8.0, ex1=1.0, epochs=2000):
+	global recordMarker
+	global rmStepSize
+	global rmInitSize
+	global dsMap
+	global mapCollapsed
+
+	rmInitSize = initSize
+	rmStepSize = stepSize
+	recordMarker = rmInitSize
+	mapCollapsed = True
+
+	# initialize dsMap to store the intermediated maps
+	maxStages = 50
+	mapDim = 3 if is3D else 2
+	dsMap = New.NumberTable(vv.Dataset.BodyListEnabled(), mapDim*maxStages)
+	dsMap.Tag = 0
+	csList = dsMap.ColumnSpecList
+	for k in range(maxStages):
+		csList[mapDim*k].Type = k
+		csList[mapDim*k+1].Type = k
+		if mapDim == 3:
+			csList[mapDim*k+2].Type = k
+
+	mds = New.TsneMap()
+	mds.PerplexityRatio = ppl 
+	mds.InitialExaggeration = ex0
+	mds.FinalExaggeration = ex1
+	mds.MaxLoops = epochs
+	mds.AutoNormalizing = False
+	mds.AutoScaling = True
+	mds.CentralizingData = True
+	mds.StagedTraining = False
+	mds.ExaggerationSmoothen = True
+	mds.RefreshFreq = 10
+	mds.Is3D = is3D
+	mds.TracingType = 6
+	mds.Repeats = 1
+	mds.HistStepSize = 2.0
+	mds.ReadOnly = True
+	mds.Show()
+
+	vv.Map.MapType = "Cube" if is3D else "Rectangle"
+	vv.Map.Depth = 0.5 * (vv.Map.Height + vv.Map.Width)
+	vv.EventManager.OnBodyMoved('@BodyMoved()', mds)
+	mds.Reset().Start().Close()
+	dsMap = dsMap.SliceColumn(0, dsMap.Tag)
+
+def BodyMoved():
+	global recordMarker
+	global rmStepSize
+	global rmInitSize
+	global dsMap
+	global mapCollapsed
+	
+	mapDim = 3 if pp.Is3D else 2
+	columns = dsMap.Tag
+	span = pp.GlyphSpan
+
+	if (span < recordMarker) and (pp.CurrentLoops != pp.MaxLoops):
+		return
+	if pp.CurrentLoops < 100:
+		return
+	if (columns + mapDim) > dsMap.Columns:
+		return
+
+	bsList = vv.Dataset.BodyListEnabled()
+
+	# if the map was collapsed we re-check it again.
+	if mapCollapsed:
+		mapCollapsed = (vv.Math.Pca3DCube(bsList)[0])[mapDim-2] < 1.0
+	if mapCollapsed: return
+
+	dsMap.CopyValuesFrom(bsList, pp.Is3D, columns)
+
+	recordMarker = span + math.ceil(span/3)*rmStepSize   # recordMarker for the next call.
+	dsMap.Tag = columns + mapDim
+	dsMap.ColumnSpecList[columns].Name = f'Sp:{span}'
+	# Mark the cascading stages:
+	curExa = float(pp.TheForm.CurrentExaggeration)+0.1
+	pp.TheForm.Histogram.AddPoint(curExa, span-0.2)
+
+def Do_Cascading():
+	CreateMapDataset(is3D=True, initSize=0.2, stepSize=1.0, ex0=10.0, ex1=1.0, ppl=0.05, epochs=2000)
+	CreateCascadingMap(dsMap, epochs=2000, pp=0.1, repeats=2)
+
+#-------------------------------------------------------------------------------------
+
+Do_Cascading()
 
 '''
-DoTest_ByViewpoint(4)
-DoTest_ByFeature(4)
+
+Do_Cascading()
+Do_ByViewpoint(4)
+Do_ByFeature(4)
+
 dsMap.ShowHeatMap()
 
 ArcSegmentation(6)
