@@ -53,7 +53,7 @@ def WeightSegmentation(K):
 		b.Type = min(tIdx, K-1)
 	pp.RedrawBodies()
 
-def NewTsneMachine(ds, epochs=2000, pp=0.05):
+def NewTsneMachine(ds, epochs=2000, ppl=0.05):
 	tt = New.MdsCluster( ds )
 	tt.Show()
 	tt.Metric = 'Correlation.Cosine Distance'
@@ -63,11 +63,11 @@ def NewTsneMachine(ds, epochs=2000, pp=0.05):
 	tt.Is3D = False
 	tt.InitialExaggeration = 6.0
 	tt.FinalExaggeration = 1.0
-	tt.PerplexityRatio = pp
+	tt.PerplexityRatio = ppl
 	return tt
 
-def CreateCascadingMap( ds, epochs=2000, pp=0.05, repeats=2):
-	tt = NewTsneMachine(ds, epochs=2000, pp=0.05)
+def CreateCascadingMap(ds, epochs=2000, ppl=0.05, repeats=2):
+	tt = NewTsneMachine(ds, epochs=epochs, ppl=ppl)
 	tt.Metric = 'EuclideanMetric'
 	tt.Repeats = repeats
 	tt.Reset().Start().Close()
@@ -77,10 +77,17 @@ def Do_ByFeature(K):
 	#WeightSegmentation(K)
 	#ArcSegmentation(K)
 	#RadioSegmentation(K)
-	tList = {b.Type for b in pp.BodyList}
 	ds = vv.GetNumberTableView(True)	
+	if hasattr(pp, 'BodyList'):
+		if pp.BodyList.Count != ds.Columns:
+			vv.Message('This service must be called from a feature-map, i.e. map-of-columns.')
+			vv.Return(0)
+	else:
+		vv.Message('This service must be called from a feature-map!')
+		vv.Return(0)
 	tt = NewTsneMachine(ds)
 	mpDim = 2
+	tList = {b.Type for b in pp.BodyList}
 	dsMap = New.NumberTable(ds, len(tList)*mpDim)
 	for k, t in enumerate(tList):
 		dsM = ds.SelectColumnsById( [b.Id for b in pp.BodyList if b.Type==t] )
@@ -91,7 +98,7 @@ def Do_ByFeature(K):
 		for i in range(mpDim):
 			dsMap.ColumnSpecList[k*mpDim + i].Type = t
 	tt.Close()
-	CreateCascadingMap(dsMap, epochs=2000, pp=0.1, repeats=2 )
+	CreateCascadingMap(dsMap, epochs=2000, ppl=0.05, repeats=2 )
 
 def VpInterpolation(ds, K):
 	cc = []
@@ -119,8 +126,8 @@ def Do_ByViewpoint(K = 16):
 	global dsMap
 	ds = vv.GetNumberTableView(True)
 	#vpList = VpInterpolation(ds, K)
-	#vpList = VpByCenters(ds)
-	vpList = VpExplicite(ds)
+	vpList = VpByCenters(ds)
+	#vpList = VpExplicite(ds)
 	vp = New.NumberTable(1, ds.Columns)
 	tt = NewTsneMachine(ds)
 	mpDim = 2
@@ -136,7 +143,7 @@ def Do_ByViewpoint(K = 16):
 		for i in range(mpDim):
 			dsMap.ColumnSpecList[k*mpDim + i].Type = k
 	tt.Close()
-	CreateCascadingMap(dsMap, epochs=2000, pp=0.1, repeats=2)
+	CreateCascadingMap(dsMap, epochs=2000, ppl=0.1, repeats=2)
 
 #-------------------------------------------------------------------------------------
 # Create dataset from maps extracted during the t-SNE training processes.
@@ -185,7 +192,8 @@ def CreateMapDataset(is3D=True, initSize=0.25, stepSize=0.5, ppl=0.1, ex0=8.0, e
 	vv.Map.MapType = "Cube" if is3D else "Rectangle"
 	vv.Map.Depth = 0.5 * (vv.Map.Height + vv.Map.Width)
 	vv.EventManager.OnBodyMoved('@BodyMoved()', mds)
-	mds.Reset().Start().Close()
+	mds.Reset().Start()
+	mds.Close() if mds.Completed else vv.Return(0)
 	dsMap = dsMap.SliceColumn(0, dsMap.Tag)
 
 def BodyMoved():
@@ -224,7 +232,7 @@ def BodyMoved():
 
 def Do_Cascading():
 	CreateMapDataset(is3D=True, initSize=0.2, stepSize=1.0, ex0=10.0, ex1=1.0, ppl=0.05, epochs=2000)
-	CreateCascadingMap(dsMap, epochs=2000, pp=0.1, repeats=2)
+	CreateCascadingMap(dsMap, epochs=2000, ppl=0.1, repeats=2)
 
 #-------------------------------------------------------------------------------------
 
