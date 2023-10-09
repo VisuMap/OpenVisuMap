@@ -18,7 +18,7 @@ def ArcSegmentation(K):
 
 def RadioSegmentation(K):
    cx, cy = np.average([(b.X, b.Y) for b in pp.BodyList], axis=0)
-	minR, maxR = 1e18, 0
+   minR, maxR = 1e18, 0
    for b in pp.BodyList:
       dx, dy = b.X - cx, b.Y - cy
       R = dx*dx + dy*dy
@@ -67,7 +67,7 @@ def CreateCascadingMap( ds, epochs=2000, pp=0.05, repeats=2):
 	tt.Repeats = repeats
 	tt.Reset().Start().Close()
 
-def DoTest(K):
+def DoTest_ByFeature(K):
 	global dsMap
 	#WeightSegmentation(K)
 	#ArcSegmentation(K)
@@ -110,7 +110,7 @@ def VpExplicite(ds):
 	centers = ds.SelectRowsById(rList)
 	return list( mm.ToNumpy(centers) )
 
-def DoTest2(K = 16):
+def DoTest_ByViewpoint(K = 16):
 	global dsMap
 	ds = vv.GetNumberTableView(True)
 	#vpList = VpInterpolation(ds, K)
@@ -133,9 +133,11 @@ def DoTest2(K = 16):
 	tt.Close()
 	CreateCascadingMap(dsMap, epochs=2000, pp=0.1, repeats=2)
 
+#-----------------------------------------------------------------------
+
 '''
-DoTest2(4)
-DoTest(4)
+DoTest_ByViewpoint(4)
+DoTest_ByFeature(4)
 dsMap.ShowHeatMap()
 
 ArcSegmentation(6)
