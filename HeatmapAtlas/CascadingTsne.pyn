@@ -1,432 +1,144 @@
 # CascadingTsne.pyn
 #
-# Creating tSNE embedding by cascading training algorithm
+# This file contains scripts to create multiple maps/embeddings from dataset, 
+# then concatenate these maps and embed them in to a single map via tSNE.
 #
 # -------------------------------------------------------------
 import math, time
+import numpy as np
 
-dsTable = None
-rmInitSize = 0
-rmStepSize = 0
-recordMarker = 0
+def ArcSegmentation(K):
+	cx, cy = np.average([(b.X, b.Y) for b in pp.BodyList], axis=0)
+	ss = 2.0*math.pi/K
+	shift = math.pi + 0.5 * ss
+	for b in pp.BodyList:
+	  alpha = math.atan2(b.Y-cy, b.X-cx) + shift
+	  b.Type = int(alpha/ss) % K
+	pp.RedrawBodies()
 
-cs = New.CsObject('''
-public static double WeightedSum(double a, double b, double wa, double wb) {
-	return wa * a + wb * b;
-}
+def RadioSegmentation(K):
+   cx, cy = np.average([(b.X, b.Y) for b in pp.BodyList], axis=0)
+	minR, maxR = 1e18, 0
+   for b in pp.BodyList:
+      dx, dy = b.X - cx, b.Y - cy
+      R = dx*dx + dy*dy
+      minR, maxR = min(minR, R), max(maxR, R)
+   minR, maxR = math.sqrt(minR), math.sqrt(maxR)
+   ss = (maxR - minR)/K
+   for b in pp.BodyList:
+      dx, dy = b.X - cx, b.Y - cy
+      R = math.sqrt(dx*dx + dy*dy)
+      b.Type = min(int(R/ss), K-1)
+   pp.RedrawBodies()
 
-public static double GeoMean(double a, double b) {
-	return Math.Sqrt( a * b);
-}
+def WeightSegmentation(K):
+	bs = pp.BodyList
+	nt = vv.GetNumberTableView(True)
+	colWeight = [math.log(1+it.Value) for it in nt.ColumnMean()]
+	colIdxes = nt.IndexOfColumns([b.Id for b in bs])	
+	minW, maxW = 1e10, 0
+	for i, b in enumerate(bs):
+		colW = colWeight[colIdxes[i]]
+		minW = min(minW, colW)
+		maxW = max(maxW, colW)
+	ss = (maxW - minW)/K
+	for i, b in enumerate(bs):
+		colW = colWeight[colIdxes[i]]
+		tIdx = int((colW-minW)/ss)
+		b.Type = min(tIdx, K-1)
+	pp.RedrawBodies()
 
-public static double HarmonicalMean(double a, double b) {
-	return a * b /(a + b);
-}
+def NewTsneMachine(ds, epochs=2000, pp=0.05):
+	tt = New.MdsCluster( ds )
+	tt.Show()
+	tt.Metric = 'Correlation.Cosine Distance'
+	tt.Repeats = 1
+	tt.ReadOnly = True
+	tt.MaxLoops = epochs
+	tt.Is3D = False
+	tt.InitialExaggeration = 6.0
+	tt.FinalExaggeration = 1.0
+	tt.PerplexityRatio = pp
+	return tt
 
-// merge two maps stored in nt at column offset1 and offset2 into the map object and redraw it.
-public void Merge2Maps(dynamic map, INumberTable nt, int offset1, int offset2, double f ) {
-	var bsList = map.BodyList;
-	int mapDim = (nt.ColumnSpecList[1].Group == nt.ColumnSpecList[2].Group) ? 3 : 2;
-	int lastOffset = nt.Columns - mapDim;
-	offset1 = Math.Min(lastOffset, offset1);
-	offset2 = Math.Min(lastOffset, offset2);
-	f = Math.Max(0, Math.Min(1.0, f/100.0));
-	double g = 1.0 - f;
-	Func<double, double, double, double, double> Fct = WeightedSum;
-   for(int k=0; k<nt.Rows; k++) {
-		var b = bsList[k];
-		double[] R = nt.Matrix[k] as double[];
-		b.X = Fct(R[offset1], R[offset2], g, f);
-		b.Y = Fct(R[offset1 + 1], R[offset2+1], g, f);
-		b.Z = (mapDim == 2) ? 0 : Fct(R[offset1+2], R[offset2+2], g, f);
-	}
-	map.RedrawAll();
-}
+def CreateCascadingMap( ds, epochs=2000, pp=0.05, repeats=2):
+	tt = NewTsneMachine(ds, epochs=2000, pp=0.05)
+	tt.Metric = 'EuclideanMetric'
+	tt.Repeats = repeats
+	tt.Reset().Start().Close()
 
-// merge two maps stored in nt at column offset1 and offset2 into the map object and redraw it.
-public void Merge2MapsB(dynamic map, INumberTable nt, int offset1, int offset2 ) {
-	var bsList = map.BodyList;
-	int mapDim = (nt.ColumnSpecList[1].Group == nt.ColumnSpecList[2].Group) ? 3 : 2;
-	int lastOffset = nt.Columns - mapDim;
-	offset1 = Math.Min(lastOffset, offset1);
-	offset2 = Math.Min(lastOffset, offset2);
-	Func<double, double, double> Fct = HarmonicalMean;
-   for(int k=0; k<nt.Rows; k++) {
-		var b = bsList[k];
-		double[] R = nt.Matrix[k] as double[];
-		b.X = Fct(R[offset1], R[offset2]);
-		b.Y = Fct(R[offset1 + 1], R[offset2+1]);
-		b.Z = (mapDim == 2) ? 0 :  Fct(R[offset1 + 2], R[offset2+2]);
-	}
-	map.RedrawAll();
-}
-
-''')
-
-# Callback function to extract map during t-SNE training process.
-def BodyMoved():
-	global recordMarker
-	global dsTable
-	
-	mapDim = 3 if pp.Is3D else 2
-	if dsTable == None:
-		dsTable = InitDataset(mapDim)
-
-	columns = dsTable.Tag
-	span = pp.GlyphSpan
-
-	if (span < recordMarker) and (pp.CurrentLoops != pp.MaxLoops):
-		return
-	if pp.CurrentLoops < 100:
-		return
-	if (columns + mapDim) > dsTable.Columns:
-		return
-	bsList = vv.Dataset.BodyListEnabled()
-	if IsCollapsed(bsList, mapDim, pp.GlyphScale): # the map is still collapsed
-		return
-
-	dsTable.CopyValuesFrom(bsList, pp.Is3D, columns)
-
-	recordMarker = span + math.ceil(span/3)*rmStepSize   # recordMarker for the next call.
-	dsTable.Tag = columns + mapDim
-	dsTable.ColumnSpecList[columns].Name = f'Sp:{span}'
-	# Mark the cascading stages:
-	curExa = float(pp.TheForm.CurrentExaggeration)+0.1
-	pp.TheForm.Histogram.AddPoint(curExa, span-0.2)
-
-# intialize a number-table object to store map during the call-backs.
-def InitDataset(mapDim):
-	bsList = vv.Dataset.BodyListEnabled()
-	maxStages = 50
-	ds = New.NumberTable(bsList, mapDim*maxStages)
-	ds.Tag = 0
-	csList = ds.ColumnSpecList
-	for k in range(maxStages):
-		csList[mapDim*k].Type = k
-		csList[mapDim*k+1].Type = k
-		if mapDim == 3:
-			csList[mapDim*k+2].Type = k
-	return ds
-
-# Run t-SNE with some default behaviors.
-def RunTsne(mds):
-	mds.TracingType = 6
-	mds.Repeats = 1
-	mds.StagedTraining = False
-	mds.ReadOnly = True
-	mds.HistStepSize = 2.0
-	mds.Show().Reset().Start()
-	if mds.CurrentLoops == mds.MaxLoops:
-		mds.Close()
-	else:
-		vv.Title = 'Training aborted'
-		vv.Return()
-
-# Create dataset from maps extracted during the t-SNE training processes.
-def CreateMapDataset(is3D=True, showHistory=False, initSize=0.25, stepSize=0.5, ppl=0.1, ex0=8.0, ex1=1.0, epochs=0):
-	global recordMarker
-	global rmStepSize
-	global rmInitSize
-	global dsTable
-	rmInitSize = initSize
-	rmStepSize = stepSize
-	dsTable = None
-	mds = New.TsneMap()
-	mds.PerplexityRatio = ppl 
-	mds.InitialExaggeration = ex0
-	mds.FinalExaggeration = ex1
-	if epochs != 0: mds.MaxLoops = epochs
-	mds.AutoNormalizing = False
-	mds.AutoScaling = True
-	mds.CentralizingData = False
-	mds.RefreshFreq = 10
-	mds.Is3D = is3D
-	mapDim = 3 if is3D else 2
-	vv.Map.MapType = "Cube" if is3D else "Rectangle"
-	recordMarker = rmInitSize    	# Initial recordMarker.
-	maxRecords = 50
-	vv.EventManager.OnBodyMoved('@BodyMoved()', mds)
-	vv.Map.Depth = 0.5 * (vv.Map.Height + vv.Map.Width)
-	RunTsne(mds)
-	dsTable = dsTable.SliceColumn(0, dsTable.Tag)
-	if showHistory:
-		ctn = New.ViewContainer().Show()
-		mds.TheForm.HistorySnapshot()
-		ctn.Add(vv.LastView)
-		mp = New.Map3DView() if is3D else New.MapSnapshot()
-		ctn.Add(mp)
-		mp.Show()
-		ShowDataset1(dsTable)
-		ctn.Add(vv.LastView)
-		ctn.CascadeWindows()
-
-def Settings(nt, mds):
-	global dsType
-	return f'Settings: {nt.Rows}x{nt.Columns}; {mds.MaxLoops}; {mds.PerplexityRatio}; {mds.InitialExaggeration}/{mds.FinalExaggeration}, {time.asctime()}'
-
-# Create a t-SNE map with specific dataset and metric
-def CreateMdsMap(mtr="EuclideanMetric", is3D=False, ppl=0.1, ex0=8.0, ex1=1.0, epochs=0):
-
-	if (mtr == 'PlainSum') or (mtr == 'LastMap'):
-		mapDim = DsMapDim(dsTable)
-		if mtr == 'PlainSum':
-			bList = New.BodyList(dsTable)
-			MergeDataset(bList, dsTable, mapDim)
-			ShowBodyMap(bList, mapDim).CaptureMap().Close()
-		else:
-			dsLast = dsTable.SliceColumn(-mapDim, 0)
-			ShowBodyMap(New.BodyList(dsLast), mapDim).CaptureMap().Close()		
-		vv.Map.PcaNormalize()
-		vv.Map.Description = mtr
-		return
-
-	mds = New.TsneMap()
-	if epochs != 0: mds.MaxLoops = epochs
-	mds.ChangeTrainingData(dsTable, mtr)
-	mds.Tag = dsTable
-	mds.PerplexityRatio = ppl  # High PP is key for low dimensional data.
-	mds.InitialExaggeration = ex0
-	mds.FinalExaggeration = ex1
-	mds.AutoNormalizing = True
-	mds.AutoScaling = False
-	mds.Is3D = is3D
-	mds.RefreshFreq = 100
-	vv.Map.MapType="Rectangle"
-	vv.Map.Description = Settings(dsTable, mds)
-	RunTsne(mds)
-
-def ShowBodyMap(bList, mDim):
-	if mDim == 3:
-		map = New.Map3DView(bList).Show()
-		map.ResetView(0)
-		map.ShowBoundingBox = False
-	else:
-		map = New.MapSnapshot(bList).Show()
-		map.ResetSize()
-	return map
-
-def ShowSelectedMap():
-	nn = pp.SelectedItems.Count
-	if (nn != pp.ScrollingSteps) or (pp.SelectionMode != 1):	
-		return	
-	bList = New.BodyList(pp.GetSelectedNumberTable())
-	ShowBodyMap(bList, nn)	
-
-def DsMapDim(ds):
-	csList = ds.ColumnSpecList
-	if csList.Count <= 3:
-		return csList.Count
-	return 3 if csList[2].Group == csList[1].Group else 2
-
-def ShowDataset1(dsTable):
-	hm = New.HeatMap(dsTable)
-	hm.Show()
-	hm.SelectionMode = 1
-	hm.ScrollingSteps = DsMapDim(dsTable)
-	hm.Title = 'Data Dimension: ' + str(dsTable.Rows) + 'x' + str(dsTable.Columns)
-	hm.AddEventHandler('ItemsSelected', '@ShowSelectedMap()')
-
-def ShowDataset2(ds):
-	mDim = DsMapDim(ds)
-	bs = New.BodyList(ds)
-	map = ShowBodyMap(bs, mDim)
-	map.CentralizeView()
-	for k in range(2):
-		for col in range(0, ds.Columns, mDim):
-			bodyList = New.BodyList( ds.SliceColumn(col, col+mDim) )
-			map.MoveBodiesTo(bodyList, steps=15, msPause=75, loops=0, loopPause=0)
-			map.Title = f'N: {k}:{col}:{col+mDim}'
-			vv.Sleep(250)			
-			if col == 3*mDim: map.CentralizeView()
-		vv.Sleep(500)
-	map.Close()
-
-# Merge multiple maps stored in nt into a list of body objects.
-def MergeDataset(bList, nt, mapDim):
-	scaleFactor = 1.0*mapDim/nt.Columns
-	for row, b in enumerate(bList):
-		b.SetXYZ(0,0,0)
-		R = nt.Matrix[row]
-		for col in range(0, nt.Columns, mapDim):
-			bZ = R[col+2] if mapDim==3 else 0
-			b.Add(R[col], R[col+1], bZ)
-		b.Mult(scaleFactor)
-
-def CollapseDsMap(ds, mDim):
-	bList = New.BodyList(ds)
-	MergeDataset(bList, ds, mDim)
-	ShowBodyMap(bList, mDim).CentralizeView()
-
-def ShowDataset3(dsTable):
-	hm = New.HeatMap(dsTable)
-	hm.Show()
-	hm.SelectionMode = 1
-	hm.AddContextMenu('Cascading Map', '@CollapseDsMap(pp.GetSelectedNumberTable(), DsMapDim(dsTable))')
-
-def ShowDataset4(dsTable):
-	mapDim = DsMapDim(dsTable)
-	mapC = ShowBodyMap(New.BodyList(dsTable), mapDim)
-	c0 = 2*mapDim
-	c1 = 99*mapDim
-	cs.Merge2MapsB(mapC, dsTable, c0, c1)
-	'''
-	for repeat in range(2):
-		for f in range(100):
-			cs.Merge2Maps(mapC, dsTable, c0, c1, f)
-			vv.Sleep(10)
-		for f in range(100, 0, -1):
-			cs.Merge2Maps(mapC, dsTable, c0, c1, f)
-			vv.Sleep(10)
-	'''
-
-isFirstMap = True
-def SwitchToNewMap():
-	global isFirstMap
-	if isFirstMap:
-		isFirstMap = False
-	else:
-		vv.Dataset.AddMap()
-
-# Check whether a map has collapsed dimensions
-mapCollpased = True
-def IsCollapsed(bsList, mapDim, spanFactor):
-	global mapCollpased
-	if not mapCollpased: return False
-	ev = vv.Math.Pca3DCube(bsList)[0]
-	#vv.Echo(f'{ev[0]};  {ev[1]}')
-	mapCollpased = ev[mapDim-2] < 1.0
-	return mapCollpased
-
-def HalfDataset(ds):
-	columns = ds.Columns
-	D = DsMapDim(ds)
-	D2 = 2 * D;
-	idxList = [i+k for i in range(D, columns, D2) for k in range(D) ]
-	if columns % D2 != 0: 
-		idxList += list( range(columns-D, columns) )
-	return ds.SelectColumns( idxList )
-
-def MergeMaps(mapList, mapDim):
-	mapList = mapList.split('|')
-	rows = vv.Dataset.BodyListEnabled().Count
-	for k, mn in enumerate(mapList):
-		bs = vv.Dataset.ReadMapBodyList(mn, True)
-		if k == 0:
-			bsList = bs
-		else:
-			for k, b in enumerate(bs):
-				bsList[k].Add(b.X, b.Y, b.Z)
-	ShowBodyMap(bsList, mapDim).CentralizeView()
-
-# Create a number-table that stores all maps of open snapshots.
-def Snapshots2Dataset(closingMaps = True):
-	fs = vv.FindFormList('MapSnapshot')
-	fs = [f for f in fs if f.TheForm.WindowState==0]
-	if len(fs) == 0:
-		vv.Message('No snapshots present!')
-		return None
-	dimSum = sum([f.MapLayout.Dimension for f in fs])
-	ds = New.NumberTable(fs[0].BodyList, dimSum)
-	mpDim = fs[0].MapLayout.Dimension
-	dim0 = mpDim
-	csList = ds.ColumnSpecList
-	for k in range(1, len(fs)):
-		mpDim = fs[k].MapLayout.Dimension
-		ds.CopyValuesFrom(fs[k].BodyList, (mpDim == 3), dim0)
+def DoTest(K):
+	global dsMap
+	#WeightSegmentation(K)
+	#ArcSegmentation(K)
+	#RadioSegmentation(K)
+	tList = {b.Type for b in pp.BodyList}
+	ds = vv.GetNumberTableView(True)	
+	tt = NewTsneMachine(ds)
+	mpDim = 2
+	dsMap = New.NumberTable(ds, len(tList)*mpDim)
+	for k, t in enumerate(tList):
+		dsM = ds.SelectColumnsById( [b.Id for b in pp.BodyList if b.Type==t] )
+		tt.SetTrainingData(dsM)
+		tt.Reset().Start().Normalize()
+		if not tt.Completed: vv.Return()
+		dsMap.CopyValuesFrom(tt.BodyList, (mpDim==3), k*mpDim)
 		for i in range(mpDim):
-			csList[dim0 + i].Type = k
-		dim0 += mpDim
-	if closingMaps:
-		for f in fs: f.Close()   
-	return ds
+			dsMap.ColumnSpecList[k*mpDim + i].Type = t
+	tt.Close()
+	CreateCascadingMap(dsMap, epochs=2000, pp=0.1, repeats=2 )
+
+def VpInterpolation(ds, K):
+	cc = []
+	for t in [0, 1]:
+		centers = ds.SelectRowsById( [r.Id for r in ds.RowSpecList if r.Type == t ] )
+		cc.append( [it.Value for it in centers.ColumnMean()] )
+	return np.linspace(cc[0], cc[1], K)
+
+def VpByCenters(ds):
+	cc = []
+	tList = {r.Type for r in ds.RowSpecList if r.Type <= 60}
+	for t in tList:
+		rList = [r.Id for r in ds.RowSpecList if r.Type == t ]
+		centers = ds.SelectRowsById(rList)
+		cc.append( np.array( [it.Value for it in centers.ColumnMean()] ) )
+	return cc
+
+def VpExplicite(ds):
+	cc = []
+	rList = [b.Id for b in pp.Map.BodyList if b.Highlighted and not b.Disabled]
+	centers = ds.SelectRowsById(rList)
+	return list( mm.ToNumpy(centers) )
+
+def DoTest2(K = 16):
+	global dsMap
+	ds = vv.GetNumberTableView(True)
+	#vpList = VpInterpolation(ds, K)
+	#vpList = VpByCenters(ds)
+	vpList = VpExplicite(ds)
+	vp = New.NumberTable(1, ds.Columns)
+	tt = NewTsneMachine(ds)
+	mpDim = 2
+	dsMap = New.NumberTable(ds, len(vpList)*mpDim)
+	for k, CC in enumerate(vpList):
+		mm.CopyToTable(CC, vp)
+		ds.SubBy(vp)
+		tt.SetTrainingData(ds)
+		tt.Reset().Start().Normalize()
+		ds.AddTo(vp)
+		if not tt.Completed: vv.Return()
+		dsMap.CopyValuesFrom(tt.BodyList, (mpDim==3), k*mpDim)
+		for i in range(mpDim):
+			dsMap.ColumnSpecList[k*mpDim + i].Type = k
+	tt.Close()
+	CreateCascadingMap(dsMap, epochs=2000, pp=0.1, repeats=2)
 
 '''
-Snapshots2Dataset().ShowHeatMap()
-'''
+DoTest2(4)
+DoTest(4)
+dsMap.ShowHeatMap()
 
-mtrList = [
-	'LastMap',
-	'PlainSum',
-	'Numerical.Harmonic Mean',
-	'Numerical.Square Root',
-	'Numerical.City Block', 
-	'EuclideanMetric',
-	'Numerical.Log-Euclidean',
-	'Correlation.Cosine Distance',
-	'Vector.WaveHedge',
-	]
-
-
-#==========================================================================
-for k in []:
-	SwitchToNewMap()
-	CreateMapDataset(is3D=False, showHistory=False, initSize=0.2, stepSize=1.0, ex0=5.0, ex1=1.0, ppl=0.1)
-	CreateMdsMap(mtrList[5], ex0=4.0, ex1=1.0)
-
-'''-----------------------------------------------------------------------
-
-ShowDataset1(dsTable)
-ShowDataset2(dsTable)
-ShowDataset3(dsTable)
-ShowDataset4(dsTable)
-
-MergeMaps('B1|B2|B3', 3)
-
-CreateMdsMap('LastMap')
-
-dsTable = vv.AtlasManager.ReadNumberTable(None, 'i26')
-
-nt = vv.GetNumberTable()
-nt.CheckForWrite()
-N = int( nt.Rows/2 )
-for row in range(N):
-	R = nt.Matrix[row]
-	D = nt.Matrix[N+row]
-	R[0], R[1] = D[2], D[3]
-nt.ShowHeatMap()
-
-dsTable = Snapshots2Dataset()
-
-fs = vv.FindFormList('MapSnapshot')
-dsTable = New.NumberTable(fs[0].BodyList, 2*fs.Count)
-csList = dsTable.ColumnSpecList
-for k in range(1, fs.Count):	
-	dsTable.CopyValuesFrom(fs[k].BodyList, False, 2*k)
-	csList[2*k + 1].Type = csList[2*k].Type = k
-
-cm = New.ClusterManager().Show()
-
-nt = New.NumberTable(2*nt1.Rows, 5)
-
-nt.ColumnSpecList[0].CopyFrom(nt1.ColumnSpecList[0])
-rsList = nt.RowSpecList
-rsList1 = nt1.RowSpecList
-for i in range(nt1.Rows):
-	rsList[i].CopyFrom(rsList1[i])
-	nt.Matrix[i][0] = nt1.Matrix[i][0]
-	nt.Matrix[i][1] = nt1.Matrix[i][1]
-
-rsList = nt.RowSpecList
-rsList2 = nt1.RowSpecList
-N = nt1.Rows
-for i in range(nt1.Rows):
-	rsList[N+i].CopyFrom(rsList2[i])
-	rsList[N+i].Id =	'_' + rsList[N+1].Id
-	nt.Matrix[N+i][2] = nt2.Matrix[i][0]
-	nt.Matrix[N+i][3] = nt2.Matrix[i][1]
-	nt.Matrix[N+i][4] = 1.0
-
-nt.ShowHeatMap()
-
-for p in [0.1, 0.05, 0.01]:
-	CreateMdsMap(dsTable, ppl=p)
-
-# skip the first 6 columns:
-dsTable = dsTable.SliceColumn(6, 0)
-
-# selected half of the columns:
-dsTable = HalfDataset( dsTable )
-
-vv.GuiManager.ReuseLastWindow = True
-
+ArcSegmentation(6)
+WeightSegmentation(6)
+RadioSegmentation(5)
 '''
