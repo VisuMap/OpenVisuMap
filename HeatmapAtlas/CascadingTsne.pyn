@@ -39,7 +39,7 @@ def RadioSegmentation(K):
 def WeightSegmentation(K):
 	bs = pp.BodyList
 	nt = vv.GetNumberTableView(True)
-	colWeight = [math.log(1+it.Value) for it in nt.ColumnMean()]
+	colWeight = [math.log(1+it.Value*nt.Rows) for it in nt.ColumnMean()]
 	colIdxes = nt.IndexOfColumns([b.Id for b in bs])	
 	minW, maxW = 1e10, 0
 	for i, b in enumerate(bs):
@@ -93,7 +93,8 @@ def Do_ByFeature(flag=0, K=16):
 		if dsM.Columns == 0:
 			vv.Message('No feature selected! The parent window must be a feature-map!')
 			vv.Return(0)
-		tt.SetTrainingData(dsM)
+		vv.Echo(f'Columns: {dsM.Columns}')
+		tt.SetTrainingData(dsM)	
 		tt.Reset().Start().Normalize()
 		if not tt.Completed: vv.Return()
 		dsMap.CopyValuesFrom(tt.BodyList, (mpDim==3), k*mpDim)
@@ -133,6 +134,9 @@ def Do_ByViewpoint(flag=0, K=16):
 		vpList = VpInterpolation(ds, K)
 	elif flag == 2:
 		vpList = VpExplicite(ds)
+	if len(vpList) == 0:
+		vv.Message('No viewpoints have been defined!')
+		vv.Return(0)
 	vp = New.NumberTable(1, ds.Columns)
 	tt = NewTsneMachine(ds)
 	mpDim = 2
@@ -242,14 +246,16 @@ def Do_Cascading():
 #-------------------------------------------------------------------------------------
 
 Do_Cascading()
-#Do_ByViewpoint(flag=0, K=8)
-#Do_ByFeature(flag=0, K=5)
 
 '''
-Do_Cascading()
-Do_ByViewpoint(flag=1, K=8)
-Do_ByFeature(flag=2, K=5)
+Do_ByViewpoint(flag=0)      # fragmenet by cluster-centers
+Do_ByViewpoint(flag=1, K=3) # interpolating 2-cluster centers.
+Do_ByViewpoint(flag=2)      # explicite viewpoints by highlighted bodies.
 
+Do_ByFeature(flag=0)  # fragment by column-group
+Do_ByFeature(flag=1, K=4)  # fragment by feature-weight
+Do_ByFeature(flag=2, K=4)  # fragment by arc
+Do_ByFeature(flag=3, K=5)  # radio-fragmentation
 
 dsMap.ShowHeatMap()
 '''
