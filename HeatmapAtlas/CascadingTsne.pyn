@@ -72,17 +72,18 @@ def CreateCascadingMap(ds, epochs=2000, ppl=0.05, repeats=2):
 	tt.Repeats = repeats
 	tt.Reset().Start().Close()
 
-def Do_ByFeature(K):
+def Do_ByFeature(flag=0, K=16, featureMap=None):
 	global dsMap
-	#WeightSegmentation(K)
-	#ArcSegmentation(K)
-	#RadioSegmentation(K)
+	global pp
+	if featureMap is not None: pp = featureMap
+	if flag==1:
+		WeightSegmentation(K)
+	elif flag == 2:
+		ArcSegmentation(K)
+	elif flag == 3:
+		RadioSegmentation(K)
 	ds = vv.GetNumberTableView(True)	
-	if hasattr(pp, 'BodyList'):
-		if pp.BodyList.Count != ds.Columns:
-			vv.Message('This service must be called from a feature-map, i.e. map-of-columns.')
-			vv.Return(0)
-	else:
+	if not hasattr(pp, 'BodyList'):
 		vv.Message('This service must be called from a feature-map!')
 		vv.Return(0)
 	tt = NewTsneMachine(ds)
@@ -91,6 +92,9 @@ def Do_ByFeature(K):
 	dsMap = New.NumberTable(ds, len(tList)*mpDim)
 	for k, t in enumerate(tList):
 		dsM = ds.SelectColumnsById( [b.Id for b in pp.BodyList if b.Type==t] )
+		if dsM.Columns == 0:
+			vv.Message('No feature selected! The parent window must be a feature-map!')
+			vv.Return(0)
 		tt.SetTrainingData(dsM)
 		tt.Reset().Start().Normalize()
 		if not tt.Completed: vv.Return()
@@ -122,12 +126,15 @@ def VpExplicite(ds):
 	centers = ds.SelectRowsById(rList)
 	return list( mm.ToNumpy(centers) )
 
-def Do_ByViewpoint(K = 16):
+def Do_ByViewpoint(flag=0, K=16):
 	global dsMap
 	ds = vv.GetNumberTableView(True)
-	#vpList = VpInterpolation(ds, K)
-	vpList = VpByCenters(ds)
-	#vpList = VpExplicite(ds)
+	if flag == 0:
+		vpList = VpByCenters(ds)
+	elif flag == 1:
+		vpList = VpInterpolation(ds, K)
+	elif flag == 2:
+		vpList = VpExplicite(ds)
 	vp = New.NumberTable(1, ds.Columns)
 	tt = NewTsneMachine(ds)
 	mpDim = 2
@@ -237,16 +244,13 @@ def Do_Cascading():
 #-------------------------------------------------------------------------------------
 
 Do_Cascading()
+#Do_ByViewpoint(flag=0, K=8)
+#Do_ByFeature(flag=0, K=5, featureMap=vv.LastView)
 
 '''
-
 Do_Cascading()
-Do_ByViewpoint(4)
-Do_ByFeature(4)
+Do_ByViewpoint(flag=1, K=8)
+Do_ByFeature(flag=0, K=3, featureMap=vv.LastView)
 
 dsMap.ShowHeatMap()
-
-ArcSegmentation(6)
-WeightSegmentation(6)
-RadioSegmentation(5)
 '''
