@@ -10,6 +10,15 @@ import numpy as np
 # storage table for intermediate embedding maps.
 dsMap = None
 
+TYPE_SEG = 0
+ARC_SEG = 1
+RADIO_SEG = 2
+WEIGHT_SEG = 3
+
+CENTERS_VP = 0
+INTPO_VP = 1
+DIRECT_VP = 2
+
 #-------------------------------------------------------------------------------------
 
 def ArcSegmentation(K):
@@ -39,7 +48,7 @@ def RadioSegmentation(K):
 def WeightSegmentation(K):
 	bs = pp.BodyList
 	nt = vv.GetNumberTableView(True)
-	colWeight = [math.log(1+it.Value*nt.Rows) for it in nt.ColumnMean()]
+	colWeight = [math.log(1+math.fabs(it.Value*nt.Rows)) for it in nt.ColumnMean()]
 	colIdxes = nt.IndexOfColumns([b.Id for b in bs])	
 	minW, maxW = 1e10, 0
 	for i, b in enumerate(bs):
@@ -72,28 +81,30 @@ def CreateCascadingMap(ds, epochs=2000, ppl=0.05, repeats=2):
 	tt.Repeats = repeats
 	tt.Reset().Start().Close()
 
-def Do_ByFeature(flag=0, K=16):
+def Do_ByFeature(flag=TYPE_SEG, K=16):
 	global dsMap
-	if flag==1:
-		WeightSegmentation(K)
-	elif flag == 2:
-		ArcSegmentation(K)
-	elif flag == 3:
-		RadioSegmentation(K)
-	ds = vv.GetNumberTableView(True)	
 	if not hasattr(pp, 'BodyList'):
 		vv.Message('This service must be called from a feature-map!')
 		vv.Return(0)
+	if flag==WEIGHT_SEG:
+		WeightSegmentation(K)
+	elif flag == ARC_SEG:
+		ArcSegmentation(K)
+	elif flag == RADIO_SEG:
+		RadioSegmentation(K)
+	ds = vv.GetNumberTableView(True)	
 	tt = NewTsneMachine(ds)
 	mpDim = 2
 	tList = {b.Type for b in pp.BodyList}
 	dsMap = New.NumberTable(ds, len(tList)*mpDim)
 	for k, t in enumerate(tList):
-		dsM = ds.SelectColumnsById( [b.Id for b in pp.BodyList if b.Type==t] )
+		bList = [b.Id for b in pp.BodyList if b.Type==t]
+		dsM = ds.SelectColumnsById( bList )
 		if dsM.Columns == 0:
 			vv.Message('No feature selected! The parent window must be a feature-map!')
 			vv.Return(0)
-		vv.Echo(f'Columns: {dsM.Columns}')
+		pp.Title = f'Feature Group: {t}, Dataset: {dsM.Rows}x{dsM.Columns}'
+		pp.SelectedItems = bList
 		tt.SetTrainingData(dsM)	
 		tt.Reset().Start().Normalize()
 		if not tt.Completed: vv.Return()
@@ -125,14 +136,14 @@ def VpExplicite(ds):
 	centers = ds.SelectRowsById(rList)
 	return list( mm.ToNumpy(centers) )
 
-def Do_ByViewpoint(flag=0, K=16):
+def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 	global dsMap
 	ds = vv.GetNumberTableView(True)
-	if flag == 0:
+	if flag == CENTERS_VP:
 		vpList = VpByCenters(ds)
-	elif flag == 1:
+	elif flag == INTPO_VP:
 		vpList = VpInterpolation(ds, K)
-	elif flag == 2:
+	elif flag == DIRECT_VP:
 		vpList = VpExplicite(ds)
 	if len(vpList) == 0:
 		vv.Message('No viewpoints have been defined!')
@@ -244,18 +255,17 @@ def Do_Cascading():
 	CreateCascadingMap(dsMap, epochs=2000, ppl=0.1, repeats=2)
 
 #-------------------------------------------------------------------------------------
-
 Do_Cascading()
 
 '''
-Do_ByViewpoint(flag=0)      # fragmenet by cluster-centers
-Do_ByViewpoint(flag=1, K=3) # interpolating 2-cluster centers.
-Do_ByViewpoint(flag=2)      # explicite viewpoints by highlighted bodies.
+Do_ByViewpoint(flag=CENTERS_VP)
+Do_ByViewpoint(flag=INTPO_VP, K=16)
+Do_ByViewpoint(flag=DIRECT_VP)
 
-Do_ByFeature(flag=0)  # fragment by column-group
-Do_ByFeature(flag=1, K=4)  # fragment by feature-weight
-Do_ByFeature(flag=2, K=4)  # fragment by arc
-Do_ByFeature(flag=3, K=5)  # radio-fragmentation
+Do_ByFeature(flag=TYPE_SEG)
+Do_ByFeature(flag=WEIGHT_SEG, K=4)
+Do_ByFeature(flag=ARC_SEG,   K=4)
+Do_ByFeature(flag=RADIO_SEG, K=5)
 
 dsMap.ShowHeatMap()
 '''
