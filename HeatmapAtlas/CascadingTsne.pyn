@@ -19,6 +19,8 @@ CENTERS_VP = 0
 INTPO_VP = 1
 DIRECT_VP = 2
 
+IsOutMap3D = True
+
 #-------------------------------------------------------------------------------------
 
 def ArcSegmentation(K):
@@ -62,24 +64,35 @@ def WeightSegmentation(K):
 		b.Type = min(tIdx, K-1)
 	pp.RedrawBodies()
 
-def NewTsneMachine(ds, epochs=2000, ppl=0.05):
+def NewTsneMachine(ds, epochs=2000, ppl=0.05, is3D=False):
 	tt = New.MdsCluster( ds )
 	tt.Show()
 	tt.Metric = 'Correlation.Cosine Distance'
 	tt.Repeats = 1
 	tt.ReadOnly = True
 	tt.MaxLoops = epochs
-	tt.Is3D = False
+	tt.Is3D = is3D
 	tt.InitialExaggeration = 6.0
 	tt.FinalExaggeration = 1.0
 	tt.PerplexityRatio = ppl
+	tt.AutoScalingTsne = True
+	tt.AutoNormalizing = True
+	tt.ExaggerationSmoothen = True
+	tt.StagedTraining = False
 	return tt
 
-def CreateCascadingMap(ds, epochs=2000, ppl=0.05, repeats=2):
-	tt = NewTsneMachine(ds, epochs=epochs, ppl=ppl)
+def CreateCascadingMap(ds, epochs=2000, ppl=0.05, repeats=2, desc=None, is3D=False):
+	tt = NewTsneMachine(ds, epochs=epochs, ppl=ppl, is3D=is3D)
 	tt.Metric = 'EuclideanMetric'
 	tt.Repeats = repeats
 	tt.Reset().Start().Close()
+	if desc is not None:
+		vwList = vv.FindFormList('MapSnapshot')
+		cnt = len(vwList)
+		if cnt >= repeats:
+			for k in range(repeats):
+				vw = vwList[cnt-repeats+k]
+				vw.Title = desc + f'; Repeat: {k+1}'
 
 def Do_ByFeature(flag=TYPE_SEG, K=16):
 	global dsMap
@@ -93,8 +106,8 @@ def Do_ByFeature(flag=TYPE_SEG, K=16):
 	elif flag == RADIO_SEG:
 		RadioSegmentation(K)
 	ds = vv.GetNumberTableView(True)	
-	tt = NewTsneMachine(ds)
-	mpDim = 2
+	tt = NewTsneMachine(ds, is3D=True)
+	mpDim = 3 if tt.Is3D else 2
 	tList = {b.Type for b in pp.BodyList}
 	dsMap = New.NumberTable(ds, len(tList)*mpDim)
 	for k, t in enumerate(tList):
@@ -112,7 +125,7 @@ def Do_ByFeature(flag=TYPE_SEG, K=16):
 		for i in range(mpDim):
 			dsMap.ColumnSpecList[k*mpDim + i].Type = t
 	tt.Close()
-	CreateCascadingMap(dsMap, epochs=2000, ppl=0.05, repeats=2 )
+	CreateCascadingMap(dsMap, epochs=2000, ppl=0.05, repeats=2, is3D=IsOutMap3D, desc=f'Alg: by-feature: {flag}')
 
 def VpInterpolation(ds, K):
 	cc = []
@@ -149,8 +162,8 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 		vv.Message('No viewpoints have been defined!')
 		vv.Return(0)
 	vp = New.NumberTable(1, ds.Columns)
-	tt = NewTsneMachine(ds)
-	mpDim = 2
+	tt = NewTsneMachine(ds, is3D=True)
+	mpDim = 3 if tt.Is3D else 2
 	dsMap = New.NumberTable(ds, len(vpList)*mpDim)
 	for k, CC in enumerate(vpList):
 		mm.CopyToTable(CC, vp)
@@ -163,7 +176,7 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 		for i in range(mpDim):
 			dsMap.ColumnSpecList[k*mpDim + i].Type = k
 	tt.Close()
-	CreateCascadingMap(dsMap, epochs=2000, ppl=0.1, repeats=2)
+	CreateCascadingMap(dsMap, epochs=2000, ppl=0.1, repeats=2, is3D=IsOutMap3D,  desc=f'Alg: by-viewpoint: {flag}')
 
 #-------------------------------------------------------------------------------------
 # Create dataset from maps extracted during the t-SNE training processes.
@@ -252,7 +265,7 @@ def BodyMoved():
 
 def Do_Cascading():
 	CreateMapDataset(is3D=True, initSize=0.2, stepSize=1.0, ex0=10.0, ex1=1.0, ppl=0.05, epochs=2000)
-	CreateCascadingMap(dsMap, epochs=2000, ppl=0.1, repeats=2)
+	CreateCascadingMap(dsMap, epochs=2000, ppl=0.1, repeats=2, is3D=IsOutMap3D, desc='Alg: cascading')
 
 #-------------------------------------------------------------------------------------
 Do_Cascading()
