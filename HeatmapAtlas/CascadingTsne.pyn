@@ -38,6 +38,18 @@ def NewTsneMachine(ds, epochs=2000, ppl=0.05, is3D=False):
 	tt.StagedTraining = False
 	return tt
 
+def ShowMapDataset():
+	hm = dsMap.ShowHeatMap()
+	cc = dsMap.ColumnSpecList
+	hm.ScrollingSteps = 3 if cc[2].Group == cc[1].Group else 2
+	hm.SelectionMode = 1
+	hm.ReadOnly = True
+	hm.AddEventHandler('ItemsSelected', '''@if pp.SelectedItems.Count == pp.ScrollingSteps:
+		New.MapSnapshot(New.BodyList(pp.GetSelectedNumberTable())).Show().ResetSize()
+		''')
+
+#-------------------------------------------------------------------------------------
+
 def ArcSegmentation(K):
 	cx, cy = np.average([(b.X, b.Y) for b in pp.BodyList], axis=0)
 	ss = 2.0*math.pi/K
@@ -124,7 +136,7 @@ def Do_ByFeature(flag=TYPE_SEG, K=16):
 	tt.Close()
 	Do_MergeMaps(f'Alg: by-feature: {flag}')
 
-#----------------------
+#-------------------------------------------------------------------------------------
 
 def VpInterpolation(ds, K):
 	cc = []
@@ -178,6 +190,7 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 	Do_MergeMaps(f'Alg: by-viewpoint: {flag}')
 
 #-------------------------------------------------------------------------------------
+
 # Create dataset from maps extracted during the t-SNE training processes.
 def CreateMapDataset(is3D=True, initSize=0.25, stepSize=0.5, ppl=0.1, ex0=8.0, ex1=1.0, epochs=2000):
 	global recordMarker
@@ -263,7 +276,7 @@ def BodyMoved():
 	pp.TheForm.Histogram.AddPoint(curExa, span-0.2)
 
 def Do_Cascading():
-	CreateMapDataset(is3D=True, initSize=0.2, stepSize=1.0, ex0=10.0, ex1=1.0, ppl=0.05, epochs=2000)
+	CreateMapDataset(is3D=True, initSize=0.2, stepSize=1.0, ex0=5.0, ex1=1.0, ppl=0.1, epochs=4000)
 	Do_MergeMaps('Alg: cascading')
 
 def Do_MergeMaps(desc):
@@ -282,5 +295,5 @@ Do_ByFeature(flag=WEIGHT_SEG, K=4)
 Do_ByFeature(flag=ARC_SEG,   K=4)
 Do_ByFeature(flag=RADIO_SEG, K=5)
 
-dsMap.ShowHeatMap()
+ShowMapDataset()
 '''
