@@ -276,7 +276,7 @@ def BodyMoved():
 	pp.TheForm.Histogram.AddPoint(curExa, span-0.2)
 
 def Do_Cascading():
-	CreateMapDataset(is3D=True, initSize=0.2, stepSize=1.0, ex0=5.0, ex1=1.0, ppl=0.1, epochs=4000)
+	CreateMapDataset(is3D=True, initSize=0.2, stepSize=1.0, ex0=8.0, ex1=1.0, ppl=0.1, epochs=4000)
 	Do_MergeMaps('Alg: cascading')
 
 def Do_MergeMaps(desc):
