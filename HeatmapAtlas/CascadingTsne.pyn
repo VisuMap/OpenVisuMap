@@ -9,6 +9,7 @@ import numpy as np
 
 # storage table for intermediate embedding maps.
 dsMap = None
+dsMap3D = True
 
 TYPE_SEG = 0
 ARC_SEG = 1
@@ -37,6 +38,20 @@ def NewTsneMachine(ds, epochs=2000, ppl=0.05, is3D=False):
 	tt.ExaggerationSmoothen = True
 	tt.StagedTraining = False
 	return tt
+
+# Merge all intermediated maps dsMap into a single output map.
+def CreateCascadingMap(ds, epochs=2000, ppl=0.05, repeats=2, desc="OutMap", is3D=False):
+	tt = NewTsneMachine(ds, epochs=epochs, ppl=ppl, is3D=is3D)
+	tt.Metric = 'EuclideanMetric'
+	tt.Repeats = repeats
+	tt.Reset().Start().Close()
+	vwList = vv.FindFormList('MapSnapshot')
+	cnt = len(vwList)
+	if cnt >= repeats:
+		for k in range(repeats):
+			vw = vwList[cnt-repeats+k]
+			vw.Title = desc + f'; Repeat: {k+1}'
+
 
 def ShowMapDataset():
 	hm = dsMap.ShowHeatMap()
@@ -91,17 +106,6 @@ def WeightSegmentation(K):
 		b.Type = min(tIdx, K-1)
 	pp.RedrawBodies()
 
-def CreateCascadingMap(ds, epochs=2000, ppl=0.05, repeats=2, desc="OutMap", is3D=False):
-	tt = NewTsneMachine(ds, epochs=epochs, ppl=ppl, is3D=is3D)
-	tt.Metric = 'EuclideanMetric'
-	tt.Repeats = repeats
-	tt.Reset().Start().Close()
-	vwList = vv.FindFormList('MapSnapshot')
-	cnt = len(vwList)
-	if cnt >= repeats:
-		for k in range(repeats):
-			vw = vwList[cnt-repeats+k]
-			vw.Title = desc + f'; Repeat: {k+1}'
 
 def Do_ByFeature(flag=TYPE_SEG, K=16):
 	global dsMap
@@ -115,7 +119,7 @@ def Do_ByFeature(flag=TYPE_SEG, K=16):
 	elif flag == RADIO_SEG:
 		RadioSegmentation(K)
 	ds = vv.GetNumberTableView(True)	
-	tt = NewTsneMachine(ds, is3D=True)
+	tt = NewTsneMachine(ds, is3D=dsMap3D)
 	mpDim = 3 if tt.Is3D else 2
 	tList = {b.Type for b in pp.BodyList}
 	dsMap = New.NumberTable(ds, len(tList)*mpDim)
@@ -135,6 +139,7 @@ def Do_ByFeature(flag=TYPE_SEG, K=16):
 			dsMap.ColumnSpecList[k*mpDim + i].Type = t
 	tt.Close()
 	Do_MergeMaps(f'Alg: by-feature: {flag}')
+
 
 #-------------------------------------------------------------------------------------
 
@@ -173,7 +178,7 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 		vv.Message('No viewpoints have been defined!')
 		vv.Return(0)
 	vp = New.NumberTable(1, ds.Columns)
-	tt = NewTsneMachine(ds, is3D=True)
+	tt = NewTsneMachine(ds, is3D=dsMap3D)
 	mpDim = 3 if tt.Is3D else 2
 	dsMap = New.NumberTable(ds, len(vpList)*mpDim)
 	for k, CC in enumerate(vpList):
@@ -276,24 +281,28 @@ def BodyMoved():
 	pp.TheForm.Histogram.AddPoint(curExa, span-0.2)
 
 def Do_Cascading():
-	CreateMapDataset(is3D=True, initSize=0.2, stepSize=1.0, ex0=8.0, ex1=1.0, ppl=0.1, epochs=4000)
+	CreateMapDataset(is3D=dsMap3D, initSize=0.2, stepSize=1.0, ex0=8.0, ex1=1.0, ppl=0.1, epochs=4000)
 	Do_MergeMaps('Alg: cascading')
 
 def Do_MergeMaps(desc):
 	CreateCascadingMap(dsMap, epochs=2000, ppl=0.1, repeats=2, is3D=False, desc=desc)
 
 #-------------------------------------------------------------------------------------
+
 Do_Cascading()
 
 '''
 Do_ByViewpoint(flag=CENTERS_VP)
 Do_ByViewpoint(flag=INTPO_VP, K=16)
 Do_ByViewpoint(flag=DIRECT_VP)
+Do_Cascading()
 
+pp = vv.AtlasManager.OpenMap("", "i4")
 Do_ByFeature(flag=TYPE_SEG)
 Do_ByFeature(flag=WEIGHT_SEG, K=4)
 Do_ByFeature(flag=ARC_SEG,   K=4)
 Do_ByFeature(flag=RADIO_SEG, K=5)
+pp.Close()
 
 ShowMapDataset()
 '''
