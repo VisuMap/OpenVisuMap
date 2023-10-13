@@ -18,7 +18,7 @@ WEIGHT_SEG = 3
 
 CENTERS_VP = 0
 INTPO_VP = 1
-DIRECT_VP = 2
+HIGHLIGHT_VP = 2
 
 #-------------------------------------------------------------------------------------
 
@@ -172,7 +172,7 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 		vpList = VpByCenters(ds)
 	elif flag == INTPO_VP:
 		vpList = VpInterpolation(ds, K)
-	elif flag == DIRECT_VP:
+	elif flag == HIGHLIGHT_VP:
 		vpList = VpExplicite(ds)
 	if len(vpList) == 0:
 		vv.Message('No viewpoints have been defined!')
@@ -294,10 +294,10 @@ Do_Cascading()
 '''
 Do_ByViewpoint(flag=CENTERS_VP)
 Do_ByViewpoint(flag=INTPO_VP, K=16)
-Do_ByViewpoint(flag=DIRECT_VP)
+Do_ByViewpoint(flag=HIGHLIGHT_VP)
 Do_Cascading()
 
-pp = vv.AtlasManager.OpenMap("", "i4")
+pp = vv.AtlasManager.OpenMap("Vescular", "i4")
 Do_ByFeature(flag=TYPE_SEG)
 Do_ByFeature(flag=WEIGHT_SEG, K=4)
 Do_ByFeature(flag=ARC_SEG,   K=4)
