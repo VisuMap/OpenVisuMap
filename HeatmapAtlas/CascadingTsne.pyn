@@ -65,6 +65,13 @@ def ShowMapDataset():
 		New.MapSnapshot(bsList).Show()
 		''')
 
+def AddMap2Dataset(ds, bsList, is3D, columns, ty):
+	ds.CopyValuesFrom(bsList, is3D, columns)
+	mpDim = 3 if is3D else 2
+	for k in range(mpDim):
+		ds.ColumnSpecList[columns+k].Group = ty
+	vv.Echo(f'Map data added: {ty}')
+
 # Merge all open snapshots into a single dataset and display it as a heatmap.
 def ConcatSnapshots():
 	mList = vv.FindFormList('MapSnapshot')
@@ -76,13 +83,15 @@ def ConcatSnapshots():
 	offset = 0
 	for k, mp in enumerate(mList):
 		mpDim = mp.MapLayout.Dimension
-		ds.CopyValuesFrom(mp.BodyList, mpDim==3, offset)
-		for i in range(mpDim):
-			ds.ColumnSpecList[offset+i].Group = k
+		AddMap2Dataset(ds, mp.BodyList, mpDim==3, offset, k)
 		offset += mpDim
+		mp.Close()
 	ds.ShowHeatMap()
 	return ds
 
+
+def Do_MergeMaps(desc='Test'):
+	CreateCascadingMap(dsMap, epochs=2000, ppl=0.1, repeats=2, is3D=False, desc=desc)
 
 #-------------------------------------------------------------------------------------
 
@@ -155,9 +164,7 @@ def Do_ByFeature(flag=TYPE_SEG, K=16):
 		tt.SetTrainingData(dsM)	
 		tt.Reset().Start().Normalize()
 		if not tt.Completed: vv.Return()
-		dsMap.CopyValuesFrom(tt.BodyList, (mpDim==3), k*mpDim)
-		for i in range(mpDim):
-			dsMap.ColumnSpecList[k*mpDim + i].Type = t
+		AddMap2Dataset(dsMap, tt.BodyList, (mpDim==3), k*mpDim, t)
 	tt.Close()
 	Do_MergeMaps(f'Alg: by-feature: {flag}')
 
@@ -209,9 +216,7 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 		tt.Reset().Start().Normalize()
 		ds.AddTo(vp)
 		if not tt.Completed: vv.Return()
-		dsMap.CopyValuesFrom(tt.BodyList, (mpDim==3), k*mpDim)
-		for i in range(mpDim):
-			dsMap.ColumnSpecList[k*mpDim + i].Type = k
+		AddMap2Dataset(dsMap, tt.BodyList, (mpDim==3), k*mpDim, k)
 	tt.Close()
 	Do_MergeMaps(f'Alg: by-viewpoint: {flag}')
 
@@ -236,12 +241,6 @@ def CreateMapDataset(is3D=True, initSize=0.25, stepSize=0.5,
 	mapDim = 3 if is3D else 2
 	dsMap = New.NumberTable(vv.Dataset.BodyListEnabled(), mapDim*maxStages)
 	dsMap.Tag = 0
-	csList = dsMap.ColumnSpecList
-	for k in range(maxStages):
-		csList[mapDim*k].Type = k
-		csList[mapDim*k+1].Type = k
-		if mapDim == 3:
-			csList[mapDim*k+2].Type = k
 
 	mds = New.TsneMap()
 	mds.PerplexityRatio = ppl 
@@ -293,7 +292,7 @@ def BodyMoved():
 		mapCollapsed = (vv.Math.Pca3DCube(bsList)[0])[mapDim-2] < 1.0
 	if mapCollapsed: return
 
-	dsMap.CopyValuesFrom(bsList, pp.Is3D, columns)
+	AddMap2Dataset(dsMap, bsList, pp.Is3D, columns, int(columns/mapDim))
 
 	recordMarker = span + math.ceil(span/3)*rmStepSize   # recordMarker for the next call.
 	dsMap.Tag = columns + mapDim
@@ -307,8 +306,6 @@ def Do_Cascading():
 		stepSize=1.0, ex0=8.0, ex1=1.0, ppl=0.1, epochs=4000)
 	Do_MergeMaps('Alg: cascading')
 
-def Do_MergeMaps(desc):
-	CreateCascadingMap(dsMap, epochs=2000, ppl=0.1, repeats=2, is3D=False, desc=desc)
 
 #-------------------------------------------------------------------------------------
 
@@ -329,7 +326,14 @@ pp.Close()
 
 ShowMapDataset()
 
+mapList = [f't-SNE{k}' for k in range(8)]
+for mp in mapList: 
+	vv.Dataset.OpenMap(mp)
+	New.MapSnapshot(True).Show()
+vv.GuiManager.CloseAllWindows()
 
-ConcatSnapshots()
+dsMap = ConcatSnapshots()
+
+Do_MergeMaps()
 
 '''
