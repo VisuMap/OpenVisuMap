@@ -9,7 +9,7 @@ import numpy as np
 
 # storage table for intermediate embedding maps.
 dsMap = None
-dsMap3D = True
+dsMap3D = False
 
 TYPE_SEG = 0
 ARC_SEG = 1
@@ -40,7 +40,8 @@ def NewTsneMachine(ds, epochs=2000, ppl=0.05, is3D=False):
 	return tt
 
 # Merge all intermediated maps dsMap into a single output map.
-def CreateCascadingMap(ds, epochs=2000, ppl=0.05, repeats=2, desc="OutMap", is3D=False):
+def CreateCascadingMap(ds, epochs=2000, ppl=0.05, 
+		repeats=2, desc="OutMap", is3D=False):
 	tt = NewTsneMachine(ds, epochs=epochs, ppl=ppl, is3D=is3D)
 	tt.Metric = 'EuclideanMetric'
 	tt.Repeats = repeats
@@ -52,16 +53,36 @@ def CreateCascadingMap(ds, epochs=2000, ppl=0.05, repeats=2, desc="OutMap", is3D
 			vw = vwList[cnt-repeats+k]
 			vw.Title = desc + f'; Repeat: {k+1}'
 
-
+# Show the intermediate map data in a heatmap
 def ShowMapDataset():
 	hm = dsMap.ShowHeatMap()
 	cc = dsMap.ColumnSpecList
 	hm.ScrollingSteps = 3 if cc[2].Group == cc[1].Group else 2
 	hm.SelectionMode = 1
-	hm.ReadOnly = True
-	hm.AddEventHandler('ItemsSelected', '''@if pp.SelectedItems.Count == pp.ScrollingSteps:
-		New.MapSnapshot(New.BodyList(pp.GetSelectedNumberTable())).Show().ResetSize()
+	hm.AddEventHandler('ItemsSelected', 
+		'''@if pp.SelectedItems.Count == pp.ScrollingSteps:
+		bsList = New.BodyList(pp.GetSelectedNumberTable())  
+		New.MapSnapshot(bsList).Show()
 		''')
+
+# Merge all open snapshots into a single dataset and display it as a heatmap.
+def ConcatSnapshots():
+	mList = vv.FindFormList('MapSnapshot')
+	if mList.Count == 0:
+		vv.Message('No snapshots present')
+		vv.Return()
+	dimSum = sum([m.MapLayout.Dimension for m in mList])
+	ds = New.NumberTable(mList[0].BodyList, dimSum)
+	offset = 0
+	for k, mp in enumerate(mList):
+		mpDim = mp.MapLayout.Dimension
+		ds.CopyValuesFrom(mp.BodyList, mpDim==3, offset)
+		for i in range(mpDim):
+			ds.ColumnSpecList[offset+i].Group = k
+		offset += mpDim
+	ds.ShowHeatMap()
+	return ds
+
 
 #-------------------------------------------------------------------------------------
 
@@ -118,7 +139,7 @@ def Do_ByFeature(flag=TYPE_SEG, K=16):
 		ArcSegmentation(K)
 	elif flag == RADIO_SEG:
 		RadioSegmentation(K)
-	ds = vv.GetNumberTableView(True)	
+	ds = vv.GetNumberTableView(True)		
 	tt = NewTsneMachine(ds, is3D=dsMap3D)
 	mpDim = 3 if tt.Is3D else 2
 	tList = {b.Type for b in pp.BodyList}
@@ -197,7 +218,8 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 #-------------------------------------------------------------------------------------
 
 # Create dataset from maps extracted during the t-SNE training processes.
-def CreateMapDataset(is3D=True, initSize=0.25, stepSize=0.5, ppl=0.1, ex0=8.0, ex1=1.0, epochs=2000):
+def CreateMapDataset(is3D=True, initSize=0.25, stepSize=0.5, 
+		ppl=0.1, ex0=8.0, ex1=1.0, epochs=2000):
 	global recordMarker
 	global rmStepSize
 	global rmInitSize
@@ -281,7 +303,8 @@ def BodyMoved():
 	pp.TheForm.Histogram.AddPoint(curExa, span-0.2)
 
 def Do_Cascading():
-	CreateMapDataset(is3D=dsMap3D, initSize=0.2, stepSize=1.0, ex0=8.0, ex1=1.0, ppl=0.1, epochs=4000)
+	CreateMapDataset(is3D=dsMap3D, initSize=0.2, 
+		stepSize=1.0, ex0=8.0, ex1=1.0, ppl=0.1, epochs=4000)
 	Do_MergeMaps('Alg: cascading')
 
 def Do_MergeMaps(desc):
@@ -305,4 +328,8 @@ Do_ByFeature(flag=RADIO_SEG, K=5)
 pp.Close()
 
 ShowMapDataset()
+
+
+ConcatSnapshots()
+
 '''
