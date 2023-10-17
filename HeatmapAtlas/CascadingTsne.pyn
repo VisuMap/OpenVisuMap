@@ -22,10 +22,10 @@ HIGHLIGHT_VP = 2
 
 #-------------------------------------------------------------------------------------
 
-def NewTsneMachine(ds, epochs=2000, ppl=0.05, is3D=False):
+def NewTsneMachine(ds, epochs=2000, ppl=0.05, is3D=False, mtr='Correlation.Cosine Distance'):
 	tt = New.MdsCluster( ds )
 	tt.Show()
-	tt.Metric = 'Correlation.Cosine Distance'
+	tt.Metric = mtr
 	tt.Repeats = 1
 	tt.ReadOnly = True
 	tt.MaxLoops = epochs
@@ -187,11 +187,11 @@ def VpByCenters(ds):
 		cc.append( np.array( [it.Value for it in centers.ColumnMean()] ) )
 	return cc
 
-def VpExplicite(ds):
+def VpHighlighted(ds):
 	cc = []
 	rList = [b.Id for b in pp.Map.BodyList if b.Highlighted and not b.Disabled]
 	centers = ds.SelectRowsById(rList)
-	return list( mm.ToNumpy(centers) )
+	return list( mm.ToNumpy(centers) ), rList
 
 def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 	global dsMap
@@ -201,7 +201,7 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 	elif flag == INTPO_VP:
 		vpList = VpInterpolation(ds, K)
 	elif flag == HIGHLIGHT_VP:
-		vpList = VpExplicite(ds)
+		vpList, rList = VpHighlighted(ds)
 	if len(vpList) == 0:
 		vv.Message('No viewpoints have been defined!')
 		vv.Return(0)
@@ -217,6 +217,8 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 		ds.AddTo(vp)
 		if not tt.Completed: vv.Return()
 		AddMap2Dataset(dsMap, tt.BodyList, (mpDim==3), k*mpDim, k)
+		if flag == HIGHLIGHT_VP:
+			dsMap.ColumnSpecList[k*mpDim].Id = rList[k]
 	tt.Close()
 	Do_MergeMaps(f'Alg: by-viewpoint: {flag}')
 
@@ -306,12 +308,44 @@ def Do_Cascading():
 		stepSize=1.0, ex0=8.0, ex1=1.0, ppl=0.1, epochs=4000)
 	Do_MergeMaps('Alg: cascading')
 
+#-------------------------------------------------------------------------------------
+
+cs = New.CsObject('''
+public void LowenLayer(INumberTable ds, double level) {
+   foreach(var R in ds.Matrix)
+   for(int col=0; col<ds.Columns; col++)
+       R[col] = Math.Max(0, R[col] - level);
+}
+''')
+
+
+def Do_Stratify(K=4):
+	global dsMap
+	ds = vv.GetNumberTableView(True).Clone()
+	maxV = ds.MaximumValue()
+	L = [0] + [ 0.75**(k-1) - 0.75**(k) for k in range(1, 10)]
+	#L = [0] + 9*[0.1]
+	limits = [ v * maxV for v in L[0:K]]
+	tt = NewTsneMachine(ds, mtr=vv.Map.Metric)
+	mpDim = 3 if tt.Is3D else 2
+	dsMap = New.NumberTable(ds, mpDim*K)
+	for k, v in enumerate(limits):
+		cs.LowenLayer(ds, v)
+		tt.SetTrainingData(ds)
+		tt.Reset().Start()
+		if not tt.Completed: vv.Return()
+		AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k)
+	tt.Close()
+	Do_MergeMaps('Alg: Stratify')
 
 #-------------------------------------------------------------------------------------
 
 Do_Cascading()
 
 '''
+
+Do_Stratify(8)
+
 Do_ByViewpoint(flag=CENTERS_VP)
 Do_ByViewpoint(flag=INTPO_VP, K=16)
 Do_ByViewpoint(flag=HIGHLIGHT_VP)
@@ -326,14 +360,18 @@ pp.Close()
 
 ShowMapDataset()
 
-mapList = [f't-SNE{k}' for k in range(8)]
-for mp in mapList: 
+mpList = list(vv.Dataset.MapNameList)
+idx = mpList.index(vv.Map.Name)
+mpList = mpList[idx:idx+2]
+mpList = [f'd{k}' for k in range(6)]
+
+for mp in mpList: 
 	vv.Dataset.OpenMap(mp)
 	New.MapSnapshot(True).Show()
-vv.GuiManager.CloseAllWindows()
-
 dsMap = ConcatSnapshots()
 
 Do_MergeMaps()
+
+4*[1,2]
 
 '''
