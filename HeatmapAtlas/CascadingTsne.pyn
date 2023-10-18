@@ -22,7 +22,8 @@ HIGHLIGHT_VP = 2
 
 #-------------------------------------------------------------------------------------
 
-def NewTsneMachine(ds, epochs=2000, ppl=0.05, is3D=False, mtr='Correlation.Cosine Distance'):
+def NewTsneMachine(ds, epochs=2000, ppl=0.05, ex0=6.0, ex1=1.0, is3D=False, 
+		mtr='Correlation.Cosine Distance'):
 	tt = New.MdsCluster( ds )
 	tt.Show()
 	tt.Metric = mtr
@@ -30,8 +31,8 @@ def NewTsneMachine(ds, epochs=2000, ppl=0.05, is3D=False, mtr='Correlation.Cosin
 	tt.ReadOnly = True
 	tt.MaxLoops = epochs
 	tt.Is3D = is3D
-	tt.InitialExaggeration = 6.0
-	tt.FinalExaggeration = 1.0
+	tt.InitialExaggeration = ex0
+	tt.FinalExaggeration = ex1
 	tt.PerplexityRatio = ppl
 	tt.AutoScalingTsne = True
 	tt.AutoNormalizing = True
@@ -61,8 +62,10 @@ def ShowMapDataset():
 	hm.SelectionMode = 1
 	hm.AddEventHandler('ItemsSelected', 
 		'''@if pp.SelectedItems.Count == pp.ScrollingSteps:
-		bsList = New.BodyList(pp.GetSelectedNumberTable())  
+		bsList = New.BodyList(pp.GetSelectedNumberTable())
+		vv.GuiManager.ReuseLastWindow=True  
 		New.MapSnapshot(bsList).Show()
+		vv.GuiManager.ReuseLastWindow=False
 		''')
 
 def AddMap2Dataset(ds, bsList, is3D, columns, ty):
@@ -318,15 +321,14 @@ public void LowenLayer(INumberTable ds, double level) {
 }
 ''')
 
-
 def Do_Stratify(K=4):
 	global dsMap
 	ds = vv.GetNumberTableView(True).Clone()
 	maxV = ds.MaximumValue()
-	L = [0] + [ 0.75**(k-1) - 0.75**(k) for k in range(1, 10)]
-	#L = [0] + 9*[0.1]
-	limits = [ v * maxV for v in L[0:K]]
-	tt = NewTsneMachine(ds, mtr=vv.Map.Metric)
+	L = [0] + [ 0.8**(k-1) - 0.8**(k) for k in range(1, K)]
+	vv.Echo(f'Max Layer Limit: {sum(L):3f}')
+	limits = [ v * maxV for v in L]
+	tt = NewTsneMachine(ds, mtr=vv.Map.Metric, epochs=2000, ppl=0.1)
 	mpDim = 3 if tt.Is3D else 2
 	dsMap = New.NumberTable(ds, mpDim*K)
 	for k, v in enumerate(limits):
@@ -344,7 +346,7 @@ Do_Cascading()
 
 '''
 
-Do_Stratify(8)
+Do_Stratify()
 
 Do_ByViewpoint(flag=CENTERS_VP)
 Do_ByViewpoint(flag=INTPO_VP, K=16)
@@ -371,7 +373,5 @@ for mp in mpList:
 dsMap = ConcatSnapshots()
 
 Do_MergeMaps()
-
-4*[1,2]
 
 '''
