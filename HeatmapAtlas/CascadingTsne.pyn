@@ -55,7 +55,7 @@ def CreateCascadingMap(ds, epochs=2000, ppl=0.05,
 			vw.Title = desc + f'; Repeat: {k+1}'
 
 # Show the intermediate map data in a heatmap
-def ShowMapDataset():
+def ShowMapDataset() :
 	hm = dsMap.ShowHeatMap()
 	cc = dsMap.ColumnSpecList
 	hm.ScrollingSteps = 3 if cc[2].Group == cc[1].Group else 2
@@ -314,25 +314,23 @@ def Do_Cascading():
 #-------------------------------------------------------------------------------------
 
 cs = New.CsObject('''
-public void LowenLayer(INumberTable ds, double level) {
+public void CutLowBand(INumberTable ds, double bandWidth) {
    foreach(var R in ds.Matrix)
    for(int col=0; col<ds.Columns; col++)
-       R[col] = Math.Max(0, R[col] - level);
+       R[col] = Math.Max(0, R[col] - bandWidth);
 }
 ''')
 
-def Do_Stratify(K=4):
+def Do_Stratify(K=6):
 	global dsMap
 	ds = vv.GetNumberTableView(True).Clone()
 	maxV = ds.MaximumValue()
-	L = [0] + [ 0.8**(k-1) - 0.8**(k) for k in range(1, K)]
-	vv.Echo(f'Max Layer Limit: {sum(L):3f}')
-	limits = [ v * maxV for v in L]
-	tt = NewTsneMachine(ds, mtr=vv.Map.Metric, epochs=2000, ppl=0.1)
+	bandWidthList = [ v * maxV for v in [0]+(K-1)*[0.1]]
+	tt = NewTsneMachine(ds, mtr=vv.Map.Metric, is3D=False, epochs=4000, ex0=4.0, ppl=0.1)
 	mpDim = 3 if tt.Is3D else 2
 	dsMap = New.NumberTable(ds, mpDim*K)
-	for k, v in enumerate(limits):
-		cs.LowenLayer(ds, v)
+	for k, v in enumerate(bandWidthList):
+		cs.CutLowBand(ds, v)
 		tt.SetTrainingData(ds)
 		tt.Reset().Start()
 		if not tt.Completed: vv.Return()
@@ -346,6 +344,9 @@ Do_Cascading()
 
 '''
 
+Do_Stratify()
+Do_Stratify()
+Do_Stratify()
 Do_Stratify()
 
 Do_ByViewpoint(flag=CENTERS_VP)
