@@ -9,7 +9,7 @@ import numpy as np
 
 # storage table for intermediate embedding maps.
 dsMap = None
-dsMap3D = False
+dsMap3D = True
 
 TYPE_SEG = 0
 ARC_SEG = 1
@@ -46,7 +46,9 @@ def CreateCascadingMap(ds, epochs=2000, ppl=0.05,
 	tt = NewTsneMachine(ds, epochs=epochs, ppl=ppl, is3D=is3D)
 	tt.Metric = 'EuclideanMetric'
 	tt.Repeats = repeats
-	tt.Reset().Start().Close()
+	tt.Reset().Start()
+	vv.Sleep(250)
+	tt.Close()
 	vwList = vv.FindFormList('MapSnapshot')
 	cnt = len(vwList)
 	if cnt >= repeats:
@@ -63,9 +65,7 @@ def ShowMapDataset() :
 	hm.AddEventHandler('ItemsSelected', 
 		'''@if pp.SelectedItems.Count == pp.ScrollingSteps:
 		bsList = New.BodyList(pp.GetSelectedNumberTable())
-		vv.GuiManager.ReuseLastWindow=True  
 		New.MapSnapshot(bsList).Show()
-		vv.GuiManager.ReuseLastWindow=False
 		''')
 
 def AddMap2Dataset(ds, bsList, is3D, columns, ty):
@@ -321,12 +321,12 @@ public void CutLowBand(INumberTable ds, double bandWidth) {
 }
 ''')
 
-def Do_Stratify(K=6):
+def Do_Stratify(K=5):
 	global dsMap
 	ds = vv.GetNumberTableView(True).Clone()
 	maxV = ds.MaximumValue()
 	bandWidthList = [ v * maxV for v in [0]+(K-1)*[0.1]]
-	tt = NewTsneMachine(ds, mtr=vv.Map.Metric, is3D=False, epochs=4000, ex0=4.0, ppl=0.1)
+	tt = NewTsneMachine(ds, mtr=vv.Map.Metric, is3D=False, epochs=2000, ex0=4.0, ppl=0.1)
 	mpDim = 3 if tt.Is3D else 2
 	dsMap = New.NumberTable(ds, mpDim*K)
 	for k, v in enumerate(bandWidthList):
@@ -343,10 +343,9 @@ def Do_Stratify(K=6):
 Do_Cascading()
 
 '''
+for k in range(3): Do_ByViewpoint(flag=HIGHLIGHT_VP)
 
-Do_Stratify()
-Do_Stratify()
-Do_Stratify()
+Do_Cascading()
 Do_Stratify()
 
 Do_ByViewpoint(flag=CENTERS_VP)
