@@ -56,12 +56,31 @@ def CreateCascadingMap(ds, epochs=2000, ppl=0.05,
 			vw = vwList[cnt-repeats+k]
 			vw.Title = desc + f'; Repeat: {k+1}'
 
+def LoopMaps():
+	ds = pp.GetSelectedNumberTable()
+	if ds.Rows*ds.Columns == 0: 
+		ds = dsMap
+	mpDim = pp.ScrollingSteps
+	mp = New.MapSnapshot(New.BodyList(ds))
+	if mpDim == 3:
+		mp.MapType = 103
+	else:
+		mp.MapType = 104
+		for b in mp.BodyList: b.Z = 0
+	mp.Show()
+	for k in range(1, int(ds.Columns/mpDim) ):
+		dsM = dsMap.SliceColumn(k*mpDim, (k+1)*mpDim)
+		mp.MoveBodiesTo(dsM.Matrix, 20, 75, 0, 500)
+		mp.Title = f'Map {k+1}'
+
+
 # Show the intermediate map data in a heatmap
-def ShowMapDataset() :
+def ShowMapDataset():
 	hm = dsMap.ShowHeatMap()
 	cc = dsMap.ColumnSpecList
 	hm.ScrollingSteps = 3 if cc[2].Group == cc[1].Group else 2
 	hm.SelectionMode = 1
+	hm.AddContextMenu('Loop Maps', '@LoopMaps()')
 	hm.AddEventHandler('ItemsSelected', 
 		'''@if pp.SelectedItems.Count == pp.ScrollingSteps:
 		bsList = New.BodyList(pp.GetSelectedNumberTable())
@@ -92,6 +111,25 @@ def ConcatSnapshots():
 	ds.ShowHeatMap()
 	return ds
 
+# Sort a list of points via nearst-neighbor.
+def SerializeBodies( bList ):
+	s = next(filter(lambda b:b.IsFixed, bList))
+	bList.remove(s)
+	bs = []
+	while( len(bList) > 0 ):
+		minDist = 1e8
+		minIdx = -1
+		for k, b in enumerate(bList):
+			dx = b.X - s.X
+			dy = b.Y - s.Y
+			dd = dx*dx + dy*dy
+			if dd < minDist:
+				minDist = dd
+				minIdx = k
+		bs.append( s )
+		s = bList[minIdx]
+		bList.remove(s)
+	return bs
 
 def Do_MergeMaps(desc='Test'):
 	CreateCascadingMap(dsMap, epochs=2000, ppl=0.1, repeats=2, is3D=False, desc=desc)
@@ -192,7 +230,9 @@ def VpByCenters(ds):
 
 def VpHighlighted(ds):
 	cc = []
-	rList = [b.Id for b in pp.Map.BodyList if b.Highlighted and not b.Disabled]
+	bList = [b for b in pp.Map.BodyList if b.Highlighted and not b.Disabled]
+	bList = SerializeBodies(bList)
+	rList = [b.Id for b in bList]
 	centers = ds.SelectRowsById(rList)
 	return list( mm.ToNumpy(centers) ), rList
 
@@ -321,12 +361,12 @@ public void CutLowBand(INumberTable ds, double bandWidth) {
 }
 ''')
 
-def Do_Stratify(K=5):
+def Do_Stratify(K=5, stepSize=0.1):
 	global dsMap
 	ds = vv.GetNumberTableView(True).Clone()
 	maxV = ds.MaximumValue()
-	bandWidthList = [ v * maxV for v in [0]+(K-1)*[0.1]]
-	tt = NewTsneMachine(ds, mtr=vv.Map.Metric, is3D=False, epochs=2000, ex0=4.0, ppl=0.1)
+	bandWidthList = [ v * maxV for v in [0]+(K-1)*[stepSize]]
+	tt = NewTsneMachine(ds, mtr=vv.Map.Metric, is3D=False, epochs=4000, ex0=4.0, ppl=0.075)
 	mpDim = 3 if tt.Is3D else 2
 	dsMap = New.NumberTable(ds, mpDim*K)
 	for k, v in enumerate(bandWidthList):
@@ -346,7 +386,7 @@ Do_Cascading()
 for k in range(3): Do_ByViewpoint(flag=HIGHLIGHT_VP)
 
 Do_Cascading()
-Do_Stratify()
+Do_Stratify(50, stepSize=0.01)
 
 Do_ByViewpoint(flag=CENTERS_VP)
 Do_ByViewpoint(flag=INTPO_VP, K=16)
@@ -373,5 +413,18 @@ for mp in mpList:
 dsMap = ConcatSnapshots()
 
 Do_MergeMaps()
+
+bList = SerializeBodies([b for b in vv.Map.BodyList if b.Highlighted])
+
+
+def ShowSeries(bs):
+	for b in bs:
+		for k in range(5):
+			b.Highlighted = False
+			vv.Map.Redraw()
+			vv.Sleep(150)
+			b.Highlighted = True
+			vv.Map.Redraw()
+	return bs
 
 '''
