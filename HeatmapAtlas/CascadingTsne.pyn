@@ -56,9 +56,15 @@ def CreateCascadingMap(ds, epochs=2000, ppl=0.05,
 			vw.Title = desc + f'; Repeat: {k+1}'
 
 def ShowColunmsAsMap():
+	global mpData
 	if pp.SelectedItems.Count == pp.ScrollingSteps:
 		bsList = New.BodyList(pp.GetSelectedNumberTable())
-		New.MapSnapshot2(bsList, vv.Map).Show()
+		if mpData == None:			
+			mpData = New.MapSnapshot2(bsList, vv.Map).Show()
+		else:
+			mpData.MoveBodiesTo(bsList, 30, 50)
+		mpData.Tag = min(list(dsMap.IndexOfColumns(pp.SelectedItems))) 
+
 def LoopMaps():
 	ds = pp.GetSelectedNumberTable()
 	if ds.Rows*ds.Columns == 0: 
@@ -77,13 +83,28 @@ def LoopMaps():
 		mp.Title = f'=>Map no. {k}'
 		vv.Sleep(500)
 		mp.MoveBodiesTo(dsM.Matrix, 40, 50)
+
+def FlipMap(flipUpDown):
+	if pp.SelectedItems.Count != pp.ScrollingSteps:
+		return
+	nt = pp.GetNumberTable()
+	if mpData is not None: 
+		label = '&Transform Map/Flip Map '
+		label += '&Up-Down' if flipUpDown else '&Left-Right'
+		mpData.ClickMenu(label)
+		nt.CopyValuesFrom(mpData.BodyList, (pp.ScrollingSteps==3), int(mpData.Tag))
+
 # Show the intermediate map data in a heatmap
-def ShowMapDataset() :
+def ShowMapDataset():
+	global mpData
+	mpData = None
 	hm = dsMap.ShowHeatMap()
 	cc = dsMap.ColumnSpecList
 	hm.ScrollingSteps = 3 if cc[2].Group == cc[1].Group else 2
 	hm.SelectionMode = 1
 	hm.AddContextMenu('Loop Maps', '@LoopMaps()')
+	hm.AddContextMenu('Flip Up-Down', '@FlipMap(True)')
+	hm.AddContextMenu('Flip Left-Right', '@FlipMap(False)')
 	hm.AddEventHandler('ItemsSelected', '@ShowColunmsAsMap()')
 
 def AddMap2Dataset(ds, bsList, is3D, columns, ty):
@@ -385,7 +406,7 @@ Do_Cascading()
 for k in range(3): Do_ByViewpoint(flag=HIGHLIGHT_VP)
 
 Do_Cascading()
-Do_Stratify(25, stepSize=0.01, initSize=0.1)
+Do_Stratify(25, stepSize=0.01, initSize=0.25)
 
 Do_ByViewpoint(flag=CENTERS_VP)
 Do_ByViewpoint(flag=INTPO_VP, K=16)
@@ -402,5 +423,7 @@ pp.Close()
 ShowMapDataset()
 
 Do_MergeMaps()
+
+dsMap = pp.GetNumberTable()
 
 '''
