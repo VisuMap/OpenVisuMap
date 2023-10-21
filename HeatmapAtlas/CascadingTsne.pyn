@@ -8,8 +8,7 @@ import math, time
 import numpy as np
 
 # storage table for intermediate embedding maps.
-dsMap = None
-dsMap3D = True
+dsMap, dsMap3D = None, False
 
 TYPE_SEG = 0
 ARC_SEG = 1
@@ -56,6 +55,10 @@ def CreateCascadingMap(ds, epochs=2000, ppl=0.05,
 			vw = vwList[cnt-repeats+k]
 			vw.Title = desc + f'; Repeat: {k+1}'
 
+def ShowColunmsAsMap():
+	if pp.SelectedItems.Count == pp.ScrollingSteps:
+		bsList = New.BodyList(pp.GetSelectedNumberTable())
+		New.MapSnapshot2(bsList, vv.Map).Show()
 def LoopMaps():
 	ds = pp.GetSelectedNumberTable()
 	if ds.Rows*ds.Columns == 0: 
@@ -68,24 +71,20 @@ def LoopMaps():
 		mp.MapType = 104
 		for b in mp.BodyList: b.Z = 0
 	mp.Show()
+	vv.Sleep(1500)
 	for k in range(1, int(ds.Columns/mpDim) ):
 		dsM = dsMap.SliceColumn(k*mpDim, (k+1)*mpDim)
-		mp.MoveBodiesTo(dsM.Matrix, 20, 75, 0, 500)
-		mp.Title = f'Map {k+1}'
-
-
+		mp.Title = f'=>Map no. {k}'
+		vv.Sleep(500)
+		mp.MoveBodiesTo(dsM.Matrix, 40, 50)
 # Show the intermediate map data in a heatmap
-def ShowMapDataset():
+def ShowMapDataset() :
 	hm = dsMap.ShowHeatMap()
 	cc = dsMap.ColumnSpecList
 	hm.ScrollingSteps = 3 if cc[2].Group == cc[1].Group else 2
 	hm.SelectionMode = 1
 	hm.AddContextMenu('Loop Maps', '@LoopMaps()')
-	hm.AddEventHandler('ItemsSelected', 
-		'''@if pp.SelectedItems.Count == pp.ScrollingSteps:
-		bsList = New.BodyList(pp.GetSelectedNumberTable())
-		New.MapSnapshot(bsList).Show()
-		''')
+	hm.AddEventHandler('ItemsSelected', '@ShowColunmsAsMap()')
 
 def AddMap2Dataset(ds, bsList, is3D, columns, ty):
 	ds.CopyValuesFrom(bsList, is3D, columns)
@@ -361,12 +360,12 @@ public void CutLowBand(INumberTable ds, double bandWidth) {
 }
 ''')
 
-def Do_Stratify(K=5, stepSize=0.1):
+def Do_Stratify(K=5, stepSize=0.1, initSize=0.1):
 	global dsMap
 	ds = vv.GetNumberTableView(True).Clone()
 	maxV = ds.MaximumValue()
-	bandWidthList = [ v * maxV for v in [0]+(K-1)*[stepSize]]
-	tt = NewTsneMachine(ds, mtr=vv.Map.Metric, is3D=False, epochs=4000, ex0=4.0, ppl=0.075)
+	bandWidthList = [ v * maxV for v in [0, initSize]+(K-2)*[stepSize]]
+	tt = NewTsneMachine(ds, mtr=vv.Map.Metric, is3D=dsMap3D, epochs=2000, ex0=4.0, ppl=0.075)
 	mpDim = 3 if tt.Is3D else 2
 	dsMap = New.NumberTable(ds, mpDim*K)
 	for k, v in enumerate(bandWidthList):
@@ -386,7 +385,7 @@ Do_Cascading()
 for k in range(3): Do_ByViewpoint(flag=HIGHLIGHT_VP)
 
 Do_Cascading()
-Do_Stratify(50, stepSize=0.01)
+Do_Stratify(25, stepSize=0.01, initSize=0.1)
 
 Do_ByViewpoint(flag=CENTERS_VP)
 Do_ByViewpoint(flag=INTPO_VP, K=16)
@@ -402,29 +401,6 @@ pp.Close()
 
 ShowMapDataset()
 
-mpList = list(vv.Dataset.MapNameList)
-idx = mpList.index(vv.Map.Name)
-mpList = mpList[idx:idx+2]
-mpList = [f'd{k}' for k in range(6)]
-
-for mp in mpList: 
-	vv.Dataset.OpenMap(mp)
-	New.MapSnapshot(True).Show()
-dsMap = ConcatSnapshots()
-
 Do_MergeMaps()
-
-bList = SerializeBodies([b for b in vv.Map.BodyList if b.Highlighted])
-
-
-def ShowSeries(bs):
-	for b in bs:
-		for k in range(5):
-			b.Highlighted = False
-			vv.Map.Redraw()
-			vv.Sleep(150)
-			b.Highlighted = True
-			vv.Map.Redraw()
-	return bs
 
 '''
