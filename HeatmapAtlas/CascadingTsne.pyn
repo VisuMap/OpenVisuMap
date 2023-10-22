@@ -8,7 +8,9 @@ import math, time
 import numpy as np
 
 # storage table for intermediate embedding maps.
-dsMap, dsMap3D = None, False
+dsMap = None
+dsMap3D = False     # using 3D intermediate maps
+dsMapShow = True	  # show the intermediate maps	
 
 TYPE_SEG = 0
 ARC_SEG = 1
@@ -55,34 +57,44 @@ def CreateCascadingMap(ds, epochs=2000, ppl=0.05,
 			vw = vwList[cnt-repeats+k]
 			vw.Title = desc + f'; Repeat: {k+1}'
 
+#----------------------------
+
+def GetSnapshotMap(bList, mpDim):
+	global mpData
+	if (mpData == None) or mpData.TheForm.IsDisposed:
+		mpData = New.MapSnapshot2(bList, vv.Map).Show()
+		if mpDim == 3:
+			mpData.MapType = 103
+		else:
+			mpData.MapType = 104
+			for b in mpData.BodyList: b.Z = 0
+	else:
+		mpData.MoveBodiesTo(bList, 30, 50)
+	return mpData
+
 def ShowColunmsAsMap():
 	global mpData
-	if pp.SelectedItems.Count == pp.ScrollingSteps:
-		bsList = New.BodyList(pp.GetSelectedNumberTable())
-		if mpData == None:			
-			mpData = New.MapSnapshot2(bsList, vv.Map).Show()
-		else:
-			mpData.MoveBodiesTo(bsList, 30, 50)
+	mpDim = pp.ScrollingSteps
+	if pp.SelectedItems.Count == mpDim:
+		GetSnapshotMap( New.BodyList(pp.GetSelectedNumberTable()),  mpDim)
 		mpData.Tag = min(list(dsMap.IndexOfColumns(pp.SelectedItems))) 
 
 def LoopMaps():
+	global mpData
 	ds = pp.GetSelectedNumberTable()
-	if ds.Rows*ds.Columns == 0: 
-		ds = dsMap
 	mpDim = pp.ScrollingSteps
-	mp = New.MapSnapshot(New.BodyList(ds))
-	if mpDim == 3:
-		mp.MapType = 103
-	else:
-		mp.MapType = 104
-		for b in mp.BodyList: b.Z = 0
-	mp.Show()
+	if (ds.Rows*ds.Columns == 0) or (ds.Columns <= mpDim): 
+		ds = dsMap
+	mp = GetSnapshotMap(New.BodyList(ds), mpDim)
 	vv.Sleep(1500)
 	for k in range(1, int(ds.Columns/mpDim) ):
 		dsM = dsMap.SliceColumn(k*mpDim, (k+1)*mpDim)
+		pp.SelectedItems = [ cs.Id for cs in dsM.ColumnSpecList ]
+		pp.Refresh()
 		mp.Title = f'=>Map no. {k}'
 		vv.Sleep(500)
 		mp.MoveBodiesTo(dsM.Matrix, 40, 50)
+		mp.Tag = k*mpDim
 
 def FlipMap(flipUpDown):
 	if pp.SelectedItems.Count != pp.ScrollingSteps:
@@ -106,6 +118,8 @@ def ShowMapDataset():
 	hm.AddContextMenu('Flip Up-Down', '@FlipMap(True)')
 	hm.AddContextMenu('Flip Left-Right', '@FlipMap(False)')
 	hm.AddEventHandler('ItemsSelected', '@ShowColunmsAsMap()')
+
+#----------------------------
 
 def AddMap2Dataset(ds, bsList, is3D, columns, ty):
 	ds.CopyValuesFrom(bsList, is3D, columns)
@@ -153,6 +167,9 @@ def SerializeBodies( bList ):
 
 def Do_MergeMaps(desc='Test'):
 	CreateCascadingMap(dsMap, epochs=2000, ppl=0.1, repeats=2, is3D=False, desc=desc)
+	if dsMapShow:
+		ShowMapDataset()
+
 
 #-------------------------------------------------------------------------------------
 
@@ -406,7 +423,7 @@ Do_Cascading()
 for k in range(3): Do_ByViewpoint(flag=HIGHLIGHT_VP)
 
 Do_Cascading()
-Do_Stratify(25, stepSize=0.01, initSize=0.25)
+Do_Stratify(5, stepSize=0.05, initSize=0.25)
 
 Do_ByViewpoint(flag=CENTERS_VP)
 Do_ByViewpoint(flag=INTPO_VP, K=16)
