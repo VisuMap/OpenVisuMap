@@ -59,42 +59,24 @@ def CreateCascadingMap(ds, epochs=2000, ppl=0.05,
 
 #----------------------------
 
-def GetSnapshotMap(bList, mpDim):
-	global mpData
-	if (mpData == None) or mpData.TheForm.IsDisposed:
-		mpData = New.MapSnapshot2(bList, vv.Map).Show()
-		if mpDim == 3:
-			mpData.MapType = 103
-		else:
-			mpData.MapType = 104
-			for b in mpData.BodyList: b.Z = 0
-	else:
-		mpData.MoveBodiesTo(bList, 30, 50)
-	return mpData
-
 def ShowColunmsAsMap():
 	global mpData
 	mpDim = pp.ScrollingSteps
 	if pp.SelectedItems.Count == mpDim:
-		GetSnapshotMap( New.BodyList(pp.GetSelectedNumberTable()),  mpDim)
-		mpData.Tag = min(list(dsMap.IndexOfColumns(pp.SelectedItems))) 
+		firstColumn = min(list(dsMap.IndexOfColumns(pp.SelectedItems)))
+		if firstColumn % mpDim == 0:
+			bList = New.BodyList(pp.GetSelectedNumberTable())
+			if (mpData == None) or mpData.IsDisposed:
+				mpData = New.MapSnapshot2(bList, vv.Map).Show()
+				if mpDim == 3:
+					mpData.MapType = 103
+				else:
+					mpData.MapType = 102
+					for b in mpData.BodyList: b.Z = 0
+			else:
+				mpData.MoveBodiesTo(bList, 30, 50)
+			mpData.Tag = firstColumn 
 
-def LoopMaps():
-	global mpData
-	ds = pp.GetSelectedNumberTable()
-	mpDim = pp.ScrollingSteps
-	if (ds.Rows*ds.Columns == 0) or (ds.Columns <= mpDim): 
-		ds = dsMap
-	mp = GetSnapshotMap(New.BodyList(ds), mpDim)
-	vv.Sleep(1500)
-	for k in range(1, int(ds.Columns/mpDim) ):
-		dsM = dsMap.SliceColumn(k*mpDim, (k+1)*mpDim)
-		pp.SelectedItems = [ cs.Id for cs in dsM.ColumnSpecList ]
-		pp.Refresh()
-		mp.Title = f'=>Map no. {k}'
-		vv.Sleep(500)
-		mp.MoveBodiesTo(dsM.Matrix, 40, 50)
-		mp.Tag = k*mpDim
 
 def FlipMap(flipUpDown):
 	if pp.SelectedItems.Count != pp.ScrollingSteps:
@@ -107,25 +89,23 @@ def FlipMap(flipUpDown):
 		nt.CopyValuesFrom(mpData.BodyList, (pp.ScrollingSteps==3), int(mpData.Tag))
 
 # Show the intermediate map data in a heatmap
-def ShowMapDataset():
+def ShowMapDataset() :
 	global mpData
 	mpData = None
 	hm = dsMap.ShowHeatMap()
-	cc = dsMap.ColumnSpecList
-	hm.ScrollingSteps = 3 if cc[2].Group == cc[1].Group else 2
+	hm.ScrollingSteps = 3 if dsMap.CS[2].Group == dsMap.CS[1].Group else 2
 	hm.SelectionMode = 1
-	hm.AddContextMenu('Loop Maps', '@LoopMaps()')
 	hm.AddContextMenu('Flip Up-Down', '@FlipMap(True)')
 	hm.AddContextMenu('Flip Left-Right', '@FlipMap(False)')
 	hm.AddEventHandler('ItemsSelected', '@ShowColunmsAsMap()')
 
-#----------------------------
+#---------------------------- 
 
 def AddMap2Dataset(ds, bsList, is3D, columns, ty):
 	ds.CopyValuesFrom(bsList, is3D, columns)
 	mpDim = 3 if is3D else 2
 	for k in range(mpDim):
-		ds.ColumnSpecList[columns+k].Group = ty
+		ds.CS[columns+k].Group = ty
 	vv.Echo(f'Map data added: {ty}')
 
 # Merge all open snapshots into a single dataset and display it as a heatmap.
@@ -252,15 +232,15 @@ def Do_ByFeature(flag=TYPE_SEG, K=16):
 def VpInterpolation(ds, K):
 	cc = []
 	for t in [0, 1]:
-		centers = ds.SelectRowsById( [r.Id for r in ds.RowSpecList if r.Type == t ] )
+		centers = ds.SelectRowsById( [r.Id for r in ds.RS if r.Type == t ] )
 		cc.append( [it.Value for it in centers.ColumnMean()] )
 	return np.linspace(cc[0], cc[1], K)
 
 def VpByCenters(ds):
 	cc = []
-	tList = {r.Type for r in ds.RowSpecList if r.Type <= 60}
+	tList = {r.Type for r in ds.RS if r.Type <= 60}
 	for t in tList:
-		rList = [r.Id for r in ds.RowSpecList if r.Type == t ]
+		rList = [r.Id for r in ds.RS if r.Type == t ]
 		centers = ds.SelectRowsById(rList)
 		cc.append( np.array( [it.Value for it in centers.ColumnMean()] ) )
 	return cc
@@ -298,7 +278,7 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 		if not tt.Completed: vv.Return()
 		AddMap2Dataset(dsMap, tt.BodyList, (mpDim==3), k*mpDim, k)
 		if flag == HIGHLIGHT_VP:
-			dsMap.ColumnSpecList[k*mpDim].Id = rList[k]
+			dsMap.CS[k*mpDim].Id = rList[k]
 	tt.Close()
 	Do_MergeMaps(f'Alg: by-viewpoint: {flag}')
 
@@ -378,7 +358,7 @@ def BodyMoved():
 
 	recordMarker = span + math.ceil(span/3)*rmStepSize   # recordMarker for the next call.
 	dsMap.Tag = columns + mapDim
-	dsMap.ColumnSpecList[columns].Name = f'Sp:{span}'
+	dsMap.CS[columns].Name = f'Sp:{span}'
 	# Mark the cascading stages:
 	curExa = float(pp.TheForm.CurrentExaggeration)+0.1
 	pp.TheForm.Histogram.AddPoint(curExa, span-0.2)
@@ -423,7 +403,8 @@ Do_Cascading()
 for k in range(3): Do_ByViewpoint(flag=HIGHLIGHT_VP)
 
 Do_Cascading()
-Do_Stratify(5, stepSize=0.05, initSize=0.25)
+
+Do_Stratify(25, stepSize=0.02, initSize=0.10)
 
 Do_ByViewpoint(flag=CENTERS_VP)
 Do_ByViewpoint(flag=INTPO_VP, K=16)
