@@ -4,13 +4,11 @@
 # then concatenate these maps and embed them in to a single map via tSNE.
 #
 # -------------------------------------------------------------
-import math
-import numpy as np
+import math, numpy
 
 # storage table for intermediate embedding maps.
 dsMap = None
 dsMap3D = False     # using 3D intermediate maps
-dsMapShow = True	  # show the intermediate maps	
 
 TYPE_SEG = 0
 ARC_SEG = 1
@@ -39,6 +37,7 @@ def NewTsneMachine(ds, mtr='Correlation.Cosine Distance',
 	tt.AutoNormalizing = True
 	tt.ExaggerationSmoothen = True
 	tt.StagedTraining = False
+	tt.AddContextMenu("Show Map Dataset", "@ShowMapDataset()")
 	return tt
 
 # Merge all intermediated maps dsMap into a single output map.
@@ -73,7 +72,8 @@ def ShowColunmsAsMap():
 					for b in mp.BodyList: b.Z = 0
 				pp.Tag = mp
 			else:
-				mp.MoveBodiesTo(bList, 30, 50)
+				if mp.Tag != firstColumn:
+					mp.MoveBodiesTo(bList, 30, 50)
 			mp.Tag = firstColumn 
 
 def FlipMap(flipUpDown):
@@ -92,7 +92,8 @@ def ShowMapDataset() :
 	hm = dsMap.ShowHeatMap()
 	hm.Tag = None
 	hm.ScrollingSteps = 3 if dsMap.CS[2].Group == dsMap.CS[1].Group else 2
-	hm.SelectionMode = 1
+	hm.SelectionMode = 1	
+	hm.NormalizeView()
 	hm.AddContextMenu('Flip Up-Down', '@FlipMap(True)')
 	hm.AddContextMenu('Flip Left-Right', '@FlipMap(False)')
 	hm.AddEventHandler('ItemsSelected', '@ShowColunmsAsMap()')
@@ -103,7 +104,7 @@ def AddMap2Dataset(ds, bsList, is3D, columns, ty, info=''):
 	ds.CopyValuesFrom(bsList, is3D, columns)
 	mpDim = 3 if is3D else 2
 	for k in range(mpDim):
-		ds.CS[columns+k].Group = ty
+		ds.CS[columns+k].Group = ty+1
 	vv.Echo(f'Map data added: {ty}' + info)
 
 # Merge all open snapshots into a single dataset and display it as a heatmap.
@@ -145,14 +146,11 @@ def SerializeBodies( bList ):
 
 def Do_MergeMaps(desc='Test'):
 	CreateCascadingMap(dsMap, epochs=2000, ppl=0.1, repeats=2, is3D=False, desc=desc)
-	if dsMapShow:
-		ShowMapDataset()
-
 
 #-------------------------------------------------------------------------------------
 
 def ArcSegmentation(K):
-	cx, cy = np.average([(b.X, b.Y) for b in pp.BodyList], axis=0)
+	cx, cy = numpy.average([(b.X, b.Y) for b in pp.BodyList], axis=0)
 	ss = 2.0*math.pi/K
 	shift = math.pi + 0.5 * ss
 	for b in pp.BodyList:
@@ -161,7 +159,7 @@ def ArcSegmentation(K):
 	pp.RedrawBodies()
 
 def RadioSegmentation(K):
-   cx, cy = np.average([(b.X, b.Y) for b in pp.BodyList], axis=0)
+   cx, cy = numpy.average([(b.X, b.Y) for b in pp.BodyList], axis=0)
    minR, maxR = 1e18, 0
    for b in pp.BodyList:
       dx, dy = b.X - cx, b.Y - cy
@@ -232,7 +230,7 @@ def VpInterpolation(ds, K):
 	for t in [0, 1]:
 		centers = ds.SelectRowsById( [r.Id for r in ds.RS if r.Type == t ] )
 		cc.append( [it.Value for it in centers.ColumnMean()] )
-	return np.linspace(cc[0], cc[1], K)
+	return numpy.linspace(cc[0], cc[1], K)
 
 def VpByCenters(ds):
 	cc = []
@@ -240,7 +238,7 @@ def VpByCenters(ds):
 	for t in tList:
 		rList = [r.Id for r in ds.RS if r.Type == t ]
 		centers = ds.SelectRowsById(rList)
-		cc.append( np.array( [it.Value for it in centers.ColumnMean()] ) )
+		cc.append( numpy.array( [it.Value for it in centers.ColumnMean()] ) )
 	return cc
 
 def VpHighlighted(ds):
@@ -319,6 +317,7 @@ def CreateMapDataset(is3D=True, initSize=0.25, stepSize=0.5,
 	mds.HistStepSize = 2.0
 	mds.ReadOnly = True
 	mds.Show()
+	mds.AddContextMenu("Show Map Dataset", "@ShowMapDataset()")
 
 	vv.Map.MapType = "Cube" if is3D else "Rectangle"
 	vv.Map.Depth = 0.5 * (vv.Map.Height + vv.Map.Width)
@@ -371,19 +370,16 @@ def Do_Cascading():
 cs = New.CsObject('''
 public INumberTable CutLowBand(INumberTable ds, double bandWidth) {
 	int L = ds.Columns;
-   foreach(var R in ds.Matrix)
-	   for(int col=0; col<L; col++)
-	      R[col] = Math.Max(0, R[col] - bandWidth);
-
 	bool[] noZero = new bool[L];
    foreach(var R in ds.Matrix)
-	   for(int col=0; col<L; col++)
-			if (R[col] != 0)	noZero[col] = true;			
-	var ret = ds.SelectColumns( Enumerable.Range(0, L).Where(i=>noZero[i]).ToList() );
+   for(int col=0; col<L; col++) {
+      R[col] = Math.Max(0, R[col]-bandWidth);
+		if (R[col] != 0) noZero[col] = true;
+	}
+	var ret = ds.SelectColumns(Enumerable.Range(0, L).Where(i=>noZero[i]).ToList());
 	ds.FreeRef();
 	return ret;
-}
-''')
+}''')
 
 def Do_Stratify(K=5, stepSize=0.1, initSize=0.1):
 	global dsMap
@@ -400,14 +396,16 @@ def Do_Stratify(K=5, stepSize=0.1, initSize=0.1):
 		tt.SetTrainingData(ds)
 		tt.Reset().Start()
 		if not tt.Completed: vv.Return()
-		info = f';    TrnData/lowBW: {ds.Columns}/{lowBW}'
-		AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k, info)
+		AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k,
+			f';    TrnData/lowBW: {ds.Columns}/{lowBW:.3g}')
 	tt.Close()
 	Do_MergeMaps('Alg: Stratify')
 
 #-------------------------------------------------------------------------------------
 
-Do_Cascading()
+
+Do_Stratify(8, stepSize=0.05, initSize=0.35)
+#Do_Cascading()
 
 '''
 for k in range(3): Do_ByViewpoint(flag=HIGHLIGHT_VP)
