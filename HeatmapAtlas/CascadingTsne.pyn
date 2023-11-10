@@ -4,7 +4,7 @@
 # then concatenate these maps and embed them in to a single map via tSNE.
 #
 # -------------------------------------------------------------
-import math, numpy
+import math, numpy, time
 
 # storage table for intermediate embedding maps.
 dsMap = None
@@ -105,7 +105,7 @@ def AddMap2Dataset(ds, bsList, is3D, columns, ty, info=''):
 	mpDim = 3 if is3D else 2
 	for k in range(mpDim):
 		ds.CS[columns+k].Group = ty+1
-	vv.Echo(f'Map data added: {ty}' + info)
+	vv.Echo(f'Map added: {ty}' + info)
 
 # Merge all open snapshots into a single dataset and display it as a heatmap.
 def ConcatSnapshots():
@@ -203,7 +203,7 @@ def Do_ByFeature(flag=TYPE_SEG, K=16):
 	elif flag == RADIO_SEG:
 		RadioSegmentation(K)
 	ds = vv.GetNumberTableView(True)		
-	tt = NewTsneMachine(ds, is3D=dsMap3D)
+	tt = NewTsneMachine(ds, is3D=dsMap3D, epochs=2000)
 	mpDim = 3 if tt.Is3D else 2
 	tList = {b.Type for b in pp.BodyList}
 	dsMap = New.NumberTable(ds, len(tList)*mpDim)
@@ -367,52 +367,42 @@ def Do_Cascading():
 
 #-------------------------------------------------------------------------------------
 
-cs = New.CsObject('''
-public INumberTable CutLowBand(INumberTable ds, double bandWidth) {
-	int L = ds.Columns;
-	bool[] noZero = new bool[L];
-   foreach(var R in ds.Matrix)
-   for(int col=0; col<L; col++) {
-      R[col] = Math.Max(0, R[col]-bandWidth);
-		if (R[col] != 0) noZero[col] = true;
-	}
-	var ret = ds.SelectColumns(Enumerable.Range(0, L).Where(i=>noZero[i]).ToList());
-	ds.FreeRef();
-	return ret;
-}''')
-
-def Do_Stratify(K=5, stepSize=0.1, initSize=0.1):
+def Do_Stratify(K=8, stepSize=0.05, initLevel=0.9):
 	global dsMap
-	ds = vv.GetNumberTableView(True).Clone()
+	ds = vv.GetNumberTableView(True)
 	maxV = ds.MaximumValue()
+	colMax = mm.ToNumpy(ds).max(axis=0)
 	tt = NewTsneMachine(ds,'EuclideanMetric', is3D=dsMap3D, epochs=2000, ex0=6.0, ppl=0.1)
 	mpDim = 3 if dsMap3D else 2
 	dsMap = New.NumberTable(ds, mpDim*K)
-	lowBW = 0
-	bwList = [0, initSize]+(K-2)*[stepSize]
-	for k, v in enumerate(bwList):
-		ds = cs.CutLowBand(ds, v*maxV)
-		lowBW += v
-		tt.SetTrainingData(ds)
+	lvList = [initLevel - k*stepSize for k in range(K-1)] + [0]
+	lvList = [ v*maxV for v in lvList]
+	for k, lv in enumerate(lvList):		
+		ds2 = ds.SelectColumns([k for k in range(ds.Columns) if colMax[k] >= lv])
+		tt.SetTrainingData(ds2)
+		t_0 = time.time()
 		tt.Reset().Start()
+		t_1 = time.time() - t_0
 		if not tt.Completed: vv.Return()
-		AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k,
-			f';    TrnData/lowBW: {ds.Columns}/{lowBW:.3g}')
+		AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k, 
+			f';  Dim/Lv/T: {ds2.Columns}/{lv:.2f}/{t_1:.1f}')
 	tt.Close()
 	Do_MergeMaps('Alg: Stratify')
 
 #-------------------------------------------------------------------------------------
 
+start_time = time.time()
 
-Do_Stratify(8, stepSize=0.05, initSize=0.35)
+Do_Stratify(5, stepSize=0.05, initLevel=0.9)
 #Do_Cascading()
+
+vv.Echo(f'Total Time: {time.time()-start_time:5g}')
 
 '''
 for k in range(3): Do_ByViewpoint(flag=HIGHLIGHT_VP)
 
-Do_Cascading()
-
 Do_Stratify(8, stepSize=0.05, initSize=0.35)
+Do_Cascading()
 
 Do_ByViewpoint(flag=CENTERS_VP)
 Do_ByViewpoint(flag=INTPO_VP, K=16)
@@ -422,8 +412,8 @@ Do_Cascading()
 pp = vv.AtlasManager.OpenMap("Vescular", "i4")
 Do_ByFeature(flag=TYPE_SEG)
 Do_ByFeature(flag=WEIGHT_SEG, K=4)
-Do_ByFeature(flag=ARC_SEG, K=4)
-Do_ByFeature(flag=RADIO_SEG, K=5)
+Do_ByFeature(flag=ARC_SEG, K=12)
+Do_ByFeature(flag=RADIO_SEG, K=10)
 pp.Close()
 
 ShowMapDataset()
