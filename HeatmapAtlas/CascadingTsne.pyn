@@ -9,7 +9,8 @@ import numpy as np
 
 # storage table for intermediate embedding maps.
 dsMap = None
-dsMap3D = False     # using 3D intermediate maps
+dsMap3D = True     # using 3D intermediate maps
+dsEpochs = 2000
 
 TYPE_SEG = 0
 ARC_SEG = 1
@@ -23,7 +24,7 @@ HIGHLIGHT_VP = 2
 #-------------------------------------------------------------------------------------
 
 def NewTsneMachine(ds, mtr='Correlation.Cosine Distance',
-		epochs=2000, ppl=0.05, ex0=6.0, ex1=1.0, is3D=False):
+		epochs=dsEpochs, ppl=0.05, ex0=6.0, ex1=1.0, is3D=False):
 	tt = New.MdsCluster( ds )
 	tt.Show()
 	tt.Metric = mtr
@@ -49,8 +50,22 @@ def RunTsne(tt):
 		vv.Return()
 	return t_end - t_start
 
+# Merge all intermediated maps dsMap into a single output map.
+def MergeDatasetMaps(desc='OutMap', epochs=dsEpochs, ppl=0.1, repeats=2, is3D=dsMap3D):
+	tt = NewTsneMachine(dsMap, epochs=epochs, ppl=ppl, is3D=is3D)
+	tt.Metric = 'EuclideanMetric'
+	tt.Repeats = repeats
+	RunTsne(tt)
+	vv.Sleep(250)
+	tt.Close()
+	vwList = vv.FindFormList('MapSnapshot')
+	cnt = len(vwList)
+	if cnt >= repeats:
+		for k in range(repeats):
+			vw = vwList[cnt-repeats+k]
+			vw.Title = desc + f'; Repeat: {k+1}'
 
-#----------------------------
+#----------------------------------------------------------------------------------
 
 def ShowColunmsAsMap():
 	mp = pp.Tag
@@ -91,8 +106,6 @@ def ShowMapDataset() :
 	hm.AddContextMenu('Flip Up-Down', '@FlipMap(True)')
 	hm.AddContextMenu('Flip Left-Right', '@FlipMap(False)')
 	hm.AddEventHandler('ItemsSelected', '@ShowColunmsAsMap()')
-
-#---------------------------- 
 
 def AddMap2Dataset(ds, bsList, is3D, columns, ty, info=''):
 	ds.CopyValuesFrom(bsList, is3D, columns)
@@ -138,21 +151,6 @@ def SerializeBodies( bList ):
 		s = bList[minIdx]
 		bList.remove(s)
 	return bs
-
-# Merge all intermediated maps dsMap into a single output map.
-def MergeDatasetMaps(desc='OutMap', epochs=2000, ppl=0.1, repeats=2, is3D=False):
-	tt = NewTsneMachine(dsMap, epochs=epochs, ppl=ppl, is3D=is3D)
-	tt.Metric = 'EuclideanMetric'
-	tt.Repeats = repeats
-	RunTsne(tt)
-	vv.Sleep(250)
-	tt.Close()
-	vwList = vv.FindFormList('MapSnapshot')
-	cnt = len(vwList)
-	if cnt >= repeats:
-		for k in range(repeats):
-			vw = vwList[cnt-repeats+k]
-			vw.Title = desc + f'; Repeat: {k+1}'
 
 #-------------------------------------------------------------------------------------
 
@@ -291,8 +289,8 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 #-------------------------------------------------------------------------------------
 
 # Create dataset from maps extracted during the t-SNE training processes.
-def CreateMapDataset(is3D=True, initSize=0.25, stepSize=0.5, 
-		ppl=0.1, ex0=8.0, ex1=1.0, epochs=2000):
+def CreateMapDataset(is3D=True, initSize=0.25, stepSize=0.1, 
+		ppl=0.1, ex0=8.0, ex1=1.0, epochs=2*dsEpochs):
 	global recordMarker
 	global rmStepSize
 	global rmInitSize
@@ -372,12 +370,11 @@ def BodyMoved():
 
 def Do_Cascading():
 	vv.Echo(f'-- Start Cascading Embedding --')
-	CreateMapDataset(is3D=dsMap3D, initSize=0.2, 
-		stepSize=1.0, ex0=8.0, ex1=1.0, ppl=0.1, epochs=4000)
+	CreateMapDataset(is3D=dsMap3D, initSize=0.2, stepSize=1.0)
 	MergeDatasetMaps('Alg: cascading')
 
-
 #-------------------------------------------------------------------------------------
+
 def GetColumnMax(ds):
 	return mm.ToNumpy(ds).max(axis=0)
 
