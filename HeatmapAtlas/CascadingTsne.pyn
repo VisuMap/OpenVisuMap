@@ -9,7 +9,7 @@ import numpy as np
 
 # storage table for intermediate embedding maps.
 dsMap = None
-dsMap3D = True     # using 3D intermediate maps
+dsMap3D = False     # using 3D intermediate maps
 dsEpochs = 2000
 
 TYPE_SEG = 0
@@ -24,7 +24,7 @@ HIGHLIGHT_VP = 2
 #-------------------------------------------------------------------------------------
 
 def NewTsneMachine(ds, mtr='Correlation.Cosine Distance',
-		epochs=dsEpochs, ppl=0.05, ex0=6.0, ex1=1.0, is3D=False):
+		epochs=dsEpochs, ppl=0.05, ex0=6.0, ex1=1.0, is3D=dsMap3D):
 	tt = New.MdsCluster( ds )
 	tt.Show()
 	tt.Metric = mtr
@@ -208,7 +208,7 @@ def Do_ByFeature(flag=TYPE_SEG, K=16):
 	elif flag == RADIO_SEG:
 		RadioSegmentation(K)
 	ds = vv.GetNumberTableView(True)		
-	tt = NewTsneMachine(ds, is3D=dsMap3D)
+	tt = NewTsneMachine(ds)
 	mpDim = 3 if tt.Is3D else 2
 	tList = {b.Type for b in pp.BodyList}
 	dsMap = New.NumberTable(ds, len(tList)*mpDim)
@@ -268,7 +268,7 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 		vv.Message('No viewpoints have been defined!')
 		vv.Return(0)
 	vp = New.NumberTable(1, ds.Columns)
-	tt = NewTsneMachine(ds, is3D=dsMap3D)
+	tt = NewTsneMachine(ds)
 	mpDim = 3 if tt.Is3D else 2
 	dsMap = New.NumberTable(ds, len(vpList)*mpDim)
 	vv.Echo(f'-- Start Viewpoints-Embedding: {len(vpList)} viewpoints --')
@@ -289,7 +289,7 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 #-------------------------------------------------------------------------------------
 
 # Create dataset from maps extracted during the t-SNE training processes.
-def CreateMapDataset(is3D=True, initSize=0.25, stepSize=0.1, 
+def CreateMapDataset(is3D=dsMap3D, initSize=0.25, stepSize=0.1, 
 		ppl=0.1, ex0=8.0, ex1=1.0, epochs=2*dsEpochs):
 	global recordMarker
 	global rmStepSize
@@ -370,28 +370,26 @@ def BodyMoved():
 
 def Do_Cascading():
 	vv.Echo(f'-- Start Cascading Embedding --')
-	CreateMapDataset(is3D=dsMap3D, initSize=0.2, stepSize=1.0)
+	CreateMapDataset(initSize=0.2, stepSize=1.0)
 	MergeDatasetMaps('Alg: cascading')
 
 #-------------------------------------------------------------------------------------
-
-def GetColumnMax(ds):
-	return mm.ToNumpy(ds).max(axis=0)
-
 def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None):
 	global dsMap
 	global lvList
 	ds = vv.GetNumberTableView(True)
-	colMax = GetColumnMax(ds)
-	maxV = colMax.max()
-	tt = NewTsneMachine(ds,'EuclideanMetric', is3D=dsMap3D, ex0=6.0, ppl=0.1)
+	# get std of all columns in to colMax
+	colMax = [it.Value for it in ds.SqueezeRows(9, False)]
+	#colMax = mm.ToNumpy(ds).std(axis=0)
+	maxV = max(colMax)
+	tt = NewTsneMachine(ds,'EuclideanMetric', ex0=6.0, ppl=0.1)
 	mpDim = 3 if dsMap3D else 2
 	lvList = [initLevel-k*gape for k in range(K-1)]+[0] if LL is None else LL
 	K = len(lvList)
 	dsMap = New.NumberTable(ds, mpDim*K)
 	vv.Echo(f'-- Start Stratified-Embedding: {len(lvList)} levels --')
 	for k, lv in enumerate(lvList):
-		colSet = [k for k in range(ds.Columns) if colMax[k]>=lv*maxV]
+		colSet = [k for k in range(ds.Columns) if colMax[k]>lv*maxV]
 		#vv.Echo(f'ColSet: {lv:.3f} / {len(colSet)}')
 		ds2 = ds.SelectColumns(colSet)
 		tt.SetTrainingData(ds2)
@@ -413,6 +411,8 @@ Do_Stratify(K=10, gape=0.05, initLevel=0.9)
 vv.Echo(f'Total Time: {time.time()-start_time:5g}')
 
 '''
+for k in range(10): vv.Echo(colMax[k])
+
 ShowMapDataset()
 
 Do_Stratify(LL=[0.9, 0.8, 0.75, 0.725, 0.7])
