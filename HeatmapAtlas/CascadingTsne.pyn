@@ -39,6 +39,7 @@ def NewTsneMachine(ds, mtr='Correlation.Cosine Distance',
 	tt.AutoNormalizing = True
 	tt.ExaggerationSmoothen = True
 	tt.StagedTraining = False
+	tt.RefreshFreq = 100
 	tt.AddContextMenu("Show Map Dataset", "@ShowMapDataset()")
 	return tt
 
@@ -52,6 +53,7 @@ def RunTsne(tt):
 
 # Merge all intermediated maps dsMap into a single output map.
 def MergeDatasetMaps(desc='OutMap', epochs=dsEpochs, ppl=0.1, repeats=2, is3D=dsMap3D):
+	HarmonizeMaps()
 	tt = NewTsneMachine(dsMap, epochs=epochs, ppl=ppl, is3D=is3D)
 	tt.Metric = 'EuclideanMetric'
 	tt.Repeats = repeats
@@ -64,6 +66,7 @@ def MergeDatasetMaps(desc='OutMap', epochs=dsEpochs, ppl=0.1, repeats=2, is3D=ds
 		for k in range(repeats):
 			vw = vwList[cnt-repeats+k]
 			vw.Title = desc + f'; Repeat: {k+1}'
+
 
 #----------------------------------------------------------------------------------
 
@@ -85,16 +88,18 @@ def ShowColunmsAsMap():
 					mp.MoveBodiesTo(bList, 30, 50)
 			mp.Tag = firstColumn 
 
-def FlipMap(flipUpDown):
-	if pp.SelectedItems.Count != pp.ScrollingSteps:
-		return
-	nt = pp.GetNumberTable()
-	mp = pp.Tag
-	if mp is not None: 
-		label = '&Transform Map/Flip Map '
-		label += '&Up-Down' if flipUpDown else '&Left-Right'
-		mp.ClickMenu(label)
-		nt.CopyValuesFrom(mp.BodyList, (pp.ScrollingSteps==3), int(mp.Tag))
+def HarmonizeMaps():
+	mD = 3 if dsMap3D else 2
+	M = mm.ToNumpy(dsMap)
+	cc = 2*M.mean(axis=0)
+	for k in range(mD, dsMap.Columns):
+		c = k-mD
+		dd  = np.sum( np.abs(M[:,c] - M[:,k]) )
+		ddF = np.sum( np.abs(M[:,c] - cc[k] + M[:,k]) )
+		if ddF < dd:
+			vv.Echo(f'Flip coumn {k}')
+			M[:,k] = cc[k] - M[:,k]
+	mm.CopyToTable(M, dsMap)
 
 # Show the intermediate map data in a heatmap
 def ShowMapDataset() :
@@ -103,8 +108,6 @@ def ShowMapDataset() :
 	hm.ScrollingSteps = 3 if dsMap.CS[2].Group == dsMap.CS[1].Group else 2
 	hm.SelectionMode = 1	
 	hm.NormalizeView()
-	hm.AddContextMenu('Flip Up-Down', '@FlipMap(True)')
-	hm.AddContextMenu('Flip Left-Right', '@FlipMap(False)')
 	hm.AddEventHandler('ItemsSelected', '@ShowColunmsAsMap()')
 
 def AddMap2Dataset(ds, bsList, is3D, columns, ty, info=''):
@@ -151,6 +154,14 @@ def SerializeBodies( bList ):
 		s = bList[minIdx]
 		bList.remove(s)
 	return bs
+
+class CheckTime:
+	def __enter__(self):
+		self.start_time = time.time()
+	def __exit__(self, type, value, traceback):
+		time_diff = time.time()-self.start_time
+		vv.Echo(f'Total Time: {time_diff:5g}')
+
 
 #-------------------------------------------------------------------------------------
 
@@ -227,7 +238,6 @@ def Do_ByFeature(flag=TYPE_SEG, K=16):
 		AddMap2Dataset(dsMap, tt.BodyList, (mpDim==3), k*mpDim, t, f'; T:{tm:.1f}')
 	tt.Close()
 	MergeDatasetMaps(f'Alg: by-feature: {flag}')
-
 
 #-------------------------------------------------------------------------------------
 
@@ -374,20 +384,29 @@ def Do_Cascading():
 	MergeDatasetMaps('Alg: cascading')
 
 #-------------------------------------------------------------------------------------
+
 def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None):
 	global dsMap
 	global lvList
 	ds = vv.GetNumberTableView(True)
+	if vv.Map.Filter != '':
+		ds = ds.ApplyFilter(vv.Map.Filter)
 	# get std of all columns in to colMax
 	colMax = [it.Value for it in ds.SqueezeRows(9, False)]
-	#colMax = mm.ToNumpy(ds).std(axis=0)
+	#colMax = mm.ToNumpy(ds).std(axis=0)	
 	maxV = max(colMax)
 	tt = NewTsneMachine(ds,'EuclideanMetric', ex0=6.0, ppl=0.1)
 	mpDim = 3 if dsMap3D else 2
-	lvList = [initLevel-k*gape for k in range(K-1)]+[0] if LL is None else LL
+
+	if LL is None:
+		lvList = [initLevel-k*gape for k in range(K-1)] + [0]
+	else:
+		lvList = LL
 	K = len(lvList)
+
 	dsMap = New.NumberTable(ds, mpDim*K)
 	vv.Echo(f'-- Start Stratified-Embedding: {len(lvList)} levels --')
+
 	for k, lv in enumerate(lvList):
 		colSet = [k for k in range(ds.Columns) if colMax[k]>lv*maxV]
 		#vv.Echo(f'ColSet: {lv:.3f} / {len(colSet)}')
@@ -401,17 +420,13 @@ def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None):
 
 #-------------------------------------------------------------------------------------
 
-start_time = time.time()
-
-#Do_ByViewpoint(flag=HIGHLIGHT_VP)
-#Do_ByFeature(flag=WEIGHT_SEG, K=4)
-Do_Stratify(K=10, gape=0.05, initLevel=0.9)
-#Do_Cascading()
-
-vv.Echo(f'Total Time: {time.time()-start_time:5g}')
+with CheckTime():
+	#Do_ByViewpoint(flag=HIGHLIGHT_VP)
+	#Do_ByFeature(flag=WEIGHT_SEG, K=4)
+	#Do_Cascading()
+	Do_Stratify(K=6, gape=0.1, initLevel=0.7)
 
 '''
-for k in range(10): vv.Echo(colMax[k])
 
 ShowMapDataset()
 
