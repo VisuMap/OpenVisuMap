@@ -35,11 +35,14 @@ def NewTsneMachine(ds, mtr='Correlation.Cosine Distance',
 	tt.InitialExaggeration = ex0
 	tt.FinalExaggeration = ex1
 	tt.PerplexityRatio = ppl
-	tt.AutoScalingTsne = True
+	tt.AutoScalingTsne = False
 	tt.AutoNormalizing = True
 	tt.ExaggerationSmoothen = True
 	tt.StagedTraining = False
 	tt.RefreshFreq = 100
+	tt.GlyphScale = 25
+	tt.GlyphSize = 0.25
+	tt.GlyphOpacity = 0.5
 	tt.AddContextMenu("Show Map Dataset", "@ShowMapDataset()")
 	return tt
 
@@ -385,7 +388,7 @@ def Do_Cascading():
 
 #-------------------------------------------------------------------------------------
 
-def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None):
+def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None, dryTry=False):
 	global dsMap
 	global lvList
 	ds = vv.GetNumberTableView(True)
@@ -393,9 +396,11 @@ def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None):
 		ds = ds.ApplyFilter(vv.Map.Filter)
 	# get std of all columns in to colMax
 	colMax = [it.Value for it in ds.SqueezeRows(9, False)]
-	#colMax = mm.ToNumpy(ds).std(axis=0)	
-	maxV = max(colMax)
-	tt = NewTsneMachine(ds,'EuclideanMetric', ex0=6.0, ppl=0.1)
+	maxV = max( list(colMax) )
+	if dryTry:
+		New.BarView(colMax).Show().SortItems(True)
+	else:
+		tt = NewTsneMachine(ds,'EuclideanMetric', ex0=6.0, ppl=0.1)
 	mpDim = 3 if dsMap3D else 2
 
 	if LL is None:
@@ -408,15 +413,19 @@ def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None):
 	vv.Echo(f'-- Start Stratified-Embedding: {len(lvList)} levels --')
 
 	for k, lv in enumerate(lvList):
-		colSet = [k for k in range(ds.Columns) if colMax[k]>lv*maxV]
-		#vv.Echo(f'ColSet: {lv:.3f} / {len(colSet)}')
-		ds2 = ds.SelectColumns(colSet)
-		tt.SetTrainingData(ds2)
-		tm = RunTsne(tt)
-		AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k, 
-			f';  Dm/Lv/Tm: {ds2.Columns}/{lv:.2f}/{tm:.1f}')
-	tt.Close()
-	MergeDatasetMaps('Alg: Stratify')
+		colList = [k for k in range(ds.Columns) if colMax[k]>lv*maxV]
+		if dryTry:
+			vv.Echo(f'Dm/Lv: {len(colList)}/{lv:.2f}')
+		else:
+			ds2 = ds.SelectColumns(colList)
+			tt.SetTrainingData(ds2)
+			tm = RunTsne(tt)
+			AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k, 
+				f';  Dm/Lv/Tm: {ds2.Columns}/{lv:.2f}/{tm:.1f}')
+	
+	if not dryTry:
+		tt.Close()
+		MergeDatasetMaps('Alg: Stratify')
 
 #-------------------------------------------------------------------------------------
 
@@ -425,6 +434,7 @@ with CheckTime():
 	#Do_ByFeature(flag=WEIGHT_SEG, K=4)
 	#Do_Cascading()
 	Do_Stratify(K=6, gape=0.1, initLevel=0.7)
+	#Do_Stratify(K=15, gape=0.05, initLevel=0.75, dryTry=False)
 
 '''
 
