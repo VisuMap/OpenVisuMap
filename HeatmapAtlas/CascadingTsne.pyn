@@ -22,9 +22,19 @@ INTPO_VP = 1
 HIGHLIGHT_VP = 2
 
 #-------------------------------------------------------------------------------------
+def ShowMapDataset() :
+	'''Show the intermediate map data in a heatmap'''
+	hm = dsMap.ShowHeatMap()
+	hm.Tag = None
+	if 'allFeatures' in globals():
+		hm.Description = 'Features: ' + '|'.join( allFeatures )
+	hm.ScrollingSteps = 3 if dsMap.CS[2].Group == dsMap.CS[1].Group else 2
+	hm.SelectionMode = 1	
+	hm.NormalizeView()
+	hm.AddEventHandler('ItemsSelected', '@ShowColunmsAsMap()')
 
 def NewTsneMachine(ds, mtr='Correlation.Cosine Distance',
-		epochs=dsEpochs, ppl=0.05, ex0=6.0, ex1=1.0, is3D=dsMap3D):
+		epochs=dsEpochs, ppl=0.05, ex0=4.0, ex1=1.0, is3D=dsMap3D):
 	tt = New.MdsCluster( ds )
 	tt.Show()
 	tt.Metric = mtr
@@ -70,7 +80,6 @@ def MergeDatasetMaps(desc='OutMap', epochs=dsEpochs, ppl=0.1, repeats=2, is3D=ds
 			vw = vwList[cnt-repeats+k]
 			vw.Title = desc + f'; Repeat: {k+1}'
 
-
 #----------------------------------------------------------------------------------
 
 def ShowColunmsAsMap():
@@ -81,6 +90,10 @@ def ShowColunmsAsMap():
 		if firstColumn % mpDim == 0:
 			bList = New.BodyList(pp.GetSelectedNumberTable())
 			if (mp == None) or mp.IsDisposed:
+				mainList = vv.Dataset.BodyListEnabled()
+				if bList.Count == mainList.Count:
+					for k, b in enumerate(bList):
+						b.Attributes = mainList[k].Attributes
 				mp = New.MapSnapshot2(bList, vv.Map).Show()
 				mp.MapType = 103 if mpDim == 3 else 102
 				if mpDim == 2:
@@ -104,14 +117,6 @@ def HarmonizeMaps():
 			M[:,k] = cc[k] - M[:,k]
 	mm.CopyToTable(M, dsMap)
 
-# Show the intermediate map data in a heatmap
-def ShowMapDataset() :
-	hm = dsMap.ShowHeatMap()
-	hm.Tag = None
-	hm.ScrollingSteps = 3 if dsMap.CS[2].Group == dsMap.CS[1].Group else 2
-	hm.SelectionMode = 1	
-	hm.NormalizeView()
-	hm.AddEventHandler('ItemsSelected', '@ShowColunmsAsMap()')
 
 def AddMap2Dataset(ds, bsList, is3D, columns, ty, info=''):
 	ds.CopyValuesFrom(bsList, is3D, columns)
@@ -391,39 +396,50 @@ def Do_Cascading():
 def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None, dryTry=False):
 	global dsMap
 	global lvList
-	ds = vv.GetNumberTableView(True)
-	if vv.Map.Filter != '':
-		ds = ds.ApplyFilter(vv.Map.Filter)
+	global allFeatures
+	ds = vv.GetNumberTableView(True).ApplyFilter(vv.Map.Filter)
 	# get std of all columns in to colMax
 	colMax = [it.Value for it in ds.SqueezeRows(9, False)]
 	maxV = max( list(colMax) )
 	if dryTry:
-		New.BarView(colMax).Show().SortItems(True)
+		dsBw = New.BarView(colMax)
+		dsBw.Show()
 	else:
 		tt = NewTsneMachine(ds,'EuclideanMetric', ex0=6.0, ppl=0.1)
 	mpDim = 3 if dsMap3D else 2
 
 	if LL is None:
-		lvList = [initLevel-k*gape for k in range(K-1)] + [0]
+		lvList = [initLevel-k*gape for k in range(K-1)]
+		lvList = [v for v in lvList if v>0]
+		lvList += [0]
 	else:
 		lvList = LL
 	K = len(lvList)
 
 	dsMap = New.NumberTable(ds, mpDim*K)
+	allFeatures = [cs.Id for cs in ds.ColumnSpecList]
 	vv.Echo(f'-- Start Stratified-Embedding: {len(lvList)} levels --')
-
+	dsCS = dsMap.ColumnSpecList
 	for k, lv in enumerate(lvList):
 		colList = [k for k in range(ds.Columns) if colMax[k]>lv*maxV]
 		if dryTry:
-			vv.Echo(f'Dm/Lv: {len(colList)}/{lv:.2f}')
+			vv.Echo(f'Dm/Lv: {len(colList)}/{lv:.4f}')
+			for col in colList:
+				itm = dsBw.ItemList[col]
+				if itm.Group == 0:
+					itm.Group = k+1
 		else:
 			ds2 = ds.SelectColumns(colList)
 			tt.SetTrainingData(ds2)
 			tm = RunTsne(tt)
+			dsCS[k*mpDim].Name = '|'.join(map(str, colList))
+			dsCS[k*mpDim+1].Name = f'{lv:.2f}'
 			AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k, 
-				f';  Dm/Lv/Tm: {ds2.Columns}/{lv:.2f}/{tm:.1f}')
-	
-	if not dryTry:
+				f';  Dm/Lv/Tm: {ds2.Columns}/{lv:.3f}/{tm:.1f}')
+
+	if dryTry:	
+		dsBw.SortItems(True)
+	else:
 		tt.Close()
 		MergeDatasetMaps('Alg: Stratify')
 
@@ -434,18 +450,13 @@ with CheckTime():
 	#Do_ByFeature(flag=WEIGHT_SEG, K=4)
 	#Do_Cascading()
 	Do_Stratify(K=6, gape=0.1, initLevel=0.7)
-	#Do_Stratify(K=15, gape=0.05, initLevel=0.75, dryTry=False)
 
 '''
-
 ShowMapDataset()
 
-Do_Stratify(LL=[0.9, 0.8, 0.75, 0.725, 0.7])
+Do_Stratify(K=15, gape=0.035, initLevel=0.7, dryTry=False)
 
 for k in range(3): Do_ByViewpoint(flag=HIGHLIGHT_VP)
-
-Do_Stratify(8, stepSize=0.05, initSize=0.35)
-Do_Cascading()
 
 Do_ByViewpoint(flag=CENTERS_VP)
 Do_ByViewpoint(flag=INTPO_VP, K=16)
