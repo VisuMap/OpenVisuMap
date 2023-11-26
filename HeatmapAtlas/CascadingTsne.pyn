@@ -93,7 +93,7 @@ def ShowColunmsAsMap():
 				mainList = vv.Dataset.BodyListEnabled()
 				if bList.Count == mainList.Count:
 					for k, b in enumerate(bList):
-						b.Attributes = mainList[k].Attributes
+						b.CopyAttributesFrom( mainList[k] )
 				mp = New.MapSnapshot2(bList, vv.Map).Show()
 				mp.MapType = 103 if mpDim == 3 else 102
 				if mpDim == 2:
@@ -164,11 +164,13 @@ def SerializeBodies( bList ):
 	return bs
 
 class CheckTime:
+	def __init__(self, msg='Time'):
+		self.msg = msg
 	def __enter__(self):
 		self.start_time = time.time()
 	def __exit__(self, type, value, traceback):
 		time_diff = time.time()-self.start_time
-		vv.Echo(f'Total Time: {time_diff:5g}')
+		vv.Echo(f'{self.msg}: {time_diff:5g}')
 
 
 #-------------------------------------------------------------------------------------
@@ -388,26 +390,36 @@ def BodyMoved():
 
 def Do_Cascading():
 	vv.Echo(f'-- Start Cascading Embedding --')
-	CreateMapDataset(initSize=0.2, stepSize=1.0)
+	#CreateMapDataset(initSize=0.2, stepSize=1.0)
+	CreateMapDataset(initSize=0.2, stepSize=0.125)
 	MergeDatasetMaps('Alg: cascading')
 
-#-------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------
+
+def DoStratify(ds, colList):
+	global dsMap
+	K = len(colList)
+	mpDim = 3 if dsMap3D else 2
+	dsMap = New.NumberTable(ds, mpDim*K)
+	dsCS = dsMap.ColumnSpecList
+	tt = NewTsneMachine(ds,'EuclideanMetric', ex0=6.0, ppl=0.1)
+	for k, cList in enumerate(colList):
+		ds2 = ds.SelectColumns(cList)
+		tt.SetTrainingData(ds2)
+		tm = RunTsne(tt)
+		dsCS[k*mpDim].Name = '|'.join(map(str, cList))
+		AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k, 
+			f';  Dm/Tm: {ds2.Columns}/{tm:.1f}')
+	tt.Close()
+	MergeDatasetMaps('Alg: Stratify')
 
 def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None, dryTry=False):
-	global dsMap
-	global lvList
 	global allFeatures
 	ds = vv.GetNumberTableView(True).ApplyFilter(vv.Map.Filter)
-	# get std of all columns in to colMax
-	colMax = [it.Value for it in ds.SqueezeRows(9, False)]
-	maxV = max( list(colMax) )
-	if dryTry:
-		dsBw = New.BarView(colMax)
-		dsBw.Show()
-	else:
-		tt = NewTsneMachine(ds,'EuclideanMetric', ex0=6.0, ppl=0.1)
+	# get std of all columns in to colKey
+	colKey = [it.Value for it in ds.SqueezeRows(9, False)]
+	maxV = max( colKey )
 	mpDim = 3 if dsMap3D else 2
-
 	if LL is None:
 		lvList = [initLevel-k*gape for k in range(K-1)]
 		lvList = [v for v in lvList if v>0]
@@ -415,46 +427,53 @@ def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None, dryTry=False):
 	else:
 		lvList = LL
 	K = len(lvList)
-
-	dsMap = New.NumberTable(ds, mpDim*K)
 	allFeatures = [cs.Id for cs in ds.ColumnSpecList]
 	vv.Echo(f'-- Start Stratified-Embedding: {len(lvList)} levels --')
-	dsCS = dsMap.ColumnSpecList
-	for k, lv in enumerate(lvList):
-		colList = [k for k in range(ds.Columns) if colMax[k]>lv*maxV]
-		if dryTry:
-			vv.Echo(f'Dm/Lv: {len(colList)}/{lv:.4f}')
-			for col in colList:
+	colList = list( map(lambda lv: [k for k in range(ds.Columns) if colKey[k]>lv*maxV], lvList) )
+
+	if dryTry:
+		for k in range(K):
+			vv.Echo(f'{k}: {lvList[k]:.2f}')
+		dsBw = New.BarView(colKey)
+		dsBw.Show()
+		for k, cList in enumerate(colList):
+			for col in cList:
 				itm = dsBw.ItemList[col]
 				if itm.Group == 0:
 					itm.Group = k+1
-		else:
-			ds2 = ds.SelectColumns(colList)
-			tt.SetTrainingData(ds2)
-			tm = RunTsne(tt)
-			dsCS[k*mpDim].Name = '|'.join(map(str, colList))
-			dsCS[k*mpDim+1].Name = f'{lv:.2f}'
-			AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k, 
-				f';  Dm/Lv/Tm: {ds2.Columns}/{lv:.3f}/{tm:.1f}')
-
-	if dryTry:	
 		dsBw.SortItems(True)
 	else:
-		tt.Close()
-		MergeDatasetMaps('Alg: Stratify')
+		DoStratify(ds, colList)
+
+def Do_Stratify2():
+	ds = vv.GetNumberTableView(True).ApplyFilter(vv.Map.Filter)
+	colKey = [it.Id for it in ds.SqueezeRows(9, True)]
+	colIdxList = list(ds.IndexOfColumns(colKey))
+	colIdxList.reverse()
+	colList = []
+	for k in range(20):
+		sz = 3*(2**k)
+		if sz < len(colIdxList):
+			colList.append( colIdxList[0:sz] )
+		else:
+			colList.append( colIdxList )
+			break
+	vv.Echo(f'-- Start Stratified-Embedding: {len(colList)} levels --')
+	DoStratify(ds, colList)
 
 #-------------------------------------------------------------------------------------
 
-with CheckTime():
+with CheckTime('Total Time'):
 	#Do_ByViewpoint(flag=HIGHLIGHT_VP)
 	#Do_ByFeature(flag=WEIGHT_SEG, K=4)
 	#Do_Cascading()
-	Do_Stratify(K=6, gape=0.1, initLevel=0.7)
+	Do_Stratify(K=10, gape=0.05, initLevel=0.7)
+	#Do_Stratify2()
 
 '''
 ShowMapDataset()
 
-Do_Stratify(K=15, gape=0.035, initLevel=0.7, dryTry=False)
+Do_Stratify(K=10, gape=0.05, initLevel=0.7, dryTry=True)
 
 for k in range(3): Do_ByViewpoint(flag=HIGHLIGHT_VP)
 
