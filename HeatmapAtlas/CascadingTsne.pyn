@@ -1,8 +1,8 @@
 # CascadingTsne.pyn
 #
-# This file contains scripts to create multiple maps/embeddings from dataset, 
-# then concatenate these maps and embed them in to a single map via tSNE.
-#
+# This file contains scripts to create multiple maps/embeddings 
+# from dataset, then concatenate these maps and embed them in 
+# to a single map via tSNE.
 # -------------------------------------------------------------
 import math, numpy, time
 import numpy as np
@@ -10,7 +10,7 @@ import numpy as np
 # storage table for intermediate embedding maps.
 dsMap = None
 dsMap3D = False     # using 3D intermediate maps
-dsEpochs = 2000
+dsEpochs = 1000
 
 TYPE_SEG = 0
 ARC_SEG = 1
@@ -21,17 +21,7 @@ CENTERS_VP = 0
 INTPO_VP = 1
 HIGHLIGHT_VP = 2
 
-#-------------------------------------------------------------------------------------
-def ShowMapDataset() :
-	'''Show the intermediate map data in a heatmap'''
-	hm = dsMap.ShowHeatMap()
-	hm.Tag = None
-	if 'allFeatures' in globals():
-		hm.Description = 'Features: ' + '|'.join( allFeatures )
-	hm.ScrollingSteps = 3 if dsMap.CS[2].Group == dsMap.CS[1].Group else 2
-	hm.SelectionMode = 1	
-	hm.NormalizeView()
-	hm.AddEventHandler('ItemsSelected', '@ShowColunmsAsMap()')
+#-----------------------------------------------------------
 
 def NewTsneMachine(ds, mtr='Correlation.Cosine Distance',
 		epochs=dsEpochs, ppl=0.05, ex0=4.0, ex1=1.0, is3D=dsMap3D):
@@ -64,8 +54,19 @@ def RunTsne(tt):
 		vv.Return()
 	return t_end - t_start
 
+def ShowMapDataset() :
+	'''Show the intermediate map data in a heatmap'''
+	hm = dsMap.ShowHeatMap()
+	hm.Tag = None
+	if 'allFeatures' in globals():
+		hm.Description = 'Features: ' + '|'.join( allFeatures )
+	hm.ScrollingSteps = 3 if dsMap.CS[2].Group == dsMap.CS[1].Group else 2
+	hm.SelectionMode = 1	
+	hm.NormalizeView()
+	hm.AddEventHandler('ItemsSelected', '@ShowColunmsAsMap()')
+
 # Merge all intermediated maps dsMap into a single output map.
-def MergeDatasetMaps(desc='OutMap', epochs=dsEpochs, ppl=0.1, repeats=2, is3D=dsMap3D):
+def MergeDatasetMaps(desc='OutMap', epochs=dsEpochs, ppl=0.1, repeats=1, is3D=dsMap3D):
 	HarmonizeMaps()
 	tt = NewTsneMachine(dsMap, epochs=epochs, ppl=ppl, is3D=is3D)
 	tt.Metric = 'EuclideanMetric'
@@ -80,7 +81,7 @@ def MergeDatasetMaps(desc='OutMap', epochs=dsEpochs, ppl=0.1, repeats=2, is3D=ds
 			vw = vwList[cnt-repeats+k]
 			vw.Title = desc + f'; Repeat: {k+1}'
 
-#----------------------------------------------------------------------------------
+#---------------------------------------------------------------
 
 def ShowColunmsAsMap():
 	mp = pp.Tag
@@ -91,9 +92,8 @@ def ShowColunmsAsMap():
 			bList = New.BodyList(pp.GetSelectedNumberTable())
 			if (mp == None) or mp.IsDisposed:
 				mainList = vv.Dataset.BodyListEnabled()
-				if bList.Count == mainList.Count:
-					for k, b in enumerate(bList):
-						b.CopyAttributesFrom( mainList[k] )
+				for k, b in enumerate(bList):
+					b.CopyAttributesFrom( mainList[k] )
 				mp = New.MapSnapshot2(bList, vv.Map).Show()
 				mp.MapType = 103 if mpDim == 3 else 102
 				if mpDim == 2:
@@ -113,10 +113,9 @@ def HarmonizeMaps():
 		dd  = np.sum( np.abs(M[:,c] - M[:,k]) )
 		ddF = np.sum( np.abs(M[:,c] - cc[k] + M[:,k]) )
 		if ddF < dd:
-			vv.Echo(f'Flip coumn {k}')
+			vv.Echo(f'Flipped {k}-th column')
 			M[:,k] = cc[k] - M[:,k]
 	mm.CopyToTable(M, dsMap)
-
 
 def AddMap2Dataset(ds, bsList, is3D, columns, ty, info=''):
 	ds.CopyValuesFrom(bsList, is3D, columns)
@@ -172,8 +171,7 @@ class CheckTime:
 		time_diff = time.time()-self.start_time
 		vv.Echo(f'{self.msg}: {time_diff:5g}')
 
-
-#-------------------------------------------------------------------------------------
+#-----------------------------------------------
 
 def ArcSegmentation(K):
 	cx, cy = numpy.average([(b.X, b.Y) for b in pp.BodyList], axis=0)
@@ -216,7 +214,6 @@ def WeightSegmentation(K):
 		b.Type = min(tIdx, K-1)
 	pp.RedrawBodies()
 
-
 def Do_ByFeature(flag=TYPE_SEG, K=16):
 	global dsMap
 	if not hasattr(pp, 'BodyList'):
@@ -249,7 +246,7 @@ def Do_ByFeature(flag=TYPE_SEG, K=16):
 	tt.Close()
 	MergeDatasetMaps(f'Alg: by-feature: {flag}')
 
-#-------------------------------------------------------------------------------------
+#-----------------------------------------------
 
 def VpInterpolation(ds, K):
 	cc = []
@@ -306,9 +303,9 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 	tt.Close()
 	MergeDatasetMaps(f'Alg: by-viewpoint: {flag}')
 
-#-------------------------------------------------------------------------------------
-
+#--------------------------------------------
 # Create dataset from maps extracted during the t-SNE training processes.
+
 def CreateMapDataset(is3D=dsMap3D, initSize=0.25, stepSize=0.1, 
 		ppl=0.1, ex0=8.0, ex1=1.0, epochs=2*dsEpochs):
 	global recordMarker
@@ -394,27 +391,11 @@ def Do_Cascading():
 	CreateMapDataset(initSize=0.2, stepSize=0.125)
 	MergeDatasetMaps('Alg: cascading')
 
-#-----------------------------------------------------------------------
-
-def DoStratify(ds, colList):
-	global dsMap
-	K = len(colList)
-	mpDim = 3 if dsMap3D else 2
-	dsMap = New.NumberTable(ds, mpDim*K)
-	dsCS = dsMap.ColumnSpecList
-	tt = NewTsneMachine(ds,'EuclideanMetric', ex0=6.0, ppl=0.1)
-	for k, cList in enumerate(colList):
-		ds2 = ds.SelectColumns(cList)
-		tt.SetTrainingData(ds2)
-		tm = RunTsne(tt)
-		dsCS[k*mpDim].Name = '|'.join(map(str, cList))
-		AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k, 
-			f';  Dm/Tm: {ds2.Columns}/{tm:.1f}')
-	tt.Close()
-	MergeDatasetMaps('Alg: Stratify')
+#---------------------------------------------
 
 def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None, dryTry=False):
 	global allFeatures
+	global dsMap
 	ds = vv.GetNumberTableView(True).ApplyFilter(vv.Map.Filter)
 	# get std of all columns in to colKey
 	colKey = [it.Value for it in ds.SqueezeRows(9, False)]
@@ -429,51 +410,48 @@ def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None, dryTry=False):
 	K = len(lvList)
 	allFeatures = [cs.Id for cs in ds.ColumnSpecList]
 	vv.Echo(f'-- Start Stratified-Embedding: {len(lvList)} levels --')
-	colList = list( map(lambda lv: [k for k in range(ds.Columns) if colKey[k]>lv*maxV], lvList) )
 
 	if dryTry:
-		for k in range(K):
-			vv.Echo(f'{k}: {lvList[k]:.2f}')
-		dsBw = New.BarView(colKey)
-		dsBw.Show()
-		for k, cList in enumerate(colList):
+		dsBw = New.BarView(colKey).Show()
+		for k, lv in enumerate(lvList):
+			cList = [k for k in range(ds.Columns) if colKey[k]>lv*maxV]
+			vv.Echo(f'{k}: Dim/lv: {len(cList)}/{lvList[k]:.2f}')
 			for col in cList:
 				itm = dsBw.ItemList[col]
 				if itm.Group == 0:
 					itm.Group = k+1
 		dsBw.SortItems(True)
 	else:
-		DoStratify(ds, colList)
+		dsMap = New.NumberTable(ds, mpDim*K)
+		dsCS = dsMap.ColumnSpecList
+		tt = NewTsneMachine(ds,'EuclideanMetric', ex0=6.0, ppl=0.1)
+		for k, lv in enumerate(lvList):
+			cList = [k for k in range(ds.Columns) if colKey[k]>lv*maxV]
+			ds2 = ds.SelectColumns(cList)
+			tt.SetTrainingData(ds2)
+			tm = RunTsne(tt)
+			dsCS[k*mpDim].Name = '|'.join(map(str, cList))
+			AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k, 
+				f';  Dm/Tm: {ds2.Columns}/{tm:.1f}')
+		tt.Close()
+		MergeDatasetMaps('Alg: Stratify')
 
-def Do_Stratify2():
-	ds = vv.GetNumberTableView(True).ApplyFilter(vv.Map.Filter)
-	colKey = [it.Id for it in ds.SqueezeRows(9, True)]
-	colIdxList = list(ds.IndexOfColumns(colKey))
-	colIdxList.reverse()
-	colList = []
-	for k in range(20):
-		sz = 3*(2**k)
-		if sz < len(colIdxList):
-			colList.append( colIdxList[0:sz] )
-		else:
-			colList.append( colIdxList )
-			break
-	vv.Echo(f'-- Start Stratified-Embedding: {len(colList)} levels --')
-	DoStratify(ds, colList)
-
-#-------------------------------------------------------------------------------------
+#----------------------------------------------------
 
 with CheckTime('Total Time'):
 	#Do_ByViewpoint(flag=HIGHLIGHT_VP)
 	#Do_ByFeature(flag=WEIGHT_SEG, K=4)
-	#Do_Cascading()
-	Do_Stratify(K=10, gape=0.05, initLevel=0.7)
-	#Do_Stratify2()
+	Do_Cascading()
 
 '''
+for k in range(6):
+	Do_Stratify(K=6, gape=0.1, initLevel=0.7)
+
 ShowMapDataset()
 
 Do_Stratify(K=10, gape=0.05, initLevel=0.7, dryTry=True)
+
+Do_Stratify(LL=[0.7, 0.1, 0.6, 0])
 
 for k in range(3): Do_ByViewpoint(flag=HIGHLIGHT_VP)
 
@@ -481,7 +459,6 @@ Do_ByViewpoint(flag=CENTERS_VP)
 Do_ByViewpoint(flag=INTPO_VP, K=16)
 Do_ByViewpoint(flag=HIGHLIGHT_VP)
 Do_Cascading()
-
 
 pp = vv.AtlasManager.OpenMap("Vescular", "i4")
 Do_ByFeature(flag=TYPE_SEG)
