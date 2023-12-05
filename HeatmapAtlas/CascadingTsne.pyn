@@ -11,6 +11,7 @@ import numpy as np
 dsMap = None
 dsMap3D = False     # using 3D intermediate maps
 dsEpochs = 1000
+outMaps = 2
 
 TYPE_SEG = 0
 ARC_SEG = 1
@@ -66,7 +67,7 @@ def ShowMapDataset() :
 	hm.AddEventHandler('ItemsSelected', '@ShowColunmsAsMap()')
 
 # Merge all intermediated maps dsMap into a single output map.
-def MergeDatasetMaps(desc='OutMap', epochs=dsEpochs, ppl=0.1, repeats=1, is3D=dsMap3D):
+def MergeDatasetMaps(desc='OutMap', epochs=dsEpochs, ppl=0.1, repeats=outMaps, is3D=dsMap3D):
 	HarmonizeMaps()
 	tt = NewTsneMachine(dsMap, epochs=epochs, ppl=ppl, is3D=is3D)
 	tt.Metric = 'EuclideanMetric'
@@ -444,7 +445,7 @@ with CheckTime('Total Time'):
 	Do_Cascading()
 
 '''
-for k in range(6):
+for k in range(5):
 	Do_Stratify(K=6, gape=0.1, initLevel=0.7)
 
 ShowMapDataset()
