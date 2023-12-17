@@ -66,9 +66,10 @@ def DoTest():
 try:
   cmd = vm.DataLinkCmd()  
   ResetTest()
-  for k in [0, 1]:
+  #A0 = A.r
+  for k in range(4):
     DoTest()
-    cmd.RunScript('vv.GuiManager.TileAllWindows()')
+    #cmd.RunScript('vv.GuiManager.TileAllWindows()')
 
 except Exception as e:
   print( 'Exception: ' + str(e) )

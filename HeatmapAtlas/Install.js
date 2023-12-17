@@ -31,3 +31,7 @@ function InstallAtlas() {
 }
 
 InstallAtlas();
+
+
+if ( vv.ScriptDirectories.indexOf( vv.CurrentScriptDirectory ) < 0 )
+	vv.ScriptDirectories += ";"+vv.CurrentScriptDirectory;

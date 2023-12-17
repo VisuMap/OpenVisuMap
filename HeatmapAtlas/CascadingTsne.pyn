@@ -8,19 +8,13 @@ import math, numpy, time
 import numpy as np
 
 # storage table for intermediate embedding maps.
-dsMap = None
-dsMap3D = False     # using 3D intermediate maps
-dsEpochs = 1000
-outMaps = 2
+dsMap = None      # the table to store the intermediate maps.
+dsEpochs = 200    # training epochs for t-SNE algorithm
+outMaps = 2       # number of final maps
+dsMap3D = False   # the dimension of embedding maps.
 
-TYPE_SEG = 0
-ARC_SEG = 1
-RADIO_SEG = 2
-WEIGHT_SEG = 3
-
-CENTERS_VP = 0
-INTPO_VP = 1
-HIGHLIGHT_VP = 2
+TYPE_SEG,  ARC_SEG,  RADIO_SEG,  WEIGHT_SEG = 0, 1, 2, 3
+CENTERS_VP,  INTPO_VP,  HIGHLIGHT_VP = 0, 1, 2
 
 #-----------------------------------------------------------
 
@@ -119,6 +113,9 @@ def HarmonizeMaps():
 	mm.CopyToTable(M, dsMap)
 
 def AddMap2Dataset(ds, bsList, is3D, columns, ty, info=''):
+	if ds.Rows != bsList.Count:
+		vv.Echo(f'Incompatible Map Size: {ds.Rows} != {bsList.Count}')
+		return
 	ds.CopyValuesFrom(bsList, is3D, columns)
 	mpDim = 3 if is3D else 2
 	for k in range(mpDim):
@@ -141,6 +138,24 @@ def ConcatSnapshots():
 		mp.Close()
 	ds.ShowHeatMap()
 	return ds
+
+def ConcatMapList(mpNames):
+	global dsMap
+	mpDimList = [vv.Dataset.ReadMap(nm).Dimension for nm in mpNames]
+	dimSum, dsMap, offset = sum(mpDimList), None, 0
+	for k, nm in enumerate(mpNames):
+		mpDim = mpDimList[k]
+		bList = vv.Dataset.ReadMapBodyList(nm, True)
+		if dsMap == None: 
+			dsMap = New.NumberTable(bList, dimSum)
+		AddMap2Dataset(dsMap, bList, mpDim==3, offset, k)
+		offset += mpDim
+	ShowMapDataset()
+
+'''
+ConcatMapList([f'A{k}' for k in range(5)])
+ConcatMapList(['A0'] + 4*['A4'])
+'''
 
 # Sort a list of points via nearst-neighbor.
 def SerializeBodies( bList ):
@@ -167,6 +182,7 @@ class CheckTime:
 	def __init__(self, msg='Time'):
 		self.msg = msg
 	def __enter__(self):
+		vv.Echo('Test started...')
 		self.start_time = time.time()
 	def __exit__(self, type, value, traceback):
 		time_diff = time.time()-self.start_time
@@ -421,7 +437,8 @@ def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None, dryTry=False):
 				itm = dsBw.ItemList[col]
 				if itm.Group == 0:
 					itm.Group = k+1
-		dsBw.SortItems(True)
+		dsBw.AutoScaling = True
+		dsBw.SortItems(True)		
 	else:
 		dsMap = New.NumberTable(ds, mpDim*K)
 		dsCS = dsMap.ColumnSpecList
@@ -433,24 +450,61 @@ def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None, dryTry=False):
 			tm = RunTsne(tt)
 			dsCS[k*mpDim].Name = '|'.join(map(str, cList))
 			AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k, 
-				f';  Dm/Tm: {ds2.Columns}/{tm:.1f}')
+				f';  Dm/Lv/Tm: {ds2.Columns}/{lv:.3f}/{tm:.1f}')
 		tt.Close()
 		MergeDatasetMaps('Alg: Stratify')
+
+#----------------------------------------------------
+
+def Do_StressTest():
+	print(f'=== Started at {time.strftime("%H:%M:%S", time.localtime())} ===')
+	print('--- Repeating test ---')
+	vv.Dataset.OpenMap('B3')
+	for rp in range(2):
+		print(f'{rp}-th repeat...')
+		mds = New.TsneMap()
+		mds.Repeats = 2
+		mds.Show().Start()
+		mds.Repeats = 1
+		mds.Close()
+
+	print('--- Dataset size test ---')
+	mpList = ['B1','A-40K','B4','B5','B3','B6','B7', 'B2']
+	#mpList = ['B1','B4','B5','B3','B6','B7', 'B2']
+	for mp in 2*mpList:
+		print(f'Testing map {mp}')
+		vv.Dataset.OpenMap(mp)
+		mds = New.TsneMap().Show().Start()
+		mds.Close() if mds.Completed else vv.Return()
+
+	print('--- Stratify test ---')
+	vv.Dataset.OpenMap('B1')
+	for k in range(2):
+		Do_Stratify(K=6, gape=0.1, initLevel=0.7)
 
 #----------------------------------------------------
 
 with CheckTime('Total Time'):
 	#Do_ByViewpoint(flag=HIGHLIGHT_VP)
 	#Do_ByFeature(flag=WEIGHT_SEG, K=4)
-	Do_Cascading()
+	#Do_Cascading()
+	#Do_Stratify()
+	#Do_Stratify(LL=[0.1,0.7,0])
+	Do_StressTest()
+
+dsEpochs = 2000
+
+with CheckTime('Total Time'):
+	Do_StressTest()
 
 '''
-for k in range(5):
+for k in range(3):
 	Do_Stratify(K=6, gape=0.1, initLevel=0.7)
 
 ShowMapDataset()
 
-Do_Stratify(K=10, gape=0.05, initLevel=0.7, dryTry=True)
+for k in range(2):
+	Do_Stratify(K=8, gape=0.075, initLevel=0.9, dryTry=False)
 
 Do_Stratify(LL=[0.7, 0.1, 0.6, 0])
 
@@ -473,3 +527,5 @@ MergeDatasetMaps()
 dsMap = pp.GetNumberTable()
 
 '''
+
+

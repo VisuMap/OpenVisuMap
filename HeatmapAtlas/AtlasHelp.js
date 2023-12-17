@@ -264,12 +264,14 @@ function LoadSortedHeatmap() {
 function ShowDsHm() {	
 	var vs = New.StringSplit(vv.EventSource.Item.Tag);
 	var fs = New.StringSplit(vs[0], '&');
+
 	var L = fs.Count;
-	var dsList = Array.from(fs.GetRange(0, L-2));
+	var dsList = Array.from( fs.GetRange(0, L-2) );
 	var rows = fs[L-2]-0;
 	var columns = fs[L-1]-0;
 	var rowIds = vs.GetRange(1,rows);
 	var colIds = vs.GetRange(1+rows, columns)
+
 
 	var ntList = [];
 	for(var k in dsList) {
@@ -299,9 +301,16 @@ function SaveDsHm(hmParent) {
 		vv.Return();
 	}
 	var dsList = hmParent.Description.split('|');
-	if (dsList.length==0 ) {
+	if ( (dsList.length==0) ) {
 		vv.Message("The parent heatmap does not have dataset list set.");
 		vv.Return();
+	}
+	var allDs = New.HashSet(vv.Folder.DatasetNameList);
+	for(var ds in dsList) {
+		if ( !allDs.Contains(ds) ) {
+			vv.Message("The parent heatmap does not have valid dataset names in its description!");
+			vv.Return();			
+		}
 	}
 
 	var nt = pp.GetNumberTable();
@@ -324,9 +333,7 @@ function SaveDsHm(hmParent) {
 	ii.LabelStyle = 2;
 	ii.IconHeight = 40; 
 	ii.IconWidth = 60;
-	//var sPath = vv.CurrentScriptPath.replaceAll('\\', '/');
-	//ii.Script = `!vv.Import('${sPath}');ShowBiHeatmap()`;
-    ii.Script = "!vv.Import('AtlasHelp.js');ShowDsHm();";
+   ii.Script = "!vv.Import('AtlasHelp.js');ShowDsHm();";
 	ii.Name = dsList.join('|');
 	at.RedrawItem(ii);
 }
