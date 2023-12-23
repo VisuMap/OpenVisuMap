@@ -511,8 +511,8 @@ with CheckTime('Total Time'):
 	#Do_ByViewpoint(flag=HIGHLIGHT_VP)
 	#Do_ByFeature(flag=WEIGHT_SEG, K=4)
 	#Do_Cascading()
-	Do_StressTest()
-	#Do_Stratify()
+	#Do_StressTest()
+	Do_Stratify()
 
 
 '''
