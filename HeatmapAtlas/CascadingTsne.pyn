@@ -481,8 +481,8 @@ def Do_StressTest():
 	epochList = [40, 200]
 	for n in range(2):
 		for k, mp in enumerate(mpList):
-			print(f'{k}: Training {mp}')
 			vv.Dataset.OpenMap(mp)
+			print(f'{k}: Training {mp}: {vv.Dataset.BodyListEnabled().Count} rows')
 			mds = New.TsneMap().Show()
 			mds.MaxLoops = epochList[n]
 			mds.RefreshFreq = 20
@@ -491,7 +491,6 @@ def Do_StressTest():
 	
 	print('------- Repeating test (2) -------')
 	vv.Dataset.OpenMap('B3')
-	print(f'{rp}-th repeat...')
 	mds = New.TsneMap()
 	mds.Repeats = 4
 	mds.MaxLoops = 60
@@ -516,6 +515,9 @@ with CheckTime('Total Time'):
 
 
 '''
+
+locals()
+
 for k in range(3):
 	Do_Stratify(K=6, gape=0.1, initLevel=0.68)
 
