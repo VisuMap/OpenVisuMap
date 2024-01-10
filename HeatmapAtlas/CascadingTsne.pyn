@@ -9,7 +9,7 @@ import numpy as np
 
 # storage table for intermediate embedding maps.
 dsMap = None      # the table to store the intermediate maps.
-dsEpochs = 200   # training epochs for t-SNE algorithm
+dsEpochs = 1000   # training epochs for t-SNE algorithm
 outMaps = 2       # number of final maps
 dsMap3D = False   # the dimension of embedding maps.
 
@@ -182,11 +182,10 @@ class CheckTime:
 	def __init__(self, msg='Time'):
 		self.msg = msg
 	def __enter__(self):
-		vv.Echo('Test started...')
 		self.start_time = time.time()
 	def __exit__(self, type, value, traceback):
 		time_diff = time.time()-self.start_time
-		vv.Echo(f'{self.msg}: {time_diff:5g}')
+		vv.Echo(f'{self.msg}: {time_diff:.2f}s')
 
 #-----------------------------------------------
 
@@ -197,7 +196,7 @@ def ArcSegmentation(K):
 	for b in pp.BodyList:
 	  alpha = math.atan2(b.Y-cy, b.X-cx) + shift
 	  b.Type = int(alpha/ss) % K
-	pp.RedrawBodies()
+	pp.RedrawBodies()-
 
 def RadioSegmentation(K):
    cx, cy = numpy.average([(b.X, b.Y) for b in pp.BodyList], axis=0)
@@ -456,7 +455,7 @@ def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None, dryTry=False):
 			tm = RunTsne(tt)
 			dsCS[k*mpDim].Name = '|'.join(map(str, cList))
 			AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k, 
-				f';  Dm/Lv/Tm: {ds2.Columns}/{lv:.3f}/{tm:.1f}')
+				f';  Dm/Lv/T: {ds2.Columns}/{lv:.3f}/{tm:.1f}s')
 		tt.Close()
 		MergeDatasetMaps('Alg: Stratify')
 
@@ -467,12 +466,14 @@ def Do_StressTest():
 
 	print('------- Repeating test  --------')
 	for k, mp in enumerate(5*['B11']):
-		print(f'{k}: {mp}')
 		vv.Dataset.OpenMap(mp)
 		mds = New.TsneMap().Show()
 		mds.MaxLoops = 60
+		mds.Repeats = 1
 		mds.RefreshFreq = 20
-		mds.Start()
+		vv.Echo2(f'{k}: {mp}: ')
+		with CheckTime('T'):
+			mds.Start()
 		mds.Close() if mds.Completed else vv.Return()
 
 	print('------- Dataset size test --------')
@@ -482,11 +483,14 @@ def Do_StressTest():
 	for n in range(2):
 		for k, mp in enumerate(mpList):
 			vv.Dataset.OpenMap(mp)
-			print(f'{k}: Training {mp}: {vv.Dataset.BodyListEnabled().Count} rows')
+			rows = vv.Dataset.BodyListEnabled().Count
 			mds = New.TsneMap().Show()
 			mds.MaxLoops = epochList[n]
 			mds.RefreshFreq = 20
-			mds.Start()
+			mds.Repeats = 1
+			vv.Echo2(f'{k}: Training {mp}: {rows} rows;\t')
+			with CheckTime('T'):
+				mds.Start()
 			mds.Close() if mds.Completed else vv.Return()
 	
 	print('------- Repeating test (2) -------')
@@ -494,7 +498,7 @@ def Do_StressTest():
 	mds = New.TsneMap()
 	mds.Repeats = 4
 	mds.MaxLoops = 60
-	mds.RefreshFreq = 20
+	mds.RefreshFreq = 5
 	mds.Show().Start()
 	mds.Repeats = 1
 	mds.Close()
@@ -513,10 +517,7 @@ with CheckTime('Total Time'):
 	#Do_StressTest()
 	Do_Stratify()
 
-
 '''
-
-locals()
 
 for k in range(3):
 	Do_Stratify(K=6, gape=0.1, initLevel=0.68)
