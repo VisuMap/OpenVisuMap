@@ -134,7 +134,6 @@ def ConcatSnapshots():
 	offset = 0
 	for k, mp in enumerate(mList):
 		mD = mp.MapLayout.Dimension
-		print(str(mD) + f'is3D: {mD==3}')
 		AddMap2Dataset(ds, mp.BodyList, mD==3, offset, k)
 		offset += mD
 		mp.Close()
