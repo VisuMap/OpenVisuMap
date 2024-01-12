@@ -9,7 +9,7 @@ import numpy as np
 
 # storage table for intermediate embedding maps.
 dsMap = None      # the table to store the intermediate maps.
-dsEpochs = 1000   # training epochs for t-SNE algorithm
+dsEpochs = 200   # training epochs for t-SNE algorithm
 outMaps = 2       # number of final maps
 dsMap3D = False   # the dimension of embedding maps.
 
@@ -124,6 +124,7 @@ def AddMap2Dataset(ds, bsList, is3D, columns, ty, info=''):
 
 # Merge all open snapshots into a single dataset and display it as a heatmap.
 def ConcatSnapshots():
+	global dsMap
 	mList = vv.FindFormList('MapSnapshot')
 	if mList.Count == 0:
 		vv.Message('No snapshots present')
@@ -132,11 +133,13 @@ def ConcatSnapshots():
 	ds = New.NumberTable(mList[0].BodyList, dimSum)
 	offset = 0
 	for k, mp in enumerate(mList):
-		mpDim = mp.MapLayout.Dimension
-		AddMap2Dataset(ds, mp.BodyList, mpDim==3, offset, k)
-		offset += mpDim
+		mD = mp.MapLayout.Dimension
+		print(str(mD) + f'is3D: {mD==3}')
+		AddMap2Dataset(ds, mp.BodyList, mD==3, offset, k)
+		offset += mD
 		mp.Close()
-	ds.ShowHeatMap()
+	dsMap = ds
+	ShowMapDataset()
 	return ds
 
 def ConcatMapList(mpNames):
@@ -144,17 +147,18 @@ def ConcatMapList(mpNames):
 	mpDimList = [vv.Dataset.ReadMap(nm).Dimension for nm in mpNames]
 	dimSum, dsMap, offset = sum(mpDimList), None, 0
 	for k, nm in enumerate(mpNames):
-		mpDim = mpDimList[k]
+		mD = mpDimList[k]
 		bList = vv.Dataset.ReadMapBodyList(nm, True)
 		if dsMap == None: 
 			dsMap = New.NumberTable(bList, dimSum)
-		AddMap2Dataset(dsMap, bList, mpDim==3, offset, k)
-		offset += mpDim
+		AddMap2Dataset(dsMap, bList, mD==3, offset, k)
+		offset += mD
 	ShowMapDataset()
 
 '''
 ConcatMapList([f'A{k}' for k in range(5)])
 ConcatMapList(['A0'] + 4*['A4'])
+ConcatSnapshots()
 '''
 
 # Sort a list of points via nearst-neighbor.
@@ -196,7 +200,7 @@ def ArcSegmentation(K):
 	for b in pp.BodyList:
 	  alpha = math.atan2(b.Y-cy, b.X-cx) + shift
 	  b.Type = int(alpha/ss) % K
-	pp.RedrawBodies()-
+	pp.RedrawBodies()
 
 def RadioSegmentation(K):
    cx, cy = numpy.average([(b.X, b.Y) for b in pp.BodyList], axis=0)
@@ -471,10 +475,26 @@ def Do_StressTest():
 		mds.MaxLoops = 60
 		mds.Repeats = 1
 		mds.RefreshFreq = 20
+		mds.Is3D = (k>=3)
 		vv.Echo2(f'{k}: {mp}: ')
 		with CheckTime('T'):
 			mds.Start()
 		mds.Close() if mds.Completed else vv.Return()
+	
+	print('------- Repeating test (2) -------')
+	vv.Dataset.OpenMap('B3')
+	mds = New.TsneMap()
+	mds.Repeats = 2
+	mds.Is3D = True;
+	mds.MaxLoops = 60
+	mds.RefreshFreq = 5
+	mds.Show().Start()
+	mds.Is3D = True;
+	mds.Reset().Start()
+	mds.Is3D = False;
+	mds.Repeats = 1
+	mds.Close()
+
 
 	print('------- Dataset size test --------')
 	mpList = [f'B{k}' for k in range(1, 14)]
@@ -488,25 +508,18 @@ def Do_StressTest():
 			mds.MaxLoops = epochList[n]
 			mds.RefreshFreq = 20
 			mds.Repeats = 1
+			mds.Is3D = (n==1)
 			vv.Echo2(f'{k}: Training {mp}: {rows} rows;\t')
 			with CheckTime('T'):
 				mds.Start()
 			mds.Close() if mds.Completed else vv.Return()
-	
-	print('------- Repeating test (2) -------')
-	vv.Dataset.OpenMap('B3')
-	mds = New.TsneMap()
-	mds.Repeats = 4
-	mds.MaxLoops = 60
-	mds.RefreshFreq = 5
-	mds.Show().Start()
-	mds.Repeats = 1
-	mds.Close()
 
 	print('------- Stratify test -------')
 	vv.Dataset.OpenMap('B1')
-	for k in range(2):
-		Do_Stratify(K=6, gape=0.1, initLevel=0.68)
+	dsMap3D = False
+	Do_Stratify(K=6, gape=0.1, initLevel=0.68)
+	dsMap3D = True
+	Do_Stratify(K=6, gape=0.1, initLevel=0.68)
 
 #----------------------------------------------------
 

@@ -1054,8 +1054,10 @@ namespace VisuMap.DataLink {
                     var preMap2D = map2DViewList[viewIdx];
                     if (NeedNewView(preMap2D, access)) {
                         preMap2D = app.New.MapSnapshot(bs);
-                        if (app.Map != null)
+                        if (app.Map != null) {
                             preMap2D.GlyphSet = app.Map.GlyphType;
+                            preMap2D.MapType = app.Map.MapTypeIndex;
+                        }
                         preMap2D.Show();
                         map2DViewList[viewIdx] = preMap2D;
                     } else {
