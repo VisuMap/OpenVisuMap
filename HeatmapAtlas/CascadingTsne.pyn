@@ -9,7 +9,7 @@ import numpy as np
 
 # storage table for intermediate embedding maps.
 dsMap = None      # the table to store the intermediate maps.
-dsEpochs = 200   # training epochs for t-SNE algorithm
+dsEpochs = 400   # training epochs for t-SNE algorithm
 outMaps = 2       # number of final maps
 dsMap3D = False   # the dimension of embedding maps.
 
@@ -68,6 +68,8 @@ def MergeDatasetMaps(desc='OutMap', epochs=dsEpochs, ppl=0.1, repeats=outMaps, i
 	tt.Repeats = repeats
 	RunTsne(tt)
 	vv.Sleep(250)
+	if repeats == 1: 
+		tt.Show2DView()
 	tt.Close()
 	vwList = vv.FindFormList('MapSnapshot')
 	cnt = len(vwList)
@@ -121,6 +123,7 @@ def AddMap2Dataset(ds, bsList, is3D, columns, ty, info=''):
 	for k in range(mpDim):
 		ds.CS[columns+k].Group = ty+1
 	vv.Echo(f'{ty}: Map added' + info)
+	return columns+mpDim
 
 # Merge all open snapshots into a single dataset and display it as a heatmap.
 def ConcatSnapshots():
@@ -130,16 +133,13 @@ def ConcatSnapshots():
 		vv.Message('No snapshots present')
 		vv.Return()
 	dimSum = sum([m.MapLayout.Dimension for m in mList])
-	ds = New.NumberTable(mList[0].BodyList, dimSum)
+	dsMap = New.NumberTable(mList[0].BodyList, dimSum)
 	offset = 0
 	for k, mp in enumerate(mList):
 		mD = mp.MapLayout.Dimension
-		AddMap2Dataset(ds, mp.BodyList, mD==3, offset, k)
-		offset += mD
+		offset = AddMap2Dataset(dsMap, mp.BodyList, mD==3, offset, k)
 		mp.Close()
-	dsMap = ds
 	ShowMapDataset()
-	return ds
 
 def ConcatMapList(mpNames):
 	global dsMap
@@ -150,8 +150,7 @@ def ConcatMapList(mpNames):
 		bList = vv.Dataset.ReadMapBodyList(nm, True)
 		if dsMap == None: 
 			dsMap = New.NumberTable(bList, dimSum)
-		AddMap2Dataset(dsMap, bList, mD==3, offset, k)
-		offset += mD
+		offset = AddMap2Dataset(dsMap, bList, mD==3, offset, k)
 	ShowMapDataset()
 
 '''
@@ -412,11 +411,10 @@ def Do_Cascading():
 
 #---------------------------------------------
 
-def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None, dryTry=False):
+def NewFeatureChain(K=8, gape=0.05, initLevel=0.9, LL=None, showChain=True):
 	global allFeatures
 	global dsMap
 	ds = vv.GetNumberTableView(True).ApplyFilter(vv.Map.Filter)
-	# get std of all columns in to colKey
 	colKey = [it.Value for it in ds.SqueezeRows(9, False)]
 	maxV = max( colKey )
 	mpDim = 3 if dsMap3D else 2
@@ -426,120 +424,68 @@ def Do_Stratify(K=8, gape=0.05, initLevel=0.9, LL=None, dryTry=False):
 	else:
 		lvList = LL
 
-	#lvList.append( list( ds.IndexOfColumns(vv.GroupManager.GetGroupLabels("GC-100")) ) )
-
 	K = len(lvList)
 	allFeatures = [cs.Id for cs in ds.ColumnSpecList]
 	vv.Echo(f'-- Start Stratified-Embedding: {K} levels --')
 
-	if dryTry:
+	if showChain:
 		dsBw = New.BarView(colKey).Show()
+		lvList = [ round(x, 3) for x in lvList]
+		dimList = []
 		for k, lv in enumerate(lvList):
 			cList = [k for k in range(ds.Columns) if colKey[k]>lv*maxV]
-			vv.Echo(f'{k}: Dim/lv: {len(cList)}/{lvList[k]:.2f}')
+			dimList.append(len(cList))
 			for col in cList:
 				itm = dsBw.ItemList[col]
 				if itm.Group == 0:
 					itm.Group = k+1
+		print(f'LL = {lvList}\nDims = {dimList}')
 		dsBw.AutoScaling = True
 		dsBw.SortItems(True)		
-	else:
-		dsMap = New.NumberTable(ds, mpDim*K)
-		dsCS = dsMap.ColumnSpecList
-		tt = NewTsneMachine(ds,'EuclideanMetric', ex0=6.0, ppl=0.1)
-		for k, lv in enumerate(lvList):
-			if type(lv) is list:
-				cList = lv
-				lv = 0
-			else:
-				cList = [k for k in range(ds.Columns) if colKey[k]>lv*maxV]
-			ds2 = ds.SelectColumns(cList)
-			tt.SetTrainingData(ds2)
-			tm = RunTsne(tt)
-			dsCS[k*mpDim].Name = '|'.join(map(str, cList))
-			AddMap2Dataset(dsMap, tt.BodyList, tt.Is3D, k*mpDim, k, 
-				f';  Dm/Lv/T: {ds2.Columns}/{lv:.3f}/{tm:.1f}s')
-		tt.Close()
-		MergeDatasetMaps('Alg: Stratify')
+
+	fChain = []
+	dsCS = ds.ColumnSpecList
+	for lv in lvList:
+		fChain.append( [dsCS[k].Id for k in range(ds.Columns) if colKey[k]>lv*maxV] )
+	return fChain
+
+def Do_Stratify(fChain, ex0=4.0, ppl=0.05):
+	global dsMap
+	ds = vv.GetNumberTableView(True).ApplyFilter(vv.Map.Filter)
+	mD = 3 if dsMap3D else 2
+	dsMap = New.NumberTable(ds, mD*len(fChain))
+	print(f' ______________\tFeaturs\tTime _____________')
+	tt = NewTsneMachine(ds,'EuclideanMetric', ex0=ex0, ppl=ppl)
+	for k, fs in enumerate(fChain):
+		ds2 = ds.SelectColumnsById(fs)
+		tt.SetTrainingData(ds2)
+		tm = RunTsne(tt)
+		dsMap.ColumnSpecList[k*mD].Name = '|'.join(fs)
+		AddMap2Dataset(dsMap,tt.BodyList,tt.Is3D,k*mD,k,f',\t{ds2.Columns}\t{tm:.1f}s')
+	tt.Close()
+	MergeDatasetMaps('Alg: Stratify')
 
 #----------------------------------------------------
 
-def Do_StressTest():
-	print(f'=== Started at {time.strftime("%H:%M:%S", time.localtime())} ===')
-
-	print('------- Repeating test  --------')
-	for k, mp in enumerate(5*['B11']):
-		vv.Dataset.OpenMap(mp)
-		mds = New.TsneMap().Show()
-		mds.MaxLoops = 60
-		mds.Repeats = 1
-		mds.RefreshFreq = 20
-		mds.Is3D = (k>=3)
-		vv.Echo2(f'{k}: {mp}: ')
-		with CheckTime('T'):
-			mds.Start()
-		mds.Close() if mds.Completed else vv.Return()
-	
-	print('------- Repeating test (2) -------')
-	vv.Dataset.OpenMap('B3')
-	mds = New.TsneMap()
-	mds.Repeats = 2
-	mds.Is3D = True;
-	mds.MaxLoops = 60
-	mds.RefreshFreq = 5
-	mds.Show().Start()
-	mds.Is3D = True;
-	mds.Reset().Start()
-	mds.Is3D = False;
-	mds.Repeats = 1
-	mds.Close()
-
-
-	print('------- Dataset size test --------')
-	mpList = [f'B{k}' for k in range(1, 14)]
-	random.Random(12).shuffle(mpList)
-	epochList = [40, 200]
-	for n in range(2):
-		for k, mp in enumerate(mpList):
-			vv.Dataset.OpenMap(mp)
-			rows = vv.Dataset.BodyListEnabled().Count
-			mds = New.TsneMap().Show()
-			mds.MaxLoops = epochList[n]
-			mds.RefreshFreq = 20
-			mds.Repeats = 1
-			mds.Is3D = (n==1)
-			vv.Echo2(f'{k}: Training {mp}: {rows} rows;\t')
-			with CheckTime('T'):
-				mds.Start()
-			mds.Close() if mds.Completed else vv.Return()
-
-	print('------- Stratify test -------')
-	vv.Dataset.OpenMap('B1')
-	dsMap3D = False
-	Do_Stratify(K=6, gape=0.1, initLevel=0.68)
-	dsMap3D = True
-	Do_Stratify(K=6, gape=0.1, initLevel=0.68)
-
-#----------------------------------------------------
 
 with CheckTime('Total Time'):
 	#Do_ByViewpoint(flag=HIGHLIGHT_VP)
 	#Do_ByFeature(flag=WEIGHT_SEG, K=4)
 	#Do_Cascading()
 	#Do_StressTest()
-	Do_Stratify()
+	fc = NewFeatureChain(K=8, gape=0.075, initLevel=0.9, LL=None, showChain=False)
+	Do_Stratify(fc, 4.0, 0.05)
 
 '''
 
-for k in range(3):
-	Do_Stratify(K=6, gape=0.1, initLevel=0.68)
-
 ShowMapDataset()
 
-for k in range(2):
-	Do_Stratify(K=8, gape=0.05, initLevel=0.9, dryTry=False)
+fc = NewFeatureChain(K=8, gape=0.075, initLevel=0.9, LL=None, showChain=False)
+Do_Stratify(fc)
 
-Do_Stratify(LL=[1.0, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5])
+fc = NewFeatureChain(LL =  [0.9, 0.825, 0.75, 0.675, 0.6, 0.525, 0.4, 0.2], showChain=False)
+
+fc = NewFeatureChain(LL=[1.0, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5])
 
 for k in range(3): Do_ByViewpoint(flag=HIGHLIGHT_VP)
 
