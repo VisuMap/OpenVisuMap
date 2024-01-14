@@ -9,7 +9,7 @@ import numpy as np
 
 # storage table for intermediate embedding maps.
 dsMap = None      # the table to store the intermediate maps.
-dsEpochs = 400   # training epochs for t-SNE algorithm
+dsEpochs = 2000   # training epochs for t-SNE algorithm
 outMaps = 2       # number of final maps
 dsMap3D = False   # the dimension of embedding maps.
 
@@ -441,7 +441,7 @@ def NewFeatureChain(K=8, gape=0.05, initLevel=0.9, LL=None, showChain=True):
 					itm.Group = k+1
 		print(f'LL = {lvList}\nDims = {dimList}')
 		dsBw.AutoScaling = True
-		dsBw.SortItems(True)		
+		dsBw.SortItems(False)		
 
 	fChain = []
 	dsCS = ds.ColumnSpecList
@@ -449,12 +449,49 @@ def NewFeatureChain(K=8, gape=0.05, initLevel=0.9, LL=None, showChain=True):
 		fChain.append( [dsCS[k].Id for k in range(ds.Columns) if colKey[k]>lv*maxV] )
 	return fChain
 
+def GetFeatureChain(K):
+	ds = vv.GetNumberTableView(True)
+	colKey = [it.Value for it in ds.SqueezeRows(9, False)]
+	dsBw = New.BarView(colKey).Show()
+	for k in range(ds.Columns):
+		dsBw.ItemList[k].Id = ds.ColumnSpecList[k].Id
+	dsBw.SortItems(False)
+	fList = [item.Id for item in dsBw.ItemList]
+	dsBw.Close()
+	fChain = []
+	n = 3
+	for k in range(K):
+		fChain.append(fList[0:n])
+		n += n
+	return fChain
+
+def NewFeatureChain2(dsList):
+	fChain = None
+	K = 8
+	for nm in dsList:
+		vv.Folder.OpenDataset(nm)
+		fc = GetFeatureChain(N)
+		fc = list( map(set, fc) )
+		if fChain == None:
+			fChain = fc
+		else:
+			fChain = [ fChain[k] | fc[k] for k in range(K) ]
+	fChain = [list(f) for f in fChain]
+	return fChain
+
+def SaveFeatureChain(fChain, keyName):
+	vv.GroupManager.SetGroupLabels(keyName, ['&'.join(x) for x in fChain])
+
+def LoadFeatureChain(keyName):
+	fChain = vv.GroupManager.GetGroupLabels(keyName)
+	return [f.split('&') for f in fChain]
+
 def Do_Stratify(fChain, ex0=4.0, ppl=0.05):
 	global dsMap
 	ds = vv.GetNumberTableView(True).ApplyFilter(vv.Map.Filter)
 	mD = 3 if dsMap3D else 2
 	dsMap = New.NumberTable(ds, mD*len(fChain))
-	print(f' ______________\tFeaturs\tTime _____________')
+	print(f' ______________\tFeatures\tTime _____________')
 	tt = NewTsneMachine(ds,'EuclideanMetric', ex0=ex0, ppl=ppl)
 	for k, fs in enumerate(fChain):
 		ds2 = ds.SelectColumnsById(fs)
@@ -467,16 +504,26 @@ def Do_Stratify(fChain, ex0=4.0, ppl=0.05):
 
 #----------------------------------------------------
 
+'''
+fc = NewFeatureChain(K=8, gape=0.075, initLevel=0.9, LL=None, showChain=True)
+fc = NewFeatureChain(LL =  [0.9, 0.825, 0.75, 0.675, 0.6, 0.525, 0.45, 0.1],  showChain=True)
+SaveFeatureChain(fc, 'FeatureChain1')
+dsList = ['Perivascular',  'TCellBreast', 'BreastCancer', 'Myeloid', 'Vascular-C']
+fc = NewFeatureChain2(dsList)
+SaveFeatureChain(fc, 'FeatureChain')
+'''
 
 with CheckTime('Total Time'):
 	#Do_ByViewpoint(flag=HIGHLIGHT_VP)
 	#Do_ByFeature(flag=WEIGHT_SEG, K=4)
 	#Do_Cascading()
 	#Do_StressTest()
-	fc = NewFeatureChain(K=8, gape=0.075, initLevel=0.9, LL=None, showChain=False)
+	fc = LoadFeatureChain('FeatureChain1')
 	Do_Stratify(fc, 4.0, 0.05)
 
 '''
+
+Do_Stratify(fc, 4.0, 0.05)
 
 ShowMapDataset()
 
@@ -488,6 +535,17 @@ fc = NewFeatureChain(LL =  [0.9, 0.825, 0.75, 0.675, 0.6, 0.525, 0.4, 0.2], show
 fc = NewFeatureChain(LL=[1.0, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5])
 
 for k in range(3): Do_ByViewpoint(flag=HIGHLIGHT_VP)
+
+ss = [['a', 'b'], ['c', 'd'], ['1', '2', '3'], ['A']]
+
+SaveFeatureChain(ss, 'TstFC')
+ff = LoadFeatureChain('TstFC')
+fct = lambda x: '|'.join(x)
+xx = '&'.join(['|'.join(x) for x in ss])
+'&'.join(map(fct, ss))
+xx = list(map(fct, ss))
+sss = [s.split('|') for s in xx.split('&')]
+
 
 Do_ByViewpoint(flag=CENTERS_VP)
 Do_ByViewpoint(flag=INTPO_VP, K=16)
