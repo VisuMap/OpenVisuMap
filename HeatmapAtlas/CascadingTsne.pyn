@@ -10,7 +10,7 @@ import numpy as np
 # storage table for intermediate embedding maps.
 dsMap = None      # the table to store the intermediate maps.
 dsEpochs = 2000   # training epochs for t-SNE algorithm
-outMaps = 2       # number of final maps
+outMaps = 1       # number of final maps
 dsMap3D = False   # the dimension of embedding maps.
 
 TYPE_SEG,  ARC_SEG,  RADIO_SEG,  WEIGHT_SEG = 0, 1, 2, 3
@@ -191,81 +191,6 @@ class CheckTime:
 
 #-----------------------------------------------
 
-def ArcSegmentation(K):
-	cx, cy = numpy.average([(b.X, b.Y) for b in pp.BodyList], axis=0)
-	ss = 2.0*math.pi/K
-	shift = math.pi + 0.5 * ss
-	for b in pp.BodyList:
-	  alpha = math.atan2(b.Y-cy, b.X-cx) + shift
-	  b.Type = int(alpha/ss) % K
-	pp.RedrawBodies()
-
-def RadioSegmentation(K):
-   cx, cy = numpy.average([(b.X, b.Y) for b in pp.BodyList], axis=0)
-   minR, maxR = 1e18, 0
-   for b in pp.BodyList:
-      dx, dy = b.X - cx, b.Y - cy
-      R = dx*dx + dy*dy
-      minR, maxR = min(minR, R), max(maxR, R)
-   minR, maxR = math.sqrt(minR), math.sqrt(maxR)
-   ss = (maxR - minR)/K
-   for b in pp.BodyList:
-      dx, dy = b.X - cx, b.Y - cy
-      R = math.sqrt(dx*dx + dy*dy)
-      b.Type = min(int(R/ss), K-1)
-   pp.RedrawBodies()
-
-def WeightSegmentation(K):
-	bs = pp.BodyList
-	nt = vv.GetNumberTableView(True)
-	colWeight = [math.log(1+math.fabs(it.Value*nt.Rows)) for it in nt.ColumnMean()]
-	colIdxes = nt.IndexOfColumns([b.Id for b in bs])	
-	minW, maxW = 1e10, 0
-	for i, b in enumerate(bs):
-		colW = colWeight[colIdxes[i]]
-		minW = min(minW, colW)
-		maxW = max(maxW, colW)
-	ss = (maxW - minW)/K
-	for i, b in enumerate(bs):
-		colW = colWeight[colIdxes[i]]
-		tIdx = int((colW-minW)/ss)
-		b.Type = min(tIdx, K-1)
-	pp.RedrawBodies()
-
-def Do_ByFeature(flag=TYPE_SEG, K=16):
-	global dsMap
-	if not hasattr(pp, 'BodyList'):
-		vv.Message('This service must be called from a feature-map!')
-		vv.Return(0)
-	if flag==WEIGHT_SEG:
-		WeightSegmentation(K)
-	elif flag == ARC_SEG:
-		ArcSegmentation(K)
-	elif flag == RADIO_SEG:
-		RadioSegmentation(K)
-	ds = vv.GetNumberTableView(True)		
-	tt = NewTsneMachine(ds)
-	mpDim = 3 if tt.Is3D else 2
-	tList = {b.Type for b in pp.BodyList}
-	dsMap = New.NumberTable(ds, len(tList)*mpDim)
-	vv.Echo(f'-- Start Feature-Embedding: {len(tList)} feature groups --')
-	for k, t in enumerate(tList):
-		bList = [b.Id for b in pp.BodyList if b.Type==t]
-		dsM = ds.SelectColumnsById( bList )
-		if dsM.Columns == 0:
-			vv.Message('No feature selected! The parent window must be a feature-map!')
-			vv.Return(0)
-		pp.Title = f'Feature Group: {t}, Dataset: {dsM.Rows}x{dsM.Columns}'
-		pp.SelectedItems = bList
-		tt.SetTrainingData(dsM)
-		tm = RunTsne(tt)
-		tt.Normalize()
-		AddMap2Dataset(dsMap, tt.BodyList, (mpDim==3), k*mpDim, t, f'; T:{tm:.1f}')
-	tt.Close()
-	MergeDatasetMaps(f'Alg: by-feature: {flag}')
-
-#-----------------------------------------------
-
 def VpInterpolation(ds, K):
 	cc = []
 	for t in [0, 1]:
@@ -411,10 +336,10 @@ def Do_Cascading():
 
 #---------------------------------------------
 
-def NewFeatureChain(K=8, gape=0.05, initLevel=0.9, LL=None, showChain=True):
+def NewFeatureChain(K=8, initLevel=0.9, gape=0.05, LL=None, showChain=False):
 	global allFeatures
 	global dsMap
-	ds = vv.GetNumberTableView(True).ApplyFilter(vv.Map.Filter)
+	ds = vv.GetNumberTableView(True)
 	colKey = [it.Value for it in ds.SqueezeRows(9, False)]
 	maxV = max( colKey )
 	mpDim = 3 if dsMap3D else 2
@@ -479,11 +404,27 @@ def NewFeatureChain2(dsList):
 	fChain = [list(f) for f in fChain]
 	return fChain
 
+# split the whole feature space by the column type, excluding the type 0.
+def NewFeatureChain3():
+	if not hasattr(pp, 'BodyList'):
+		vv.Message('This service must be called from a feature-map!')
+		vv.Return(0)
+	tList = {b.Type for b in pp.BodyList if b.Type>0}
+	fChain = []
+	for k, t in enumerate(tList):
+		fChain.append( [b.Id for b in pp.BodyList if b.Type==t] )
+	for k, f in enumerate(fChain):
+		print(f'{k}: {len(f)}')
+	return fChain
+
 def SaveFeatureChain(fChain, keyName):
 	vv.GroupManager.SetGroupLabels(keyName, ['&'.join(x) for x in fChain])
 
 def LoadFeatureChain(keyName):
 	fChain = vv.GroupManager.GetGroupLabels(keyName)
+	if fChain == None:
+		print(f'Cannot find group "{keyName}"!')
+		return None
 	return [f.split('&') for f in fChain]
 
 def Do_Stratify(fChain, ex0=4.0, ppl=0.05):
@@ -504,65 +445,30 @@ def Do_Stratify(fChain, ex0=4.0, ppl=0.05):
 
 #----------------------------------------------------
 
-'''
-fc = NewFeatureChain(K=8, gape=0.075, initLevel=0.9, LL=None, showChain=True)
-fc = NewFeatureChain(LL =  [0.9, 0.825, 0.75, 0.675, 0.6, 0.525, 0.45, 0.1],  showChain=True)
-SaveFeatureChain(fc, 'FeatureChain1')
-dsList = ['Perivascular',  'TCellBreast', 'BreastCancer', 'Myeloid', 'Vascular-C']
-fc = NewFeatureChain2(dsList)
-SaveFeatureChain(fc, 'FeatureChain')
-'''
-
 with CheckTime('Total Time'):
 	#Do_ByViewpoint(flag=HIGHLIGHT_VP)
-	#Do_ByFeature(flag=WEIGHT_SEG, K=4)
 	#Do_Cascading()
-	#Do_StressTest()
-	fc = LoadFeatureChain('FeatureChain1')
-	Do_Stratify(fc, 4.0, 0.05)
+	Do_Stratify(fChain, 4.0, 0.05)
 
 '''
+fChain = NewFeatureChain(8, 0.85, 0.075,  showChain=True)
+fChain = NewFeatureChain(LL =  [0.9, 0.825, 0.75, 0.675, 0.6, 0.525, 0.45, 0.25],  showChain=True)
+SaveFeatureChain(fChain, 'FeatureChain1')
+dsList = ['Perivascular',  'TCellBreast', 'BreastCancer', 'Myeloid', 'Vascular-C']
+fChain = NewFeatureChain2(dsList)
+SaveFeatureChain(fChain, 'FeatureChain')
+fChain = NewFeatureChain3()
+fChain = LoadFeatureChain('FeatureChain')
 
-Do_Stratify(fc, 4.0, 0.05)
-
-ShowMapDataset()
-
-fc = NewFeatureChain(K=8, gape=0.075, initLevel=0.9, LL=None, showChain=False)
-Do_Stratify(fc)
-
-fc = NewFeatureChain(LL =  [0.9, 0.825, 0.75, 0.675, 0.6, 0.525, 0.4, 0.2], showChain=False)
-
-fc = NewFeatureChain(LL=[1.0, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5])
-
-for k in range(3): Do_ByViewpoint(flag=HIGHLIGHT_VP)
-
-ss = [['a', 'b'], ['c', 'd'], ['1', '2', '3'], ['A']]
-
-SaveFeatureChain(ss, 'TstFC')
-ff = LoadFeatureChain('TstFC')
-fct = lambda x: '|'.join(x)
-xx = '&'.join(['|'.join(x) for x in ss])
-'&'.join(map(fct, ss))
-xx = list(map(fct, ss))
-sss = [s.split('|') for s in xx.split('&')]
-
+vv.SelectedItems = fChain[3]  #0:7
 
 Do_ByViewpoint(flag=CENTERS_VP)
 Do_ByViewpoint(flag=INTPO_VP, K=16)
 Do_ByViewpoint(flag=HIGHLIGHT_VP)
-Do_Cascading()
 
-pp = vv.AtlasManager.OpenMap("Vescular", "i4")
-Do_ByFeature(flag=TYPE_SEG)
-Do_ByFeature(flag=WEIGHT_SEG, K=4)
-Do_ByFeature(flag=ARC_SEG, K=12)
-Do_ByFeature(flag=RADIO_SEG, K=10)
-pp.Close()
-
+ShowMapDataset()
 MergeDatasetMaps()
-
 dsMap = pp.GetNumberTable()
-
 '''
 
 
