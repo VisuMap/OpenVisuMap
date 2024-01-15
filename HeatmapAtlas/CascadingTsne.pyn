@@ -13,7 +13,6 @@ dsEpochs = 2000   # training epochs for t-SNE algorithm
 outMaps = 1       # number of final maps
 dsMap3D = False   # the dimension of embedding maps.
 
-TYPE_SEG,  ARC_SEG,  RADIO_SEG,  WEIGHT_SEG = 0, 1, 2, 3
 CENTERS_VP,  INTPO_VP,  HIGHLIGHT_VP = 0, 1, 2
 
 #-----------------------------------------------------------
@@ -153,16 +152,15 @@ def ConcatMapList(mpNames):
 		offset = AddMap2Dataset(dsMap, bList, mD==3, offset, k)
 	ShowMapDataset()
 
-'''
-ConcatMapList([f'A{k}' for k in range(5)])
-ConcatMapList(['A0'] + 4*['A4'])
-ConcatSnapshots()
-'''
 
 # Sort a list of points via nearst-neighbor.
 def SerializeBodies( bList ):
 	#The starting point is specified as the first fixed point.
-	s = next(filter(lambda b:b.IsFixed, bList))
+	fixed = [b for b in bList if b.IsFixed]
+	if len(fixed) > 0:
+		s = fixed[0]
+	else:
+		raise Exception("No fixed point found as starting point!")		
 	bList.remove(s)
 	bs = [s]
 	while( len(bList) > 0 ):
@@ -192,10 +190,14 @@ class CheckTime:
 #-----------------------------------------------
 
 def VpInterpolation(ds, K):
-	cc = []
-	for t in [0, 1]:
-		centers = ds.SelectRowsById( [r.Id for r in ds.RS if r.Type == t ] )
-		cc.append( [it.Value for it in centers.ColumnMean()] )
+	selected = vv.Map.SelectedBodies
+	types = list({ b.Type for b in selected })
+	if len(types) < 2:
+		raise Exception("Two clusters must be selected on the map!")
+	cc = [None, None]	
+	for k in range(2):
+		centers = ds.SelectRowsById( [r.Id for r in selected if r.Type == types[k] ] )
+		cc[k] = [it.Value for it in centers.ColumnMean()] 
 	return numpy.linspace(cc[0], cc[1], K)
 
 def VpByCenters(ds):
@@ -207,6 +209,9 @@ def VpByCenters(ds):
 		cc.append( numpy.array( [it.Value for it in centers.ColumnMean()] ) )
 	return cc
 
+# The current map must marker a set of points highlighted as viewpoints; and marker one
+# point of them fixed as the starting point.
+#
 def VpHighlighted(ds):
 	cc = []
 	bList = [b for b in pp.Map.BodyList if b.Highlighted and not b.Disabled]
@@ -217,7 +222,7 @@ def VpHighlighted(ds):
 
 def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 	global dsMap
-	ds = vv.GetNumberTableView(True)
+	ds = vv.GetNumberTableView(True).ApplyFilter(vv.Map.Filter)
 	if flag == CENTERS_VP:
 		vpList = VpByCenters(ds)
 	elif flag == INTPO_VP:
@@ -446,25 +451,26 @@ def Do_Stratify(fChain, ex0=4.0, ppl=0.05):
 #----------------------------------------------------
 
 with CheckTime('Total Time'):
+	#Do_ByViewpoint(flag=CENTERS_VP)
 	#Do_ByViewpoint(flag=HIGHLIGHT_VP)
+	#Do_ByViewpoint(flag=INTPO_VP, K=32)
 	#Do_Cascading()
 	Do_Stratify(fChain, 4.0, 0.05)
+	#ShowMapDataset()
 
 '''
-fChain = NewFeatureChain(8, 0.85, 0.075,  showChain=True)
+fChain = NewFeatureChain(12, 0.9, 0.05,  showChain=True)
 fChain = NewFeatureChain(LL =  [0.9, 0.825, 0.75, 0.675, 0.6, 0.525, 0.45, 0.25],  showChain=True)
 SaveFeatureChain(fChain, 'FeatureChain1')
 dsList = ['Perivascular',  'TCellBreast', 'BreastCancer', 'Myeloid', 'Vascular-C']
 fChain = NewFeatureChain2(dsList)
 SaveFeatureChain(fChain, 'FeatureChain')
 fChain = NewFeatureChain3()
+
 fChain = LoadFeatureChain('FeatureChain')
 
-vv.SelectedItems = fChain[3]  #0:7
-
-Do_ByViewpoint(flag=CENTERS_VP)
-Do_ByViewpoint(flag=INTPO_VP, K=16)
-Do_ByViewpoint(flag=HIGHLIGHT_VP)
+ConcatMapList(['A0', 'A1', 'A2', 'A2', 'A2'])
+ConcatSnapshots()
 
 ShowMapDataset()
 MergeDatasetMaps()
