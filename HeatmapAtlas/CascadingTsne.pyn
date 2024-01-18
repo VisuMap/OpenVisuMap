@@ -9,7 +9,7 @@ import numpy as np
 
 # storage table for intermediate embedding maps.
 dsMap = None      # the table to store the intermediate maps.
-dsEpochs = 2000   # training epochs for t-SNE algorithm
+dsEpochs = 4000    # training epochs for t-SNE algorithm
 outMaps = 1       # number of final maps
 dsMap3D = False   # the dimension of embedding maps.
 
@@ -33,7 +33,7 @@ def NewTsneMachine(ds, mtr='Correlation.Cosine Distance',
 	tt.AutoNormalizing = True
 	tt.ExaggerationSmoothen = True
 	tt.StagedTraining = False
-	tt.RefreshFreq = 100
+	tt.RefreshFreq = 50
 	tt.GlyphScale = 25
 	tt.GlyphSize = 0.25
 	tt.GlyphOpacity = 0.5
@@ -76,6 +76,7 @@ def MergeDatasetMaps(desc='OutMap', epochs=dsEpochs, ppl=0.1, repeats=outMaps, i
 		for k in range(repeats):
 			vw = vwList[cnt-repeats+k]
 			vw.Title = desc + f'; Repeat: {k+1}'
+	return vwList[cnt-1]
 
 #---------------------------------------------------------------
 
@@ -249,7 +250,7 @@ def Do_ByViewpoint(flag=CENTERS_VP, K=16):
 		if flag == HIGHLIGHT_VP:
 			dsMap.CS[k*mpDim].Id = rList[k]
 	tt.Close()
-	MergeDatasetMaps(f'Alg: by-viewpoint: {flag}')
+	return MergeDatasetMaps(f'Alg: by-viewpoint: {flag}')
 
 #--------------------------------------------
 # Create dataset from maps extracted during the t-SNE training processes.
@@ -337,50 +338,54 @@ def Do_Cascading():
 	vv.Echo(f'-- Start Cascading Embedding --')
 	#CreateMapDataset(initSize=0.2, stepSize=1.0)
 	CreateMapDataset(initSize=0.2, stepSize=0.125)
-	MergeDatasetMaps('Alg: cascading')
+	return MergeDatasetMaps('Alg: cascading')
 
 #---------------------------------------------
+def NewFeatureChain(K=8, initLevel=0.9, gape=0.05, showChain=False):
+	LL = [initLevel-k*gape for k in range(K)]
+	LL = [v for v in LL if v>0]
+	return NewFeatureChain0(LL, showChain=showChain)
 
-def NewFeatureChain(K=8, initLevel=0.9, gape=0.05, LL=None, showChain=False):
+
+def NewFeatureChain0(LL, showChain=False, fKey=None):
 	global allFeatures
 	global dsMap
-	ds = vv.GetNumberTableView(True)
-	colKey = [it.Value for it in ds.SqueezeRows(9, False)]
+
+	if fKey == None:
+		ds = vv.GetNumberTableView(True)
+		fKey = ds.SqueezeRows(9, False)
+
+	for item in fKey: fKey.Group = 0
+	colKey = [it.Value for it in fKey]
 	maxV = max( colKey )
 	mpDim = 3 if dsMap3D else 2
-	if LL is None:
-		lvList = [initLevel-k*gape for k in range(K)]
-		lvList = [v for v in lvList if v>0]
-	else:
-		lvList = LL
 
-	K = len(lvList)
-	allFeatures = [cs.Id for cs in ds.ColumnSpecList]
+	K = len(LL)
+	allFeatures = [it.Id for it in fKey]
 	vv.Echo(f'-- Start Stratified-Embedding: {K} levels --')
 
 	if showChain:
-		dsBw = New.BarView(colKey).Show()
-		lvList = [ round(x, 3) for x in lvList]
+		dsBw = New.BarView(fKey).Show()
+		LL = [ round(x, 3) for x in LL]
 		dimList = []
-		for k, lv in enumerate(lvList):
-			cList = [k for k in range(ds.Columns) if colKey[k]>lv*maxV]
+		for k, lv in enumerate(LL):
+			cList = [k for k in range(fKey.Count) if colKey[k]>lv*maxV]
 			dimList.append(len(cList))
 			for col in cList:
 				itm = dsBw.ItemList[col]
 				if itm.Group == 0:
 					itm.Group = k+1
-		print(f'LL = {lvList}\nDims = {dimList}')
+		print(f'LL = {LL}\nDims = {dimList}')
 		dsBw.AutoScaling = True
 		dsBw.SortItems(False)		
 
 	fChain = []
-	dsCS = ds.ColumnSpecList
-	for lv in lvList:
-		fChain.append( [dsCS[k].Id for k in range(ds.Columns) if colKey[k]>lv*maxV] )
+	for lv in LL:
+		fChain.append( [fKey[k].Id for k in range(fKey.Count) if colKey[k]>lv*maxV] )
 	return fChain
 
 def GetFeatureChain(K):
-	ds = vv.GetNumberTableView(True)
+	ds = vv.GetNumberTableView(False)
 	colKey = [it.Value for it in ds.SqueezeRows(9, False)]
 	dsBw = New.BarView(colKey).Show()
 	for k in range(ds.Columns):
@@ -389,7 +394,7 @@ def GetFeatureChain(K):
 	fList = [item.Id for item in dsBw.ItemList]
 	dsBw.Close()
 	fChain = []
-	n = 3
+	n = 2
 	for k in range(K):
 		fChain.append(fList[0:n])
 		n += n
@@ -400,7 +405,7 @@ def NewFeatureChain2(dsList):
 	K = 8
 	for nm in dsList:
 		vv.Folder.OpenDataset(nm)
-		fc = GetFeatureChain(N)
+		fc = GetFeatureChain(K)
 		fc = list( map(set, fc) )
 		if fChain == None:
 			fChain = fc
@@ -434,9 +439,11 @@ def LoadFeatureChain(keyName):
 
 def Do_Stratify(fChain, ex0=4.0, ppl=0.05):
 	global dsMap
-	ds = vv.GetNumberTableView(True).ApplyFilter(vv.Map.Filter)
+	ds = vv.GetNumberTableView(True)
 	mD = 3 if dsMap3D else 2
 	dsMap = New.NumberTable(ds, mD*len(fChain))
+	fLen = [len(f) for f in fChain]
+	print(f'Creating {len(fChain)} feature maps: {fLen}...')
 	print(f' ______________\tFeatures\tTime _____________')
 	tt = NewTsneMachine(ds,'EuclideanMetric', ex0=ex0, ppl=ppl)
 	for k, fs in enumerate(fChain):
@@ -446,7 +453,7 @@ def Do_Stratify(fChain, ex0=4.0, ppl=0.05):
 		dsMap.ColumnSpecList[k*mD].Name = '|'.join(fs)
 		AddMap2Dataset(dsMap,tt.BodyList,tt.Is3D,k*mD,k,f',\t{ds2.Columns}\t{tm:.1f}s')
 	tt.Close()
-	MergeDatasetMaps('Alg: Stratify')
+	return MergeDatasetMaps('Alg: Stratify')
 
 #----------------------------------------------------
 
@@ -455,16 +462,43 @@ with CheckTime('Total Time'):
 	#Do_ByViewpoint(flag=HIGHLIGHT_VP)
 	#Do_ByViewpoint(flag=INTPO_VP, K=32)
 	#Do_Cascading()
+	if 'fChain' not in globals(): raise Exception('No feature-chain speficied')
 	Do_Stratify(fChain, 4.0, 0.05)
-	#ShowMapDataset()
+	ShowMapDataset()
 
 '''
-fChain = NewFeatureChain(12, 0.9, 0.05,  showChain=True)
-fChain = NewFeatureChain(LL =  [0.9, 0.825, 0.75, 0.675, 0.6, 0.525, 0.45, 0.25],  showChain=True)
-SaveFeatureChain(fChain, 'FeatureChain1')
+
+for mp in ['A3', 'A4', 'A5', 'A7']:
+	print(f'\nTraining map {mp}...')
+	vv.Dataset.OpenMap(mp)
+	Do_Stratify(fChain, 4.0, 0.05)
+
+LL = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4]
+
+fChain = NewFeatureChain(8, 0.9, 0.05,  showChain=True)
+fChain = NewFeatureChain0([0.9, 0.8, 0.7, 0.6, 0.5, 0.4], True, None)
+fChain = LoadFeatureChain('FeatureChain')
+fChain = NewFeatureChain0([0.9, 0.8, 0.7, 0.6, 0.5, 0.4], True, keyItems)
+
+for it in keyItems: it.Group = 0
+
+fChain = NewFeatureChain(8, 0.98, 0.0075,  showChain=True)
+Do_Stratify(fChain, 4.0, 0.05)
+Do_Stratify(fChain, 4.0, 0.05)
+
+
+SaveFeatureChain(fChain, 'FeatureChain2')
+fChain = LoadFeatureChain('FeatureChain2')
+
 dsList = ['Perivascular',  'TCellBreast', 'BreastCancer', 'Myeloid', 'Vascular-C']
 fChain = NewFeatureChain2(dsList)
 SaveFeatureChain(fChain, 'FeatureChain')
+fLen = [len(f) for f in fChain]
+print(f'Creating {len(fChain)} feature maps: {fLen}...')
+
+fChain = NewFeatureChain2(['Perivascular', 'Vascular-C'])
+print(f'{fChain[0]}...')
+
 fChain = NewFeatureChain3()
 
 fChain = LoadFeatureChain('FeatureChain')
