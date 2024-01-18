@@ -21,6 +21,7 @@
   <ItemGroup>
     <Content Include="AtlasHelp.js" />
     <Content Include="AtlasHelp.pyn" />
+    <Content Include="CascadingTsne.pyn" />
     <Content Include="DualClustering.js" />
     <Content Include="DualEmbedding.js" />
     <Content Include="DualSorting.js" />
