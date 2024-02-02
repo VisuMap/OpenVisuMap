@@ -17,6 +17,7 @@ function InstallAtlas() {
         ["Merge DS", "!vv.Import('AtlasHelp.js');ConcatDatasets(SelectedDs(), 5000, null)", "Atlas", null],
         ["Compare Maps", "MapMorph.js", "MainForm|MapSnapshot|D3dRender", icon],
         ["Variation Tracing", "VariationTracing.js", "MainForm", null],
+		  ["Merge Maps", "CascadingTsne.pyn", "Atlas", null],
     ]) mgr.SetCustomMenu("Atlas/" + label, true, script, view, img);
 
     for (var [label, img, script] of [

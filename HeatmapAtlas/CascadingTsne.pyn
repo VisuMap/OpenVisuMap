@@ -9,8 +9,8 @@ import numpy as np
 
 # storage table for intermediate embedding maps.
 dsMap = None      # the table to store the intermediate maps.
-dsEpochs = 4000    # training epochs for t-SNE algorithm
-outMaps = 1       # number of final maps
+dsEpochs = 4000   # training epochs for t-SNE algorithm
+outMaps = 2       # number of final maps
 dsMap3D = False   # the dimension of embedding maps.
 
 CENTERS_VP,  INTPO_VP,  HIGHLIGHT_VP = 0, 1, 2
@@ -153,6 +153,25 @@ def ConcatMapList(mpNames):
 		offset = AddMap2Dataset(dsMap, bList, mD==3, offset, k)
 	ShowMapDataset()
 
+# merge selected maps of an atlas into a dataset.
+def MergeAtlasMaps():
+	mps = pp.GetSelectedItems()
+	ds = None
+	for k, item in enumerate(mps):
+		mp = item.Open()
+		if ds is None:
+			ds = New.NumberTable(mp.BodyList, 2*mps.Count)
+		for b in mp.BodyList:
+			row = ds.IndexOfRow(b.Id)
+			if row >= 0:
+				R = ds.Matrix[row]
+				R[2*k] = b.X
+				R[2*k + 1] = b.Y
+		for n in [2*k, 2*k+1]:
+			ds.CS[n].Group = k+1
+			ds.CS[n].Id = 'C'+str(n)
+		mp.Close()
+	return ds
 
 # Sort a list of points via nearst-neighbor.
 def SerializeBodies( bList ):
@@ -346,16 +365,17 @@ def NewFeatureChain(K=8, initLevel=0.9, gape=0.05, showChain=False):
 	LL = [v for v in LL if v>0]
 	return NewFeatureChain0(LL, showChain=showChain)
 
+def GetVarianceKey():
+	ds = vv.GetNumberTableView(True)
+	return ds.SqueezeRows(9, False)
 
 def NewFeatureChain0(LL, showChain=False, fKey=None):
 	global allFeatures
 	global dsMap
 
-	if fKey == None:
-		ds = vv.GetNumberTableView(True)
-		fKey = ds.SqueezeRows(9, False)
-
-	for item in fKey: fKey.Group = 0
+	if fKey is None: fKey = GetVarianceKey()
+	for item in fKey: 
+		item.Group = 0
 	colKey = [it.Value for it in fKey]
 	maxV = max( colKey )
 	mpDim = 3 if dsMap3D else 2
@@ -384,13 +404,17 @@ def NewFeatureChain0(LL, showChain=False, fKey=None):
 		fChain.append( [fKey[k].Id for k in range(fKey.Count) if colKey[k]>lv*maxV] )
 	return fChain
 
-def GetFeatureChain(K):
+def ShowSortedFeatures():
 	ds = vv.GetNumberTableView(False)
 	colKey = [it.Value for it in ds.SqueezeRows(9, False)]
 	dsBw = New.BarView(colKey).Show()
 	for k in range(ds.Columns):
 		dsBw.ItemList[k].Id = ds.ColumnSpecList[k].Id
 	dsBw.SortItems(False)
+	return dsBw
+
+def GetFeatureChain(K):
+	dsBw = ShowSortedFeatures()
 	fList = [item.Id for item in dsBw.ItemList]
 	dsBw.Close()
 	fChain = []
@@ -437,6 +461,17 @@ def LoadFeatureChain(keyName):
 		return None
 	return [f.split('&') for f in fChain]
 
+def NewFeatureChain4(fKey, LL):
+	bv = New.BarView(fKey)
+	bv.SortItems(False)
+	fKey = [it.Id for it in bv.ItemList]
+	bv.Close()
+	fChain = []
+	for n in LL:
+		fChain.append( fKey[0:n] )
+	return fChain
+
+
 def Do_Stratify(fChain, ex0=4.0, ppl=0.05):
 	global dsMap
 	ds = vv.GetNumberTableView(True)
@@ -446,8 +481,10 @@ def Do_Stratify(fChain, ex0=4.0, ppl=0.05):
 	print(f'Creating {len(fChain)} feature maps: {fLen}...')
 	print(f' ______________\tFeatures\tTime _____________')
 	tt = NewTsneMachine(ds,'EuclideanMetric', ex0=ex0, ppl=ppl)
+	#tt = NewTsneMachine(ds,'Correlation.Cosine Distance', ex0=ex0, ppl=ppl)
 	for k, fs in enumerate(fChain):
 		ds2 = ds.SelectColumnsById(fs)
+		ds2.Centralize()
 		tt.SetTrainingData(ds2)
 		tm = RunTsne(tt)
 		dsMap.ColumnSpecList[k*mD].Name = '|'.join(fs)
@@ -457,6 +494,11 @@ def Do_Stratify(fChain, ex0=4.0, ppl=0.05):
 
 #----------------------------------------------------
 
+if vv.EventSource.Item == 'Merge Maps':
+	dsMap = MergeAtlasMaps()
+	MergeDatasetMaps('Merge')
+	vv.Return()
+
 with CheckTime('Total Time'):
 	#Do_ByViewpoint(flag=CENTERS_VP)
 	#Do_ByViewpoint(flag=HIGHLIGHT_VP)
@@ -464,11 +506,16 @@ with CheckTime('Total Time'):
 	#Do_Cascading()
 	if 'fChain' not in globals(): raise Exception('No feature-chain speficied')
 	Do_Stratify(fChain, 4.0, 0.05)
-	ShowMapDataset()
+	#ShowMapDataset()
+
 
 '''
 
-for mp in ['A3', 'A4', 'A5', 'A7']:
+with CheckTime('Total Time'):
+	Do_StressTest()
+
+
+for mp in ['A3', 'A4', 'A5', 'A6', 'A7']:
 	print(f'\nTraining map {mp}...')
 	vv.Dataset.OpenMap(mp)
 	Do_Stratify(fChain, 4.0, 0.05)
@@ -478,9 +525,17 @@ LL = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4]
 fChain = NewFeatureChain(8, 0.9, 0.05,  showChain=True)
 fChain = NewFeatureChain0([0.9, 0.8, 0.7, 0.6, 0.5, 0.4], True, None)
 fChain = LoadFeatureChain('FeatureChain')
-fChain = NewFeatureChain0([0.9, 0.8, 0.7, 0.6, 0.5, 0.4], True, keyItems)
 
-for it in keyItems: it.Group = 0
+fChain = NewFeatureChain0([0.85, 0.825, 0.8, 0.775, 0.75, 0.725, 0.7], True, keyItems)
+fChain = NewFeatureChain(12, 0.96, 0.005, True)
+
+keyItems = pp.ItemList
+
+fChain = 8*[[c.Id for c in vv.Dataset.ColumnSpecList]]
+
+fChain = NewFeatureChain4(GetVarianceKey(), 16*[20913])
+
+Do_Stratify(fChain, 4.0, 0.05)
 
 fChain = NewFeatureChain(8, 0.98, 0.0075,  showChain=True)
 Do_Stratify(fChain, 4.0, 0.05)
@@ -506,9 +561,22 @@ fChain = LoadFeatureChain('FeatureChain')
 ConcatMapList(['A0', 'A1', 'A2', 'A2', 'A2'])
 ConcatSnapshots()
 
+[it.Id for it in keyItems][0:5]
+
+ShowSortedFeatures()
+
 ShowMapDataset()
 MergeDatasetMaps()
 dsMap = pp.GetNumberTable()
+
+vv.StartProcess(`https://www.ncbi.nlm.nih.gov/gene/?term=${pp.SelectedItems[0]}`) // for JS.
+vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/gene/?term={pp.SelectedItems[0]}')
+
+for k, nm in enumerate(vv.Folder.DatasetNameList):
+	vv.Echo(f'{k} : {nm}')
+
+dsList = [0, 2, 3, 4, 7, 12, 13]
+
 '''
 
 
