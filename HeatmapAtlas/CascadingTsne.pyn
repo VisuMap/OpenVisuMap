@@ -9,7 +9,7 @@ import numpy as np
 
 # storage table for intermediate embedding maps.
 dsMap = None      # the table to store the intermediate maps.
-dsEpochs = 4000   # training epochs for t-SNE algorithm
+dsEpochs = 400   # training epochs for t-SNE algorithm
 outMaps = 2       # number of final maps
 dsMap3D = False   # the dimension of embedding maps.
 
@@ -155,10 +155,15 @@ def ConcatMapList(mpNames):
 
 # merge selected maps of an atlas into a dataset.
 def MergeAtlasMaps():
-	mps = pp.GetSelectedItems()
+	# if ctrl pressed, gets maps from open snapshot views.
+	fromView = vv.ModifierKeys.ControlPressed  
+	mps = vv.FindFormList('MapSnapshot') if fromView else pp.GetSelectedItems()
+	if mps.Count == 0:
+		vv.Message('No map items selected!')
+		vv.Return()
 	ds = None
-	for k, item in enumerate(mps):
-		mp = item.Open()
+	for k, item in enumerate(mps):		
+		mp = item if fromView else item.Open()
 		if ds is None:
 			ds = New.NumberTable(mp.BodyList, 2*mps.Count)
 		for b in mp.BodyList:
@@ -493,6 +498,7 @@ def Do_Stratify(fChain, ex0=4.0, ppl=0.05):
 	return MergeDatasetMaps('Alg: Stratify')
 
 #----------------------------------------------------
+
 
 if vv.EventSource.Item == 'Merge Maps':
 	dsMap = MergeAtlasMaps()
