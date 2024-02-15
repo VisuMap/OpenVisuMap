@@ -32,6 +32,10 @@ def ReduceByPca(X, pcaNumber=50):
 
 # ----------------------------------------------
 
+if len(sys.argv) < 2:
+    print('Usage TsneMap.py <csv-data-file>')
+    quit()
+
 inFile = sys.argv[1]
 X = np.genfromtxt(inFile) if inFile.endswith('.csv') else np.load(inFile)
 print('Loaded table ', X.shape)
