@@ -67,7 +67,6 @@ namespace TsneDx {
             this.PerplexityRatio = PerplexityRatio;
             this.MaxEpochs = MaxEpochs;
             this.OutDim = OutDim;
-            this.ExaggerationRatio = ExaggerationRatio;
             this.CacheLimit = CacheLimit;
             this.ExaggerationInit = ExaggerationInit;
             this.MetricType = MetricType;
@@ -91,17 +90,9 @@ namespace TsneDx {
 
         public int MetricType { get; set; } = 0;
 
-        public double ExaggerationInit { get; set; } = 10.0;
+        public double ExaggerationInit { get; set; } = 6.0;
 
         public double ExaggerationFinal { get; set; } = 1.0;
-
-        public double ExaggerationRatio { get; set; } = 0.99;
-
-        public int ExaggerationLength { 
-            get { return (int) (MaxEpochs* ExaggerationRatio); }
-        }
-
-        public bool ExaggerationSmoothen { get; set; } = true;
 
         public bool AutoNormalize { get; set; } = true;
 
@@ -475,8 +466,6 @@ namespace TsneDx {
         }
 
         public float[][] Fit(float[][] X) {
-            int exaggerationLength = ExaggerationLength;
-
             gpu = new GpuDevice();
             cc = gpu.CreateConstantBuffer<TsneMapConstants>(0);
 
@@ -599,12 +588,8 @@ namespace TsneDx {
             List<double> stages = StagedTraining ? new List<double>() { 0.5, 0.75, 0.9 } : new List<double>();
 
             while (true) {
-                if (ExaggerationSmoothen) {
-                    double t = (double)(1 + stepCounter) / MaxEpochs;
-                    cc.c.PFactor = (float)(ExaggerationInit * Math.Pow((double)ExaggerationFinal / ExaggerationInit, t * t));
-                } else {
-                    cc.c.PFactor = (stepCounter < exaggerationLength) ? (float)ExaggerationInit : (float) ExaggerationFinal;
-                }
+                double t = (double)stepCounter / (MaxEpochs - 1);
+                cc.c.PFactor = (float)((1-t)*ExaggerationInit + t * ExaggerationFinal );
 
                 if (stages.Count > 0) {
                     double r = stages[0];
@@ -667,7 +652,7 @@ namespace TsneDx {
                 stepCounter++;
                 if (stepCounter % 10 == 0)  Console.Write('.');
                 if (stepCounter % 500 == 0) Console.WriteLine();
-                if ((stepCounter >= MaxEpochs) || ((stepCounter >= (2 + exaggerationLength)) && (currentVariation < stopVariation))) {
+                if ((stepCounter >= MaxEpochs) || (currentVariation < stopVariation)) {
                     break;
                 }
             }

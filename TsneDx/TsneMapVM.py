@@ -8,7 +8,8 @@
 #
 import sys
 sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Release')
-import clr, os, TsneDx, time, ModelUtil
+import clr, os, TsneDx, time
+import DataLinkCmd as vm
 import numpy as np
 
 #=================================
@@ -20,8 +21,8 @@ def DoTsneMap(X, perplexityRatio=0.05, maxEpochs=1000, outDim=2, metricType=0):
     tsne.MetricType = metricType
     tsne.CacheLimit = 23000
     tsne.MaxCpuCacheSize = 26000
-    tsne.ExaggerationFactor = 4.0
-    tsne.ExaggerationRatio = 0.2
+    tsne.ExaggerationInit = 6.0
+    tsne.ExaggerationFinal = 1.0
 
     X = X.astype(np.float32)
     Y = tsne.FitBuffer(X.__array_interface__['data'][0], X.shape[0], X.shape[1])
@@ -35,11 +36,9 @@ def ReduceByPca(X, pcaNumber=50):
     return np.fromiter(X1, float).reshape(X.shape[0], -1)
 #=================================
 
-log = ModelUtil.Logger()
 
 print('Loading data from VisuMap...')
-X = log.LoadTable(dsName='+')
-if len(X) == 0: X = log.LoadTable(dsName='@')
+X = vm.LoadFromVisuMap()
 print('Loaded table ', X.shape)
 
 pcaNr = -100
@@ -53,4 +52,4 @@ t0 = time.time()
 Y = DoTsneMap(X, perplexityRatio=0.025, maxEpochs=100, outDim=2, metricType=0)
 print('Fitting finished in %.2f seconds'%(time.time()-t0))
 print('Map table: ', Y.shape)
-log.ShowMatrix(Y, view=10+Y.shape[1])
+vm.ShowToVisuMap(Y, 't-SNE Embedding')
