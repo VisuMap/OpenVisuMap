@@ -1,0 +1,194 @@
+
+def StartMonitor(nt, map=None):
+	bv = New.BarView(nt.ColumnSpecList)
+	bv.Horizontal = True
+	bv.BarLabelType = 4
+	bv.AutoScaling = False
+	bv.LowerLimit = 0
+	bv.UpperLimit = 3.0
+	bv.BaseLineType = 0
+	bv.Show()
+	vv.EventManager.OnItemsSelected("@OnSelected()", bv, nt)
+	if map == None: 
+		map = vv.MapView
+	mk = map.ShowMarker(True)
+	mk.AnimationPause = 25
+	mk.AnimationStepSize = 5
+	mk.LoopPath = False
+	mk.NoLooping = False
+	mk.Width = 50
+	mk.Height = 10
+	mk.SpinningMarker()
+
+def OnSelected():
+	vv.EventSource.Argument.SelectRowsById(vv.SelectedItems).ColumnMean(pp.ItemList)
+	pp.Redraw()
+
+def StartTracing(idMon, map=None):
+	StartMonitor( vv.Dataset.GetNumberTableEnabled().SelectColumnsById(idMon), map )
+
+def LoopList(listName, epochs=1000):
+	idMon = list(vv.GroupManager.GetGroupLabels(listName))
+	mds = New.TsneMap().Show()
+	mds.MaxLoops = epochs
+	mds.PerplexityRatio = 0.05
+	mds.InitialExaggeration = 6.0
+	for n in range(0, len(idMon), 50):
+		mds.RunWithFeatures(idMon[n:(n+50)])
+		if not mds.Completed: vv.Return(1)
+		map = New.MapSnapshot().Show()
+		map.Description = map.Title = f'{listName}: {n} -- {n+50}'
+	mds.Close()
+
+gId = ["LargeTranscripts500", "SmallTranscript500", "LongSpan500", "HiExonCount500", "ShortSpan500"]
+
+
+def MonitorMap():
+	fs = pp.Description.split(' ')
+	idMon = 	list(vv.GroupManager.GetGroupLabels(fs[0][:-1]))
+	n0, n1 = int(fs[1]), int(fs[3])
+	StartTracing(idMon[n0:n1], pp)
+
+'''
+
+idMon = list(vv.GroupManager.GetGroupLabels(gId[1]))
+idMon = list(vv.GroupManager.GetGroupLabels('G374'))
+
+StartTracing(idMon)
+StartMonitor(dsMon)
+idMon = idMon[100:200]
+dsMon = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(idMon)
+dsMon.ShowHeatMap()
+
+ntAll = vv.Dataset.GetNumberTableEnabled()
+
+LoopList(gId[3], 2000)
+
+
+vv.EventManager.RaiseItemsSelected(idMon)
+
+====================================================
+
+import mygene
+import pprint
+
+mg = mygene.MyGeneInfo()
+
+
+g = mg.getgene('ENSG00000237330')
+g = mg.getgene('ENSG00000137818',  field='genomic_pos')
+vv.Echo(pprint.pformat(g))
+gIds = [ id for id in pp.AllItems ]
+
+gs = mg.getgenes(gIds,  field = 'genomic_pos')
+cIdx = vv.Dataset.IndexOfColumn('ChrName')
+for k, g in enumerate(gs):
+	if 'notfound' in g:
+		continue
+	p = g['genomic_pos']
+	if type(p) is list:
+		p = p[0]
+	gId = p['ensemblgene']
+	rowIdx = vv.Dataset.IndexOfRow(gId)
+	if rowIdx >=0 :
+		vv.Dataset.SetDataAt(rowIdx, cIdx, p['chr'])
+
+gs = mg.getgenes(gIds,  field = 'ensembl')
+cIdx = vv.Dataset.IndexOfColumn('GeneType')
+for k, g in enumerate(gs):
+	if 'notfound' in g:
+		print(k, 'NotFound')
+		continue
+	p = g['ensembl']
+	if type(p) is list:
+		p = p[0]
+	#print(k, ": ", p['gene'], p['type_of_gene'])
+	rowIdx = vv.Dataset.IndexOfRow(p['gene'])
+	if rowIdx >=0 :
+		vv.Dataset.SetStringAt(rowIdx, cIdx, p['type_of_gene'])
+
+gs = mg.getgenes(gIds,  field = 'exons')
+cIdx = vv.Dataset.IndexOfColumn('Span')
+for k, g in enumerate(gs):
+	if 'exons' in g:
+		p = g['exons']
+		if type(p) is list:
+			p = p[0]
+		rowIdx = vv.Dataset.IndexOfRow(gIds[k])
+		vv.Dataset.SetValueAt(rowIdx, cIdx, int(p['txend']) - int(p['txstart']) )
+
+gs = mg.getgenes(gIds,  field = 'exons')
+cIdx = vv.Dataset.IndexOfColumn('ExonCount')
+for k, g in enumerate(gs):
+	if 'exons' in g:	
+		p = g['exons']
+		if type(p) is list:
+			p = p[0]
+		posList = p['position']
+		rowIdx = vv.Dataset.IndexOfRow(gIds[k])
+		vv.Dataset.SetValueAt(rowIdx, cIdx, len(posList) )
+
+gs = mg.getgenes(gIds,  field = 'exons')
+cIdx = vv.Dataset.IndexOfColumn('SizeNT')
+for k, g in enumerate(gs):
+	if 'exons' not in g:
+		continue
+	p = g['exons']
+	if type(p) is list:
+		p = p[0]
+	posList = p['position']
+	sz =  [p2[1] - p2[0] for p2 in posList] 
+	#print(k, ': ', pprint.pformat(sz), sum(sz))
+	rowIdx = vv.Dataset.IndexOfRow(gIds[k])
+	vv.Dataset.SetValueAt(rowIdx, cIdx, sum(sz))
+
+gs = mg.getgenes(gIds,  field = 'summary')
+cIdx = vv.Dataset.IndexOfColumn('Summary')
+for k, g in enumerate(gs):
+	if 'summary' not in g:
+		continue
+	p = g['summary']
+	rowIdx = vv.Dataset.IndexOfRow(gIds[k])
+	vv.Dataset.SetStringAt(rowIdx, cIdx, p)
+
+gs = mg.getgenes(gIds,  field = 'pantherdb')
+cIdx = vv.Dataset.IndexOfColumn('OrthologCount')
+for k, g in enumerate(gs):
+	if 'pantherdb' in g:
+		p = g['pantherdb']['ortholog']
+		rowIdx = vv.Dataset.IndexOfRow(gIds[k])
+		vv.Dataset.SetValueAt(rowIdx, cIdx, len(p))
+
+gs = mg.getgenes(gIds,  field = 'homologene')
+cIdx = vv.Dataset.IndexOfColumn('HomologeneCount')
+for k, g in enumerate(gs):
+	if 'homologene' not in g:
+		continue
+	p = g['homologene']['genes']
+	if k < len(gIds):
+		rowIdx = vv.Dataset.IndexOfRow(gIds[k])
+		vv.Dataset.SetValueAt(rowIdx, cIdx, len(p))
+	else:
+		print(k, pprint.pformat(p))
+
+gs = mg.getgenes(gIds,  field = 'symbol')
+cIdx = vv.Dataset.IndexOfColumn('Symbol')
+for k, g in enumerate(gs):
+	if 'symbol' in g:
+		p = g['symbol']
+		if k < len(gIds):
+			rowIdx = vv.Dataset.IndexOfRow(gIds[k])
+			vv.Dataset.SetStringAt(rowIdx, cIdx, p)
+
+cIdx = vv.Dataset.IndexOfColumn('Size/Span Ratio')
+ds = vv.Dataset
+for k in range(ds.Rows):
+	sp = ds.GetValueAt(k, 4)
+	sz = ds.GetValueAt(k, 5)
+	if sp != 0:
+		ds.SetValueAt(k, cIdx, sz/sp)
+
+vv.Dataset.CommitChanges()
+vv.Map.Redraw()
+	
+'''
