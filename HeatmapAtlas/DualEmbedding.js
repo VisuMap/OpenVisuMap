@@ -6,11 +6,11 @@ vv.Import("AtlasHelp.js");
 ValidateHeatMap(pp);
 
 cfg = {...cfg, ...{
-	Epochs:PP(1000),    // training epochs for cell/gene profiles.
-	Exa:   PP(10),     // initial exaggreation
-	ExaF:  PP(1.5),    // final exaggeration.
+	Epochs:PP(2000),    // training epochs for cell/gene profiles.
+	Exa:   PP(6),     // initial exaggreation
+	ExaF:  PP(1.0),    // final exaggeration.
 	Ppr:   PP(0.05),   // perplexity ratio    
-	Mtr:   PP(cfg.cos), // distance metric
+	Mtr:   PP(cfg.euc), // distance metric
  	PrShift:PP(1.0),      // cell/gene profile shift towards arithmetric center.
 	Is3D:	PP(false, false),
 	cellMap:null, 
@@ -19,17 +19,18 @@ cfg = {...cfg, ...{
 	MapLimit: PP(0,0),
 }};
 
-cfg.Epochs = PP(4000, 4000);
+cfg.Epochs = PP(1000, 1000);
 cfg.Exa = PP(6.0);
 cfg.ExaF = PP(1.0);
-cfg.Ppr = PP(0.1);
-cfg.Mtr = PP(cfg.cos, cfg.euc);
+cfg.Ppr = PP(0.05);
+cfg.Mtr = PP(cfg.euc, cfg.euc);
 //
 //limits the columns or rows by random selection when creating maps of rows or columns.
 //cfg.MapLimit = PP(400, 50000); 
 //
 
 function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, finalExa, ppRatio, is3D) {
+	mds.MdsAlgorithm = 2;
 	mds.SetTrainingData(nt);
 	mds.Is3D = is3D;
 	mds.Metric = mtr;
@@ -70,6 +71,7 @@ function DEmbeddingMain() {
 	cfg.hm.TheForm.SetBounds(1000, 700, sz, sz);
 	
 	if (cfg.Epochs.c > 0) {
+		cfg.hm.Title = 'Creating cell embedding...';
 		var nt1 = nt;
 		nt1 = SqueezeFeatures(nt1, cfg.MapLimit.c);      		
 		if ( (cfg.Mtr.c == cfg.cos) && (cfg.PrShift.c!=0) )
@@ -82,6 +84,7 @@ function DEmbeddingMain() {
 	}
 
 	if (cfg.Epochs.g > 0) {
+		cfg.hm.Title = 'Creating gene embedding...';
 		var nt2 = nt.Transpose2();
 		nt2 = SqueezeFeatures(nt2, cfg.MapLimit.g);
 		if ( (cfg.Mtr.g == cfg.cos) && (cfg.PrShift.g!=0) )

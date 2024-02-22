@@ -581,7 +581,6 @@ vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/gene/?term={pp.SelectedItems[0]}'
 for k, nm in enumerate(vv.Folder.DatasetNameList):
 	vv.Echo(f'{k} : {nm}')
 
-dsList = [0, 2, 3, 4, 7, 12, 13]
 
 '''
 

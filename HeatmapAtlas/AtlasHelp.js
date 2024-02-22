@@ -375,15 +375,24 @@ var csFct = New.CsObject(`
 		bool is2D = (map.Name == "MapSnapshot");
 		var bList = is2D ? (map as IMapSnapshot).BodyList : (map as IMap3DView).BodyList;
 
+		int N = bList.Count;
+		double hiThreasHold = 0.75*colMean.Max();
+		for(int i=0; i<N; i++) {
+			double v = colMean[i];
+			bv.ItemList[i].Value = v;
+			bv.ItemList[i].Group = (short)((v>hiThreasHold)?0:4);
+		}
+
+		for(int i=0; i<N; i++)
+			colMean[i] *= colMean[i];
 		double minExpr = colMean.Min();
 		double maxExpr = colMean.Max();
 		double stepSize = (maxExpr - minExpr)/64;
 		if ( stepSize <= 0 )
 			return;
-		for(int i=0; i<bList.Count; i++) {
+		for(int i=0; i<N; i++) 
 			bList[i].Type = (short) ( (colMean[i] - minExpr)/stepSize );
-			bv.ItemList[i].Value = colMean[i];
-		}
+
 		bv.Redraw();
 		if ( is2D )
 			(map as IMapSnapshot).RedrawBodiesType();
@@ -419,6 +428,11 @@ var csFct = New.CsObject(`
 		}
 		if ( overCount > (int)(0.02 * selected.Rows) )
 			bv.UpperLimit = overflow/overCount;
+
+		bv.AutoScaling = true;
+		double hiMarker = 0.75 * bv.MaxValue();
+		for(int i=0; i<items.Count; i++)
+			items[i].Group = (short)( (items[i].Value<hiMarker) ? 4 : 0);
 
 		double minExpr = bv.LowerLimit;
 		double maxExpr = bv.UpperLimit;
