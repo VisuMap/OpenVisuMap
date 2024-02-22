@@ -1,4 +1,3 @@
-
 def StartMonitor(nt, map=None):
 	bv = New.BarView(nt.ColumnSpecList)
 	bv.Horizontal = True
@@ -7,50 +6,122 @@ def StartMonitor(nt, map=None):
 	bv.LowerLimit = 0
 	bv.UpperLimit = 3.0
 	bv.BaseLineType = 0
+	for item in bv.ItemList: item.Group = 4
+	bv.ReadOnly = True
 	bv.Show()
-	vv.EventManager.OnItemsSelected("@OnSelected()", bv, nt)
+	bv.TheForm.Width = 400
+	bv.TheForm.Height = 1000
+	vv.EventManager.OnItemsSelected("@OnSelected()", bv, nt)	
 	if map == None: 
 		map = vv.MapView
 	mk = map.ShowMarker(True)
-	mk.AnimationPause = 25
-	mk.AnimationStepSize = 5
+	mk.AnimationPause = 15
+	mk.AnimationStepSize = 2
 	mk.LoopPath = False
 	mk.NoLooping = False
+	mk.MarkerColor = New.Color('Yellow')
+	mk.Left = 200
+	mk.Top = 200
 	mk.Width = 50
 	mk.Height = 10
 	mk.SpinningMarker()
+	
 
 def OnSelected():
-	vv.EventSource.Argument.SelectRowsById(vv.SelectedItems).ColumnMean(pp.ItemList)
+	nt = vv.EventSource.Argument.SelectRowsById(vv.SelectedItems)
+	if nt.Rows==0:
+		return;
+	nt.ColumnMean(pp.ItemList)
+	maxV = 1.5
+	for item in pp.ItemList:
+		if item.Value > maxV:
+			item.Group = 0
 	pp.Redraw()
 
 def StartTracing(idMon, map=None):
 	StartMonitor( vv.Dataset.GetNumberTableEnabled().SelectColumnsById(idMon), map )
 
-def LoopList(listName, epochs=1000):
-	idMon = list(vv.GroupManager.GetGroupLabels(listName))
+def NewTsne(epochs, PP, EX):
 	mds = New.TsneMap().Show()
 	mds.MaxLoops = epochs
-	mds.PerplexityRatio = 0.05
-	mds.InitialExaggeration = 6.0
-	for n in range(0, len(idMon), 50):
-		mds.RunWithFeatures(idMon[n:(n+50)])
+	mds.PerplexityRatio = PP
+	mds.InitialExaggeration = EX
+	mds.ExaggerationSmoothen = True
+	mds.RefreshFreq = 20
+	return mds
+
+def LoopList(listName, epochs=1000, PP=0.05, SS=100, EX=4.0):
+	idList = list(vv.GroupManager.GetGroupLabels(listName))	
+	mds = NewTsne(epochs, PP, EX)
+	L = len(idList)
+	for n in range(0, L, SS):
+		n2 = min(L, n + SS)
+		mds.RunWithFeatures(idList[n:n2])
 		if not mds.Completed: vv.Return(1)
 		map = New.MapSnapshot().Show()
-		map.Description = map.Title = f'{listName}: {n} -- {n+50}'
+		map.Title = f'{listName}: {n} -- {n2}'
+		map.Description = map.Title + f' EP:{epochs}, PP:{PP}, SS:{SS}, EX:{EX}, DS:{vv.Dataset.Name}'
 	mds.Close()
 
-gId = ["LargeTranscripts500", "SmallTranscript500", "LongSpan500", "HiExonCount500", "ShortSpan500"]
-
-
-def MonitorMap():
+def ExtractFeatures():
 	fs = pp.Description.split(' ')
 	idMon = 	list(vv.GroupManager.GetGroupLabels(fs[0][:-1]))
-	n0, n1 = int(fs[1]), int(fs[3])
-	StartTracing(idMon[n0:n1], pp)
+	n, n2 = int(fs[1]), int(fs[3])
+	return idMon[n:n2]
+
+def ReEmbedding():
+	fs = pp.Description.split(' ')[4:]
+	fs = [ x.split(':')[1].strip(',') for x in fs ]
+	mds = NewTsne(int(fs[0]), float(fs[1]), float(fs[3]))
+	mds.RunWithFeatures(ExtractFeatures())
+	if not mds.Completed: 
+		vv.Return(1)
+	map = New.MapSnapshot().Show()
+	map.Title, map.Description = pp.Title, pp.Description
+	mds.Close()
+
+def MonitorMap():
+	StartTracing(ExtractFeatures(), pp)
+
+def ShowData():
+	vv.Dataset.GetNumberTableEnabled().SelectColumnsById(ExtractFeatures()).ShowHeatMap()
+
+def GetGeneList(chrName, strand):
+	ds = vv.Folder.ReadDataset("Gene Features")
+	gList = []
+	for k in range(ds.Rows):
+		if ds.GetDataAt(k, 4) != 'protein_coding':
+			continue
+		id = ds.BodyList[k].Id
+		chr = ds.GetDataAt(k, 0)
+		sense = ds.GetDataAt(k, 1)
+		pos = int(ds.GetValueAt(k, 2))
+		
+		if (chr == chrName) and (sense == strand):
+			gList.append( (id, pos) )
+	gList.sort(key=lambda x:x[1])
+	return [p[0] for p in gList]
 
 '''
 
+gId = ["LargeTranscripts500", "SmallTranscript500", "LongSpan500", 
+	"HiExonCount500", "ShortSpan500", 'Chr1P', 'Chr1N']
+
+vv.GroupManager.SetGroupLabels('Chr1P', GetGeneList('1', 'p'))
+
+for nm in ['Chr1P', 'Chr1N', 'Chr2P', 'Chr2N']:	LoopList(nm, SS=50)
+
+LoopList('LongNoCoding', epochs=2000, SS=300, PP=0.1)
+
+at = vv.AtlasManager.OpenAtlas()
+at.CaptureAllOpenViews()
+at.Close()
+
+
+LoopList(gId[5], 2000, PP=0.05, SS=50, EX=4.0)
+LoopList(gId[6], 2000, PP=0.05, SS=50, EX=4.0)
+
+vv.GroupManager.SetGroupLabels('Chr22', vv.SelectedItems)
 idMon = list(vv.GroupManager.GetGroupLabels(gId[1]))
 idMon = list(vv.GroupManager.GetGroupLabels('G374'))
 
@@ -61,9 +132,6 @@ dsMon = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(idMon)
 dsMon.ShowHeatMap()
 
 ntAll = vv.Dataset.GetNumberTableEnabled()
-
-LoopList(gId[3], 2000)
-
 
 vv.EventManager.RaiseItemsSelected(idMon)
 
@@ -92,6 +160,24 @@ for k, g in enumerate(gs):
 	rowIdx = vv.Dataset.IndexOfRow(gId)
 	if rowIdx >=0 :
 		vv.Dataset.SetDataAt(rowIdx, cIdx, p['chr'])
+
+gs = mg.getgenes(gIds,  field = 'genomic_pos')
+ds = vv.Dataset
+cIdxS = ds.IndexOfColumn('PosStart')
+cIdxE = ds.IndexOfColumn('PosEnd')
+cIdxSs = ds.IndexOfColumn('Sense')
+for k, g in enumerate(gs):
+	if 'notfound' in g:
+		continue
+	p = g['genomic_pos']
+	if type(p) is list:
+		p = p[0]
+	gId = p['ensemblgene']
+	rowIdx = ds.IndexOfRow(gId)
+	if rowIdx >=0 :
+		ds.SetDataAt(rowIdx, cIdxS, p['start'])
+		ds.SetDataAt(rowIdx, cIdxE, p['end'])
+		ds.SetDataAt(rowIdx, cIdxSs, p['strand'])
 
 gs = mg.getgenes(gIds,  field = 'ensembl')
 cIdx = vv.Dataset.IndexOfColumn('GeneType')
