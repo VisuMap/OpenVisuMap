@@ -1,0 +1,147 @@
+import mygene
+import pprint
+
+mg = mygene.MyGeneInfo()
+
+g = mg.getgene('ENSG00000237330')
+g = mg.getgene('ENSG00000137818',  field='go')
+vv.Echo(pprint.pformat(g))
+
+ds = vv.Dataset
+if ds.Name != 'Gene Features': 
+	vv.Return(1)
+gIds = [ x.Id for x in ds.BodyList ]
+
+#-----------------------
+
+gs = mg.getgenes(gIds,  field = 'genomic_pos')
+cIdx = ds.IndexOfColumn('ChrName')
+for g in gs:
+	if 'notfound' in g:
+		continue
+	p = g['genomic_pos']
+	if type(p) is list:
+		p = p[0]
+	gId = p['ensemblgene']
+	rowIdx = ds.IndexOfRow(gId)
+	if rowIdx >=0 :
+		ds.SetDataAt(rowIdx, cIdx, p['chr'])
+
+#-----------------------
+
+gs = mg.getgenes(gIds,  field = 'genomic_pos')
+cIdxS = ds.IndexOfColumn('PosStart')
+cIdxE = ds.IndexOfColumn('PosEnd')
+cIdxSs = ds.IndexOfColumn('Sense')
+for k, g in enumerate(gs):
+	if 'notfound' in g:
+		continue
+	p = g['genomic_pos']
+	if type(p) is list:
+		p = p[0]
+	gId = p['ensemblgene']
+	rowIdx = ds.IndexOfRow(gId)
+	if rowIdx >=0 :
+		ds.SetDataAt(rowIdx, cIdxS, p['start'])
+		ds.SetDataAt(rowIdx, cIdxE, p['end'])
+		ds.SetDataAt(rowIdx, cIdxSs, p['strand'])
+
+#-----------------------
+
+gs = mg.getgenes(gIds,  field = 'ensembl')
+cIdx = vv.Dataset.IndexOfColumn('GeneType')
+for k, g in enumerate(gs):
+	if 'notfound' in g:
+		print(k, 'NotFound')
+		continue
+	p = g['ensembl']
+	if type(p) is list:
+		p = p[0]
+	#print(k, ": ", p['gene'], p['type_of_gene'])
+	rowIdx = vv.Dataset.IndexOfRow(p['gene'])
+	if rowIdx >=0 :
+		vv.Dataset.SetStringAt(rowIdx, cIdx, p['type_of_gene'])
+
+gs = mg.getgenes(gIds,  field = 'exons')
+cIdx = vv.Dataset.IndexOfColumn('Span')
+for k, g in enumerate(gs):
+	if 'exons' in g:
+		p = g['exons']
+		if type(p) is list:
+			p = p[0]
+		rowIdx = vv.Dataset.IndexOfRow(gIds[k])
+		vv.Dataset.SetValueAt(rowIdx, cIdx, int(p['txend']) - int(p['txstart']) )
+
+gs = mg.getgenes(gIds,  field = 'exons')
+cIdx = vv.Dataset.IndexOfColumn('ExonCount')
+for k, g in enumerate(gs):
+	if 'exons' in g:	
+		p = g['exons']
+		if type(p) is list:
+			p = p[0]
+		posList = p['position']
+		rowIdx = vv.Dataset.IndexOfRow(gIds[k])
+		vv.Dataset.SetValueAt(rowIdx, cIdx, len(posList) )
+
+gs = mg.getgenes(gIds,  field = 'exons')
+cIdx = vv.Dataset.IndexOfColumn('SizeNT')
+for k, g in enumerate(gs):
+	if 'exons' not in g:
+		continue
+	p = g['exons']
+	if type(p) is list:
+		p = p[0]
+	posList = p['position']
+	sz =  [p2[1] - p2[0] for p2 in posList] 
+	#print(k, ': ', pprint.pformat(sz), sum(sz))
+	rowIdx = vv.Dataset.IndexOfRow(gIds[k])
+	vv.Dataset.SetValueAt(rowIdx, cIdx, sum(sz))
+
+gs = mg.getgenes(gIds,  field = 'summary')
+cIdx = vv.Dataset.IndexOfColumn('Summary')
+for k, g in enumerate(gs):
+	if 'summary' not in g:
+		continue
+	p = g['summary']
+	rowIdx = vv.Dataset.IndexOfRow(gIds[k])
+	vv.Dataset.SetStringAt(rowIdx, cIdx, p)
+
+gs = mg.getgenes(gIds,  field = 'pantherdb')
+cIdx = vv.Dataset.IndexOfColumn('OrthologCount')
+for k, g in enumerate(gs):
+	if 'pantherdb' in g:
+		p = g['pantherdb']['ortholog']
+		rowIdx = vv.Dataset.IndexOfRow(gIds[k])
+		vv.Dataset.SetValueAt(rowIdx, cIdx, len(p))
+
+gs = mg.getgenes(gIds,  field = 'homologene')
+cIdx = vv.Dataset.IndexOfColumn('HomologeneCount')
+for k, g in enumerate(gs):
+	if 'homologene' not in g:
+		continue
+	p = g['homologene']['genes']
+	if k < len(gIds):
+		rowIdx = vv.Dataset.IndexOfRow(gIds[k])
+		vv.Dataset.SetValueAt(rowIdx, cIdx, len(p))
+	else:
+		print(k, pprint.pformat(p))
+
+gs = mg.getgenes(gIds,  field = 'symbol')
+cIdx = vv.Dataset.IndexOfColumn('Symbol')
+for k, g in enumerate(gs):
+	if 'symbol' in g:
+		p = g['symbol']
+		if k < len(gIds):
+			rowIdx = vv.Dataset.IndexOfRow(gIds[k])
+			vv.Dataset.SetStringAt(rowIdx, cIdx, p)
+
+cIdx = vv.Dataset.IndexOfColumn('Size/Span Ratio')
+ds = vv.Dataset
+for k in range(ds.Rows):
+	sp = ds.GetValueAt(k, 4)
+	sz = ds.GetValueAt(k, 5)
+	if sp != 0:
+		ds.SetValueAt(k, cIdx, sz/sp)
+
+vv.Dataset.CommitChanges()
+vv.Map.Redraw()

@@ -509,9 +509,9 @@ with CheckTime('Total Time'):
 	#Do_ByViewpoint(flag=CENTERS_VP)
 	#Do_ByViewpoint(flag=HIGHLIGHT_VP)
 	#Do_ByViewpoint(flag=INTPO_VP, K=32)
-	#Do_Cascading()
-	if 'fChain' not in globals(): raise Exception('No feature-chain speficied')
-	Do_Stratify(fChain, 4.0, 0.05)
+	Do_Cascading()
+	#if 'fChain' not in globals(): raise Exception('No feature-chain speficied')
+	#Do_Stratify(fChain, 4.0, 0.05)
 	#ShowMapDataset()
 
 
