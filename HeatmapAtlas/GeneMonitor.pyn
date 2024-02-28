@@ -112,19 +112,23 @@ def ShowData(pMap):
 def AddExpress(pMap):
 	nt = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(ExtractFeatures(pMap))
 	tb = mm.ToNumpy(nt)
-	tb = 40*np.sqrt((tb**2).sum(axis=1))
+	tb = 60*np.sqrt((tb**2).sum(axis=1))
 	bs = pMap.BodyListEnabled()
 	for k, b in enumerate(bs):	b.Z = tb[k]
 	pMap.ClickContextMenu('3D Animation View...')
 	for b in bs: b.Z = 0
 	m3d = vv.LastView
-	pp.ShowBoundingBox = True
-	m3d.ResetView(0); vv.Sleep(500)
+	m3d.ReadOnly = True
+	m3d.GlyphOpacity = 0.5
+	m3d.GlyphSize = 0.45
+	m3d.ShowBoundingBox = True
+	m3d.BackgroundColor = New.Color("White")
+	m3d.ResetView(4); vv.Sleep(1000)
 	for p in [2,0,2]:
 		m3d.ResetView(p);	vv.Sleep(500)
-	m3d.ShiftXYZ(0, 10, 0, 15, 10)
+	m3d.ShiftXYZ(0, 10, 0, 15, 20)
 	m3d.RotateXYZ(-0.025, 0, 0, 10, 40); vv.Sleep(500)
-	m3d.RotateXYZ(0, 0.0125, 0, 500, 20)
+	m3d.RotateXYZ(0, 0.00675, 0, 930, 12)
 
 def GetGeneList(chrName, strand):
 	ds = vv.Folder.ReadDataset("Gene Features")
@@ -149,7 +153,8 @@ def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0):
 
 '''
 
-LoopList('ChrXP', epochs=2000, SS=100)
+for sq in ['LowExon-Protein', 'LowExon-LncRNA']:
+	LoopList(sq, epochs=2000, SS=50, PP=0.05)
 
 vv.GroupManager.SetGroupLabels('Chr5P', GetGeneList('5', 'p'))
 vv.GroupManager.SetGroupLabels('Chr5N', GetGeneList('5', 'n'))
@@ -164,8 +169,7 @@ LoopList('HiVariance', epochs=2000, PP=0.05, SS=10)
 
 LoopList('HiExpress', epochs=2000, PP=0.05, SS=10)
 
-for gg in ['ChrXP', 'ChrXN']: LoopList(gg, epochs=2000, PP=0.1, SS=50)
-
+for gg in ['ChrXP', 'ChrXN']: LoopList(gg, epochs=2000, PP=0.05, SS=50)
 
 
 LoopList('ShortTranscript', epochs=2000, SS=200)
@@ -191,4 +195,23 @@ def ToNewFmt(ss):
 		ff.append(f.strip(','))
 	return '; '.join(ff)
 
+#MenuLabels Monitor ShowData ReEmbedding 3D-Expression
+vv.Import('GeneMonitor.pyn')
+match vv.EventSource.Item:
+	case 'Monitor':
+		MonitorMap(pp)
+	case 'ShowData':
+		ShowData(pp)
+	case 'ReEmbedding':
+		ReEmbedding(pp)
+	case '3D-Expression':
+		AddExpress(pp)
+
+#MenuLabels CaptureMaps Test
+vv.Import('MapMonitor.pyn')
+match vv.EventSource.Item:
+	case 'CaptureMaps':
+		vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
+	case 'Test':
+		vv.Message('Test - Hi')
 '''
