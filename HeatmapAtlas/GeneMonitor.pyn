@@ -1,4 +1,4 @@
-import numpy as np
+import math, numpy
 
 def StartMonitor(nt, map=None):
 	bv = New.BarView(nt.ColumnSpecList)
@@ -17,15 +17,15 @@ def StartMonitor(nt, map=None):
 	if map == None: 
 		map = vv.MapView
 	mk = map.ShowMarker(True)
-	mk.AnimationPause = 15
-	mk.AnimationStepSize = 2
+	mk.AnimationPause = 10
+	mk.AnimationStepSize = 3
 	mk.LoopPath = False
 	mk.NoLooping = False
 	mk.MarkerColor = New.Color('Yellow')
 	mk.Left = 200
 	mk.Top = 200
-	mk.Width = 25
-	mk.Height = 5
+	mk.Width = 50
+	mk.Height = 15
 	mk.SpinningMarker()
 	
 
@@ -41,13 +41,14 @@ def OnSelected():
 	pp.Redraw()
 
 def StartTracing(idMon, map=None):
-	StartMonitor( vv.Dataset.GetNumberTableEnabled().SelectColumnsById(idMon), map )
+	StartMonitor( vv.GetNumberTableView(True).SelectColumnsById(idMon), map )
 
 def NewTsne(epochs, PP, EX):
 	mds = New.TsneMap()
 	mds.MaxLoops = epochs
 	mds.PerplexityRatio = PP
 	mds.InitialExaggeration = EX
+	mds.FinalExaggeration = 1.0
 	mds.ExaggerationSmoothen = True
 	mds.RefreshFreq = 50
 	mds.Is3D = False
@@ -58,7 +59,7 @@ def NewTsne(epochs, PP, EX):
 	mds.Show()
 	return mds
 
-def LoopList(listName, epochs=1000, PP=0.05, SS=100, EX=4.0):
+def LoopList(listName, epochs=1000, PP=0.05, SS=100, EX=4.0): 
 	idList = list(vv.GroupManager.GetGroupLabels(listName))	
 	mds = NewTsne(epochs, PP, EX)
 	L = len(idList)
@@ -82,6 +83,8 @@ def PaserInfo(desc):
 
 def ExtractFeatures(pMap):
 	info = PaserInfo(pMap.Description)
+	if 'Ids' in info:
+		return info['Ids'].split('|')
 	sq = info['SQ']
 	fs = info['RG'].split('-')
 	idMon = 	list(vv.GroupManager.GetGroupLabels(sq))
@@ -109,26 +112,33 @@ def ShowData(pMap):
 	hm = nt.ShowHeatMap()
 	hm.Title = f'Data Dimension: {nt.Rows}x{nt.Columns}'
 
-def AddExpress(pMap):
-	nt = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(ExtractFeatures(pMap))
-	tb = mm.ToNumpy(nt)
-	tb = 60*np.sqrt((tb**2).sum(axis=1))
-	bs = pMap.BodyListEnabled()
-	for k, b in enumerate(bs):	b.Z = tb[k]
-	pMap.ClickContextMenu('3D Animation View...')
-	for b in bs: b.Z = 0
-	m3d = vv.LastView
+def Config3DMap(m3d):
 	m3d.ReadOnly = True
 	m3d.GlyphOpacity = 0.5
 	m3d.GlyphSize = 0.45
 	m3d.ShowBoundingBox = True
-	m3d.BackgroundColor = New.Color("White")
-	m3d.ResetView(4); vv.Sleep(1000)
+	m3d.BackgroundColor = New.Color(0,0,64)
+	m3d.ResetView(4); 
+	m3d.Show()
+	vv.Sleep(1000)
 	for p in [2,0,2]:
-		m3d.ResetView(p);	vv.Sleep(500)
+		m3d.ResetView(p);	vv.Sleep(750)
 	m3d.ShiftXYZ(0, 10, 0, 15, 20)
-	m3d.RotateXYZ(-0.025, 0, 0, 10, 40); vv.Sleep(500)
-	m3d.RotateXYZ(0, 0.00675, 0, 930, 12)
+	m3d.RotateXYZ(-0.025, 0, 0, 10, 40); vv.Sleep(750)
+	m3d.RotateXYZ(0, 0.005, 0, int(2*math.pi/0.005), 15)
+
+def AddExpress(pMap):
+	nt = vv.GetNumberTableView(True).SelectColumnsById(ExtractFeatures(pMap))
+	tb = mm.ToNumpy(nt)
+	tb = np.sqrt((tb**2).sum(axis=1))
+	MAXV = 400.0
+	maxV = min(MAXV, tb.max())
+	tb = MAXV/maxV*tb
+	m3d = New.Map3DView(pMap.BodyListEnabled())
+	m3d.MapDepth = MAXV
+	for k, b in enumerate(m3d.BodyList):	
+		b.Z = tb[k]
+	Config3DMap( m3d )
 
 def GetGeneList(chrName, strand):
 	ds = vv.Folder.ReadDataset("Gene Features")
@@ -150,11 +160,18 @@ def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0):
 	mds.RunWithFeatures(idMon)
 	mds.Close()
 	map = New.MapSnapshot().Show()
+	sId = '|'.join(idMon)
+	map.Title = f'Features:{len(idMon)}'
+	map.Description = f'EP:{epochs}; PP:{PP}; EX:{EX}; DS:{vv.Dataset.Name}; Ids:{sId}'
 
 '''
+LoopList('BCV10', epochs=2000, PP=0.05, SS=500)
 
-for sq in ['LowExon-Protein', 'LowExon-LncRNA']:
-	LoopList(sq, epochs=2000, SS=50, PP=0.05)
+idMon = [ cs.Id for cs in vv.Dataset.ColumnSpecList ]
+vv.GroupManager.SetGroupLabels('BCV10', idMon)
+
+for sq in ['LowExon-Protein', 'HiExon-Protein']:
+	LoopList(sq, epochs=2000, SS=100, PP=0.05)
 
 vv.GroupManager.SetGroupLabels('Chr5P', GetGeneList('5', 'p'))
 vv.GroupManager.SetGroupLabels('Chr5N', GetGeneList('5', 'n'))
@@ -169,7 +186,7 @@ LoopList('HiVariance', epochs=2000, PP=0.05, SS=10)
 
 LoopList('HiExpress', epochs=2000, PP=0.05, SS=10)
 
-for gg in ['ChrXP', 'ChrXN']: LoopList(gg, epochs=2000, PP=0.05, SS=50)
+for gg in ['ChrXP', 'ChrXN']: LoopList(gg, epochs=2000, PP=0.05, SS=100)
 
 
 LoopList('ShortTranscript', epochs=2000, SS=200)
@@ -178,6 +195,7 @@ LoopList('LongNoCoding', epochs=2000, SS=300, PP=0.1)
 vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
 
 EmbedGenes(idMon)
+
 
 StartTracing(idMon)
 StartMonitor(dsMon)
@@ -195,7 +213,9 @@ def ToNewFmt(ss):
 		ff.append(f.strip(','))
 	return '; '.join(ff)
 
-#MenuLabels Monitor ShowData ReEmbedding 3D-Expression
+Code to install some useful context menus:
+
+@#MenuLabels Monitor ShowData ReEmbedding 3D-Expression
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
 	case 'Monitor':
@@ -207,11 +227,12 @@ match vv.EventSource.Item:
 	case '3D-Expression':
 		AddExpress(pp)
 
-#MenuLabels CaptureMaps Test
+@#MenuLabels CaptureMaps EmbedSelected
 vv.Import('MapMonitor.pyn')
 match vv.EventSource.Item:
 	case 'CaptureMaps':
 		vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
-	case 'Test':
-		vv.Message('Test - Hi')
+	case 'EmbedSelected':
+		EmbedGenes(vv.SelectedItems, epochs=2000, EX=4.0, PP=0.05)
+
 '''

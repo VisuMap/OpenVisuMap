@@ -85,8 +85,11 @@ def ShowEmbedding(f, nt):
 		for key in f.obsm_keys():
 			mp = f.obsm[key]
 			shp = mp.shape
-			if (shp[0] == nt.Rows) and (shp[1] == 2):
-				ntMap = mm.ToTable(mp)
+			if shp[0] == nt.Rows:
+				ntMap = mm.ToTable(mp.astype('float32'))
+				if shp[1] != 2:
+					ntMap.ShowHeatMap().Title = f'Embedded data: algorithm: {key}'
+					continue
 				srcList = nt.RowSpecList
 				dstList = ntMap.RowSpecList
 				for row in range(nt.Rows):
