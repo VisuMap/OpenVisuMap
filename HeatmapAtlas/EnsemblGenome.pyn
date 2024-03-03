@@ -3,14 +3,19 @@ import pprint
 
 mg = mygene.MyGeneInfo()
 
-g = mg.getgene('ENSG00000237330')
-g = mg.getgene('ENSG00000137818',  field='go')
-vv.Echo(pprint.pformat(g))
+g = mg.getgene('ENSG00000205542')
+g = mg.getgene('ENSG00000205542',  field='exons')
+g = mg.getgene('ENSG00000000003',  field='symbol')
+print(pprint.pformat(g))
 
 ds = vv.Dataset
 if ds.Name != 'Gene Features': 
 	vv.Return(1)
 gIds = [ x.Id for x in ds.BodyList ]
+
+gs = mg.getgenes(['ENSG00000205542','ENSG00000000003'], field='exons')
+print(pprint.pformat(gs[1000:1003]))
+
 
 #-----------------------
 
@@ -57,7 +62,6 @@ for k, g in enumerate(gs):
 	p = g['ensembl']
 	if type(p) is list:
 		p = p[0]
-	#print(k, ": ", p['gene'], p['type_of_gene'])
 	rowIdx = vv.Dataset.IndexOfRow(p['gene'])
 	if rowIdx >=0 :
 		vv.Dataset.SetStringAt(rowIdx, cIdx, p['type_of_gene'])
@@ -69,8 +73,10 @@ for k, g in enumerate(gs):
 		p = g['exons']
 		if type(p) is list:
 			p = p[0]
-		rowIdx = vv.Dataset.IndexOfRow(gIds[k])
-		vv.Dataset.SetValueAt(rowIdx, cIdx, int(p['txend']) - int(p['txstart']) )
+		if 'query' in g:
+			rowIdx = vv.Dataset.IndexOfRow(g['query'])
+			if rowIdx >= 0:
+				vv.Dataset.SetValueAt(rowIdx, cIdx, int(p['txend']) - int(p['txstart']) )
 
 gs = mg.getgenes(gIds,  field = 'exons')
 cIdx = vv.Dataset.IndexOfColumn('ExonCount')
@@ -80,8 +86,10 @@ for k, g in enumerate(gs):
 		if type(p) is list:
 			p = p[0]
 		posList = p['position']
-		rowIdx = vv.Dataset.IndexOfRow(gIds[k])
-		vv.Dataset.SetValueAt(rowIdx, cIdx, len(posList) )
+		if 'query' in g:
+			rowIdx = vv.Dataset.IndexOfRow(g['query'])
+			if rowIdx >= 0:
+				vv.Dataset.SetValueAt(rowIdx, cIdx, len(posList) )
 
 gs = mg.getgenes(gIds,  field = 'exons')
 cIdx = vv.Dataset.IndexOfColumn('SizeNT')
@@ -93,9 +101,10 @@ for k, g in enumerate(gs):
 		p = p[0]
 	posList = p['position']
 	sz =  [p2[1] - p2[0] for p2 in posList] 
-	#print(k, ': ', pprint.pformat(sz), sum(sz))
-	rowIdx = vv.Dataset.IndexOfRow(gIds[k])
-	vv.Dataset.SetValueAt(rowIdx, cIdx, sum(sz))
+	if 'query' in g:
+		rowIdx = vv.Dataset.IndexOfRow(g['query'])
+		if rowIdx >= 0:
+			vv.Dataset.SetValueAt(rowIdx, cIdx, sum(sz))
 
 gs = mg.getgenes(gIds,  field = 'summary')
 cIdx = vv.Dataset.IndexOfColumn('Summary')
@@ -103,16 +112,20 @@ for k, g in enumerate(gs):
 	if 'summary' not in g:
 		continue
 	p = g['summary']
-	rowIdx = vv.Dataset.IndexOfRow(gIds[k])
-	vv.Dataset.SetStringAt(rowIdx, cIdx, p)
+	if 'query' in g:
+		rowIdx = vv.Dataset.IndexOfRow(g['query'])
+		if rowIdx >= 0:
+			vv.Dataset.SetStringAt(rowIdx, cIdx, p)
 
 gs = mg.getgenes(gIds,  field = 'pantherdb')
 cIdx = vv.Dataset.IndexOfColumn('OrthologCount')
 for k, g in enumerate(gs):
 	if 'pantherdb' in g:
 		p = g['pantherdb']['ortholog']
-		rowIdx = vv.Dataset.IndexOfRow(gIds[k])
-		vv.Dataset.SetValueAt(rowIdx, cIdx, len(p))
+		if 'query' in g:
+			rowIdx = vv.Dataset.IndexOfRow(g['query'])
+			if rowIdx >= 0:
+				vv.Dataset.SetValueAt(rowIdx, cIdx, len(p))
 
 gs = mg.getgenes(gIds,  field = 'homologene')
 cIdx = vv.Dataset.IndexOfColumn('HomologeneCount')
@@ -121,8 +134,10 @@ for k, g in enumerate(gs):
 		continue
 	p = g['homologene']['genes']
 	if k < len(gIds):
-		rowIdx = vv.Dataset.IndexOfRow(gIds[k])
-		vv.Dataset.SetValueAt(rowIdx, cIdx, len(p))
+		if 'query' in g:
+			rowIdx = vv.Dataset.IndexOfRow(g['query'])
+			if rowIdx >= 0:
+				vv.Dataset.SetValueAt(rowIdx, cIdx, len(p))
 	else:
 		print(k, pprint.pformat(p))
 
@@ -132,8 +147,9 @@ for k, g in enumerate(gs):
 	if 'symbol' in g:
 		p = g['symbol']
 		if k < len(gIds):
-			rowIdx = vv.Dataset.IndexOfRow(gIds[k])
-			vv.Dataset.SetStringAt(rowIdx, cIdx, p)
+			rowIdx = vv.Dataset.IndexOfRow(g['query'])
+			if rowIdx >= 0:
+				vv.Dataset.SetStringAt(rowIdx, cIdx, p)
 
 cIdx = vv.Dataset.IndexOfColumn('Size/Span Ratio')
 ds = vv.Dataset
