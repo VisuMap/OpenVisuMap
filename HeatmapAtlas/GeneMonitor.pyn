@@ -17,23 +17,23 @@ def NewTsne(epochs, PP, EX):
 	mds.Show()
 	return mds
 
-def StartMonitor(nt, map=None):
-	bv = New.BarView(nt.ColumnSpecList)
+def ConfigBarView(bv, nt):
 	bv.Horizontal = True
 	bv.BarLabelType = 4
 	bv.AutoScaling = False
 	bv.LowerLimit = 0
-	bv.UpperLimit = 4.0
+	bv.UpperLimit = 2.0
 	bv.BaseLineType = 0
-	for item in bv.ItemList: item.Group = 4
+	for item in bv.ItemList: 
+		item.Group = 4
 	bv.ReadOnly = True
 	bv.Show()
 	bv.TheForm.Width = 400
 	bv.TheForm.Height = 1000
 	vv.EventManager.OnItemsSelected("@OnSelected()", bv, nt)	
-	if map == None: 
-		map = vv.MapView
-	mk = map.ShowMarker(True)
+	bv.AddContextMenu("Gene Explore/Gene Detail", "@ShowGeneDetails()")
+
+def ConfigMarker(mk):
 	mk.AnimationPause = 10
 	mk.AnimationStepSize = 3
 	mk.LoopPath = False
@@ -45,16 +45,38 @@ def StartMonitor(nt, map=None):
 	mk.Height = 15
 	mk.SpinningMarker()
 
+def Config3DMap(m3d):
+	m3d.ReadOnly = True
+	m3d.GlyphOpacity = 0.5
+	m3d.GlyphSize = 0.45
+	m3d.ShowBoundingBox = True
+	m3d.ShowPerformance = False
+	m3d.BackgroundColor = New.Color(0,0,64)
+	m3d.ResetView(4); 
+	m3d.Show()
+	vv.Sleep(1000)
+	for p in [2,0,2]:	m3d.ResetView(p);	vv.Sleep(750)
+	m3d.RotateXYZ(-0.025, 0, 0, 10, 40); vv.Sleep(750)
+	m3d.RotateXYZ(0, 0.005, 0, int(2*math.pi/0.005), 15)
+
+def StartMonitor(nt, map=None):
+	ConfigBarView(New.BarView(nt.ColumnSpecList), nt)
+	if map == None: 
+		map = vv.MapView
+	ConfigMarker(map.ShowMarker(True))
+
 def OnSelected():
 	nt = vv.EventSource.Argument.SelectRowsById(vv.SelectedItems)
+	bv = pp
 	if nt.Rows==0:
 		return;
-	nt.ColumnMean(pp.ItemList)
-	maxV = 1.5
-	for item in pp.ItemList:
-		if item.Value > maxV:
-			item.Group = 0
-	pp.Redraw()
+	nt.ColumnMean(bv.ItemList)
+	maxV = max([item.Value for item in bv.ItemList])
+	pp.UpperLimit = math.ceil(maxV/2.0) * 2.0
+	maxV = 0.25 * pp.UpperLimit
+	for item in bv.ItemList:
+		item.Group = 0 if item.Value > maxV else 4
+	bv.Redraw()
 
 def StartTracing(idMon, map=None):
 	StartMonitor( vv.GetNumberTableView(True).SelectColumnsById(idMon), map )
@@ -63,18 +85,24 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0):
 	if type(gList) is not list: 
 		gList = [ gList ]
 	mds = NewTsne(epochs, PP, EX)
+	nt0 = vv.GetNumberTableView(True)
 	for listName in gList:
 		idList = list(vv.GroupManager.GetGroupLabels(listName))	
 		L = len(idList)
 		for n in range(0, L, SS):
 			n2 = min(L, n + SS)
-			mds.RunWithFeatures(idList[n:n2])
+			nt = nt0.SelectColumnsById(idList[n:n2])
+			#nt = cs.Transform(nt)
+			mds.ChangeTrainingData(nt)
+			mds.Reset().Start()
 			if not mds.Completed: vv.Return(1)
 			vv.SelectedItems = None
-			map = New.MapSnapshot().Show()
-			map.Resize(0, 0, 1000, 700)
-			map.Title = f'SQ:{listName}; RG:{n}-{n2};'
-			map.Description = map.Title + f' EP:{epochs}; PP:{PP}; SS:{SS}; EX:{EX}; DS:{vv.Dataset.Name}'
+			mp = New.MapSnapshot().Show()
+			mp.Resize(0, 0, 1000, 700)
+			mp.GlyphSize = 0.25
+			mp.GlyphOpacity = 0.75
+			mp.Title = f'SQ:{listName}; RG:{n}-{n2};'
+			mp.Description = mp.Title + f' EP:{epochs}; PP:{PP}; SS:{SS}; EX:{EX}; DS:{vv.Dataset.Name}'
 	mds.Close()
 
 def PaserInfo(desc):	
@@ -114,23 +142,22 @@ def ReEmbedding(pMap):
 def MonitorMap(pMap):
 	StartTracing(ExtractFeatures(pMap), pMap)
 
+def ShowGeneDetails():
+	fm = vv.EventSource.Form
+	if (fm.Name == 'HeatMap') and not fm.AttributeMode:
+		return
+	if fm.SelectedItems.Count < 1:
+		return
+	gId = fm.SelectedItems[0]
+	vv.StartProcess(f'https://useast.ensembl.org/Human/Search/Results?q={gId};site=ensembl;facet_species=Human')
+	vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/gene/?term={gId}')
+
 def ShowData(pMap):
 	nt = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(ExtractFeatures(pMap))
 	hm = nt.ShowHeatMap()
 	hm.Title = f'Data Dimension: {nt.Rows}x{nt.Columns}'
+	hm.AddContextMenu("Gene Explore/Gene Detail", "@ShowGeneDetails()")
 
-def Config3DMap(m3d):
-	m3d.ReadOnly = True
-	m3d.GlyphOpacity = 0.5
-	m3d.GlyphSize = 0.45
-	m3d.ShowBoundingBox = True
-	m3d.BackgroundColor = New.Color(0,0,64)
-	m3d.ResetView(4); 
-	m3d.Show()
-	vv.Sleep(1000)
-	for p in [2,0,2]:	m3d.ResetView(p);	vv.Sleep(750)
-	m3d.RotateXYZ(-0.025, 0, 0, 10, 40); vv.Sleep(750)
-	m3d.RotateXYZ(0, 0.005, 0, int(2*math.pi/0.005), 15)
 
 def ShowExpress3D(pMap):
 	nt = vv.GetNumberTableView(True).SelectColumnsById(ExtractFeatures(pMap))
@@ -141,6 +168,7 @@ def ShowExpress3D(pMap):
 	tb = MAXV/maxV*tb
 	m3d = New.Map3DView(pMap.BodyListEnabled())
 	m3d.MapDepth = MAXV
+	m3d.Title = f'Maximum Expression: {maxV:.3g}'
 	for k, b in enumerate(m3d.BodyList): b.Z = tb[k]
 	Config3DMap( m3d )
 
@@ -179,12 +207,14 @@ def OnGenesSelected():
 	mp.Title = f'Genes: {';'.join(selected)}'
 	tb = mm.ToNumpy(nt)
 	tb = (tb**2).sum(axis=1)
-	minV = 9.0
-	stepSize = (tb.max() - minV)/16
+	tbMax = max(0.05, tb.max())
+	minV = 0.01 * tbMax
+	maxV = 0.9 * tbMax
+	stepSize = (maxV - minV)/16
 	bList = mp.BodyListEnabled()
 	for k, b in enumerate(bList):
 		v = tb[k] - minV
-		if v < 0:
+		if v <= 0:
 			b.Type = 0
 			b.Hidden = True
 		else:
@@ -196,19 +226,32 @@ def OnGenesSelected():
 def ShowActiveCells(pMap): 
 	pMap.SelectedItems = None
 	mp = pMap.NewSnapshot()
-	mp.HiddenBodySize = 2
 	mp.HiddenBodyColor = New.Color('Red')
 	for b in mp.BodyList: b.Hidden = True
 	mp.GlyphSet = 'Ordered Glyphs'
-	mp.GlyphSize = 0.75
-	mp.GlyphOpacity = 0.75
+	mp.HiddenBodySize = 3
+	mp.GlyphSize = 0.5
+	mp.GlyphOpacity = 0.5
 	mp.ReloadGlyphSet()
 	mp.RedrawAll()
 	nt = vv.GetNumberTableView(True).SelectColumnsById(ExtractFeatures(pMap))
 	vv.EventManager.OnItemsSelected("@OnGenesSelected()", mp, nt)
 
+cs = New.CsObject('''
+public INumberTable Transform(INumberTable nt) {
+	MT.Loop(0, nt.Rows, row=>{
+		  double[] R = nt.Matrix[row] as double[];
+        for(int col=0; col<nt.Columns; col++)
+            //R[col] = Math.Sqrt( Math.Abs(Math.Exp(R[col]) - 1) );
+				R[col] = Math.Exp(R[col]) - 1.0;
+	});
+	return nt;
+}
+''')
+
 '''
-LoopList('Chr5N', epochs=2000, PP=0.05, SS=50)
+LoopList('HiExpression', epochs=2000, SS=25, EX=2.0)
+vv.AtlasManager.OpenAtlas('HiExpression').CaptureAllOpenViews().Close()
 
 x0, y0 = 50, 50
 for ds in ['TCellBreast', 'Perivascular', 'Vascular-C']:
@@ -217,10 +260,10 @@ for ds in ['TCellBreast', 'Perivascular', 'Vascular-C']:
 	vv.AtlasManager.OpenAtlas('Chr5').CaptureAllOpenViews(x0, y0).Close()
 	y0 += 150
 
-LoopList(['ChrXP', 'ChrXN'], epochs=2000, PP=0.05, SS=50)
+LoopList(['ChrXP', 'ChrXN'], epochs=2000, SS=100)
 
 LoopList(['LowExon-Protein', 'HiExon-Protein', 'ShortTranscript', 'LongTranscript'], epochs=2000, SS=100)
-vv.AtlasManager.OpenAtlas('Protein2').CaptureAllOpenViews().Close()
+vv.AtlasManager.OpenAtlas('ChrX-c').CaptureAllOpenViews().Close()
 
 gList = ['Chr1P', 'Chr1N', 'Chr2P', 'Chr2N', 'Chr3P', 'Chr3N', 'Chr4P', 'Chr4N', 'Chr5P', 'Chr5N']: 
 LoopList(gList, SS=50)
