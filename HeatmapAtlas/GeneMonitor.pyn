@@ -276,8 +276,11 @@ def SetAtlasItemName():
 		
 
 '''
-LoopList('Random793_Heart', epochs=2000, SS=50, EX=4.0)
-SaveToAtlas('Heart A')
+LoopList('CD45P_1K', epochs=2000, SS=100, EX=6.0)
+SaveToAtlas('CD45P A')
+
+LoopList('Random793_Heart', epochs=2000, SS=25, EX=8.0)
+SaveToAtlas('Heart B')
 
 x0, y0 = 50, 50
 for ds in ['TCellBreast', 'Perivascular', 'Vascular-C']:

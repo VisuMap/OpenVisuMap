@@ -8,20 +8,23 @@ from scipy.io import mmread
 vv.Import('AtlasHelp.pyn')
 
 def ReadLines(fname):
-	if os.path.isfile(fname):
-		with open(fname) as f:
-			return f.readlines()
-	elif os.path.isfile(fname + '.gz'):
-		with gzip.open(fname + '.gz') as f:
+	if not os.path.isfile(fname):
+		return None
+	if fname.endswith('.gz'):
+		with gzip.open(fname) as f:
 			return list( map(lambda x:x.decode(), f.readlines()) )
 	else:
-		return None
+		with open(fname) as f:
+			return f.readlines()
 
 def LoadColumnId(nt, fname):
+	print(f'F: {fname}')
 	lines = ReadLines(fname)
 	if lines == None:
 		return
+	print(f'Lines: {len(lines)}')
 	if (len(lines)) == nt.Columns:
+		print('Loading column id from ', fname)
 		uf = New.UniqueNameFinder()
 		for i in range(nt.Columns):
 			fs = lines[i].split()
@@ -30,17 +33,19 @@ def LoadColumnId(nt, fname):
 				nt.ColumnSpecList[i].Name = fs[1]
 	
 def LoadRowId(nt, fname):
+	print(f'F: {fname}')
 	lines = ReadLines(fname)
 	if lines == None:
 		return
+	print(f'Lines: {len(lines)}')
 	if (len(lines)) == nt.Rows:
+		print('Loading column id from ', fname)
 		uf = New.UniqueNameFinder()
 		for i in range(nt.Rows):
 			nt.RowSpecList[i].Id = uf.LookupName(lines[i].strip())
 
 def ImportMtx():
 	fileName = PromptFile("Count Matrix|*.mtx.gz|CntMtx|*.mtx")
-	dirname = os.path.dirname(fileName) + '\\'
 	
 	tb = mmread(fileName)
 	tb = tb.toarray()
@@ -48,11 +53,13 @@ def ImportMtx():
 	tb = tb.astype(np.float64)
 	nt = mm.ToTable(tb)
 
-	
-	# samples with this additional info can be found by googling on GSE1116106 or GSM4905030.
-	LoadColumnId(nt, dirname+'features.tsv')
-	LoadColumnId(nt, dirname+'genes.tsv')
-	LoadRowId(nt, dirname+'barcodes.tsv')
+	# samples with this additional info can be found by googling on GSM1116106 or GSM4905030.
+	try:
+		LoadColumnId(nt, fileName.replace('_matrix.mtx', '_features.tsv'))
+		LoadColumnId(nt, fileName.replace('_matrix.mtx', '_genes.tsv'))
+		LoadRowId(nt, fileName.replace('_matrix.mtx', '_barcodes.tsv'))
+	except:
+		print('Failed to load the row/column ids')
 	
 	ShowHeatmap(nt, fileName)
 

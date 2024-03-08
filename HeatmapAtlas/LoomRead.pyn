@@ -3,14 +3,6 @@
 import scanpy, numpy
 vv.Import('AtlasHelp.pyn')
 
-'''
-import loompy
-fileName = "C:\\Users\\james\\OneDrive\\Desktop\\SCope Data\\580f1168_20200313__Hung_et_al_2020_Adult_Gut.BBKNN.loom"
-fileName = "C:\\Users\\james\\OneDrive\\Desktop\\s_fca_biohub_leg_10x.loom"
-ds = loompy.connect(fileName, mode='r',validate=False)
-del ds
-'''
-
 #The following function works for loom files from https://scope.aertslab.org/.
 def ImportLoomX10():
 	import loompy as lp
