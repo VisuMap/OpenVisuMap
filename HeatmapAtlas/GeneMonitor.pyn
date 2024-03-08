@@ -1,6 +1,20 @@
 import math
 import numpy as np
 
+cs = New.CsObject('''
+public INumberTable Transform(INumberTable nt) {
+	/*
+	MT.Loop(0, nt.Rows, row=>{
+		  double[] R = nt.Matrix[row] as double[];
+        for(int col=0; col<nt.Columns; col++)
+            //R[col] = Math.Sqrt( Math.Abs(Math.Exp(R[col]) - 1) );
+				//R[col] = Math.Exp(R[col]) - 1.0;
+				R[col] = Math.Log(1.0 + R[col]);
+	});
+	*/
+	return nt;
+}''')
+
 def NewTsne(epochs, PP, EX):
 	mds = New.TsneMap()
 	mds.MaxLoops = epochs
@@ -79,7 +93,9 @@ def OnSelected():
 	bv.Redraw()
 
 def StartTracing(idMon, map=None):
-	StartMonitor( vv.GetNumberTableView(True).SelectColumnsById(idMon), map )
+	nt = vv.GetNumberTableView(True).SelectColumnsById(idMon)
+	nt = cs.Transform(nt)
+	StartMonitor(nt, map)
 
 def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0): 
 	if type(gList) is not list: 
@@ -92,10 +108,10 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0):
 		for n in range(0, L, SS):
 			n2 = min(L, n + SS)
 			nt = nt0.SelectColumnsById(idList[n:n2])
-			#nt = cs.Transform(nt)
-			mds.ChangeTrainingData(nt)
-			mds.Reset().Start()
-			if not mds.Completed: vv.Return(1)
+			nt = cs.Transform(nt)
+			mds.ChangeTrainingData(nt).Reset().Start()
+			if not mds.Completed:
+				vv.Return(1)
 			vv.SelectedItems = None
 			mp = New.MapSnapshot().Show()
 			mp.Resize(0, 0, 1000, 700)
@@ -108,7 +124,7 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0):
 def PaserInfo(desc):	
 	info = {}
 	for s in desc.split(';'):
-		fs = s.strip().split(':')
+		fs = s.strip().split(':', 1)
 		if len(fs) < 2: 
 			continue
 		info[fs[0]] = fs[1]
@@ -131,7 +147,9 @@ def ReEmbedding(pMap):
 	PP = float(info['PP'])
 	EX = float(info['EX'])
 	mds = NewTsne(epochs, PP, EX)
-	mds.RunWithFeatures(ExtractFeatures(pMap))
+	nt = vv.GetNumberTableView(True).SelectColumnsById(ExtractFeatures(pMap))
+	nt = cs.Transform(nt)
+	mds.ChangeTrainingData(nt).Reset().Start()
 	if not mds.Completed: return
 	vv.SelectedItems = None
 	map = New.MapSnapshot().Show()
@@ -154,6 +172,7 @@ def ShowGeneDetails():
 
 def ShowData(pMap):
 	nt = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(ExtractFeatures(pMap))
+	nt = cs.Transform(nt)
 	hm = nt.ShowHeatMap()
 	hm.Title = f'Data Dimension: {nt.Rows}x{nt.Columns}'
 	hm.AddContextMenu("Gene Explore/Gene Detail", "@ShowGeneDetails()")
@@ -161,6 +180,7 @@ def ShowData(pMap):
 
 def ShowExpress3D(pMap):
 	nt = vv.GetNumberTableView(True).SelectColumnsById(ExtractFeatures(pMap))
+	nt = cs.Transform(nt)
 	tb = mm.ToNumpy(nt)
 	tb = np.sqrt((tb**2).sum(axis=1))
 	MAXV = 500.0
@@ -189,7 +209,9 @@ def GetGeneList(chrName, strand):
 
 def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0):
 	mds = NewTsne(epochs, PP, EX)
-	mds.RunWithFeatures(idMon)
+	nt = vv.GetNumberTableView(True).SelectColumnsById(idMon)
+	nt = cs.Transform(nt)
+	mds.ChangeTrainingData(nt).Reset().Start()
 	if not mds.Completed: vv.Return(0)
 	mds.Close()
 	vv.SelectedItems = None
@@ -210,7 +232,7 @@ def OnGenesSelected():
 	tbMax = max(0.05, tb.max())
 	minV = 0.01 * tbMax
 	maxV = 0.9 * tbMax
-	stepSize = (maxV - minV)/16
+	stepSize = (maxV - minV)/64
 	bList = mp.BodyListEnabled()
 	for k, b in enumerate(bList):
 		v = tb[k] - minV
@@ -220,38 +242,42 @@ def OnGenesSelected():
 		else:
 			b.Type = min(15, int( v/stepSize ))
 			b.Hidden = False
-	mp.ShowMarker(False)
 	mp.RedrawBodiesType()
 
 def ShowActiveCells(pMap): 
 	pMap.SelectedItems = None
 	mp = pMap.NewSnapshot()
 	mp.HiddenBodyColor = New.Color('Red')
-	for b in mp.BodyList: b.Hidden = True
-	mp.GlyphSet = 'Ordered Glyphs'
-	mp.HiddenBodySize = 3
-	mp.GlyphSize = 0.5
+	for b in mp.BodyList: 
+		b.Hidden = True
+	mp.GlyphSet = 'Ordered 64'
+	mp.HiddenBodySize = 2
+	mp.GlyphSize = 1.0
 	mp.GlyphOpacity = 0.5
 	mp.ReloadGlyphSet()
+	mp.ShowMarker(False)
 	mp.RedrawAll()
 	nt = vv.GetNumberTableView(True).SelectColumnsById(ExtractFeatures(pMap))
+	nt = cs.Transform(nt)
 	vv.EventManager.OnItemsSelected("@OnGenesSelected()", mp, nt)
 
-cs = New.CsObject('''
-public INumberTable Transform(INumberTable nt) {
-	MT.Loop(0, nt.Rows, row=>{
-		  double[] R = nt.Matrix[row] as double[];
-        for(int col=0; col<nt.Columns; col++)
-            //R[col] = Math.Sqrt( Math.Abs(Math.Exp(R[col]) - 1) );
-				R[col] = Math.Exp(R[col]) - 1.0;
-	});
-	return nt;
-}
-''')
+def SaveToAtlas(atName):
+	vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews().Close()
+
+def SetAtlasItemName():
+	atlas = pp
+	for item in atlas.GetSelectedItems():
+		mp = item.Open()
+		info = PaserInfo(mp.Title)
+		item.Name = info['SQ'] + ':' + info['RG']
+		item.LabelStyle = 2
+		mp.Close()
+		atlas.RedrawItem(item, True)
+		
 
 '''
-LoopList('HiExpression', epochs=2000, SS=25, EX=2.0)
-vv.AtlasManager.OpenAtlas('HiExpression').CaptureAllOpenViews().Close()
+LoopList('Random793_Heart', epochs=2000, SS=50, EX=4.0)
+SaveToAtlas('Heart A')
 
 x0, y0 = 50, 50
 for ds in ['TCellBreast', 'Perivascular', 'Vascular-C']:
@@ -265,8 +291,9 @@ LoopList(['ChrXP', 'ChrXN'], epochs=2000, SS=100)
 LoopList(['LowExon-Protein', 'HiExon-Protein', 'ShortTranscript', 'LongTranscript'], epochs=2000, SS=100)
 vv.AtlasManager.OpenAtlas('ChrX-c').CaptureAllOpenViews().Close()
 
-gList = ['Chr1P', 'Chr1N', 'Chr2P', 'Chr2N', 'Chr3P', 'Chr3N', 'Chr4P', 'Chr4N', 'Chr5P', 'Chr5N']: 
-LoopList(gList, SS=50)
+gList = ['Chr1P', 'Chr1N', 'Chr2P', 'Chr2N', 'Chr3P', 'Chr3N', 'Chr4P', 'Chr4N']
+LoopList(gList, epochs=5000, SS=50)
+SaveToAtlas('Chr1234B')
 
 idMon = [ cs.Id for cs in vv.Dataset.ColumnSpecList ]
 
