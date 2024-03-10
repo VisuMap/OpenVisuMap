@@ -3,7 +3,6 @@ import numpy as np
 
 cs = New.CsObject('''
 public INumberTable Transform(INumberTable nt) {
-	/*
 	MT.Loop(0, nt.Rows, row=>{
 		  double[] R = nt.Matrix[row] as double[];
         for(int col=0; col<nt.Columns; col++)
@@ -11,16 +10,19 @@ public INumberTable Transform(INumberTable nt) {
 				//R[col] = Math.Exp(R[col]) - 1.0;
 				R[col] = Math.Log(1.0 + R[col]);
 	});
-	*/
 	return nt;
 }''')
 
-def NewTsne(epochs, PP, EX):
+def transform(nt):
+	return nt
+	#return cs.Transform(nt)
+
+def NewTsne(epochs, PP, EX, ex=1.0):
 	mds = New.TsneMap()
 	mds.MaxLoops = epochs
 	mds.PerplexityRatio = PP
 	mds.InitialExaggeration = EX
-	mds.FinalExaggeration = 1.0
+	mds.FinalExaggeration = ex
 	mds.ExaggerationSmoothen = True
 	mds.RefreshFreq = 50
 	mds.Is3D = False
@@ -94,13 +96,13 @@ def OnSelected():
 
 def StartTracing(idMon, map=None):
 	nt = vv.GetNumberTableView(True).SelectColumnsById(idMon)
-	nt = cs.Transform(nt)
+	nt = transform(nt)
 	StartMonitor(nt, map)
 
-def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0): 
+def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0): 
 	if type(gList) is not list: 
 		gList = [ gList ]
-	mds = NewTsne(epochs, PP, EX)
+	mds = NewTsne(epochs, PP, EX, ex)
 	nt0 = vv.GetNumberTableView(True)
 	for listName in gList:
 		idList = list(vv.GroupManager.GetGroupLabels(listName))	
@@ -108,7 +110,7 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0):
 		for n in range(0, L, SS):
 			n2 = min(L, n + SS)
 			nt = nt0.SelectColumnsById(idList[n:n2])
-			nt = cs.Transform(nt)
+			nt = transform(nt)
 			mds.ChangeTrainingData(nt).Reset().Start()
 			if not mds.Completed:
 				vv.Return(1)
@@ -117,8 +119,9 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0):
 			mp.Resize(0, 0, 1000, 700)
 			mp.GlyphSize = 0.25
 			mp.GlyphOpacity = 0.75
+			mp.ShowMarker(False)
 			mp.Title = f'SQ:{listName}; RG:{n}-{n2};'
-			mp.Description = mp.Title + f' EP:{epochs}; PP:{PP}; SS:{SS}; EX:{EX}; DS:{vv.Dataset.Name}'
+			mp.Description = mp.Title + f' EP:{epochs}; PP:{PP}; SS:{SS}; EX:{EX}; ex:{ex}; DS:{vv.Dataset.Name}'
 	mds.Close()
 
 def PaserInfo(desc):	
@@ -142,13 +145,15 @@ def ExtractFeatures(pMap):
 	return idMon
 
 def ReEmbedding(pMap):
+	CheckDataset(pMap)
 	info = PaserInfo(pMap.Description)
 	epochs = int(info['EP'])
 	PP = float(info['PP'])
 	EX = float(info['EX'])
-	mds = NewTsne(epochs, PP, EX)
+	ex = float(info['ex']) if 'ex' in info else 1.0
+	mds = NewTsne(epochs, PP, EX, ex)
 	nt = vv.GetNumberTableView(True).SelectColumnsById(ExtractFeatures(pMap))
-	nt = cs.Transform(nt)
+	nt = transform(nt)
 	mds.ChangeTrainingData(nt).Reset().Start()
 	if not mds.Completed: return
 	vv.SelectedItems = None
@@ -158,6 +163,7 @@ def ReEmbedding(pMap):
 	mds.Close()
 
 def MonitorMap(pMap):
+	CheckDataset(pMap)
 	StartTracing(ExtractFeatures(pMap), pMap)
 
 def ShowGeneDetails():
@@ -171,16 +177,18 @@ def ShowGeneDetails():
 	vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/gene/?term={gId}')
 
 def ShowData(pMap):
+	CheckDataset(pMap)
 	nt = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(ExtractFeatures(pMap))
-	nt = cs.Transform(nt)
+	nt = transform(nt)
 	hm = nt.ShowHeatMap()
 	hm.Title = f'Data Dimension: {nt.Rows}x{nt.Columns}'
 	hm.AddContextMenu("Gene Explore/Gene Detail", "@ShowGeneDetails()")
 
 
 def ShowExpress3D(pMap):
+	CheckDataset(pMap)
 	nt = vv.GetNumberTableView(True).SelectColumnsById(ExtractFeatures(pMap))
-	nt = cs.Transform(nt)
+	nt = transform(nt)
 	tb = mm.ToNumpy(nt)
 	tb = np.sqrt((tb**2).sum(axis=1))
 	MAXV = 500.0
@@ -192,25 +200,26 @@ def ShowExpress3D(pMap):
 	for k, b in enumerate(m3d.BodyList): b.Z = tb[k]
 	Config3DMap( m3d )
 
-def GetGeneList(chrName, strand):
+def GetGeneList(chrName):
 	ds = vv.Folder.ReadDataset("Gene Features")
 	gList = []
 	for k in range(ds.Rows):
-		if ds.GetDataAt(k, 4) != 'protein_coding':
-			continue
+		if ds.ValueAtAsString(k, 4) != 'protein_coding': continue
+		if not chrName == 'MT':
+			if ds.ValueAtAsDouble(k, 6) == 0 : continue
+			if ds.ValueAtAsDouble(k, 7) == 0 : continue
 		id = ds.BodyList[k].Id
 		chr = ds.ValueAtAsString(k, 0)
-		sense = ds.ValueAtAsString(k, 1)
 		pos = int(ds.ValueAtAsDouble(k, 2))
-		if (chr,sense) == (chrName,strand):
+		if chr == chrName:
 			gList.append((id, pos))
 	gList.sort(key=lambda x:x[1])
 	return [p[0] for p in gList]
 
-def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0):
-	mds = NewTsne(epochs, PP, EX)
+def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0, ex=1.0):
+	mds = NewTsne(epochs, PP, EX, ex)
 	nt = vv.GetNumberTableView(True).SelectColumnsById(idMon)
-	nt = cs.Transform(nt)
+	nt = transform(nt)
 	mds.ChangeTrainingData(nt).Reset().Start()
 	if not mds.Completed: vv.Return(0)
 	mds.Close()
@@ -245,6 +254,7 @@ def OnGenesSelected():
 	mp.RedrawBodiesType()
 
 def ShowActiveCells(pMap): 
+	CheckDataset(pMap)
 	pMap.SelectedItems = None
 	mp = pMap.NewSnapshot()
 	mp.HiddenBodyColor = New.Color('Red')
@@ -261,8 +271,8 @@ def ShowActiveCells(pMap):
 	nt = cs.Transform(nt)
 	vv.EventManager.OnItemsSelected("@OnGenesSelected()", mp, nt)
 
-def SaveToAtlas(atName):
-	vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews().Close()
+def SaveToAtlas(atName=None, x0=50, y0=50):
+	vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0).Close()
 
 def SetAtlasItemName():
 	atlas = pp
@@ -273,35 +283,38 @@ def SetAtlasItemName():
 		item.LabelStyle = 2
 		mp.Close()
 		atlas.RedrawItem(item, True)
-		
+
+def CheckDataset(pMap):
+	dsName = PaserInfo(pMap.Description)['DS']
+	if dsName != vv.Dataset.Name:
+		vv.Folder.OpenDataset(dsName)	
 
 '''
-LoopList('CD45P_1K', epochs=2000, SS=100, EX=6.0)
-SaveToAtlas('CD45P A')
+
+LoopList('GSM_B_1K', epochs=2000, SS=50, EX=4.0)
+SaveToAtlas('GSM B')
 
 LoopList('Random793_Heart', epochs=2000, SS=25, EX=8.0)
 SaveToAtlas('Heart B')
 
+chrList = ['Chr20', 'Chr21', 'Chr22']
+chrList = ['ChrX', 'ChrMT']
 x0, y0 = 50, 50
 for ds in ['TCellBreast', 'Perivascular', 'Vascular-C']:
 	vv.Folder.OpenDataset(ds)
-	LoopList(['Chr5P', 'Chr5N'], epochs=2000, PP=0.05, SS=50)
-	vv.AtlasManager.OpenAtlas('Chr5').CaptureAllOpenViews(x0, y0).Close()
+	LoopList(chrList, epochs=2000, PP=0.05, SS=50)
+	SaveToAtlas('Chr-X', x0, y0)
 	y0 += 150
 
 LoopList(['ChrXP', 'ChrXN'], epochs=2000, SS=100)
 
 LoopList(['LowExon-Protein', 'HiExon-Protein', 'ShortTranscript', 'LongTranscript'], epochs=2000, SS=100)
-vv.AtlasManager.OpenAtlas('ChrX-c').CaptureAllOpenViews().Close()
-
-gList = ['Chr1P', 'Chr1N', 'Chr2P', 'Chr2N', 'Chr3P', 'Chr3N', 'Chr4P', 'Chr4N']
-LoopList(gList, epochs=5000, SS=50)
-SaveToAtlas('Chr1234B')
+SaveToAtlas('ChrX-c')
 
 idMon = [ cs.Id for cs in vv.Dataset.ColumnSpecList ]
 
-vv.GroupManager.SetGroupLabels('Chr1P', GetGeneList('1', 'p'))
-vv.GroupManager.SetGroupLabels('Chr1N', GetGeneList('1', 'n'))
+for n in ['15', '16', '17', '18', '19']:
+	vv.GroupManager.SetGroupLabels('Chr'+n, GetGeneList(n))
 
 nt = cs.DeNormalize(vv.GetNumberTableView(True).Clone())
 nt.ShowHeatMap()
@@ -310,6 +323,7 @@ nt.ShowHeatMap()
 
 Code to install some useful context menus:
 
+for SnapshotMap
 @#MenuLabels Monitor ShowData ReEmbedding 3D-Expression
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
@@ -322,6 +336,7 @@ match vv.EventSource.Item:
 	case '3D-Expression':
 		ShowExpress3D(pp)
 
+for MainForm
 @#MenuLabels CaptureMaps EmbedSelected
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
@@ -329,5 +344,12 @@ match vv.EventSource.Item:
 		vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
 	case 'EmbedSelected':
 		EmbedGenes(vv.SelectedItems, epochs=2000, EX=4.0, PP=0.05)
+
+for Atlas
+@#MenuLabels SetMapLabel
+vv.Import('GeneMonitor.pyn')
+match vv.EventSource.Item:
+	case 'SetMapLabel':
+		SetAtlasItemName()
 
 '''

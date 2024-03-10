@@ -16,6 +16,7 @@ gIds = [ x.Id for x in ds.BodyList ]
 gs = mg.getgenes(['ENSG00000205542','ENSG00000000003'], field='exons')
 print(pprint.pformat(gs[1000:1003]))
 
+gIds = sList
 
 #-----------------------
 
@@ -46,10 +47,11 @@ for k, g in enumerate(gs):
 		p = p[0]
 	gId = p['ensemblgene']
 	rowIdx = ds.IndexOfRow(gId)
+	strand = 'p' if p['strand'] == 1 else 'n'
 	if rowIdx >=0 :
-		ds.SetDataAt(rowIdx, cIdxS, p['start'])
-		ds.SetDataAt(rowIdx, cIdxE, p['end'])
-		ds.SetDataAt(rowIdx, cIdxSs, p['strand'])
+		ds.SetValueAt(rowIdx, cIdxS, p['start'])
+		ds.SetValueAt(rowIdx, cIdxE, p['end'])
+		ds.SetStringAt(rowIdx, cIdxSs, strand)
 
 #-----------------------
 
@@ -154,8 +156,8 @@ for k, g in enumerate(gs):
 cIdx = vv.Dataset.IndexOfColumn('Size/Span Ratio')
 ds = vv.Dataset
 for k in range(ds.Rows):
-	sp = ds.GetValueAt(k, 4)
-	sz = ds.GetValueAt(k, 5)
+	sp = float(ds.GetValueAt(k, 6))
+	sz = float(ds.GetValueAt(k, 7))
 	if sp != 0:
 		ds.SetValueAt(k, cIdx, sz/sp)
 
