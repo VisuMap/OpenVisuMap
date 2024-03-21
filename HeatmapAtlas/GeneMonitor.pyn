@@ -87,9 +87,10 @@ def OnSelected():
 	nt = vv.EventSource.Argument.SelectRowsById(vv.SelectedItems)
 	bv = pp
 	if nt.Rows==0:
-		return;
+		return
 	nt.ColumnMean(bv.ItemList)
 	maxV = max([item.Value for item in bv.ItemList])	
+	minStep = 0
 	for k in range(10):
 		v = 0.25 * (2 ** k)
 		if v > maxV:
@@ -137,13 +138,14 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=N
 	if saveTo != None:
 		SaveToAtlas(saveTo)
 
-def LoopList2(atName, dsList, gList, epochs=1000, PP=0.05, SS=50, EX=4.0, ex=1.0):
+def LoopList2(dsList, gList, saveTo=None, epochs=1000, PP=0.05, SS=50, EX=4.0, ex=1.0):
 	x0, y0 = 50, 50
 	for ds in dsList:
 		if ds != vv.Dataset.Name:
 			vv.Folder.OpenDataset(ds)
 		LoopList(gList, epochs=epochs, PP=PP, SS=SS, EX=EX, ex=ex)
-		SaveToAtlas(atName, x0, y0)
+		if saveTo != None:
+			SaveToAtlas(saveTo, x0, y0)
 		y0 += 150
 
 def PaserInfo(desc):	
@@ -320,29 +322,26 @@ def AdjustAtlasMaps(mpWidth, mpHeight, gSize, gOpacity):
 		mp.Resize(0,0,mpWidth,mpHeight)
 		mp.Close()
 
-#==================================================================================================
-#==================================================================================================
+#================================================================================
+#================================================================================
 
 '''
 
-LoopList('Arm1q', epochs=2000, SS=100, EX=4.0, saveAs='Arm1q')
+LoopList('Arm5p', epochs=2000, SS=50, EX=4.0, saveTo='Arm5p')
 
-chrList = ['Chr20', 'Chr21', 'Chr22']
-chrList = ['ChrX', 'ChrMT']
-chrList = ['Chr1']
+ftList = ['Chr20', 'Chr21', 'Chr22']
+ftList = ['ChrX', 'ChrMT']
+ftList = ['Chr1']
+ftList = ['LowExon-Protein', 'HiExon-Protein', 'ShortTranscript', 'LongTranscript']
+LoopList(ft, epochs=2000, SS=100)
+
 dsList = ['TCellBreast', 'Perivascular', 'Vascular-C']
 
-chrList = ['LncRNA_Pos', 'LncRNA_Length']
+ftList = ['LncRNA_Pos', 'LncRNA_Length']
 dsList = ['Perivascular']
-LoopList2('LncRNA', dsList, chrList, SS=500, epochs=2000, ex=0.95)
-
-LoopList(['ChrXP', 'ChrXN'], epochs=2000, SS=100)
-
-LoopList(['LowExon-Protein', 'HiExon-Protein', 'ShortTranscript', 'LongTranscript'], epochs=2000, SS=100)
-SaveToAtlas('ChrX-c')
+LoopList2(dsList, ftList, saveTo='LncRNA', SS=500, epochs=2000, ex=0.95)
 
 idMon = [ cs.Id for cs in vv.Dataset.ColumnSpecList ]
-
 for n in range(1, 6):
 	nm = str(n)
 	vv.GroupManager.SetGroupLabels('Chr'+nm, GetGeneList(nm))

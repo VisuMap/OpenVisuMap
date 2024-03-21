@@ -19,14 +19,17 @@ gIds = [ x.Id for x in ds.BodyList ]
 gs = mg.getgenes(['ENSG00000205542','ENSG00000000003'], field='exons')
 print(pformat(gs[1000:1003]))
 
-vv.GroupManager.SetGroupLabels('Arm1q', GenesFromChromArm('1q'))
+vv.GroupManager.SetGroupLabels('Arm5p', GenesFromChromArm('5p'))
 
 #-----------------------
 
 def GenesFromChromArm(armName):
+	dsName = 'Gene Features'
+	ds = vv.Dataset if vv.Dataset.Name == dsName  else vv.Folder.ReadDataset( dsName )
 	idDic = {}
+	cIdx = ds.IndexOfColumn('Location')
 	for k, b in enumerate(ds.BodyList):
-		p = ds.GetDataAt(k, 14)
+		p = ds.GetDataAt(k, cIdx)
 		if p.startswith(armName):
 			idx = len(armName)
 			idDic[b.Id] = float(p[idx:])

@@ -28,6 +28,42 @@ function InstallAtlas() {
         ["Imp Cnt Mtx (*.mtx.gz)", null, "MatrixRead.pyn"],
         ["Show Maps", null, "ShowMaps.js"],
     ]) mgr.SetCustomButton("Atlas/" + label, img, script);
+
+
+var scriptStr = `@#MenuLabels CaptureMaps EmbedSelected
+vv.Import('GeneMonitor.pyn')
+match vv.EventSource.Item:
+	case 'CaptureMaps':
+		vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
+	case 'EmbedSelected':
+		EmbedGenes(vv.SelectedItems, epochs=2000, EX=4.0, PP=0.05)`;
+	 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MainForm", null)
+
+scriptStr = `@#MenuLabels SetMapLabel AdjustAtlasMaps
+vv.Import('GeneMonitor.pyn')
+match vv.EventSource.Item:
+	case 'SetMapLabel':
+		SetAtlasItemName()
+	case 'AdjustAtlasMaps':		
+		AdjustAtlasMaps(1000, 700, 0.5, 0.5)`;
+	 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "Atlas", null)
+
+scriptStr = `@#MenuLabels Monitor ShowData ReEmbedding 3D-Expression ActiveCells
+vv.Import('GeneMonitor.pyn')
+match vv.EventSource.Item:
+	case 'Monitor':
+		MonitorMap(pp)
+	case 'ShowData':
+		ShowData(pp)
+	case 'ReEmbedding':
+		ReEmbedding(pp)
+	case '3D-Expression':
+		ShowExpress3D(pp)
+	case 'ActiveCells':
+		ShowActiveCells(pp)`;
+	 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MapSnapshot", null)
+
+
 }
 
 InstallAtlas();
