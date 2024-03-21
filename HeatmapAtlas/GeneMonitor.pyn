@@ -1,6 +1,8 @@
 import math
 import numpy as np
 
+mpWidth, mpHeight = 500, 350
+
 cs = New.CsObject('''
 public INumberTable Transform(INumberTable nt) {
 	MT.Loop(0, nt.Rows, row=>{
@@ -17,7 +19,7 @@ def transform(nt):
 	return nt
 	#return cs.Transform(nt)
 
-def NewTsne(epochs, PP, EX, ex=1.0):
+def NewTsne(epochs=1000, PP=0.05, EX=4.0, ex=1.0):
 	mds = New.TsneMap()
 	mds.MaxLoops = epochs
 	mds.PerplexityRatio = PP
@@ -34,7 +36,7 @@ def NewTsne(epochs, PP, EX, ex=1.0):
 	return mds
 
 def ConfigBarView(bv, nt):
-	bv.Horizontal = True
+	bv.Horizontal = False
 	bv.BarLabelType = 4
 	bv.AutoScaling = False
 	bv.LowerLimit = 0
@@ -44,8 +46,8 @@ def ConfigBarView(bv, nt):
 		item.Group = 4
 	bv.ReadOnly = True
 	bv.Show()
-	bv.TheForm.Width = 400
-	bv.TheForm.Height = 1000
+	bv.TheForm.Width = 1200
+	bv.TheForm.Height = 300
 	vv.EventManager.OnItemsSelected("@OnSelected()", bv, nt)	
 	bv.AddContextMenu("Gene Explore/Gene Detail", "@ShowGeneDetails()")
 
@@ -87,8 +89,13 @@ def OnSelected():
 	if nt.Rows==0:
 		return;
 	nt.ColumnMean(bv.ItemList)
-	maxV = max([item.Value for item in bv.ItemList])
-	pp.UpperLimit = math.ceil(maxV/2.0) * 2.0
+	maxV = max([item.Value for item in bv.ItemList])	
+	for k in range(10):
+		v = 0.25 * (2 ** k)
+		if v > maxV:
+			minStep = v
+			break	
+	pp.UpperLimit = math.ceil(maxV/minStep) * minStep
 	maxV = 0.25 * pp.UpperLimit
 	for item in bv.ItemList:
 		item.Group = 0 if item.Value > maxV else 4
@@ -99,15 +106,19 @@ def StartTracing(idMon, map=None):
 	nt = transform(nt)
 	StartMonitor(nt, map)
 
-def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0): 
+def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=None): 
 	if type(gList) is not list: 
 		gList = [ gList ]
 	mds = NewTsne(epochs, PP, EX, ex)
 	nt0 = vv.GetNumberTableView(True)
 	for listName in gList:
-		idList = list(vv.GroupManager.GetGroupLabels(listName))	
+		idList = vv.GroupManager.GetGroupLabels(listName)
+		if idList == None:
+			vv.Message(f'Cannot load list "{listName}"')
+			vv.Return(1)
+		idList = list(idList)	
 		L = len(idList)
-		for n in range(0, L, SS):
+		for n in range(ss, L, SS):
 			n2 = min(L, n + SS)
 			nt = nt0.SelectColumnsById(idList[n:n2])
 			nt = transform(nt)
@@ -116,13 +127,24 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0):
 				vv.Return(1)
 			vv.SelectedItems = None
 			mp = New.MapSnapshot().Show()
-			mp.Resize(0, 0, 1000, 700)
+			mp.Resize(0, 0, mpWidth, mpHeight)
 			mp.GlyphSize = 0.25
 			mp.GlyphOpacity = 0.75
 			mp.ShowMarker(False)
 			mp.Title = f'SQ:{listName}; RG:{n}-{n2};'
 			mp.Description = mp.Title + f' EP:{epochs}; PP:{PP}; SS:{SS}; EX:{EX}; ex:{ex}; DS:{vv.Dataset.Name}'
 	mds.Close()
+	if saveTo != None:
+		SaveToAtlas(saveTo)
+
+def LoopList2(atName, dsList, gList, epochs=1000, PP=0.05, SS=50, EX=4.0, ex=1.0):
+	x0, y0 = 50, 50
+	for ds in dsList:
+		if ds != vv.Dataset.Name:
+			vv.Folder.OpenDataset(ds)
+		LoopList(gList, epochs=epochs, PP=PP, SS=SS, EX=EX, ex=ex)
+		SaveToAtlas(atName, x0, y0)
+		y0 += 150
 
 def PaserInfo(desc):	
 	info = {}
@@ -151,6 +173,7 @@ def ReEmbedding(pMap):
 	PP = float(info['PP'])
 	EX = float(info['EX'])
 	ex = float(info['ex']) if 'ex' in info else 1.0
+	mpTitle, mpDescription = pMap.Title, pMap.Description
 	mds = NewTsne(epochs, PP, EX, ex)
 	nt = vv.GetNumberTableView(True).SelectColumnsById(ExtractFeatures(pMap))
 	nt = transform(nt)
@@ -158,8 +181,8 @@ def ReEmbedding(pMap):
 	if not mds.Completed: return
 	vv.SelectedItems = None
 	map = New.MapSnapshot().Show()
-	map.Resize(0, 0, 1000, 700)
-	map.Title, map.Description = pMap.Title, pMap.Description
+	map.Resize(0, 0, mpWidth, mpHeight)
+	map.Title, map.Description = mpTitle, mpDescription
 	mds.Close()
 
 def MonitorMap(pMap):
@@ -289,22 +312,29 @@ def CheckDataset(pMap):
 	if dsName != vv.Dataset.Name:
 		vv.Folder.OpenDataset(dsName)	
 
+def AdjustAtlasMaps(mpWidth, mpHeight, gSize, gOpacity):
+	for it in pp.GetSelectedItems():
+		mp = it.Open()
+		mp.GlyphSize = gSize
+		mp.GlyphOpacity = gOpacity
+		mp.Resize(0,0,mpWidth,mpHeight)
+		mp.Close()
+
+#==================================================================================================
+#==================================================================================================
+
 '''
 
-LoopList('GSM_B_1K', epochs=2000, SS=50, EX=4.0)
-SaveToAtlas('GSM B')
-
-LoopList('Random793_Heart', epochs=2000, SS=25, EX=8.0)
-SaveToAtlas('Heart B')
+LoopList('Arm1q', epochs=2000, SS=100, EX=4.0, saveAs='Arm1q')
 
 chrList = ['Chr20', 'Chr21', 'Chr22']
 chrList = ['ChrX', 'ChrMT']
-x0, y0 = 50, 50
-for ds in ['TCellBreast', 'Perivascular', 'Vascular-C']:
-	vv.Folder.OpenDataset(ds)
-	LoopList(chrList, epochs=2000, PP=0.05, SS=50)
-	SaveToAtlas('Chr-X', x0, y0)
-	y0 += 150
+chrList = ['Chr1']
+dsList = ['TCellBreast', 'Perivascular', 'Vascular-C']
+
+chrList = ['LncRNA_Pos', 'LncRNA_Length']
+dsList = ['Perivascular']
+LoopList2('LncRNA', dsList, chrList, SS=500, epochs=2000, ex=0.95)
 
 LoopList(['ChrXP', 'ChrXN'], epochs=2000, SS=100)
 
@@ -313,11 +343,18 @@ SaveToAtlas('ChrX-c')
 
 idMon = [ cs.Id for cs in vv.Dataset.ColumnSpecList ]
 
-for n in ['15', '16', '17', '18', '19']:
-	vv.GroupManager.SetGroupLabels('Chr'+n, GetGeneList(n))
+for n in range(1, 6):
+	nm = str(n)
+	vv.GroupManager.SetGroupLabels('Chr'+nm, GetGeneList(nm))
 
 nt = cs.DeNormalize(vv.GetNumberTableView(True).Clone())
 nt.ShowHeatMap()
+
+mds = NewTsne()
+nt = vv.GetNumberTableFiltered()
+mds.ChangeTrainingData(nt)
+mds.Reset()
+mds.Start()
 
 #----------------------------------
 
@@ -346,10 +383,19 @@ match vv.EventSource.Item:
 		EmbedGenes(vv.SelectedItems, epochs=2000, EX=4.0, PP=0.05)
 
 for Atlas
-@#MenuLabels SetMapLabel
+@#MenuLabels SetMapLabel AdjustAtlasMaps
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
 	case 'SetMapLabel':
 		SetAtlasItemName()
+	case 'AdjustAtlasMaps':
+		AdjustAtlasMaps(1000, 700, 0.5, 0.5)
+
+@for it in pp.GetSelectedItems():
+	mp = it.Open()
+	mp.GlyphSize = 0.5
+	mp.GlyphOpacity = 0.5
+	mp.Resize(0,0,1000,700)
+	mp.Close()
 
 '''

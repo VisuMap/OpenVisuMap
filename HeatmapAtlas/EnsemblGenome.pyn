@@ -1,22 +1,67 @@
 import mygene
-import pprint
+from pprint import pformat
+import math
 
 mg = mygene.MyGeneInfo()
 
 g = mg.getgene('ENSG00000205542')
+g = mg.getgene('ENSG00000205542', field='map_location')
 g = mg.getgene('ENSG00000205542',  field='exons')
 g = mg.getgene('ENSG00000000003',  field='symbol')
-print(pprint.pformat(g))
+print(pformat(g))
 
 ds = vv.Dataset
 if ds.Name != 'Gene Features': 
 	vv.Return(1)
 gIds = [ x.Id for x in ds.BodyList ]
 
-gs = mg.getgenes(['ENSG00000205542','ENSG00000000003'], field='exons')
-print(pprint.pformat(gs[1000:1003]))
 
-gIds = sList
+gs = mg.getgenes(['ENSG00000205542','ENSG00000000003'], field='exons')
+print(pformat(gs[1000:1003]))
+
+vv.GroupManager.SetGroupLabels('Arm1q', GenesFromChromArm('1q'))
+
+#-----------------------
+
+def GenesFromChromArm(armName):
+	idDic = {}
+	for k, b in enumerate(ds.BodyList):
+		p = ds.GetDataAt(k, 14)
+		if p.startswith(armName):
+			idx = len(armName)
+			idDic[b.Id] = float(p[idx:])
+	idList = sorted(idDic.items(), key=lambda item: item[1])
+	return [p[0] for p in idList]
+
+#-----------------------
+
+def VectorizeSummary():
+	idList = []
+	smList = []
+	for k, b in enumerate(ds.BodyList):
+		sm = ds.GetDataAt(k, 15)
+		if len(sm) > 0:
+			idx = sm.rfind('[provided ')
+			if idx > 0:
+				sm = sm[:idx]
+			idx = sm.rfind('[supplied ')
+			if idx > 0:
+				sm = sm[:idx]		
+			idList.append(b.Id)
+			smList.append(sm)
+
+	from sklearn.feature_extraction.text import TfidfVectorizer
+	vectorizer = TfidfVectorizer(sublinear_tf=True)
+	features = vectorizer.fit_transform(smList)
+	feature_names = vectorizer.get_feature_names_out()
+	nt = features.toarray().astype(np.float32)	
+	nt = mm.ToTable(nt)
+	for col, name in enumerate(feature_names):
+		nt.ColumnSpecList[col].Id = name
+	for row in range(nt.Rows):
+		nt.RowSpecList[row].Id = idList[row]
+	nt.ShowHeatMap()
+
 
 #-----------------------
 
@@ -161,5 +206,14 @@ for k in range(ds.Rows):
 	if sp != 0:
 		ds.SetValueAt(k, cIdx, sz/sp)
 
-vv.Dataset.CommitChanges()
+gs = mg.getgenes(gIds,  field = 'map_location')
+cIdx = ds.IndexOfColumn('Location')
+for k, g in enumerate(gs):
+	if ('map_location' in g) and ('query' in g):
+		loc = g['map_location']
+		rowIdx = ds.IndexOfRow(g['query'])
+		if rowIdx >= 0:
+			ds.SetStringAt(rowIdx, cIdx, loc)
+
+ds.CommitChanges()
 vv.Map.Redraw()
