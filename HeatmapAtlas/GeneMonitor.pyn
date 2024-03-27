@@ -46,25 +46,25 @@ def ConfigBarView(bv, nt):
 		item.Group = 4
 	bv.ReadOnly = True
 	bv.Show()
-	bv.TheForm.Width = 1200
-	bv.TheForm.Height = 300
+	bv.Resize(0, 0, 1000, 300)
 	vv.EventManager.OnItemsSelected("@OnSelected()", bv, nt)	
-	bv.AddContextMenu("Gene Explore/Gene Detail", "@ShowGeneDetails()")
+	bv.AddContextMenu("Atlas/Gene Detail", "@ShowGeneDetails()")
 
 def ConfigMarker(mk):
-	mk.AnimationPause = 10
-	mk.AnimationStepSize = 3
+	mk.AnimationPause = 15
+	mk.AnimationStepSize = 1
 	mk.LoopPath = False
 	mk.NoLooping = False
 	mk.MarkerColor = New.Color('Yellow')
 	mk.Left = 200
 	mk.Top = 200
-	mk.Width = 50
+	mk.Width = 80
 	mk.Height = 15
 	mk.SpinningMarker()
 
 def Config3DMap(m3d):
 	m3d.ReadOnly = True
+	m3d.Resize(0, 0, 1000, 800)
 	m3d.GlyphOpacity = 0.5
 	m3d.GlyphSize = 0.45
 	m3d.ShowBoundingBox = True
@@ -123,6 +123,7 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=N
 			n2 = min(L, n + SS)
 			nt = nt0.SelectColumnsById(idList[n:n2])
 			nt = transform(nt)
+			vv.Map.Description = f'SQ:{listName};RG:{n}-{n2};EP:{epochs};PP:{PP};SS:{SS};EX:{EX};ex:{ex};DS:{vv.Dataset.Name}'
 			mds.ChangeTrainingData(nt).Reset().Start()
 			if not mds.Completed:
 				vv.Return(1)
@@ -132,8 +133,8 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=N
 			mp.GlyphSize = 0.25
 			mp.GlyphOpacity = 0.75
 			mp.ShowMarker(False)
-			mp.Title = f'SQ:{listName}; RG:{n}-{n2};'
-			mp.Description = mp.Title + f' EP:{epochs}; PP:{PP}; SS:{SS}; EX:{EX}; ex:{ex}; DS:{vv.Dataset.Name}'
+			mp.Title = f'SQ:{listName};RG:{n}-{n2};'
+			mp.Description = vv.Map.Description
 	mds.Close()
 	if saveTo != None:
 		SaveToAtlas(saveTo)
@@ -186,6 +187,7 @@ def ReEmbedding(pMap):
 	map.Resize(0, 0, mpWidth, mpHeight)
 	map.Title, map.Description = mpTitle, mpDescription
 	mds.Close()
+	vv.Map.Description = mpDescription
 
 def MonitorMap(pMap):
 	CheckDataset(pMap)
@@ -207,7 +209,10 @@ def ShowData(pMap):
 	nt = transform(nt)
 	hm = nt.ShowHeatMap()
 	hm.Title = f'Data Dimension: {nt.Rows}x{nt.Columns}'
-	hm.AddContextMenu("Gene Explore/Gene Detail", "@ShowGeneDetails()")
+	hm.Resize(0, 0, 1015, 500)
+	hm.ReadOnly = True
+	hm.SelectionMode = 1
+	hm.AddContextMenu("Atlas/Gene Detail", "@ShowGeneDetails()")
 
 
 def ShowExpress3D(pMap):
@@ -327,7 +332,7 @@ def AdjustAtlasMaps(mpWidth, mpHeight, gSize, gOpacity):
 
 '''
 
-LoopList('Arm5p', epochs=2000, SS=50, EX=4.0, saveTo='Arm5p')
+LoopList('Xq', epochs=2000, ss=100, SS=50, saveTo='Xq')
 
 ftList = ['Chr20', 'Chr21', 'Chr22']
 ftList = ['ChrX', 'ChrMT']

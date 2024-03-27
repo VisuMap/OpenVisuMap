@@ -19,7 +19,7 @@ gIds = [ x.Id for x in ds.BodyList ]
 gs = mg.getgenes(['ENSG00000205542','ENSG00000000003'], field='exons')
 print(pformat(gs[1000:1003]))
 
-vv.GroupManager.SetGroupLabels('Arm5p', GenesFromChromArm('5p'))
+vv.GroupManager.SetGroupLabels('Xq', GenesFromChromArm('Xq'))
 
 #-----------------------
 
@@ -39,11 +39,16 @@ def GenesFromChromArm(armName):
 #-----------------------
 
 def VectorizeSummary():
+	ds = vv.Dataset
+	import numpy as np
+	#cIdx = ds.IndexOfColumn('Summary')
+	cIdx = ds.IndexOfColumn('TissueList')
 	idList = []
 	smList = []
 	for k, b in enumerate(ds.BodyList):
-		sm = ds.GetDataAt(k, 15)
-		if len(sm) > 0:
+		sm = ds.GetDataAt(k, cIdx)
+		if b.Disabled: continue
+		if len(sm) > 3:
 			idx = sm.rfind('[provided ')
 			if idx > 0:
 				sm = sm[:idx]
@@ -53,8 +58,11 @@ def VectorizeSummary():
 			idList.append(b.Id)
 			smList.append(sm)
 
-	from sklearn.feature_extraction.text import TfidfVectorizer
-	vectorizer = TfidfVectorizer(sublinear_tf=True)
+	#from sklearn.feature_extraction.text import TfidfVectorizer
+	#vectorizer = TfidfVectorizer(sublinear_tf=True)
+	from sklearn.feature_extraction.text import CountVectorizer
+	vectorizer = CountVectorizer()
+
 	features = vectorizer.fit_transform(smList)
 	feature_names = vectorizer.get_feature_names_out()
 	nt = features.toarray().astype(np.float32)	
