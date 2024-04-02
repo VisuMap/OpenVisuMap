@@ -30,14 +30,21 @@ function InstallAtlas() {
     ]) mgr.SetCustomButton("Atlas/" + label, img, script);
 
 
-var scriptStr = `@#MenuLabels - 'Capture Maps' 'Embed Selected'
+var scriptStr = `@#MenuLabels - 'Capture Maps' 'Embed Selected', Monitor 'Show Data' 3D-Expression
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
 	case 'Capture Maps':
 		vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
 	case 'Embed Selected':
-		EmbedGenes(vv.SelectedItems, epochs=2000, EX=4.0, PP=0.05)`;
-	 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MainForm", null)
+		EmbedGenes(vv.SelectedItems, epochs=2000, EX=4.0, PP=0.05)
+	case 'Monitor':
+		MonitorMap(vv.Map)
+	case 'Show Data':
+		ShowData(vv.Map)
+	case '3D-Expression':
+		ShowExpress3D(vv.Map)`;
+
+mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MainForm", null);
 
 scriptStr = `@#MenuLabels - "Set Map Label" "Adjust Atlas Maps"
 vv.Import('GeneMonitor.pyn')
@@ -46,7 +53,8 @@ match vv.EventSource.Item:
 		SetAtlasItemName()
 	case 'Adjust Atlas Maps':		
 		AdjustAtlasMaps(1000, 700, 0.5, 0.5)`;
-	 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "Atlas", null)
+
+mgr.SetCustomMenu('Atlas/*', true, scriptStr, "Atlas", null);
 
 scriptStr = `@#MenuLabels - Monitor "Show Data" ReEmbedding 3D-Expression 'Active Cells'
 vv.Import('GeneMonitor.pyn')
@@ -61,7 +69,9 @@ match vv.EventSource.Item:
 		ShowExpress3D(pp)
 	case 'Active Cells':
 		ShowActiveCells(pp)`;
-	 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MapSnapshot", null)
+
+mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MapSnapshot", null);
+
 
 
 }
