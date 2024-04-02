@@ -51,15 +51,15 @@ def ConfigBarView(bv, nt):
 	bv.AddContextMenu("Atlas/Gene Detail", "@ShowGeneDetails()")
 
 def ConfigMarker(mk):
-	mk.AnimationPause = 15
+	mk.AnimationPause = 25
 	mk.AnimationStepSize = 1
 	mk.LoopPath = False
 	mk.NoLooping = False
 	mk.MarkerColor = New.Color('Yellow')
 	mk.Left = 200
 	mk.Top = 200
-	mk.Width = 80
-	mk.Height = 15
+	mk.Width = 70
+	mk.Height = 12
 	mk.SpinningMarker()
 
 def Config3DMap(m3d):
@@ -254,10 +254,8 @@ def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0, ex=1.0):
 	if not mds.Completed: vv.Return(0)
 	mds.Close()
 	vv.SelectedItems = None
-	map = New.MapSnapshot().Show()
 	sId = '|'.join(idMon)
-	map.Title = f'Features:{len(idMon)}'
-	map.Description = f'EP:{epochs}; PP:{PP}; EX:{EX}; DS:{vv.Dataset.Name}; Ids:{sId}'
+	vv.Map.Description = f'EP:{epochs}; PP:{PP}; EX:{EX}; DS:{vv.Dataset.Name}; Ids:{sId}'
 
 def OnGenesSelected():
 	mp = pp
@@ -332,7 +330,7 @@ def AdjustAtlasMaps(mpWidth, mpHeight, gSize, gOpacity):
 
 '''
 
-LoopList('Xq', epochs=2000, ss=100, SS=50, saveTo='Xq')
+LoopList('pancreas', epochs=2000, SS=100, saveTo='pancreas')
 
 ftList = ['Chr20', 'Chr21', 'Chr22']
 ftList = ['ChrX', 'ChrMT']
