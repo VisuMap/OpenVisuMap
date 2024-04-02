@@ -22,6 +22,37 @@ print(pformat(gs[1000:1003]))
 vv.GroupManager.SetGroupLabels('Xq', GenesFromChromArm('Xq'))
 
 #-----------------------
+def GetTissueGenes():
+	dsName = 'Gene Features'
+	ds = vv.Dataset if vv.Dataset.Name == dsName  else vv.Folder.ReadDataset( dsName )
+	cIdx = ds.IndexOfColumn('TissueList')
+	tg = {}
+	for k, b in enumerate(ds.BodyList):
+		ts = ds.GetDataAt(k, cIdx).split(';')
+		for  t in ts:
+			if len(t) < 2:
+				continue
+			if not t in tg:
+				tg[t] = set()
+			tg[t].add(b.Id)
+	for t in tg:
+		print(f'{t}: {len(tg[t])}')
+	coreG, allG = tg['lung'], set()
+	for t in tg: 
+		allG = allG | tg[t]
+		coreG = coreG & tg[t]
+	print('Core and All:', len(coreG), len(allG))
+	return tg, coreG, allG
+
+tg, coreG, allG = GetTissueGenes()
+enabled = [b.Id for b in vv.Dataset.BodyListEnabled()]
+enabled = set(enabled)
+vv.GroupManager.SetGroupLabels('pancreas', list(enabled & tg['pancreas']) )
+for ti in tg:
+	vv.GroupManager.SetGroupLabels(ti, list(tg[ti]))
+	
+
+#-----------------------
 
 def GenesFromChromArm(armName):
 	dsName = 'Gene Features'
