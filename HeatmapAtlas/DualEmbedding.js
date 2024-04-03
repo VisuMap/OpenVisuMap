@@ -19,14 +19,14 @@ cfg = {...cfg, ...{
 	MapLimit: PP(0,0),
 }};
 
-cfg.Epochs = PP(1000, 1000);
-cfg.Exa = PP(6.0);
+cfg.Epochs = PP(2000, 2000);
+cfg.Exa = PP(4.0, 1.5);
 cfg.ExaF = PP(1.0);
 cfg.Ppr = PP(0.05);
-cfg.Mtr = PP(cfg.euc, cfg.euc);
+cfg.Mtr = PP(cfg.cor, cfg.cor);
 //
 //limits the columns or rows by random selection when creating maps of rows or columns.
-//cfg.MapLimit = PP(400, 50000); 
+cfg.MapLimit = PP(1000, 50000); 
 //
 
 function RunEmbedding(mds, nt, isCellMap, epochs, mtr, initExa, finalExa, ppRatio, is3D) {

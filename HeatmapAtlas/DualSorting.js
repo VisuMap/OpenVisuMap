@@ -16,12 +16,12 @@ cfg = {...cfg, ...{
    SrtLimit:  PP(0, 0),
 }};
 
-cfg.EpochsSrt = PP(1000, 1000);
-cfg.ExaSrt = PP(5.0);
+cfg.EpochsSrt = PP(2000, 2000);
+cfg.ExaSrt = PP(1.5);
 cfg.ExaSrtF = PP(1.0);
 cfg.PprSrt = PP(0.05);
-cfg.MtrSrt = PP(cfg.euc, cfg.euc);
-cfg.SrtLimit = PP(400, 50000);
+cfg.MtrSrt = PP(cfg.cor, cfg.cor);
+cfg.SrtLimit = PP(1000, 50000);
 
 
 function SortTable(T, mt, epochs, ex, exF, pr) {

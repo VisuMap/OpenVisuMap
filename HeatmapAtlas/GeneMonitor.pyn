@@ -123,7 +123,7 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=N
 			n2 = min(L, n + SS)
 			nt = nt0.SelectColumnsById(idList[n:n2])
 			nt = transform(nt)
-			vv.Map.Description = f'SQ:{listName};RG:{n}-{n2};EP:{epochs};PP:{PP};SS:{SS};EX:{EX};ex:{ex};DS:{vv.Dataset.Name}'
+			vv.Map.Description = f'SQ:{listName};RG:{n}-{n2};SS:{SS};EP:{epochs};PP:{PP};EX:{EX};ex:{ex};DS:{vv.Dataset.Name}'
 			mds.ChangeTrainingData(nt).Reset().Start()
 			if not mds.Completed:
 				vv.Return(1)
@@ -149,19 +149,21 @@ def LoopList2(dsList, gList, saveTo=None, epochs=1000, PP=0.05, SS=50, EX=4.0, e
 			SaveToAtlas(saveTo, x0, y0)
 		y0 += 150
 
-def PaserInfo(desc):	
+def ParseInfo(desc):	
 	info = {}
 	for s in desc.split(';'):
 		fs = s.strip().split(':', 1)
 		if len(fs) < 2: 
 			continue
 		info[fs[0]] = fs[1]
+	if 'Ids' in info:
+		info['Ids'] = info['Ids'].split('|')
 	return info
 
 def ExtractFeatures(pMap):
-	info = PaserInfo(pMap.Description)
+	info = ParseInfo(pMap.Description)
 	if 'Ids' in info:
-		return info['Ids'].split('|')
+		return info['Ids']
 	sq = info['SQ']
 	fs = info['RG'].split('-')
 	idMon = 	list(vv.GroupManager.GetGroupLabels(sq))
@@ -171,7 +173,7 @@ def ExtractFeatures(pMap):
 
 def ReEmbedding(pMap):
 	CheckDataset(pMap)
-	info = PaserInfo(pMap.Description)
+	info = ParseInfo(pMap.Description)
 	epochs = int(info['EP'])
 	PP = float(info['PP'])
 	EX = float(info['EX'])
@@ -214,7 +216,6 @@ def ShowData(pMap):
 	hm.SelectionMode = 1
 	hm.AddContextMenu("Atlas/Gene Detail", "@ShowGeneDetails()")
 
-
 def ShowExpress3D(pMap):
 	CheckDataset(pMap)
 	nt = vv.GetNumberTableView(True).SelectColumnsById(ExtractFeatures(pMap))
@@ -255,7 +256,7 @@ def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0, ex=1.0):
 	mds.Close()
 	vv.SelectedItems = None
 	sId = '|'.join(idMon)
-	vv.Map.Description = f'EP:{epochs}; PP:{PP}; EX:{EX}; DS:{vv.Dataset.Name}; Ids:{sId}'
+	vv.Map.Description = f'EP:{epochs};PP:{PP};ex:{ex};EX:{EX};DS:{vv.Dataset.Name}; Ids:{sId}'
 
 def OnGenesSelected():
 	mp = pp
@@ -306,14 +307,14 @@ def SetAtlasItemName():
 	atlas = pp
 	for item in atlas.GetSelectedItems():
 		mp = item.Open()
-		info = PaserInfo(mp.Title)
+		info = ParseInfo(mp.Title)
 		item.Name = info['SQ'] + ':' + info['RG']
 		item.LabelStyle = 2
 		mp.Close()
 		atlas.RedrawItem(item, True)
 
 def CheckDataset(pMap):
-	dsName = PaserInfo(pMap.Description)['DS']
+	dsName = ParseInfo(pMap.Description)['DS']
 	if dsName != vv.Dataset.Name:
 		vv.Folder.OpenDataset(dsName)	
 
