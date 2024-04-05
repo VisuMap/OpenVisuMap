@@ -37,13 +37,25 @@ def NewTsne(epochs=1000, PP=0.05, EX=4.0, ex=1.0):
 
 def ConfigBarView(bv, nt):
 	bv.Horizontal = False
-	bv.BarLabelType = 4
+	bv.BarLabelType = 1
 	bv.AutoScaling = False
 	bv.LowerLimit = 0
 	bv.UpperLimit = 2.0
 	bv.BaseLineType = 0
-	for item in bv.ItemList: 
-		item.Group = 4
+	items = bv.ItemList
+	for item in items: item.Group = 4
+
+	'''
+	for k, nm in zip([4,8,10,11], ['ATP8', 'ND4L', 'ND5', 'ND6']):
+		items[k].Group = 4
+		items[k].Id = nm
+	'''
+	gt = vv.Folder.ReadDataset('Gene Features')
+	if gt != None:
+		cIdx = gt.IndexOfColumn('Symbol')
+		id2sym = {gt.BodyList[row].Id : gt.GetDataAt(row, cIdx) for row in range(gt.Rows)}
+		for item in items: item.Name = id2sym[item.Id]
+
 	bv.ReadOnly = True
 	bv.Show()
 	bv.Resize(0, 0, 1000, 300)
@@ -98,8 +110,7 @@ def OnSelected():
 			break	
 	pp.UpperLimit = math.ceil(maxV/minStep) * minStep
 	maxV = 0.25 * pp.UpperLimit
-	for item in bv.ItemList:
-		item.Group = 0 if item.Value > maxV else 4
+	for item in bv.ItemList: item.Group = 0 if item.Value > maxV else 4
 	bv.Redraw()
 
 def StartTracing(idMon, map=None):
@@ -331,7 +342,7 @@ def AdjustAtlasMaps(mpWidth, mpHeight, gSize, gOpacity):
 
 '''
 
-LoopList('pancreas', epochs=2000, SS=100, saveTo='pancreas')
+LoopList('Xp11', epochs=2000, SS=25, saveTo='Xp11')
 
 ftList = ['Chr20', 'Chr21', 'Chr22']
 ftList = ['ChrX', 'ChrMT']
