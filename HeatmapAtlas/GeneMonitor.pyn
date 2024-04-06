@@ -19,7 +19,7 @@ def transform(nt):
 	return nt
 	#return cs.Transform(nt)
 
-def NewTsne(epochs=1000, PP=0.05, EX=4.0, ex=1.0):
+def NewTsne(epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1):
 	mds = New.TsneMap()
 	mds.MaxLoops = epochs
 	mds.PerplexityRatio = PP
@@ -30,7 +30,7 @@ def NewTsne(epochs=1000, PP=0.05, EX=4.0, ex=1.0):
 	mds.Is3D = False
 	mds.AutoNormalizing = True
 	mds.AutoScaling = False
-	mds.Repeats = 1
+	mds.Repeats = repeats
 	mds.ReadOnly = True
 	mds.Show()
 	return mds
@@ -258,8 +258,10 @@ def GetGeneList(chrName):
 	gList.sort(key=lambda x:x[1])
 	return [p[0] for p in gList]
 
-def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0, ex=1.0):
-	mds = NewTsne(epochs, PP, EX, ex)
+def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1):
+	if idMon.Count == 0:
+		idMon = ParseInfo(vv.Map.Description)['Ids']
+	mds = NewTsne(epochs, PP, EX, ex, repeats)
 	nt = vv.GetNumberTableView(True).SelectColumnsById(idMon)
 	nt = transform(nt)
 	mds.ChangeTrainingData(nt).Reset().Start()
@@ -342,74 +344,12 @@ def AdjustAtlasMaps(mpWidth, mpHeight, gSize, gOpacity):
 
 '''
 
-LoopList('Xp11', epochs=2000, SS=25, saveTo='Xp11')
+LoopList('Xp11', epochs=2000, SS=50, saveTo='Xp11')
+LoopList(['ChrX', 'ChrMT'], epochs=2000, SS=100)
 
-ftList = ['Chr20', 'Chr21', 'Chr22']
-ftList = ['ChrX', 'ChrMT']
-ftList = ['Chr1']
-ftList = ['LowExon-Protein', 'HiExon-Protein', 'ShortTranscript', 'LongTranscript']
-LoopList(ft, epochs=2000, SS=100)
-
-dsList = ['TCellBreast', 'Perivascular', 'Vascular-C']
-
-ftList = ['LncRNA_Pos', 'LncRNA_Length']
+#dsList = ['TCellBreast', 'Perivascular', 'Vascular-C', 'BreastCancel', 'Myeloid']
 dsList = ['Perivascular']
+ftList = ['LncRNA_Pos', 'LncRNA_Length']
 LoopList2(dsList, ftList, saveTo='LncRNA', SS=500, epochs=2000, ex=0.95)
-
-idMon = [ cs.Id for cs in vv.Dataset.ColumnSpecList ]
-for n in range(1, 6):
-	nm = str(n)
-	vv.GroupManager.SetGroupLabels('Chr'+nm, GetGeneList(nm))
-
-nt = cs.DeNormalize(vv.GetNumberTableView(True).Clone())
-nt.ShowHeatMap()
-
-mds = NewTsne()
-nt = vv.GetNumberTableFiltered()
-mds.ChangeTrainingData(nt)
-mds.Reset()
-mds.Start()
-
-#----------------------------------
-
-Code to install some useful context menus:
-
-for SnapshotMap
-@#MenuLabels Monitor ShowData ReEmbedding 3D-Expression
-vv.Import('GeneMonitor.pyn')
-match vv.EventSource.Item:
-	case 'Monitor':
-		MonitorMap(pp)
-	case 'ShowData':
-		ShowData(pp)
-	case 'ReEmbedding':
-		ReEmbedding(pp)
-	case '3D-Expression':
-		ShowExpress3D(pp)
-
-for MainForm
-@#MenuLabels CaptureMaps EmbedSelected
-vv.Import('GeneMonitor.pyn')
-match vv.EventSource.Item:
-	case 'CaptureMaps':
-		vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
-	case 'EmbedSelected':
-		EmbedGenes(vv.SelectedItems, epochs=2000, EX=4.0, PP=0.05)
-
-for Atlas
-@#MenuLabels SetMapLabel AdjustAtlasMaps
-vv.Import('GeneMonitor.pyn')
-match vv.EventSource.Item:
-	case 'SetMapLabel':
-		SetAtlasItemName()
-	case 'AdjustAtlasMaps':
-		AdjustAtlasMaps(1000, 700, 0.5, 0.5)
-
-@for it in pp.GetSelectedItems():
-	mp = it.Open()
-	mp.GlyphSize = 0.5
-	mp.GlyphOpacity = 0.5
-	mp.Resize(0,0,1000,700)
-	mp.Close()
 
 '''

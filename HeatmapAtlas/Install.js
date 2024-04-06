@@ -36,9 +36,7 @@ match vv.EventSource.Item:
 	case 'Capture Maps':
 		vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
 	case 'Embed Selected':
-		cIds = vv.SelectedItems
-		if cIds.Count == 0: cIds = ParseInfo(vv.Map.Description)['Ids']
-		EmbedGenes(cIds, epochs=2000, EX=4, ex=1.0, PP=0.05)
+		EmbedGenes(vv.SelectedItems, epochs=2000, EX=10, ex=1.0, PP=0.05, repeats=2)
 	case 'Monitor':
 		MonitorMap(vv.Map)
 	case 'Show Data':
@@ -78,9 +76,7 @@ scriptStr = `@#MenuLabels 'Embed Selected'
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
 	case 'Embed Selected':
-		cIds = vv.SelectedItems
-		if cIds.Count == 0: cIds = ParseInfo(vv.Map.Description)['Ids']
-		EmbedGenes(cIds, epochs=2000, EX=4, ex=1.0, PP=0.05)`;
+		EmbedGenes(vv.SelectedItems, epochs=2000, EX=10, ex=1.0, PP=0.05, repeats=1)`;
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "GroupManager", null);
 
