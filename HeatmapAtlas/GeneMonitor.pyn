@@ -43,23 +43,24 @@ def ConfigBarView(bv, nt):
 	bv.UpperLimit = 2.0
 	bv.BaseLineType = 0
 	items = bv.ItemList
-	for item in items: item.Group = 4
 
-	'''
-	for k, nm in zip([4,8,10,11], ['ATP8', 'ND4L', 'ND5', 'ND6']):
-		items[k].Group = 4
-		items[k].Id = nm
-	'''
 	gt = vv.Folder.ReadDataset('Gene Features')
+	dynamicColor = True
 	if gt != None:
 		cIdx = gt.IndexOfColumn('Symbol')
 		id2sym = {gt.BodyList[row].Id : gt.GetDataAt(row, cIdx) for row in range(gt.Rows)}
 		for item in items: item.Name = id2sym[item.Id]
+		'''
+			marked = set(['ATP8', 'ND4L', 'ND5', 'ND6'])
+			for item in items: 
+				item.Group = 4 if item.Name in marked else 0
+			dynamicColor = False
+		'''
 
 	bv.ReadOnly = True
 	bv.Show()
 	bv.Resize(0, 0, 1000, 300)
-	vv.EventManager.OnItemsSelected("@OnSelected()", bv, nt)	
+	vv.EventManager.OnItemsSelected(f'@OnSelected({dynamicColor})', bv, nt)	
 	bv.AddContextMenu("Atlas/Gene Detail", "@ShowGeneDetails()")
 
 def ConfigMarker(mk):
@@ -95,22 +96,19 @@ def StartMonitor(nt, map=None):
 		map = vv.MapView
 	ConfigMarker(map.ShowMarker(True))
 
-def OnSelected():
+def OnSelected(dynamicColor):
 	nt = vv.EventSource.Argument.SelectRowsById(vv.SelectedItems)
 	bv = pp
 	if nt.Rows==0:
 		return
 	nt.ColumnMean(bv.ItemList)
-	maxV = max([item.Value for item in bv.ItemList])	
-	minStep = 0
-	for k in range(10):
-		v = 0.25 * (2 ** k)
-		if v > maxV:
-			minStep = v
-			break	
-	pp.UpperLimit = math.ceil(maxV/minStep) * minStep
-	maxV = 0.25 * pp.UpperLimit
-	for item in bv.ItemList: item.Group = 0 if item.Value > maxV else 4
+	maxV = max([item.Value for item in bv.ItemList])
+	if vv.ModifierKeys.AltPressed:
+		pp.UpperLimit = 0.25*(2**(math.ceil(math.log2(maxV/0.25))))
+	if dynamicColor:
+		maxV = 0.25 * pp.UpperLimit
+		for item in bv.ItemList: 
+			item.Group = 0 if item.Value > maxV else 4
 	bv.Redraw()
 
 def StartTracing(idMon, map=None):
@@ -172,7 +170,8 @@ def ParseInfo(desc):
 	return info
 
 def ExtractFeatures(pMap):
-	info = ParseInfo(pMap.Description)
+	desc = vv.Map.Description if pMap.Name=='MainForm' else pMap.Description
+	info = ParseInfo(desc)
 	if 'Ids' in info:
 		return info['Ids']
 	sq = info['SQ']
@@ -264,12 +263,10 @@ def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1):
 	mds = NewTsne(epochs, PP, EX, ex, repeats)
 	nt = vv.GetNumberTableView(True).SelectColumnsById(idMon)
 	nt = transform(nt)
+	vv.Map.Description = f'EP:{epochs};PP:{PP};ex:{ex};EX:{EX};DS:{vv.Dataset.Name}; Ids:{'|'.join(idMon)}'
 	mds.ChangeTrainingData(nt).Reset().Start()
 	if not mds.Completed: vv.Return(0)
 	mds.Close()
-	vv.SelectedItems = None
-	sId = '|'.join(idMon)
-	vv.Map.Description = f'EP:{epochs};PP:{PP};ex:{ex};EX:{EX};DS:{vv.Dataset.Name}; Ids:{sId}'
 
 def OnGenesSelected():
 	mp = pp
@@ -293,12 +290,16 @@ def OnGenesSelected():
 		else:
 			b.Type = min(15, int( v/stepSize ))
 			b.Hidden = False
+	reversing = False  # show the supression instead of activation
+	if reversing: 
+		for b in bList:
+			b.Type = 15 - b.Type
 	mp.RedrawBodiesType()
 
-def ShowActiveCells(pMap): 
+def ShowActiveCells(pMap):
 	CheckDataset(pMap)
 	pMap.SelectedItems = None
-	mp = pMap.NewSnapshot()
+	mp = New.MapSnapshot().Show() if pMap.Name == 'MainForm' else pMap.NewSnapshot()
 	mp.HiddenBodyColor = New.Color('Red')
 	for b in mp.BodyList: 
 		b.Hidden = True
@@ -327,7 +328,8 @@ def SetAtlasItemName():
 		atlas.RedrawItem(item, True)
 
 def CheckDataset(pMap):
-	dsName = ParseInfo(pMap.Description)['DS']
+	info = vv.Map.Description if pMap.Name=='MainForm' else pMap.Description
+	dsName = ParseInfo(info)['DS']
 	if dsName != vv.Dataset.Name:
 		vv.Folder.OpenDataset(dsName)	
 
@@ -339,11 +341,7 @@ def AdjustAtlasMaps(mpWidth, mpHeight, gSize, gOpacity):
 		mp.Resize(0,0,mpWidth,mpHeight)
 		mp.Close()
 
-#================================================================================
-#================================================================================
-
-'''
-
+'''=================================================================================
 LoopList('Xp11', epochs=2000, SS=50, saveTo='Xp11')
 LoopList(['ChrX', 'ChrMT'], epochs=2000, SS=100)
 
@@ -351,5 +349,4 @@ LoopList(['ChrX', 'ChrMT'], epochs=2000, SS=100)
 dsList = ['Perivascular']
 ftList = ['LncRNA_Pos', 'LncRNA_Length']
 LoopList2(dsList, ftList, saveTo='LncRNA', SS=500, epochs=2000, ex=0.95)
-
 '''
