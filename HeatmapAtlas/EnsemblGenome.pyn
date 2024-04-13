@@ -22,6 +22,47 @@ print(pformat(gs[1000:1003]))
 vv.GroupManager.SetGroupLabels('Xq', GenesFromChromArm('Xq'))
 
 #-----------------------
+def GetRibosomeRNA():
+	ds = vv.Folder.ReadDataset( 'Gene Features' )
+	cIdx = ds.IndexOfColumn('Symbol')
+	rpList = []
+	for k, b in enumerate(ds.BodyList):
+		sym = ds.GetDataAt(k, cIdx)
+		if sym.startswith('RPS') or sym.startswith('RPL'):
+			rpList.append(b.Id)
+	return rpList
+
+vv.GroupManager.SetGroupLabels('Ribosomes', GetRibosomeRNA())
+
+#-----------------------
+def GetLncRNA():
+	ds = vv.Folder.ReadDataset( 'Gene Features' )
+	cIdx = ds.IndexOfColumn('Location')
+	cType = ds.IndexOfColumn('GeneType')
+	id2Chr = {}
+	for k, b in enumerate(ds.BodyList):
+		gType = ds.GetDataAt(k, cType)
+		if gType != 'lncRNA':
+			continue
+		loc = ds.GetDataAt(k, cIdx)
+		pqIdx = max(loc.find('p'), loc.find('q'))
+		if pqIdx > 0:
+			id2Chr[b.Id] = loc[:pqIdx]
+	gsSorted = dict(sorted(id2Chr.items(), key=lambda p:p[1]))
+	gcList = []
+	preChr = '???'
+	for g, chr in gsSorted.items():
+		if len(chr) < 1: 
+			continue
+		if chr != preChr:
+			gcList.append(f'#{chr}')
+		gcList.append(g)
+		preChr = chr
+	return gcList
+
+#vv.GroupManager.SetGroupLabels('lncRNA_ByChr', GetLncRNA())
+			
+
 def GetTissueGenes():
 	dsName = 'Gene Features'
 	ds = vv.Dataset if vv.Dataset.Name == dsName  else vv.Folder.ReadDataset( dsName )

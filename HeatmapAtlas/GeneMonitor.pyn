@@ -40,8 +40,9 @@ def ConfigBarView(bv, nt):
 	bv.BarLabelType = 1
 	bv.AutoScaling = False
 	bv.LowerLimit = 0
-	bv.UpperLimit = 2.0
+	bv.UpperLimit = 0
 	bv.BaseLineType = 0
+	bv.TopMost = True
 	items = bv.ItemList
 
 	gt = vv.Folder.ReadDataset('Gene Features')
@@ -102,9 +103,9 @@ def OnSelected(dynamicColor):
 	if nt.Rows==0:
 		return
 	nt.ColumnMean(bv.ItemList)
-	maxV = max([item.Value for item in bv.ItemList])
-	if vv.ModifierKeys.AltPressed:
-		pp.UpperLimit = 0.25*(2**(math.ceil(math.log2(maxV/0.25))))
+	maxV = max([item.Value for item in bv.ItemList] + [0.01])
+	if vv.ModifierKeys.AltPressed or (pp.UpperLimit == 0):		
+		pp.UpperLimit = 0.125*(2**(math.ceil(math.log2(maxV/0.125))))
 	if dynamicColor:
 		maxV = 0.25 * pp.UpperLimit
 		for item in bv.ItemList: 
@@ -128,11 +129,26 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=N
 			vv.Return(1)
 		idList = list(idList)	
 		L = len(idList)
-		for n in range(ss, L, SS):
-			n2 = min(L, n + SS)
+		
+		nPairs = []
+		if SS != 0:
+			for n in range(ss, L, SS):
+				nPairs.append( (n,  min(L, n + SS)) )
+		else:
+			n = 1
+			for k in range(1, L):
+				if idList[k].startswith('#'):
+					nPairs.append( (n, k) )
+					n = k+1
+			nPairs.append((n, L))
+			nPairs = nPairs[ss:]
+		
+		for n, n2 in nPairs:
 			nt = nt0.SelectColumnsById(idList[n:n2])
 			nt = transform(nt)
 			vv.Map.Description = f'SQ:{listName};RG:{n}-{n2};SS:{SS};EP:{epochs};PP:{PP};EX:{EX};ex:{ex};DS:{vv.Dataset.Name}'
+			if SS == 0:
+				vv.Map.Description += f';NM:Chr{idList[n-1][1:]}'
 			mds.ChangeTrainingData(nt).Reset().Start()
 			if not mds.Completed:
 				vv.Return(1)
@@ -171,6 +187,9 @@ def ParseInfo(desc):
 
 def ExtractFeatures(pMap):
 	desc = vv.Map.Description if pMap.Name=='MainForm' else pMap.Description
+	return ExtractFeatures0(desc)
+
+def ExtractFeatures0(desc):
 	info = ParseInfo(desc)
 	if 'Ids' in info:
 		return info['Ids']
@@ -224,6 +243,13 @@ def ShowData(pMap):
 	hm.Resize(0, 0, 1015, 500)
 	hm.ReadOnly = True
 	hm.SelectionMode = 1
+	gt = vv.Folder.ReadDataset('Gene Features')
+	if gt != None:
+		cIdx = gt.IndexOfColumn('Symbol')
+		id2sym = {gt.BodyList[row].Id : gt.GetDataAt(row, cIdx) for row in range(gt.Rows)}
+		for cs in nt.ColumnSpecList: 
+			cs.Name = id2sym[cs.Id]
+
 	hm.AddContextMenu("Atlas/Gene Detail", "@ShowGeneDetails()")
 
 def ShowExpress3D(pMap):
@@ -259,7 +285,7 @@ def GetGeneList(chrName):
 
 def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1):
 	if idMon.Count == 0:
-		idMon = ParseInfo(vv.Map.Description)['Ids']
+		idMon = ExtractFeatures0(vv.Map.Description)
 	mds = NewTsne(epochs, PP, EX, ex, repeats)
 	nt = vv.GetNumberTableView(True).SelectColumnsById(idMon)
 	nt = transform(nt)
@@ -342,11 +368,26 @@ def AdjustAtlasMaps(mpWidth, mpHeight, gSize, gOpacity):
 		mp.Close()
 
 '''=================================================================================
-LoopList('Xp11', epochs=2000, SS=50, saveTo='Xp11')
+LoopList('RibosomeLow', epochs=2000, SS=200, saveTo='Ribosomes')
+
+LoopList('lncRNA_ByChr', epochs=2000, SS=0, saveTo='LncRNA')
+
+LoopList('LncRNA_Pos', epochs=2000, SS=500, saveTo='LncRNA')
+
 LoopList(['ChrX', 'ChrMT'], epochs=2000, SS=100)
 
 #dsList = ['TCellBreast', 'Perivascular', 'Vascular-C', 'BreastCancel', 'Myeloid']
 dsList = ['Perivascular']
 ftList = ['LncRNA_Pos', 'LncRNA_Length']
 LoopList2(dsList, ftList, saveTo='LncRNA', SS=500, epochs=2000, ex=0.95)
+
+lncRNA = vv.GroupManager.GetGroupLabels("LncRNA_Pos")
+A1p = vv.GroupManager.GetGroupLabels("Arm1p")
+A1q = vv.GroupManager.GetGroupLabels("Arm1q")
+lncRNA_1q = vv.GroupManager.Intersection(lncRNA, A1q)
+lncRNA_1 = vv.GroupManager.Union(lncRNA_1p, lncRNA_1q)
+len(lncRNA_1p)
+
+EmbedGenes(lncRNA_1, epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1)
+
 '''
