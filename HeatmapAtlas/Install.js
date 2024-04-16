@@ -56,7 +56,7 @@ match vv.EventSource.Item:
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "Atlas", null);
 
-scriptStr = `@#MenuLabels - Monitor "Show Data" ReEmbedding 3D-Expression 'Active Cells'
+scriptStr = `@#MenuLabels - Monitor "Show Data" ReEmbedding 3D-Expression 'Active Cells' 'Label Genes'
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
 	case 'Monitor':
@@ -68,15 +68,25 @@ match vv.EventSource.Item:
 	case '3D-Expression':
 		ShowExpress3D(pp)
 	case 'Active Cells':
-		ShowActiveCells(pp)`;
+		ShowActiveCells(pp)
+	case 'Label Genes':
+		LabelGenes(pp)`;
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MapSnapshot", null);
 
-scriptStr = `@#MenuLabels 'Embed Selected'
+scriptStr = `@#MenuLabels 'Embed Selected' 'Embed Groups' 'Show Selected Data'
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
 	case 'Embed Selected':
-		EmbedGenes(vv.SelectedItems, epochs=2000, EX=10, ex=1.0, PP=0.05, repeats=1)`;
+		EmbedGenes(vv.SelectedItems, epochs=2000, EX=4, ex=1.0, PP=0.05, repeats=1)
+	case 'Embed Groups':
+		gList = pp.GetSelectedGroups()
+		if gList.Count==0:
+			vv.Message('Please select some groups!')
+			vv.Return()	
+		LoopList(list(gList), epochs=2000, SS=9999, EX=4.0, PP=0.05, repeats=1)
+	case 'Show Selected Data':
+		ShowData0( list(vv.SelectedItems) )`;
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "GroupManager", null);
 

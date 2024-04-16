@@ -4,6 +4,30 @@ import numpy as np
 mpWidth, mpHeight = 500, 350
 
 cs = New.CsObject('''
+public IBody MeanPoint(IList<IBody> bList){
+	if (bList.Count == 0) 
+		return null;
+	double x = 0;
+	double y = 0;
+	foreach(IBody b in bList) {
+		x += b.X;
+		y += b.Y;
+	}
+	x /= bList.Count;
+	y /= bList.Count;
+	x -= 35.0;
+	y += 20.0;
+	IBody mBody = null;
+	double mDist = 1.0e10;
+	foreach(IBody b in bList) {
+		double d2 = (b.X - x)*(b.X - x) + (b.Y - y)*(b.Y - y);
+		if (  d2 < mDist ) {
+			mBody = b;
+			mDist = d2;
+		}
+	}	
+	return mBody;
+}
 public INumberTable Transform(INumberTable nt) {
 	MT.Loop(0, nt.Rows, row=>{
 		  double[] R = nt.Matrix[row] as double[];
@@ -13,7 +37,8 @@ public INumberTable Transform(INumberTable nt) {
 				R[col] = Math.Log(1.0 + R[col]);
 	});
 	return nt;
-}''')
+}
+''')
 
 def transform(nt):
 	return nt
@@ -35,6 +60,14 @@ def NewTsne(epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1):
 	mds.Show()
 	return mds
 
+def GetId2Sym():
+	gt = vv.Folder.ReadDataset('Gene Features')
+	id2sym = None
+	if gt != None:
+		cIdx = gt.IndexOfColumn('Symbol')
+		id2sym = {gt.BodyList[row].Id : gt.GetDataAt(row, cIdx) for row in range(gt.Rows)}
+	return id2sym
+
 def ConfigBarView(bv, nt):
 	bv.Horizontal = False
 	bv.BarLabelType = 1
@@ -45,18 +78,12 @@ def ConfigBarView(bv, nt):
 	bv.TopMost = True
 	items = bv.ItemList
 
-	gt = vv.Folder.ReadDataset('Gene Features')
 	dynamicColor = True
-	if gt != None:
-		cIdx = gt.IndexOfColumn('Symbol')
-		id2sym = {gt.BodyList[row].Id : gt.GetDataAt(row, cIdx) for row in range(gt.Rows)}
-		for item in items: item.Name = id2sym[item.Id]
-		'''
-			marked = set(['ATP8', 'ND4L', 'ND5', 'ND6'])
-			for item in items: 
-				item.Group = 4 if item.Name in marked else 0
-			dynamicColor = False
-		'''
+	gt = vv.Folder.ReadDataset('Gene Features')
+	id2sym = GetId2Sym()
+	if id2sym != None:
+		for k, item in enumerate(items): 
+			item.Name = Idx2Chr(k) + "   " + id2sym[item.Id]
 
 	bv.ReadOnly = True
 	bv.Show()
@@ -103,13 +130,14 @@ def OnSelected(dynamicColor):
 	if nt.Rows==0:
 		return
 	nt.ColumnMean(bv.ItemList)
-	maxV = max([item.Value for item in bv.ItemList] + [0.01])
+	vList = [item.Value for item in bv.ItemList] + [0.01]
+	maxV = max(vList)
 	if vv.ModifierKeys.AltPressed or (pp.UpperLimit == 0):		
 		pp.UpperLimit = 0.125*(2**(math.ceil(math.log2(maxV/0.125))))
 	if dynamicColor:
-		maxV = 0.25 * pp.UpperLimit
+		vLimit = 3.0*np.average(vList)
 		for item in bv.ItemList: 
-			item.Group = 0 if item.Value > maxV else 4
+			item.Group = 0 if item.Value > vLimit else 4
 	bv.Redraw()
 
 def StartTracing(idMon, map=None):
@@ -117,10 +145,10 @@ def StartTracing(idMon, map=None):
 	nt = transform(nt)
 	StartMonitor(nt, map)
 
-def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=None): 
+def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=None, repeats=1): 
 	if type(gList) is not list: 
 		gList = [ gList ]
-	mds = NewTsne(epochs, PP, EX, ex)
+	mds = NewTsne(epochs, PP, EX, ex, repeats)
 	nt0 = vv.GetNumberTableView(True)
 	for listName in gList:
 		idList = vv.GroupManager.GetGroupLabels(listName)
@@ -146,20 +174,21 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=N
 		for n, n2 in nPairs:
 			nt = nt0.SelectColumnsById(idList[n:n2])
 			nt = transform(nt)
-			vv.Map.Description = f'SQ:{listName};RG:{n}-{n2};SS:{SS};EP:{epochs};PP:{PP};EX:{EX};ex:{ex};DS:{vv.Dataset.Name}'
+			vv.Map.Description = f'SQ:{listName};RG:{n}-{n2};SS:{SS};CS:{nt.Columns};EP:{epochs};PP:{PP};EX:{EX};ex:{ex};DS:{vv.Dataset.Name}'
 			if SS == 0:
 				vv.Map.Description += f';NM:Chr{idList[n-1][1:]}'
 			mds.ChangeTrainingData(nt).Reset().Start()
 			if not mds.Completed:
 				vv.Return(1)
-			vv.SelectedItems = None
-			mp = New.MapSnapshot().Show()
-			mp.Resize(0, 0, mpWidth, mpHeight)
-			mp.GlyphSize = 0.25
-			mp.GlyphOpacity = 0.75
-			mp.ShowMarker(False)
-			mp.Title = f'SQ:{listName};RG:{n}-{n2};'
-			mp.Description = vv.Map.Description
+			if repeats == 1:
+				vv.SelectedItems = None
+				mp = New.MapSnapshot().Show()
+				mp.Resize(0, 0, mpWidth, mpHeight)
+				mp.GlyphSize = 0.25
+				mp.GlyphOpacity = 0.75
+				mp.ShowMarker(False)
+				mp.Title = f'SQ:{listName};RG:{n}-{n2};'
+				mp.Description = vv.Map.Description
 	mds.Close()
 	if saveTo != None:
 		SaveToAtlas(saveTo)
@@ -236,8 +265,14 @@ def ShowGeneDetails():
 
 def ShowData(pMap):
 	CheckDataset(pMap)
-	nt = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(ExtractFeatures(pMap))
-	nt = transform(nt)
+	ShowData0(ExtractFeatures(pMap))
+
+def ShowData0(featureList):
+	nt = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(featureList)
+	if nt.Rows*nt.Columns == 0:
+		vv.Message('No data selected')
+		vv.Return()
+	nt = transform(nt)	
 	hm = nt.ShowHeatMap()
 	hm.Title = f'Data Dimension: {nt.Rows}x{nt.Columns}'
 	hm.Resize(0, 0, 1015, 500)
@@ -249,7 +284,6 @@ def ShowData(pMap):
 		id2sym = {gt.BodyList[row].Id : gt.GetDataAt(row, cIdx) for row in range(gt.Rows)}
 		for cs in nt.ColumnSpecList: 
 			cs.Name = id2sym[cs.Id]
-
 	hm.AddContextMenu("Atlas/Gene Detail", "@ShowGeneDetails()")
 
 def ShowExpress3D(pMap):
@@ -289,7 +323,7 @@ def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1):
 	mds = NewTsne(epochs, PP, EX, ex, repeats)
 	nt = vv.GetNumberTableView(True).SelectColumnsById(idMon)
 	nt = transform(nt)
-	vv.Map.Description = f'EP:{epochs};PP:{PP};ex:{ex};EX:{EX};DS:{vv.Dataset.Name}; Ids:{'|'.join(idMon)}'
+	vv.Map.Description = f'EP:{epochs};PP:{PP};ex:{ex};EX:{EX};DS:{vv.Dataset.Name};CS:{nt.Columns};Ids:{'|'.join(idMon)}'
 	mds.ChangeTrainingData(nt).Reset().Start()
 	if not mds.Completed: vv.Return(0)
 	mds.Close()
@@ -367,8 +401,47 @@ def AdjustAtlasMaps(mpWidth, mpHeight, gSize, gOpacity):
 		mp.Resize(0,0,mpWidth,mpHeight)
 		mp.Close()
 
+def Idx2Chr(idx):
+	if idx >= 2*26:
+		return '?'
+	offset = 65 if idx < 26 else 71
+	return chr(offset + idx)
+
+def LabelGenes(pMap):
+	baseNT = pMap.Tag
+	if baseNT == None:
+		featureList = ExtractFeatures(pMap)
+		baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(featureList)
+		pMap.Tag = baseNT
+		pMap.MapLayout.NameLabelColor = New.Color('Yellow')
+		baseNT.Tag = set()
+		id2sym = GetId2Sym()
+		if id2sym != None:
+			for col in baseNT.ColumnSpecList: col.Name = id2sym[col.Id]
+	nt = baseNT.SelectRowsById(pMap.SelectedItems)
+	vs = [item.Value for item in nt.ColumnMean()]
+	largeV = 3*np.average(vs)
+	bd = cs.MeanPoint(pMap.GetSelectedBodies())
+	nm = ''
+	for k, v in enumerate(vs):
+		if v > largeV:	
+			baseNT.Tag.add(k)
+			nm += Idx2Chr(k)
+	bd.Name = nm
+	bd.ShowName = True
+	pMap.RedrawAll()
+	csList = baseNT.ColumnSpecList
+	wTitle = ''
+	for k in baseNT.Tag:
+		wTitle += f'{Idx2Chr(k)}:{csList[k].Name}  '
+	pMap.Title = wTitle
+
 '''=================================================================================
-LoopList('RibosomeLow', epochs=2000, SS=200, saveTo='Ribosomes')
+
+aa = set()
+aa.add(3)
+
+LoopList('RibosomesL', epochs=2000, SS=200, EX=4, repeats=2)
 
 LoopList('lncRNA_ByChr', epochs=2000, SS=0, saveTo='LncRNA')
 
@@ -389,5 +462,6 @@ lncRNA_1 = vv.GroupManager.Union(lncRNA_1p, lncRNA_1q)
 len(lncRNA_1p)
 
 EmbedGenes(lncRNA_1, epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1)
+
 
 '''
