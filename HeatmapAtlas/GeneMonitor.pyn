@@ -61,12 +61,17 @@ def NewTsne(epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1):
 	return mds
 
 def GetId2Sym():
+	global fctId2Sym
+	if 'fctId2Sym' in globals():
+		return fctId2Sym
 	gt = vv.Folder.ReadDataset('Gene Features')
-	id2sym = None
 	if gt != None:
 		cIdx = gt.IndexOfColumn('Symbol')
-		id2sym = {gt.BodyList[row].Id : gt.GetDataAt(row, cIdx) for row in range(gt.Rows)}
-	return id2sym
+		id2sym_dic = {gt.BodyList[row].Id : gt.GetDataAt(row, cIdx) for row in range(gt.Rows)}
+		fctId2Sym = lambda id: id2sym_dic[id] if id in id2sym_dic else id
+	else:
+		fctId2Sym = lambda id: id
+	return fctId2Sym
 
 def ConfigBarView(bv, nt):
 	bv.Horizontal = False
@@ -81,9 +86,8 @@ def ConfigBarView(bv, nt):
 	dynamicColor = True
 	gt = vv.Folder.ReadDataset('Gene Features')
 	id2sym = GetId2Sym()
-	if id2sym != None:
-		for k, item in enumerate(items): 
-			item.Name = Idx2Chr(k) + "   " + id2sym[item.Id]
+	for k, item in enumerate(items): 
+		item.Name = Idx2Chr(k) + "   " + id2sym(item.Id)
 
 	bv.ReadOnly = True
 	bv.Show()
@@ -278,13 +282,11 @@ def ShowData0(featureList):
 	hm.Resize(0, 0, 1015, 500)
 	hm.ReadOnly = True
 	hm.SelectionMode = 1
-	gt = vv.Folder.ReadDataset('Gene Features')
-	if gt != None:
-		cIdx = gt.IndexOfColumn('Symbol')
-		id2sym = {gt.BodyList[row].Id : gt.GetDataAt(row, cIdx) for row in range(gt.Rows)}
-		for cs in nt.ColumnSpecList: 
-			cs.Name = id2sym[cs.Id]
+	id2sym = GetId2Sym()
+	for cs in nt.ColumnSpecList: 
+		cs.Name = id2sym(cs.Id)
 	hm.AddContextMenu("Atlas/Gene Detail", "@ShowGeneDetails()")
+	hm.NormalizeView()
 
 def ShowExpress3D(pMap):
 	CheckDataset(pMap)
@@ -334,6 +336,8 @@ def OnGenesSelected():
 	nt = vv.EventSource.Argument.SelectColumnsById(selected)
 	if nt.Columns == 0:
 		return
+	id2sym = GetId2Sym()
+	selected = [ id2sym(id) for id in selected]
 	mp.Title = f'Genes: {';'.join(selected)}'
 	tb = mm.ToNumpy(nt)
 	tb = (tb**2).sum(axis=1)
@@ -416,11 +420,10 @@ def LabelGenes(pMap):
 		pMap.MapLayout.NameLabelColor = New.Color('Yellow')
 		baseNT.Tag = set()
 		id2sym = GetId2Sym()
-		if id2sym != None:
-			for col in baseNT.ColumnSpecList: col.Name = id2sym[col.Id]
+		for col in baseNT.ColumnSpecList: col.Name = id2sym(col.Id)
 	nt = baseNT.SelectRowsById(pMap.SelectedItems)
 	vs = [item.Value for item in nt.ColumnMean()]
-	largeV = 3*np.average(vs)
+	largeV = 3.0*np.average(vs)
 	bd = cs.MeanPoint(pMap.GetSelectedBodies())
 	nm = ''
 	for k, v in enumerate(vs):
@@ -432,14 +435,11 @@ def LabelGenes(pMap):
 	pMap.RedrawAll()
 	csList = baseNT.ColumnSpecList
 	wTitle = ''
-	for k in baseNT.Tag:
+	for k in sorted(baseNT.Tag):
 		wTitle += f'{Idx2Chr(k)}:{csList[k].Name}  '
 	pMap.Title = wTitle
 
 '''=================================================================================
-
-aa = set()
-aa.add(3)
 
 LoopList('RibosomesL', epochs=2000, SS=200, EX=4, repeats=2)
 
@@ -462,6 +462,5 @@ lncRNA_1 = vv.GroupManager.Union(lncRNA_1p, lncRNA_1q)
 len(lncRNA_1p)
 
 EmbedGenes(lncRNA_1, epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1)
-
 
 '''
