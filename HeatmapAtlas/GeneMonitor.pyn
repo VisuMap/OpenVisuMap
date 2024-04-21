@@ -82,13 +82,11 @@ def ConfigBarView(bv, nt):
 	bv.BaseLineType = 0
 	bv.TopMost = True
 	items = bv.ItemList
-
 	dynamicColor = True
 	gt = vv.Folder.ReadDataset('Gene Features')
 	id2sym = GetId2Sym()
 	for k, item in enumerate(items): 
-		item.Name = Idx2Chr(k) + "   " + id2sym(item.Id)
-
+		item.Name = Idx2Chr(k) + " " + id2sym(item.Id)
 	bv.ReadOnly = True
 	bv.Show()
 	bv.Resize(0, 0, 1000, 300)
@@ -128,6 +126,11 @@ def StartMonitor(nt, map=None):
 		map = vv.MapView
 	ConfigMarker(map.ShowMarker(True))
 
+def ThresholdHi(vList):
+	tHi = math.sqrt( np.average(np.square(vList)) )
+	return tHi if len(vList) < 10 else 2*Hi
+
+
 def OnSelected(dynamicColor):
 	nt = vv.EventSource.Argument.SelectRowsById(vv.SelectedItems)
 	bv = pp
@@ -139,7 +142,7 @@ def OnSelected(dynamicColor):
 	if vv.ModifierKeys.AltPressed or (pp.UpperLimit == 0):		
 		pp.UpperLimit = 0.125*(2**(math.ceil(math.log2(maxV/0.125))))
 	if dynamicColor:
-		vLimit = 3.0*np.average(vList)
+		vLimit = ThresholdHi(vList)
 		for item in bv.ItemList: 
 			item.Group = 0 if item.Value > vLimit else 4
 	bv.Redraw()
@@ -180,7 +183,7 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=N
 			nt = transform(nt)
 			vv.Map.Description = f'SQ:{listName};RG:{n}-{n2};SS:{SS};CS:{nt.Columns};EP:{epochs};PP:{PP};EX:{EX};ex:{ex};DS:{vv.Dataset.Name}'
 			if SS == 0:
-				vv.Map.Description += f';NM:Chr{idList[n-1][1:]}'
+				vv.Map.Description += f';NM:{idList[n-1][1:]}'
 			mds.ChangeTrainingData(nt).Reset().Start()
 			if not mds.Completed:
 				vv.Return(1)
@@ -242,7 +245,8 @@ def ReEmbedding(pMap):
 	ex = float(info['ex']) if 'ex' in info else 1.0
 	mpTitle, mpDescription = pMap.Title, pMap.Description
 	mds = NewTsne(epochs, PP, EX, ex)
-	nt = vv.GetNumberTableView(True).SelectColumnsById(ExtractFeatures(pMap))
+	ftList = ExtractFeatures(pMap)
+	nt = vv.GetNumberTableView(True).SelectColumnsById(ftList)
 	nt = transform(nt)
 	mds.ChangeTrainingData(nt).Reset().Start()
 	if not mds.Completed: return
@@ -407,11 +411,13 @@ def AdjustAtlasMaps(mpWidth, mpHeight, gSize, gOpacity):
 
 def Idx2Chr(idx):
 	if idx >= 2*26:
-		return '?'
+		return str(idx)+'.'
 	offset = 65 if idx < 26 else 71
 	return chr(offset + idx)
 
 def LabelGenes(pMap):
+	CheckDataset(pMap)
+	global symLegend
 	baseNT = pMap.Tag
 	if baseNT == None:
 		featureList = ExtractFeatures(pMap)
@@ -419,33 +425,42 @@ def LabelGenes(pMap):
 		pMap.Tag = baseNT
 		pMap.MapLayout.NameLabelColor = New.Color('Yellow')
 		baseNT.Tag = set()
+		symLegend = New.TextPanel("Gene Symbols", "").Show()
+		symLegend.AlwaysOnTop = True
 		id2sym = GetId2Sym()
 		for col in baseNT.ColumnSpecList: col.Name = id2sym(col.Id)
 	nt = baseNT.SelectRowsById(pMap.SelectedItems)
 	vs = [item.Value for item in nt.ColumnMean()]
-	largeV = 3.0*np.average(vs)
+	largeV = ThresholdHi(vs)
 	bd = cs.MeanPoint(pMap.GetSelectedBodies())
 	nm = ''
 	for k, v in enumerate(vs):
 		if v > largeV:	
 			baseNT.Tag.add(k)
 			nm += Idx2Chr(k)
+	if len(nm) == 0: 
+		nm = '\u25a0'
 	bd.Name = nm
 	bd.ShowName = True
 	pMap.RedrawAll()
 	csList = baseNT.ColumnSpecList
-	wTitle = ''
+
+	symList = ''
 	for k in sorted(baseNT.Tag):
-		wTitle += f'{Idx2Chr(k)}:{csList[k].Name}  '
-	pMap.Title = wTitle
+		symList += f'{Idx2Chr(k)}: {csList[k].Name}\n'
+	symLegend.Text = symList
 
 '''=================================================================================
 
+tp = New.TextPanel('TP', 'Hello World!').Show()
+tp.BackgroundColor = New.Color('LightGray')
+tp.TextColor = New.Color('Green')
+
 LoopList('RibosomesL', epochs=2000, SS=200, EX=4, repeats=2)
 
-LoopList('lncRNA_ByChr', epochs=2000, SS=0, saveTo='LncRNA')
+LoopList('lncRNA_200C', epochs=2000, SS=0, saveTo='LncRNA_C')
 
-LoopList('LncRNA_Pos', epochs=2000, SS=500, saveTo='LncRNA')
+LoopList('lncRNA_Pos', epochs=2000, SS=500, saveTo='LncRNA')
 
 LoopList(['ChrX', 'ChrMT'], epochs=2000, SS=100)
 
