@@ -128,7 +128,7 @@ def StartMonitor(nt, map=None):
 
 def ThresholdHi(vList):
 	tHi = math.sqrt( np.average(np.square(vList)) )
-	return tHi if len(vList) < 10 else 2*Hi
+	return tHi if len(vList) < 32 else 2*tHi
 
 
 def OnSelected(dynamicColor):
@@ -415,6 +415,25 @@ def Idx2Chr(idx):
 	offset = 65 if idx < 26 else 71
 	return chr(offset + idx)
 
+def MakeLabel(nt, kSet):
+	vs = [item.Value for item in nt.ColumnMean()]
+	largeV = ThresholdHi(vs)
+	nm = ''
+	for k, v in enumerate(vs):
+		if v > largeV:	
+			kSet.add(k)
+			nm += Idx2Chr(k)
+	if len(nm) == 0: 
+		nm = '\u25a0'
+	return nm
+
+def MakeLegend(baseNT, kSet):
+	csList = baseNT.ColumnSpecList
+	symList = ''
+	for k in sorted(kSet):
+		symList += f'{Idx2Chr(k)}: {csList[k].Name}\n'
+	return symList
+
 def LabelGenes(pMap):
 	CheckDataset(pMap)
 	global symLegend
@@ -428,35 +447,40 @@ def LabelGenes(pMap):
 		symLegend = New.TextPanel("Gene Symbols", "").Show()
 		symLegend.AlwaysOnTop = True
 		id2sym = GetId2Sym()
-		for col in baseNT.ColumnSpecList: col.Name = id2sym(col.Id)
+		for col in baseNT.ColumnSpecList:
+			col.Name = id2sym(col.Id)
+	kSet = baseNT.Tag
 	nt = baseNT.SelectRowsById(pMap.SelectedItems)
-	vs = [item.Value for item in nt.ColumnMean()]
-	largeV = ThresholdHi(vs)
 	bd = cs.MeanPoint(pMap.GetSelectedBodies())
-	nm = ''
-	for k, v in enumerate(vs):
-		if v > largeV:	
-			baseNT.Tag.add(k)
-			nm += Idx2Chr(k)
-	if len(nm) == 0: 
-		nm = '\u25a0'
-	bd.Name = nm
+	bd.Name = MakeLabel(nt, kSet)
 	bd.ShowName = True
 	pMap.RedrawAll()
-	csList = baseNT.ColumnSpecList
+	symLegend.Text = MakeLegend(baseNT, kSet)
 
-	symList = ''
-	for k in sorted(baseNT.Tag):
-		symList += f'{Idx2Chr(k)}: {csList[k].Name}\n'
-	symLegend.Text = symList
+def LabelAllClusters(pMap):
+	maxType = max([b.Type for b in pMap.BodyList])
+	featureList = ExtractFeatures(pMap)
+	baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(featureList)
+	id2sym = GetId2Sym()
+	for col in baseNT.ColumnSpecList: 
+		col.Name = id2sym(col.Id)
+	kSet = set()
+	for t in range(maxType+1):
+		B = [b for b in pMap.BodyList if b.Type == t]
+		if len(B) == 0: 
+			continue
+		nt = baseNT.SelectRowsById([b.Id for b in B])
+		bd = cs.MeanPoint(B)
+		bd.Name = MakeLabel(nt, kSet)
+		bd.ShowName = True
+	pMap.RedrawAll()
+	New.TextPanel("Gene Symbols", MakeLegend(baseNT, kSet)).Show()
 
 '''=================================================================================
 
-tp = New.TextPanel('TP', 'Hello World!').Show()
-tp.BackgroundColor = New.Color('LightGray')
-tp.TextColor = New.Color('Green')
+LabelAllClusters(pp)
 
-LoopList('RibosomesL', epochs=2000, SS=200, EX=4, repeats=2)
+LoopList('Metastasis', epochs=2000, SS=20, EX=4.0)
 
 LoopList('lncRNA_200C', epochs=2000, SS=0, saveTo='LncRNA_C')
 

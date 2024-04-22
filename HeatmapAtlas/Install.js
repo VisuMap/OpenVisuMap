@@ -56,7 +56,7 @@ match vv.EventSource.Item:
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "Atlas", null);
 
-scriptStr = `@#MenuLabels - Monitor "Show Data" ReEmbedding 3D-Expression 'Active Cells' 'Label Genes'
+scriptStr = `@#MenuLabels - Monitor "Show Data" ReEmbedding 3D-Expression 'Active Cells' 'Label Genes' 'Label All Clusters'
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
 	case 'Monitor':
@@ -70,7 +70,9 @@ match vv.EventSource.Item:
 	case 'Active Cells':
 		ShowActiveCells(pp)
 	case 'Label Genes':
-		LabelGenes(pp)`;
+		LabelGenes(pp)
+	case 'Label All Clusters':
+		LabelAllClusters(pp)`;
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MapSnapshot", null);
 
