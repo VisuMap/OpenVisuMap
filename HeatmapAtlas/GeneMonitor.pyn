@@ -89,7 +89,7 @@ def ConfigBarView(bv, nt):
 		item.Name = Idx2Chr(k) + " " + id2sym(item.Id)
 	bv.ReadOnly = True
 	bv.Show()
-	bv.Resize(0, 0, 1000, 300)
+	bv.Resize(0, 0, 500, 500)
 	vv.EventManager.OnItemsSelected(f'@OnSelected({dynamicColor})', bv, nt)	
 	bv.AddContextMenu("Atlas/Gene Detail", "@ShowGeneDetails()")
 
@@ -128,7 +128,8 @@ def StartMonitor(nt, map=None):
 
 def ThresholdHi(vList):
 	tHi = math.sqrt( np.average(np.square(vList)) )
-	return tHi if len(vList) < 32 else 2*tHi
+	#return tHi if len(vList) < 32 else 2*tHi
+	return 0.5*tHi
 
 
 def OnSelected(dynamicColor):
@@ -137,8 +138,9 @@ def OnSelected(dynamicColor):
 	if nt.Rows==0:
 		return
 	nt.ColumnMean(bv.ItemList)
-	vList = [item.Value for item in bv.ItemList] + [0.01]
+	vList = [item.Value for item in bv.ItemList]
 	maxV = max(vList)
+	maxV = max(maxV, 0.01)
 	if vv.ModifierKeys.AltPressed or (pp.UpperLimit == 0):		
 		pp.UpperLimit = 0.125*(2**(math.ceil(math.log2(maxV/0.125))))
 	if dynamicColor:
@@ -418,6 +420,8 @@ def Idx2Chr(idx):
 def MakeLabel(nt, kSet):
 	vs = [item.Value for item in nt.ColumnMean()]
 	largeV = ThresholdHi(vs)
+	if largeV == 0:
+		return '\u25a0'
 	nm = ''
 	for k, v in enumerate(vs):
 		if v > largeV:	
@@ -466,7 +470,7 @@ def LabelAllClusters(pMap):
 		col.Name = id2sym(col.Id)
 	kSet = set()
 	for t in range(maxType+1):
-		B = [b for b in pMap.BodyList if b.Type == t]
+		B = [b for b in pMap.BodyList if (b.Type == t) and (not b.Hidden)]
 		if len(B) == 0: 
 			continue
 		nt = baseNT.SelectRowsById([b.Id for b in B])
@@ -474,13 +478,14 @@ def LabelAllClusters(pMap):
 		bd.Name = MakeLabel(nt, kSet)
 		bd.ShowName = True
 	pMap.RedrawAll()
-	New.TextPanel("Gene Symbols", MakeLegend(baseNT, kSet)).Show()
+	tp = New.TextPanel("Gene Symbols", MakeLegend(baseNT, kSet))
+	tp.BackgroundColor = pMap.BackgroundColor
+	tp.TextColor = New.Color('Yellow')
+	tp.Show()
 
 '''=================================================================================
 
-LabelAllClusters(pp)
-
-LoopList('Metastasis', epochs=2000, SS=20, EX=4.0)
+LoopList('Angiogenesis', epochs=2000, SS=50)
 
 LoopList('lncRNA_200C', epochs=2000, SS=0, saveTo='LncRNA_C')
 
@@ -492,14 +497,5 @@ LoopList(['ChrX', 'ChrMT'], epochs=2000, SS=100)
 dsList = ['Perivascular']
 ftList = ['LncRNA_Pos', 'LncRNA_Length']
 LoopList2(dsList, ftList, saveTo='LncRNA', SS=500, epochs=2000, ex=0.95)
-
-lncRNA = vv.GroupManager.GetGroupLabels("LncRNA_Pos")
-A1p = vv.GroupManager.GetGroupLabels("Arm1p")
-A1q = vv.GroupManager.GetGroupLabels("Arm1q")
-lncRNA_1q = vv.GroupManager.Intersection(lncRNA, A1q)
-lncRNA_1 = vv.GroupManager.Union(lncRNA_1p, lncRNA_1q)
-len(lncRNA_1p)
-
-EmbedGenes(lncRNA_1, epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1)
 
 '''
