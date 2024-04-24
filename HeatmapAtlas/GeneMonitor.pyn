@@ -505,7 +505,44 @@ def LabelAllClusters(pMap):
 	tp.TextColor = New.Color('Yellow')
 	tp.Show()
 
+def UnifyTwoMaps(mpA, mpB):
+	cA = {b.Type:b.Name for b in mpA.BodyListEnabled() if b.ShowName}
+	cB = {b.Type:b.Name for b in mpB.BodyListEnabled() if b.ShowName}
+	lb2clrA = {cA[t]:t for t in cA}  # label to color type.
+	cTr = {} # transform colors of mpB to avoid conflict
+	usedB = set()   # color types used by B, is basically set(cTr.values()).
+	cIdx = 0
+
+	for t in cB:  # for each color type in mpB.
+		lb = cB[t]
+		if (lb in lb2clrA) and (lb2clrA[lb] not in usedB):
+			cTr[t] = lb2clrA[lb]
+			usedB.add( lb2clrA[lb] )
+		else:
+			if t not in usedB:
+				cTr[t] = t
+				usedB.add( t )
+			else:
+				for k in range(cIdx, 1000):
+					if (k not in usedB) and (k not in cA):
+						break;
+				cTr[t] = k
+				usedB.add(k)
+				cIdx = k+1
+	#for t in cTr: print(t, cTr[t])
+	for b in mpB.BodyListEnabled():
+		if b.Type in cTr:
+			b.Type = cTr[b.Type]
+	mpB.RedrawAll()
+
+
 '''=================================================================================
+
+mpList = vv.FindFormList('MapSnapshot')
+mpA = mpList[0]
+mpB = mpList[1]
+UnifyTwoMaps(mpA, mpB)
+
 
 LoopList('Angiogenesis', epochs=2000, SS=50)
 
