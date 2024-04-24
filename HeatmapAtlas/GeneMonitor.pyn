@@ -328,10 +328,17 @@ def GetGeneList(chrName):
 def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1):
 	if idMon.Count == 0:
 		idMon = ExtractFeatures0(vv.Map.Description)
+		info = ParseInfo(vv.Map.Description)
+		if 'SQ' in info:
+			dtSrc = f'SQ:{info["SQ"]};RG:{info["RG"]}'
+		else:
+			dtSrc = 'Ids:' + '|'.join(idMon)
+	else:
+		dtSrc = 'Ids:' + '|'.join(idMon)
 	mds = NewTsne(epochs, PP, EX, ex, repeats)
 	nt = vv.GetNumberTableView(True).SelectColumnsById(idMon)
 	nt = transform(nt)
-	vv.Map.Description = f'EP:{epochs};PP:{PP};ex:{ex};EX:{EX};DS:{vv.Dataset.Name};CS:{nt.Columns};Ids:{'|'.join(idMon)}'
+	vv.Map.Description = f'EP:{epochs};PP:{PP};ex:{ex};EX:{EX};DS:{vv.Dataset.Name};CS:{nt.Columns};{dtSrc}'
 	mds.ChangeTrainingData(nt).Reset().Start()
 	if not mds.Completed: vv.Return(0)
 	mds.Close()
@@ -417,7 +424,7 @@ def Idx2Chr(idx):
 	offset = 65 if idx < 26 else 71
 	return chr(offset + idx)
 
-def MakeLabel(nt, kSet):
+def MakeLabel(nt, kSet, id2idx):
 	vs = [item.Value for item in nt.ColumnMean()]
 	largeV = ThresholdHi(vs)
 	if largeV == 0:
@@ -425,8 +432,9 @@ def MakeLabel(nt, kSet):
 	nm = ''
 	for k, v in enumerate(vs):
 		if v > largeV:	
-			kSet.add(k)
-			nm += Idx2Chr(k)
+			idx = id2idx[nt.ColumnSpecList[k].Id]
+			kSet.add(idx)
+			nm += Idx2Chr(idx)
 	if len(nm) == 0: 
 		nm = '\u25a0'
 	return nm
@@ -441,9 +449,11 @@ def MakeLegend(baseNT, kSet):
 def LabelGenes(pMap):
 	CheckDataset(pMap)
 	global symLegend
+	global id2index
 	baseNT = pMap.Tag
 	if baseNT == None:
 		featureList = ExtractFeatures(pMap)
+		id2index = {id:k for k, id in enumerate(featureList)}
 		baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(featureList)
 		pMap.Tag = baseNT
 		pMap.MapLayout.NameLabelColor = New.Color('Yellow')
@@ -456,7 +466,7 @@ def LabelGenes(pMap):
 	kSet = baseNT.Tag
 	nt = baseNT.SelectRowsById(pMap.SelectedItems)
 	bd = cs.MeanPoint(pMap.GetSelectedBodies())
-	bd.Name = MakeLabel(nt, kSet)
+	bd.Name = MakeLabel(nt, kSet, id2index)
 	bd.ShowName = True
 	pMap.RedrawAll()
 	symLegend.Text = MakeLegend(baseNT, kSet)
@@ -464,21 +474,33 @@ def LabelGenes(pMap):
 def LabelAllClusters(pMap):
 	maxType = max([b.Type for b in pMap.BodyList])
 	featureList = ExtractFeatures(pMap)
+	id2index = {id:k for k, id in enumerate(featureList)}
 	baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(featureList)
 	id2sym = GetId2Sym()
 	for col in baseNT.ColumnSpecList: 
 		col.Name = id2sym(col.Id)
 	kSet = set()
+	for b in pMap.BodyList:
+		b.Name = ''
+		b.ShowName = False
 	for t in range(maxType+1):
 		B = [b for b in pMap.BodyList if (b.Type == t) and (not b.Hidden)]
 		if len(B) == 0: 
 			continue
 		nt = baseNT.SelectRowsById([b.Id for b in B])
 		bd = cs.MeanPoint(B)
-		bd.Name = MakeLabel(nt, kSet)
+		bd.Name = MakeLabel(nt, kSet, id2index)
 		bd.ShowName = True
-	pMap.RedrawAll()
-	tp = New.TextPanel("Gene Symbols", MakeLegend(baseNT, kSet))
+		pMap.RedrawAll()
+
+	info = ParseInfo(pMap.Description)
+	txt = ''
+	if 'DS' in info:
+		txt += info['DS'] + '\n'
+	if 'SQ' in info:
+		txt += info['SQ'] + ":" + info['RG'] + '\n'
+	txt += '\n' + MakeLegend(baseNT, kSet)
+	tp = New.TextPanel("Gene Symbols", txt)
 	tp.BackgroundColor = pMap.BackgroundColor
 	tp.TextColor = New.Color('Yellow')
 	tp.Show()
