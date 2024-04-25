@@ -506,12 +506,31 @@ def LabelAllClusters(pMap):
 	tp.Show()
 
 def UnifyTwoMaps(mpA, mpB):
-	cA = {b.Type:b.Name for b in mpA.BodyListEnabled() if b.ShowName}
-	cB = {b.Type:b.Name for b in mpB.BodyListEnabled() if b.ShowName}
-	lb2clrA = {cA[t]:t for t in cA}  # label to color type.
+	bListA = [b for b in mpA.BodyListEnabled() if not b.Hidden]
+	bListB = [b for b in mpB.BodyListEnabled() if not b.Hidden]
+	cA = {b.Type:b.Name for b in bListA if b.ShowName}
+	cB = {b.Type:b.Name for b in bListB if b.ShowName}
 	cTr = {} # transform colors of mpB to avoid conflict
 	usedB = set()   # color types used by B, is basically set(cTr.values()).
 	cIdx = 0
+
+	#
+	# lb2clrA = {cA[t]:t for t in cA}  # label to color type.
+	#
+	# Replace above stmt by filtering lb2clrA and sorting cB, so that we first match 
+	# the color of large clusters.
+	wA = {t:0 for t in cA}
+	for b in bListA: wA[b.Type] += 1
+	wB = {t:0 for t in cB}
+	for b in bListB: wB[b.Type] += 1
+	lb2clrA = {}
+	for t in cA:
+		lb, w = cA[t], wA[t]
+		if (lb not in lb2clrA) or (lb2clrA[lb][0] < w):
+			lb2clrA[lb] = (w, t)
+	lb2clrA = {	k:lb2clrA[k][1] for k in lb2clrA }	
+	cList = sorted(cB, key=lambda t:wB[t], reverse=True)
+	cB = {k:cB[k] for k in cList}
 
 	for t in cB:  # for each color type in mpB.
 		lb = cB[t]
@@ -530,9 +549,8 @@ def UnifyTwoMaps(mpA, mpB):
 				usedB.add(k)
 				cIdx = k+1
 	#for t in cTr: print(t, cTr[t])
-	for b in mpB.BodyListEnabled():
-		if b.Type in cTr:
-			b.Type = cTr[b.Type]
+	for b in bListB:
+		b.Type = cTr[b.Type]
 	mpB.RedrawAll()
 
 
