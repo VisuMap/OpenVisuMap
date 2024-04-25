@@ -424,7 +424,7 @@ def Idx2Chr(idx):
 	offset = 65 if idx < 26 else 71
 	return chr(offset + idx)
 
-def MakeLabel(nt, kSet, id2idx):
+def MakeLabel(nt, kSet, id2idx): #id2idx=id2index
 	vs = [item.Value for item in nt.ColumnMean()]
 	largeV = ThresholdHi(vs)
 	if largeV == 0:
@@ -439,46 +439,37 @@ def MakeLabel(nt, kSet, id2idx):
 		nm = '\u25a0'
 	return nm
 
-def MakeLegend(baseNT, kSet):
-	csList = baseNT.ColumnSpecList
-	symList = ''
+def MakeLegend(geneList, kSet):
+	symTable = ''
+	id2sym = GetId2Sym()
 	for k in sorted(kSet):
-		symList += f'{Idx2Chr(k)}: {csList[k].Name}\n'
-	return symList
+		sym = id2sym(geneList[k])
+		symTable += f'{Idx2Chr(k)}: {sym}\n'
+	return symTable
 
-def LabelGenes(pMap):
+def LabelGenes(pMap): #pMap=pp; print(symList)
 	CheckDataset(pMap)
-	global symLegend
-	global id2index
-	baseNT = pMap.Tag
-	if baseNT == None:
-		featureList = ExtractFeatures(pMap)
-		id2index = {id:k for k, id in enumerate(featureList)}
-		baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(featureList)
-		pMap.Tag = baseNT
+	if pMap.Tag == None:
+		geneList = ExtractFeatures(pMap)
+		id2index = {id:k for k, id in enumerate(geneList)}
+		baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(geneList)
 		pMap.MapLayout.NameLabelColor = New.Color('Yellow')
-		baseNT.Tag = set()
 		symLegend = New.TextPanel("Gene Symbols", "").Show()
 		symLegend.AlwaysOnTop = True
-		id2sym = GetId2Sym()
-		for col in baseNT.ColumnSpecList:
-			col.Name = id2sym(col.Id)
-	kSet = baseNT.Tag
+		pMap.Tag = (baseNT, set(), symLegend, geneList, id2index)
+	(baseNT, kSet, symLegend, geneList, id2index) = pMap.Tag
 	nt = baseNT.SelectRowsById(pMap.SelectedItems)
 	bd = cs.MeanPoint(pMap.GetSelectedBodies())
 	bd.Name = MakeLabel(nt, kSet, id2index)
 	bd.ShowName = True
 	pMap.RedrawAll()
-	symLegend.Text = MakeLegend(baseNT, kSet)
+	symLegend.Text = MakeLegend(geneList, kSet)
 
 def LabelAllClusters(pMap):
 	maxType = max([b.Type for b in pMap.BodyList])
-	featureList = ExtractFeatures(pMap)
-	id2index = {id:k for k, id in enumerate(featureList)}
-	baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(featureList)
-	id2sym = GetId2Sym()
-	for col in baseNT.ColumnSpecList: 
-		col.Name = id2sym(col.Id)
+	geneList = ExtractFeatures(pMap)
+	id2index = {id:k for k, id in enumerate(geneList)}
+	baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(geneList)
 	kSet = set()
 	for b in pMap.BodyList:
 		b.Name = ''
@@ -499,7 +490,7 @@ def LabelAllClusters(pMap):
 		txt += info['DS'] + '\n'
 	if 'SQ' in info:
 		txt += info['SQ'] + ":" + info['RG'] + '\n'
-	txt += '\n' + MakeLegend(baseNT, kSet)
+	txt += '\n' + MakeLegend(geneList, kSet)
 	tp = New.TextPanel("Gene Symbols", txt)
 	tp.BackgroundColor = pMap.BackgroundColor
 	tp.TextColor = New.Color('Yellow')
@@ -510,27 +501,23 @@ def UnifyTwoMaps(mpA, mpB):
 	bListB = [b for b in mpB.BodyListEnabled() if not b.Hidden]
 	cA = {b.Type:b.Name for b in bListA if b.ShowName}
 	cB = {b.Type:b.Name for b in bListB if b.ShowName}
+
+	#
+	# For the case that multiple clusters share a label, we sort cA and cB 
+	# in ascending and descending order, so that we first match 
+	# colors of large clusters. Notice cA is sorted in ascending order, in lb2clrA
+	# large cluster will overwrite small clusters
+	#
+	from collections import Counter
+	wA = Counter([b.Type for b in bListA])
+	wB = Counter([b.Type for b in bListB])
+	cA = {k:cA[k] for k in sorted(cA, key=lambda t:wA[t], reverse=False)}
+	cB = {k:cB[k] for k in sorted(cB, key=lambda t:wB[t], reverse=True)}
+	lb2clrA = {cA[t]:t for t in cA}  
+
 	cTr = {} # transform colors of mpB to avoid conflict
 	usedB = set()   # color types used by B, is basically set(cTr.values()).
 	cIdx = 0
-
-	#
-	# lb2clrA = {cA[t]:t for t in cA}  # label to color type.
-	#
-	# Replace above stmt by filtering lb2clrA and sorting cB, so that we first match 
-	# the color of large clusters.
-	wA = {t:0 for t in cA}
-	for b in bListA: wA[b.Type] += 1
-	wB = {t:0 for t in cB}
-	for b in bListB: wB[b.Type] += 1
-	lb2clrA = {}
-	for t in cA:
-		lb, w = cA[t], wA[t]
-		if (lb not in lb2clrA) or (lb2clrA[lb][0] < w):
-			lb2clrA[lb] = (w, t)
-	lb2clrA = {	k:lb2clrA[k][1] for k in lb2clrA }	
-	cList = sorted(cB, key=lambda t:wB[t], reverse=True)
-	cB = {k:cB[k] for k in cList}
 
 	for t in cB:  # for each color type in mpB.
 		lb = cB[t]
@@ -548,7 +535,6 @@ def UnifyTwoMaps(mpA, mpB):
 				cTr[t] = k
 				usedB.add(k)
 				cIdx = k+1
-	#for t in cTr: print(t, cTr[t])
 	for b in bListB:
 		b.Type = cTr[b.Type]
 	mpB.RedrawAll()
