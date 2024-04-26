@@ -128,7 +128,7 @@ def StartMonitor(nt, map=None):
 
 def ThresholdHi(vList):
 	tHi = math.sqrt( np.average(np.square(vList)) )
-	return 0.5*tHi
+	return 1.0*tHi
 
 
 def OnSelected(dynamicColor):
@@ -458,7 +458,7 @@ def LabelGenes(pMap): #pMap=pp; print(symList)
 		symLegend.AlwaysOnTop = True
 		pMap.Tag = (baseNT, set(), symLegend, geneList)
 	(baseNT, kSet, symLegend, geneList) = pMap.Tag
-	nt = baseNT.SelectRowsById(pMap.SelectedItems)
+	nt = baseNT.SelectRowsByIdView(pMap.SelectedItems)
 	b = cs.MeanPoint(pMap.GetSelectedBodies())
 	b.Name, b.ShowName = MakeLabel(nt, kSet, geneList), True
 	pMap.RedrawAll()
@@ -480,7 +480,7 @@ def LabelAllClusters(pMap):
 	for b in bList:
 		b.Name, b.ShowName = '', False
 	for B in GroupByType(bList):
-		nt = baseNT.SelectRowsById([b.Id for b in B])
+		nt = baseNT.SelectRowsByIdView([b.Id for b in B])
 		b = cs.MeanPoint(B)
 		b.Name, b.ShowName = MakeLabel(nt, kSet, geneList), True
 		pMap.RedrawAll()
