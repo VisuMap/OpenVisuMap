@@ -128,7 +128,6 @@ def StartMonitor(nt, map=None):
 
 def ThresholdHi(vList):
 	tHi = math.sqrt( np.average(np.square(vList)) )
-	#return tHi if len(vList) < 32 else 2*tHi
 	return 0.5*tHi
 
 
@@ -420,11 +419,13 @@ def AdjustAtlasMaps(mpWidth, mpHeight, gSize, gOpacity):
 
 def Idx2Chr(idx):
 	if idx >= 2*26:
+		#return '|'
 		return str(idx)+'.'
 	offset = 65 if idx < 26 else 71
 	return chr(offset + idx)
 
-def MakeLabel(nt, kSet, id2idx): #id2idx=id2index
+def MakeLabel(nt, kSet, geneList): 
+	id2index = {id:k for k, id in enumerate(geneList)}
 	vs = [item.Value for item in nt.ColumnMean()]
 	largeV = ThresholdHi(vs)
 	if largeV == 0:
@@ -432,7 +433,7 @@ def MakeLabel(nt, kSet, id2idx): #id2idx=id2index
 	nm = ''
 	for k, v in enumerate(vs):
 		if v > largeV:	
-			idx = id2idx[nt.ColumnSpecList[k].Id]
+			idx = id2index[nt.ColumnSpecList[k].Id]
 			kSet.add(idx)
 			nm += Idx2Chr(idx)
 	if len(nm) == 0: 
@@ -451,39 +452,38 @@ def LabelGenes(pMap): #pMap=pp; print(symList)
 	CheckDataset(pMap)
 	if pMap.Tag == None:
 		geneList = ExtractFeatures(pMap)
-		id2index = {id:k for k, id in enumerate(geneList)}
 		baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(geneList)
 		pMap.MapLayout.NameLabelColor = New.Color('Yellow')
 		symLegend = New.TextPanel("Gene Symbols", "").Show()
 		symLegend.AlwaysOnTop = True
-		pMap.Tag = (baseNT, set(), symLegend, geneList, id2index)
-	(baseNT, kSet, symLegend, geneList, id2index) = pMap.Tag
+		pMap.Tag = (baseNT, set(), symLegend, geneList)
+	(baseNT, kSet, symLegend, geneList) = pMap.Tag
 	nt = baseNT.SelectRowsById(pMap.SelectedItems)
-	bd = cs.MeanPoint(pMap.GetSelectedBodies())
-	bd.Name = MakeLabel(nt, kSet, id2index)
-	bd.ShowName = True
+	b = cs.MeanPoint(pMap.GetSelectedBodies())
+	b.Name, b.ShowName = MakeLabel(nt, kSet, geneList), True
 	pMap.RedrawAll()
 	symLegend.Text = MakeLegend(geneList, kSet)
 
+def GroupByType(bList):
+	G = {}
+	for b in bList:
+		if b.Type not in G: 
+			G[b.Type] = []
+		G[b.Type].append(b)
+	return G.values()
+
 def LabelAllClusters(pMap):
-	maxType = max([b.Type for b in pMap.BodyList])
 	geneList = ExtractFeatures(pMap)
-	id2index = {id:k for k, id in enumerate(geneList)}
 	baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(geneList)
 	kSet = set()
-	for b in pMap.BodyList:
-		b.Name = ''
-		b.ShowName = False
-	for t in range(maxType+1):
-		B = [b for b in pMap.BodyList if (b.Type == t) and (not b.Hidden)]
-		if len(B) == 0: 
-			continue
+	bList = [b for b in pMap.BodyListEnabled() if not b.Hidden]
+	for b in bList:
+		b.Name, b.ShowName = '', False
+	for B in GroupByType(bList):
 		nt = baseNT.SelectRowsById([b.Id for b in B])
-		bd = cs.MeanPoint(B)
-		bd.Name = MakeLabel(nt, kSet, id2index)
-		bd.ShowName = True
+		b = cs.MeanPoint(B)
+		b.Name, b.ShowName = MakeLabel(nt, kSet, geneList), True
 		pMap.RedrawAll()
-
 	info = ParseInfo(pMap.Description)
 	txt = ''
 	if 'DS' in info:
@@ -515,11 +515,10 @@ def UnifyTwoMaps(mpA, mpB):
 	cB = {k:cB[k] for k in sorted(cB, key=lambda t:wB[t], reverse=True)}
 	lb2clrA = {cA[t]:t for t in cA}  
 
-	cTr = {} # transform colors of mpB to avoid conflict
-	usedB = set()   # color types used by B, is basically set(cTr.values()).
-	cIdx = 0
-
-	for t in cB:  # for each color type in mpB.
+	cTr = {}      # transform colors of mpB to avoid conflict
+	usedB = set() # color types used by B, is basically set(cTr.values()).
+	idxFree = 0   # starting index to search for free color index.
+	for t in cB:       # for each color type in mpB.
 		lb = cB[t]
 		if (lb in lb2clrA) and (lb2clrA[lb] not in usedB):
 			cTr[t] = lb2clrA[lb]
@@ -529,12 +528,12 @@ def UnifyTwoMaps(mpA, mpB):
 				cTr[t] = t
 				usedB.add( t )
 			else:
-				for k in range(cIdx, 1000):
+				for k in range(idxFree, 1000):
 					if (k not in usedB) and (k not in cA):
 						break;
 				cTr[t] = k
 				usedB.add(k)
-				cIdx = k+1
+				idxFree = k+1
 	for b in bListB:
 		b.Type = cTr[b.Type]
 	mpB.RedrawAll()
@@ -543,14 +542,11 @@ def UnifyTwoMaps(mpA, mpB):
 '''=================================================================================
 
 mpList = vv.FindFormList('MapSnapshot')
-mpA = mpList[0]
-mpB = mpList[1]
-UnifyTwoMaps(mpA, mpB)
-
+UnifyTwoMaps(mpList[0], mpList[1])
 
 LoopList('Angiogenesis', epochs=2000, SS=50)
 
-LoopList('lncRNA_200C', epochs=2000, SS=0, saveTo='LncRNA_C')
+LoopList('lncRNA_sorted', epochs=2000, SS=200, saveTo='LncRNA')
 
 LoopList('lncRNA_Pos', epochs=2000, SS=500, saveTo='LncRNA')
 
