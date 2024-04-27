@@ -129,7 +129,7 @@ def StartMonitor(nt, map=None):
 
 def ThresholdHi(vList):
 	tHi = math.sqrt( np.average(np.square(vList)) )
-	return 0.75*tHi
+	return 1.25*tHi
 
 
 def OnSelected(dynamicColor):
@@ -212,7 +212,7 @@ def LoopList2(dsList, gList, saveTo=None, epochs=1000, PP=0.05, SS=50, EX=4.0, e
 			SaveToAtlas(saveTo, x0, y0)
 		y0 += 150
 
-def ParseInfo(desc):	
+def InfoFromString(desc):	
 	info = {}
 	for s in desc.split(';'):
 		fs = s.strip().split(':', 1)
@@ -239,7 +239,7 @@ def ExtractFeatures(pMap):
 	return ExtractFeatures0(desc)
 
 def ExtractFeatures0(desc):
-	info = ParseInfo(desc)
+	info = InfoFromString(desc)
 	if 'Ids' in info:
 		return info['Ids']
 	sq = info['SQ']
@@ -251,7 +251,7 @@ def ExtractFeatures0(desc):
 
 def ReEmbedding(pMap):
 	CheckDataset(pMap)
-	info = ParseInfo(pMap.Description)
+	info = InfoFromString(pMap.Description)
 	epochs = int(info['EP'])
 	PP = float(info['PP'])
 	EX = float(info['EX'])
@@ -339,7 +339,7 @@ def GetGeneList(chrName):
 def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1):
 	if idMon.Count == 0:
 		idMon = ExtractFeatures0(vv.Map.Description)
-		info = ParseInfo(vv.Map.Description)
+		info = InfoFromString(vv.Map.Description)
 		if 'SQ' in info:
 			dtSrc = f'SQ:{info["SQ"]};RG:{info["RG"]}'
 		else:
@@ -409,7 +409,7 @@ def SetAtlasItemName():
 	atlas = pp
 	for item in atlas.GetSelectedItems():
 		mp = item.Open()
-		info = ParseInfo(mp.Title)
+		info = InfoFromString(mp.Title)
 		item.Name = info['SQ'] + ':' + info['RG']
 		item.LabelStyle = 2
 		mp.Close()
@@ -417,7 +417,7 @@ def SetAtlasItemName():
 
 def CheckDataset(pMap):
 	info = vv.Map.Description if pMap.Name=='MainForm' else pMap.Description
-	dsName = ParseInfo(info)['DS']
+	dsName = InfoFromString(info)['DS']
 	if dsName != vv.Dataset.Name:
 		vv.Folder.OpenDataset(dsName)	
 
@@ -445,6 +445,28 @@ class DominantGenes:
 		offset = 65 if idx < 26 else 71
 		return chr(offset + idx)
 
+	def Label2Id(self, label):
+		ids = []
+		ss = ''
+		for c in label:
+			if c == '.':
+				ids.append(int(ss))
+				ss = ''
+			elif c.isdigit():
+				ss += c
+			else: # must be an alphat
+				n = ord(c)
+				n -= 65 if n <= 90 else (97-26)
+				ids.append(n)
+		idList = list(self.geneDic.keys())
+		L = len(idList)
+		return [idList[k] for k in ids if k < L ]
+
+	def Label2Sym(self, label):
+		idList = self.Label2Id(label)
+		id2sym = GetId2Sym()
+		return [ id2sym(id) for id in idList ]
+
 	def Lookup(self, geneId):
 		if geneId not in self.geneDic:
 			self.geneDic[geneId] = len(self.geneDic)
@@ -457,7 +479,13 @@ class DominantGenes:
 	def ToString(self):
 		return '|'.join(list(self.geneDic.keys()))
 
-def MakeLabel(nt, dKeys, geneList): 
+# del dKeys
+def InitDominantGenes():
+	global dKeys
+	if 'dKeys' not in globals():
+		dKeys = DominantGenes()
+
+def MakeLabel(nt, geneList): 
 	id2index = {id:k for k, id in enumerate(geneList)}
 	vs = [item.Value for item in nt.ColumnMean()]
 	largeV = ThresholdHi(vs)
@@ -471,7 +499,7 @@ def MakeLabel(nt, dKeys, geneList):
 		nm = '\u25a0'
 	return nm
 
-def MakeLegend(geneList, dKeys):
+def MakeLegend(geneList):
 	symTable = ''
 	id2sym = GetId2Sym()	
 	for id in dKeys.GeneList():
@@ -480,20 +508,21 @@ def MakeLegend(geneList, dKeys):
 
 def LabelGenes(pMap): 
 	CheckDataset(pMap)
+	InitDominantGenes()
 	if pMap.Tag == None:
 		geneList = ExtractFeatures(pMap)
 		baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(geneList)
 		pMap.MapLayout.NameLabelColor = New.Color('Yellow')
 		symLegend = New.TextPanel("Gene Symbols", "").Show()
 		symLegend.AlwaysOnTop = True
-		dKeys = DominantGenes()
-		pMap.Tag = (baseNT, dKeys, symLegend, geneList)
-	(baseNT, dKeys, symLegend, geneList) = pMap.Tag
+		InitDominantGenes()
+		pMap.Tag = (baseNT, symLegend, geneList)
+	(baseNT, symLegend, geneList) = pMap.Tag
 	nt = baseNT.SelectRowsByIdView(pMap.SelectedItems)
 	b = cs.MeanPoint(pMap.GetSelectedBodies())
-	b.Name, b.ShowName = MakeLabel(nt, dKeys, geneList), True
+	b.Name, b.ShowName = MakeLabel(nt, geneList), True
 	pMap.RedrawAll()
-	symLegend.Text = MakeLegend(geneList, dKeys)
+	symLegend.Text = MakeLegend(geneList)
 
 def GroupByType(bList):
 	G = {}
@@ -504,24 +533,25 @@ def GroupByType(bList):
 	return G.values()
 
 def LabelAllClusters(pMap):
+	CheckDataset(pMap)
 	geneList = ExtractFeatures(pMap)
 	baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(geneList)
-	dKeys = DominantGenes()
+	InitDominantGenes()
 	bList = [b for b in pMap.BodyListEnabled() if not b.Hidden]
 	for b in bList:
 		b.Name, b.ShowName = '', False
 	for B in GroupByType(bList):
 		nt = baseNT.SelectRowsByIdView([b.Id for b in B])
 		b = cs.MeanPoint(B)
-		b.Name, b.ShowName = MakeLabel(nt, dKeys, geneList), True
+		b.Name, b.ShowName = MakeLabel(nt, geneList), True
 		pMap.RedrawAll()
-	info = ParseInfo(pMap.Description)
+	info = InfoFromString(pMap.Description)
 	txt = ''
 	if 'DS' in info:
 		txt += info['DS'] + '\n'
 	if 'SQ' in info:
 		txt += info['SQ'] + ":" + info['RG'] + '\n'
-	txt += '\n' + MakeLegend(geneList, dKeys)
+	txt += '\n' + MakeLegend(geneList)
 	tp = New.TextPanel("Gene Symbols", txt)
 	tp.BackgroundColor = pMap.BackgroundColor
 	tp.TextColor = New.Color('Yellow')
