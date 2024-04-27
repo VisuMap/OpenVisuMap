@@ -76,18 +76,16 @@ match vv.EventSource.Item:
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MapSnapshot", null);
 
-scriptStr = `@#MenuLabels 'Embed Selected' 'Embed Groups' 'Show Selected Data'
+scriptStr = `@#MenuLabels 'Embed Groups' 'Show Data'
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
-	case 'Embed Selected':
-		EmbedGenes(vv.SelectedItems, epochs=2000, EX=4, ex=1.0, PP=0.05, repeats=1)
 	case 'Embed Groups':
 		gList = pp.GetSelectedGroups()
 		if gList.Count==0:
 			vv.Message('Please select some groups!')
 			vv.Return()	
-		LoopList(list(gList), epochs=2000, SS=9999, EX=4.0, PP=0.05, repeats=1)
-	case 'Show Selected Data':
+		LoopList(list(gList), epochs=2000, SS=0, EX=4.0, PP=0.05, repeats=1, saveTo=None)
+	case 'Show Data':
 		ShowData0( list(vv.SelectedItems) )`;
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "GroupManager", null);
