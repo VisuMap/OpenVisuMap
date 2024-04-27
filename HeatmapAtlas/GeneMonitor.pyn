@@ -28,6 +28,7 @@ public IBody MeanPoint(IList<IBody> bList){
 	}	
 	return mBody;
 }
+
 public INumberTable Transform(INumberTable nt) {
 	MT.Loop(0, nt.Rows, row=>{
 		  double[] R = nt.Matrix[row] as double[];
@@ -86,7 +87,7 @@ def ConfigBarView(bv, nt):
 	gt = vv.Folder.ReadDataset('Gene Features')
 	id2sym = GetId2Sym()
 	for k, item in enumerate(items): 
-		item.Name = Idx2Chr(k) + " " + id2sym(item.Id)
+		item.Name = id2sym(item.Id)
 	bv.ReadOnly = True
 	bv.Show()
 	bv.Resize(0, 0, 500, 500)
@@ -128,7 +129,7 @@ def StartMonitor(nt, map=None):
 
 def ThresholdHi(vList):
 	tHi = math.sqrt( np.average(np.square(vList)) )
-	return 1.0*tHi
+	return 0.75*tHi
 
 
 def OnSelected(dynamicColor):
@@ -221,6 +222,17 @@ def ParseInfo(desc):
 	if 'Ids' in info:
 		info['Ids'] = info['Ids'].split('|')
 	return info
+
+def InfoToString(info):
+	s = ''
+	for key in info:
+		s += key + ':'
+		if key == 'Ids':
+			s += '|'.join(info[key])
+		else:
+			s += info[key]
+		s += ';'
+	return s
 
 def ExtractFeatures(pMap):
 	desc = vv.Map.Description if pMap.Name=='MainForm' else pMap.Description
@@ -417,14 +429,35 @@ def AdjustAtlasMaps(mpWidth, mpHeight, gSize, gOpacity):
 		mp.Resize(0,0,mpWidth,mpHeight)
 		mp.Close()
 
-def Idx2Chr(idx):
-	if idx >= 2*26:
-		#return '|'
-		return str(idx)+'.'
-	offset = 65 if idx < 26 else 71
-	return chr(offset + idx)
+# --------- Labelling related ----------
 
-def MakeLabel(nt, kSet, geneList): 
+class DominantGenes:
+	def __init__(self, initStr = None):
+		self.geneDic = {}
+		if initStr != None:
+			for id in initStr.split('|'):
+				self.Lookup(id)
+
+	def Idx2Chr(self, idx):
+		if idx >= 2*26:
+			#return '|'
+			return str(idx)+'.'
+		offset = 65 if idx < 26 else 71
+		return chr(offset + idx)
+
+	def Lookup(self, geneId):
+		if geneId not in self.geneDic:
+			self.geneDic[geneId] = len(self.geneDic)
+		idx = self.geneDic[geneId]
+		return self.Idx2Chr(idx)
+
+	def GeneList(self):
+		return self.geneDic.keys()
+
+	def ToString(self):
+		return '|'.join(list(self.geneDic.keys()))
+
+def MakeLabel(nt, dKeys, geneList): 
 	id2index = {id:k for k, id in enumerate(geneList)}
 	vs = [item.Value for item in nt.ColumnMean()]
 	largeV = ThresholdHi(vs)
@@ -433,22 +466,19 @@ def MakeLabel(nt, kSet, geneList):
 	nm = ''
 	for k, v in enumerate(vs):
 		if v > largeV:	
-			idx = id2index[nt.ColumnSpecList[k].Id]
-			kSet.add(idx)
-			nm += Idx2Chr(idx)
+			nm += dKeys.Lookup(nt.ColumnSpecList[k].Id)
 	if len(nm) == 0: 
 		nm = '\u25a0'
 	return nm
 
-def MakeLegend(geneList, kSet):
+def MakeLegend(geneList, dKeys):
 	symTable = ''
-	id2sym = GetId2Sym()
-	for k in sorted(kSet):
-		sym = id2sym(geneList[k])
-		symTable += f'{Idx2Chr(k)}: {sym}\n'
+	id2sym = GetId2Sym()	
+	for id in dKeys.GeneList():
+		symTable += f'{dKeys.Lookup(id)}: {id2sym(id)}\n'
 	return symTable
 
-def LabelGenes(pMap): #pMap=pp; print(symList)
+def LabelGenes(pMap): 
 	CheckDataset(pMap)
 	if pMap.Tag == None:
 		geneList = ExtractFeatures(pMap)
@@ -456,13 +486,14 @@ def LabelGenes(pMap): #pMap=pp; print(symList)
 		pMap.MapLayout.NameLabelColor = New.Color('Yellow')
 		symLegend = New.TextPanel("Gene Symbols", "").Show()
 		symLegend.AlwaysOnTop = True
-		pMap.Tag = (baseNT, set(), symLegend, geneList)
-	(baseNT, kSet, symLegend, geneList) = pMap.Tag
+		dKeys = DominantGenes()
+		pMap.Tag = (baseNT, dKeys, symLegend, geneList)
+	(baseNT, dKeys, symLegend, geneList) = pMap.Tag
 	nt = baseNT.SelectRowsByIdView(pMap.SelectedItems)
 	b = cs.MeanPoint(pMap.GetSelectedBodies())
-	b.Name, b.ShowName = MakeLabel(nt, kSet, geneList), True
+	b.Name, b.ShowName = MakeLabel(nt, dKeys, geneList), True
 	pMap.RedrawAll()
-	symLegend.Text = MakeLegend(geneList, kSet)
+	symLegend.Text = MakeLegend(geneList, dKeys)
 
 def GroupByType(bList):
 	G = {}
@@ -475,14 +506,14 @@ def GroupByType(bList):
 def LabelAllClusters(pMap):
 	geneList = ExtractFeatures(pMap)
 	baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(geneList)
-	kSet = set()
+	dKeys = DominantGenes()
 	bList = [b for b in pMap.BodyListEnabled() if not b.Hidden]
 	for b in bList:
 		b.Name, b.ShowName = '', False
 	for B in GroupByType(bList):
 		nt = baseNT.SelectRowsByIdView([b.Id for b in B])
 		b = cs.MeanPoint(B)
-		b.Name, b.ShowName = MakeLabel(nt, kSet, geneList), True
+		b.Name, b.ShowName = MakeLabel(nt, dKeys, geneList), True
 		pMap.RedrawAll()
 	info = ParseInfo(pMap.Description)
 	txt = ''
@@ -490,11 +521,13 @@ def LabelAllClusters(pMap):
 		txt += info['DS'] + '\n'
 	if 'SQ' in info:
 		txt += info['SQ'] + ":" + info['RG'] + '\n'
-	txt += '\n' + MakeLegend(geneList, kSet)
+	txt += '\n' + MakeLegend(geneList, dKeys)
 	tp = New.TextPanel("Gene Symbols", txt)
 	tp.BackgroundColor = pMap.BackgroundColor
 	tp.TextColor = New.Color('Yellow')
 	tp.Show()
+	info['DG'] = dKeys.ToString()
+	pMap.Description = InfoToString(info)
 
 def UnifyTwoMaps(mpA, mpB):
 	bListA = [b for b in mpA.BodyListEnabled() if not b.Hidden]
@@ -546,9 +579,9 @@ UnifyTwoMaps(mpList[0], mpList[1])
 
 LoopList('Angiogenesis', epochs=2000, SS=50)
 
-LoopList('lncRNA_sorted', epochs=2000, SS=200, saveTo='LncRNA')
+LoopList('lncRNA_sorted', epochs=2000, SS=400, saveTo='lncRNA')
 
-LoopList('lncRNA_Pos', epochs=2000, SS=500, saveTo='LncRNA')
+LoopList('lncRNA_Pos', epochs=2000, SS=200, saveTo='lncRNA')
 
 LoopList(['ChrX', 'ChrMT'], epochs=2000, SS=100)
 
