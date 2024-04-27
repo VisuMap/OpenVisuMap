@@ -564,6 +564,28 @@ def UnifyTwoMaps(mpA, mpB):
 	global dKeys
 	bListA = [b for b in mpA.BodyListEnabled() if not b.Hidden]
 	bListB = [b for b in mpB.BodyListEnabled() if not b.Hidden]
+
+
+	#Unify the labels
+	infoA = InfoFromString(mpA.Description)
+	infoB = InfoFromString(mpB.Description)
+	if ('DG' not in infoA) or ('DG' not in infoA):
+		vv.Message('No dominant genes created in one of the maps')
+		return
+	dKeysA = DominantGenes(infoA['DG'])
+	dKeysB = DominantGenes(infoB['DG'])
+	bList = [ b for b in bListB if b.ShowName ]
+	for b in bListB:
+		gs = dKeysB.Label2Id(b.Name)
+		b.Name = ''.join( [dKeysA.Lookup(id) for id in gs] )
+	infoB['DG'] = dKeysA.ToString()
+	mpB.Description = InfoToString(infoB)
+	mpB.RedrawAll()
+	gIdList = dKeysA.GeneList()
+	dKeys = dKeysA
+	New.TextPanel("Gene Symbols", MakeLegend(gIdList)).Show()
+
+	#Unify the cluster color indexes:
 	cA = {b.Type:b.Name for b in bListA if b.ShowName}
 	cB = {b.Type:b.Name for b in bListB if b.ShowName}
 
@@ -603,24 +625,6 @@ def UnifyTwoMaps(mpA, mpB):
 		b.Type = cTr[b.Type]
 	mpB.RedrawAll()
 
-	#Unify the labels
-	infoA = InfoFromString(mpA.Description)
-	infoB = InfoFromString(mpB.Description)
-	if ('DG' not in infoA) or ('DG' not in infoA):
-		vv.Message('No dominant genes created in one of the maps')
-		return
-	dKeysA = DominantGenes(infoA['DG'])
-	dKeysB = DominantGenes(infoB['DG'])
-	bList = [ b for b in bListB if b.ShowName ]
-	for b in bListB:
-		gs = dKeysB.Label2Id(b.Name)
-		b.Name = ''.join( [dKeysA.Lookup(id) for id in gs] )
-	infoB['DG'] = dKeysA.ToString()
-	mpB.Description = InfoToString(infoB)
-	mpB.RedrawAll()
-	gIdList = dKeysA.GeneList()
-	dKeys = dKeysA
-	New.TextPanel("Gene Symbols", MakeLegend(gIdList)).Show()
 
 '''=================================================================================
 mpList = vv.FindFormList('MapSnapshot')
