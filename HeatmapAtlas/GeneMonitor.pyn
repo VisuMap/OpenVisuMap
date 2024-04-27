@@ -40,6 +40,9 @@ public INumberTable Transform(INumberTable nt) {
 	return nt;
 }
 ''')
+def ThresholdHi(vList):
+	tHi = math.sqrt( np.average(np.square(vList)) )
+	return 1.0*tHi
 
 def transform(nt):
 	return nt
@@ -126,10 +129,6 @@ def StartMonitor(nt, map=None):
 	if map == None: 
 		map = vv.MapView
 	ConfigMarker(map.ShowMarker(True))
-
-def ThresholdHi(vList):
-	tHi = math.sqrt( np.average(np.square(vList)) )
-	return 1.25*tHi
 
 
 def OnSelected(dynamicColor):
@@ -482,6 +481,8 @@ class DominantGenes:
 # del dKeys
 def InitDominantGenes():
 	global dKeys
+	if vv.ModifierKeys.ControlPressed:
+		del dKeys
 	if 'dKeys' not in globals():
 		dKeys = DominantGenes()
 
@@ -537,9 +538,9 @@ def LabelAllClusters(pMap):
 	geneList = ExtractFeatures(pMap)
 	baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(geneList)
 	InitDominantGenes()
-	bList = [b for b in pMap.BodyListEnabled() if not b.Hidden]
-	for b in bList:
+	for b in pMap.BodyList:
 		b.Name, b.ShowName = '', False
+	bList = [b for b in pMap.BodyListEnabled() if not b.Hidden]
 	for B in GroupByType(bList):
 		nt = baseNT.SelectRowsByIdView([b.Id for b in B])
 		b = cs.MeanPoint(B)
@@ -560,6 +561,7 @@ def LabelAllClusters(pMap):
 	pMap.Description = InfoToString(info)
 
 def UnifyTwoMaps(mpA, mpB):
+	global dKeys
 	bListA = [b for b in mpA.BodyListEnabled() if not b.Hidden]
 	bListB = [b for b in mpB.BodyListEnabled() if not b.Hidden]
 	cA = {b.Type:b.Name for b in bListA if b.ShowName}
@@ -601,11 +603,29 @@ def UnifyTwoMaps(mpA, mpB):
 		b.Type = cTr[b.Type]
 	mpB.RedrawAll()
 
+	#Unify the labels
+	infoA = InfoFromString(mpA.Description)
+	infoB = InfoFromString(mpB.Description)
+	if ('DG' not in infoA) or ('DG' not in infoA):
+		vv.Message('No dominant genes created in one of the maps')
+		return
+	dKeysA = DominantGenes(infoA['DG'])
+	dKeysB = DominantGenes(infoB['DG'])
+	bList = [ b for b in bListB if b.ShowName ]
+	for b in bListB:
+		gs = dKeysB.Label2Id(b.Name)
+		b.Name = ''.join( [dKeysA.Lookup(id) for id in gs] )
+	infoB['DG'] = dKeysA.ToString()
+	mpB.Description = InfoToString(infoB)
+	mpB.RedrawAll()
+	gIdList = dKeysA.GeneList()
+	dKeys = dKeysA
+	New.TextPanel("Gene Symbols", MakeLegend(gIdList)).Show()
 
 '''=================================================================================
-
 mpList = vv.FindFormList('MapSnapshot')
 UnifyTwoMaps(mpList[0], mpList[1])
+
 
 LoopList('Angiogenesis', epochs=2000, SS=50)
 
