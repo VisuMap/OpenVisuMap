@@ -197,7 +197,7 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=N
 			info['ex'] = ex
 			info['DS'] = vv.Dataset.Name
 			if SS == 0:	info['NM'] = idList[n-1][1:]
-			vv.Map.Description = InfoToString(info)
+			vv.Map.Description = InfoToStr(info)
 			mds.ChangeTrainingData(nt).Reset().Start()
 			if not mds.Completed:
 				vv.Return(1)
@@ -233,7 +233,7 @@ def InfoFromStr(desc):
 		info[fs[0]] = fs[1]
 	return info
 
-def InfoToString(info):
+def InfoToStr(info):
 	return ';'.join([f'{key}:{info[key]}' for key in info])
 
 def ExtractFeatures(pMap):
@@ -339,19 +339,24 @@ def GetGeneList(chrName):
 	return [p[0] for p in gList]
 
 def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1):
-	if idMon.Count == 0:
+	info = InfoFromStr(vv.Map.Description)
+	if idMon.Count == 0:  # no features provided, we get them from the map
 		idMon = ExtractFeatures0(vv.Map.Description)
-		info = InfoFromStr(vv.Map.Description)
-		if 'SQ' in info:
-			dtSrc = f'SQ:{info["SQ"]};RG:{info["RG"]}'
-		else:
-			dtSrc = 'Ids:' + '|'.join(idMon)
 	else:
-		dtSrc = 'Ids:' + '|'.join(idMon)
+		info['Ids'] = '|'.join(idMon)
+		if 'SQ' in info:
+			del info['SQ']
+			del info['RG']
 	mds = NewTsne(epochs, PP, EX, ex, repeats)
 	nt = vv.GetNumberTableView(True).SelectColumnsById(idMon)
 	nt = transform(nt)
-	vv.Map.Description = f'EP:{epochs};PP:{PP};ex:{ex};EX:{EX};DS:{vv.Dataset.Name};CS:{nt.Columns};{dtSrc}'
+	info['EP'] = epochs
+	info['PP'] = PP
+	info['ex'] = ex
+	info['EX'] = EX
+	info['DS'] = vv.Dataset.Name
+	info['CS'] = nt.Columns
+	vv.Map.Description = InfoToStr(info)
 	mds.ChangeTrainingData(nt).Reset().Start()
 	if not mds.Completed: vv.Return(0)
 	mds.Close()
@@ -565,8 +570,9 @@ def LabelAllClusters(pMap):
 		b.Name, b.ShowName = MakeLabel(nt, geneList), True
 		pMap.RedrawAll()
 	info = InfoFromStr(pMap.Description)
+	info['LV'] = thresholdLevel
 	info['DG'] = dKeys.ToString()
-	pMap.Description = InfoToString(info)
+	pMap.Description = InfoToStr(info)
 	ShowLegend(pMap)
 
 def UnifyTwoMaps(mpA, mpB):
@@ -588,7 +594,7 @@ def UnifyTwoMaps(mpA, mpB):
 		gs = dKeysB.Label2Id(b.Name)
 		b.Name = ''.join( [dKeysA.Lookup(id) for id in gs] )
 	infoB['DG'] = dKeysA.ToString()
-	mpB.Description = InfoToString(infoB)
+	mpB.Description = InfoToStr(infoB)
 	mpB.RedrawAll()
 	gIdList = dKeysA.GeneList()
 	dKeys = dKeysA
