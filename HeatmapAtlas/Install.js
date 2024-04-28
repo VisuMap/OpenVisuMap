@@ -56,7 +56,7 @@ match vv.EventSource.Item:
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "Atlas", null);
 
-scriptStr = `@#MenuLabels - Monitor "Show Data" ReEmbedding 3D-Expression 'Active Cells' 'Label Genes' 'Label All Clusters' 'Show Gene Table'
+scriptStr = `@#MenuLabels - Monitor "Show Data" ReEmbedding 3D-Expression 'Active Cells' 'Label Genes' 'Label All Clusters' 'Show Gene Table' 'Match Map'
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
 	case 'Monitor':
@@ -74,7 +74,9 @@ match vv.EventSource.Item:
 	case 'Label All Clusters':
 		LabelAllClusters(pp)
 	case 'Show Gene Table':
-		ShowLegend(pp)`;
+		ShowLegend(pp)
+	case 'Match Map':
+		Unify2Maps(pp)`;
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MapSnapshot", null);
 

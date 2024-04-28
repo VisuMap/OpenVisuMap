@@ -640,6 +640,16 @@ def UnifyTwoMaps(mpA, mpB):
 		b.Type = cTr[b.Type]
 	mpB.RedrawAll()
 
+def Unify2Maps(pMap):
+	mpList = vv.FindFormList('MapSnapshot')
+	if mpList.Count != 2:
+		vv.Message('There must be 2 map snapshots open!' )
+		return
+	if pMap.TheForm == mpList[0].TheForm:
+		UnifyTwoMaps(mpList[1], mpList[0])
+	else:
+		UnifyTwoMaps(mpList[0], mpList[1])
+
 
 '''=================================================================================
 mpList = vv.FindFormList('MapSnapshot')
