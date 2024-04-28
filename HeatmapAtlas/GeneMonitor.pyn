@@ -189,12 +189,12 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=N
 			info = {}
 			info['SQ'] = listName
 			info['RG'] = f'{n}-{n2}'
-			info['SS'] = str(SS)
-			info['CS'] = str(nt.Columns)
-			info['EP'] = str(epochs)
-			info['PP'] = str(PP)
-			info['EX'] = str(EX)
-			info['ex'] = str(ex)
+			info['SS'] = SS
+			info['CS'] = nt.Columns
+			info['EP'] = epochs
+			info['PP'] = PP
+			info['EX'] = EX
+			info['ex'] = ex
 			info['DS'] = vv.Dataset.Name
 			if SS == 0:	info['NM'] = idList[n-1][1:]
 			vv.Map.Description = InfoToString(info)
@@ -231,20 +231,10 @@ def InfoFromStr(desc):
 		if len(fs) < 2: 
 			continue
 		info[fs[0]] = fs[1]
-	if 'Ids' in info:
-		info['Ids'] = info['Ids'].split('|')
 	return info
 
 def InfoToString(info):
-	s = ''
-	for key in info:
-		s += key + ':'
-		if key == 'Ids':
-			s += '|'.join(info[key])
-		else:
-			s += info[key]
-		s += ';'
-	return s
+	return ';'.join([f'{key}:{info[key]}' for key in info])
 
 def ExtractFeatures(pMap):
 	desc = vv.Map.Description if pMap.Name=='MainForm' else pMap.Description
@@ -253,7 +243,7 @@ def ExtractFeatures(pMap):
 def ExtractFeatures0(desc):
 	info = InfoFromStr(desc)
 	if 'Ids' in info:
-		return info['Ids']
+		return info['Ids'].split('|')
 	sq = info['SQ']
 	fs = info['RG'].split('-')
 	idMon = 	list(vv.GroupManager.GetGroupLabels(sq))
