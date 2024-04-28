@@ -77,7 +77,7 @@ def GetId2Sym():
 		fctId2Sym = lambda id: id
 	return fctId2Sym
 
-def ConfigBarView(bv, nt):
+def ConfigBarView(bv, nt, map):
 	bv.Horizontal = False
 	bv.BarLabelType = 1
 	bv.AutoScaling = False
@@ -88,9 +88,12 @@ def ConfigBarView(bv, nt):
 	items = bv.ItemList
 	dynamicColor = True
 	gt = vv.Folder.ReadDataset('Gene Features')
+	info = InfoFromString(map.Description)
+	id2key = DominantGenes(info['DG']) if 'DG' in info else None
 	id2sym = GetId2Sym()
 	for k, item in enumerate(items): 
-		item.Name = id2sym(item.Id)
+		key = id2key.Lookup(item.Id) + '  ' if id2key != None else ''
+		item.Name = key + id2sym(item.Id)
 	bv.ReadOnly = True
 	bv.Show()
 	bv.Resize(0, 0, 500, 500)
@@ -125,9 +128,9 @@ def Config3DMap(m3d):
 	m3d.RotateXYZ(0, 0.005, 0, int(2*math.pi/0.005), 15)
 
 def StartMonitor(nt, map=None):
-	ConfigBarView(New.BarView(nt.ColumnSpecList), nt)
 	if map == None: 
 		map = vv.MapView
+	ConfigBarView(New.BarView(nt.ColumnSpecList), nt, map)
 	ConfigMarker(map.ShowMarker(True))
 
 
@@ -182,9 +185,18 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=N
 		for n, n2 in nPairs:
 			nt = nt0.SelectColumnsById(idList[n:n2])
 			nt = transform(nt)
-			vv.Map.Description = f'SQ:{listName};RG:{n}-{n2};SS:{SS};CS:{nt.Columns};EP:{epochs};PP:{PP};EX:{EX};ex:{ex};DS:{vv.Dataset.Name}'
-			if SS == 0:
-				vv.Map.Description += f';NM:{idList[n-1][1:]}'
+			info = {}
+			info['SQ'] = listName
+			info['RG'] = f'{n}-{n2}'
+			info['SS'] = str(SS)
+			info['CS'] = str(nt.Columns)
+			info['EP'] = str(epochs)
+			info['PP'] = str(PP)
+			info['EX'] = str(EX)
+			info['ex'] = str(ex)
+			info['DS'] = vv.Dataset.Name
+			if SS == 0:	info['NM'] = idList[n-1][1:]
+			vv.Map.Description = InfoToString(info)
 			mds.ChangeTrainingData(nt).Reset().Start()
 			if not mds.Completed:
 				vv.Return(1)
