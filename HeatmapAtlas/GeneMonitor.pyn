@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-mpWidth, mpHeight = 500, 350
+mpWidth, mpHeight, thresholdLevel = 500, 350, 1.0
 
 cs = New.CsObject('''
 public IBody MeanPoint(IList<IBody> bList){
@@ -40,9 +40,10 @@ public INumberTable Transform(INumberTable nt) {
 	return nt;
 }
 ''')
+
 def ThresholdHi(vList):
 	tHi = math.sqrt( np.average(np.square(vList)) )
-	return 1.0*tHi
+	return thresholdLevel*tHi
 
 def transform(nt):
 	return nt
@@ -88,7 +89,7 @@ def ConfigBarView(bv, nt, map):
 	items = bv.ItemList
 	dynamicColor = True
 	gt = vv.Folder.ReadDataset('Gene Features')
-	info = InfoFromString(map.Description)
+	info = InfoFromStr(map.Description)
 	id2key = DominantGenes(info['DG']) if 'DG' in info else None
 	id2sym = GetId2Sym()
 	for k, item in enumerate(items): 
@@ -223,7 +224,7 @@ def LoopList2(dsList, gList, saveTo=None, epochs=1000, PP=0.05, SS=50, EX=4.0, e
 			SaveToAtlas(saveTo, x0, y0)
 		y0 += 150
 
-def InfoFromString(desc):	
+def InfoFromStr(desc):
 	info = {}
 	for s in desc.split(';'):
 		fs = s.strip().split(':', 1)
@@ -250,7 +251,7 @@ def ExtractFeatures(pMap):
 	return ExtractFeatures0(desc)
 
 def ExtractFeatures0(desc):
-	info = InfoFromString(desc)
+	info = InfoFromStr(desc)
 	if 'Ids' in info:
 		return info['Ids']
 	sq = info['SQ']
@@ -262,7 +263,7 @@ def ExtractFeatures0(desc):
 
 def ReEmbedding(pMap):
 	CheckDataset(pMap)
-	info = InfoFromString(pMap.Description)
+	info = InfoFromStr(pMap.Description)
 	epochs = int(info['EP'])
 	PP = float(info['PP'])
 	EX = float(info['EX'])
@@ -350,7 +351,7 @@ def GetGeneList(chrName):
 def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1):
 	if idMon.Count == 0:
 		idMon = ExtractFeatures0(vv.Map.Description)
-		info = InfoFromString(vv.Map.Description)
+		info = InfoFromStr(vv.Map.Description)
 		if 'SQ' in info:
 			dtSrc = f'SQ:{info["SQ"]};RG:{info["RG"]}'
 		else:
@@ -420,7 +421,7 @@ def SetAtlasItemName():
 	atlas = pp
 	for item in atlas.GetSelectedItems():
 		mp = item.Open()
-		info = InfoFromString(mp.Title)
+		info = InfoFromStr(mp.Title)
 		item.Name = info['SQ'] + ':' + info['RG']
 		item.LabelStyle = 2
 		mp.Close()
@@ -428,7 +429,7 @@ def SetAtlasItemName():
 
 def CheckDataset(pMap):
 	info = vv.Map.Description if pMap.Name=='MainForm' else pMap.Description
-	dsName = InfoFromString(info)['DS']
+	dsName = InfoFromStr(info)['DS']
 	if dsName != vv.Dataset.Name:
 		vv.Folder.OpenDataset(dsName)	
 
@@ -519,6 +520,21 @@ def MakeLegend(geneList):
 		symTable += f'{dKeys.Lookup(id)}: {id2sym(id)}\n'
 	return symTable
 
+def ShowLegend(pMap):
+	info = InfoFromStr(pp.Description)
+	keyTable = DominantGenes(info['DG']) 
+	id2sym = GetId2Sym()	
+	sTable = ''
+	if 'DS' in info: sTable += info['DS'] + '\n'
+	if 'SQ' in info: sTable += info['SQ'] + ':' + info['RG'] + '\n\n'
+	for id in keyTable.GeneList():
+		sTable += f'{keyTable.Lookup(id)}: {id2sym(id)}\n'
+	tp = New.TextPanel('Dominant Genes', sTable)
+	tp.BackgroundColor = pMap.BackgroundColor
+	tp.TextColor = New.Color('Yellow')
+	tp.Show();
+
+	
 def LabelGenes(pMap): 
 	CheckDataset(pMap)
 	InitDominantGenes()
@@ -558,19 +574,10 @@ def LabelAllClusters(pMap):
 		b = cs.MeanPoint(B)
 		b.Name, b.ShowName = MakeLabel(nt, geneList), True
 		pMap.RedrawAll()
-	info = InfoFromString(pMap.Description)
-	txt = ''
-	if 'DS' in info:
-		txt += info['DS'] + '\n'
-	if 'SQ' in info:
-		txt += info['SQ'] + ":" + info['RG'] + '\n'
-	txt += '\n' + MakeLegend(geneList)
-	tp = New.TextPanel("Gene Symbols", txt)
-	tp.BackgroundColor = pMap.BackgroundColor
-	tp.TextColor = New.Color('Yellow')
-	tp.Show()
+	info = InfoFromStr(pMap.Description)
 	info['DG'] = dKeys.ToString()
 	pMap.Description = InfoToString(info)
+	ShowLegend(pMap)
 
 def UnifyTwoMaps(mpA, mpB):
 	global dKeys
@@ -579,8 +586,8 @@ def UnifyTwoMaps(mpA, mpB):
 
 
 	#Unify the labels
-	infoA = InfoFromString(mpA.Description)
-	infoB = InfoFromString(mpB.Description)
+	infoA = InfoFromStr(mpA.Description)
+	infoB = InfoFromStr(mpB.Description)
 	if ('DG' not in infoA) or ('DG' not in infoA):
 		vv.Message('No dominant genes created in one of the maps')
 		return
@@ -641,7 +648,6 @@ def UnifyTwoMaps(mpA, mpB):
 '''=================================================================================
 mpList = vv.FindFormList('MapSnapshot')
 UnifyTwoMaps(mpList[0], mpList[1])
-
 
 LoopList('Angiogenesis', epochs=2000, SS=50)
 
