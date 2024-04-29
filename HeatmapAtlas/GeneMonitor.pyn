@@ -43,6 +43,7 @@ public INumberTable Transform(INumberTable nt) {
 
 def ThresholdHi(vList):
 	tHi = math.sqrt( np.average(np.square(vList)) )
+	tHi = max(0.25, tHi)
 	return thresholdLevel*tHi
 
 def transform(nt):
@@ -433,6 +434,15 @@ def AdjustAtlasMaps(mpWidth, mpHeight, gSize, gOpacity):
 		mp.Resize(0,0,mpWidth,mpHeight)
 		mp.Close()
 
+def ClusterMap(pMap):
+	ResetMap(pMap)
+	pMap.ClusterAlgorithm=0
+	pMap.EpsilonRatio = 1.1
+	pMap.MinClusterPoint = 25
+	pMap.ClusterNoise = False
+	pMap.NoiseSize = 0.5
+	pMap.DoDataClustering()
+
 # --------- Labelling related ----------
 
 class DominantGenes:
@@ -443,9 +453,9 @@ class DominantGenes:
 				self.Lookup(id)
 
 	def Idx2Chr(self, idx):
-		if idx >= 2*26:
+		if idx >= 52:
 			#return '|'
-			return str(idx)+'.'
+			return str(idx-52)+'.'
 		offset = 65 if idx < 26 else 71
 		return chr(offset + idx)
 
@@ -483,11 +493,11 @@ class DominantGenes:
 	def ToString(self):
 		return '|'.join(list(self.geneDic.keys()))
 
-# del dKeys
+	def Clear(self):
+		self.geneDic.clear()
+
 def InitDominantGenes():
 	global dKeys
-	if vv.ModifierKeys.ControlPressed:
-		del dKeys
 	if 'dKeys' not in globals():
 		dKeys = DominantGenes()
 
@@ -496,13 +506,13 @@ def MakeLabel(nt, geneList):
 	vs = [item.Value for item in nt.ColumnMean()]
 	largeV = ThresholdHi(vs)
 	if largeV == 0:
-		return '\u25a0'
+		return '\u25a1'
 	nm = ''
 	for k, v in enumerate(vs):
 		if v > largeV:	
 			nm += dKeys.Lookup(nt.ColumnSpecList[k].Id)
 	if len(nm) == 0: 
-		nm = '\u25a0'
+		nm = '\u25a1'
 	return nm
 
 def MakeLegend(geneList):
@@ -559,7 +569,7 @@ def ResetMap(pMap):
 	pMap.GlyphSet = '36 Clusters||||'
 	pMap.GlyphSize = 0.5
 	pMap.GlyphOpacity = 0.5
-	pMap.HiddenBodySize = 3
+	pMap.HiddenBodySize = 4
 	pMap.HiddenBodyColor = New.Color('Red')
 
 def LabelAllClusters(pMap):
@@ -567,6 +577,7 @@ def LabelAllClusters(pMap):
 	geneList = ExtractFeatures(pMap)
 	baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(geneList)
 	InitDominantGenes()
+	dKeys.Clear()
 	ResetMap(pMap)
 	bList = [b for b in pMap.BodyListEnabled() if not b.Hidden]
 	for B in GroupByType(bList):
@@ -659,6 +670,11 @@ def Unify2Maps(pMap):
 mpList = vv.FindFormList('MapSnapshot')
 UnifyTwoMaps(mpList[0], mpList[1])
 
+print(ord('\u25a0'))
+print(chr(9633))
+
+for k in range(128, 256):	print(k, ' ', chr(k))
+
 LoopList('Angiogenesis', epochs=2000, SS=50)
 
 LoopList('lncRNA_SymLoc', epochs=2000, SS=500, saveTo='lncRNA2')
@@ -670,5 +686,6 @@ LoopList(['ChrX', 'ChrMT'], epochs=2000, SS=100)
 dsList = ['TCellBreast', 'Perivascular', 'Vascular-C', 'BreastCancel', 'Myeloid']
 ftList = ['lncRNA_WithSummary']
 LoopList2(dsList, ftList, mapName='TestA', saveTo='TestA', SS=0, epochs=2000, EX=4.0)
+
 
 '''
