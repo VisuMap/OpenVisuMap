@@ -186,16 +186,8 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=N
 		for n, n2 in nPairs:
 			nt = nt0.SelectColumnsById(idList[n:n2])
 			nt = transform(nt)
-			info = {}
-			info['SQ'] = listName
-			info['RG'] = f'{n}-{n2}'
-			info['SS'] = SS
-			info['CS'] = nt.Columns
-			info['EP'] = epochs
-			info['PP'] = PP
-			info['EX'] = EX
-			info['ex'] = ex
-			info['DS'] = vv.Dataset.Name
+			info = {'SQ':listName, 'RG':f'{n}-{n2}', 'CS':nt.Columns, 'DS':vv.Dataset.Name, 
+				'EP':epochs, 'ss':ss, 'SS':SS, 'PP':PP, 'EX':EX, 'ex':ex, }
 			if SS == 0:	info['NM'] = idList[n-1][1:]
 			vv.Map.Description = InfoToStr(info)
 			mds.ChangeTrainingData(nt).Reset().Start()
@@ -214,15 +206,20 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=N
 	if saveTo != None:
 		SaveToAtlas(saveTo)
 
-def LoopList2(dsList, gList, saveTo=None, epochs=1000, PP=0.05, SS=50, EX=4.0, ex=1.0):
+def LoopList2(dsList, gList, mapName=None, saveTo=None, epochs=1000, PP=0.05, SS=50, EX=4.0, ex=1.0):
 	x0, y0 = 50, 50
 	for ds in dsList:
 		if ds != vv.Dataset.Name:
 			vv.Folder.OpenDataset(ds)
+			if mapName != None:
+				if vv.Dataset.OpenMap(mapName) == None:
+					vv.Dataset.AddMap(mapName)
 		LoopList(gList, epochs=epochs, PP=PP, SS=SS, EX=EX, ex=ex)
 		if saveTo != None:
 			SaveToAtlas(saveTo, x0, y0)
 		y0 += 150
+
+
 
 def InfoFromStr(desc):
 	info = {}
@@ -556,13 +553,21 @@ def GroupByType(bList):
 		G[b.Type].append(b)
 	return G.values()
 
+def ResetMap(pMap):
+	for b in pMap.BodyList:
+		b.Name, b.ShowName = '', False
+	pMap.GlyphSet = '36 Clusters||||'
+	pMap.GlyphSize = 0.5
+	pMap.GlyphOpacity = 0.5
+	pMap.HiddenBodySize = 3
+	pMap.HiddenBodyColor = New.Color('Red')
+
 def LabelAllClusters(pMap):
 	CheckDataset(pMap)
 	geneList = ExtractFeatures(pMap)
 	baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(geneList)
 	InitDominantGenes()
-	for b in pMap.BodyList:
-		b.Name, b.ShowName = '', False
+	ResetMap(pMap)
 	bList = [b for b in pMap.BodyListEnabled() if not b.Hidden]
 	for B in GroupByType(bList):
 		nt = baseNT.SelectRowsByIdView([b.Id for b in B])
@@ -571,7 +576,7 @@ def LabelAllClusters(pMap):
 		pMap.RedrawAll()
 	info = InfoFromStr(pMap.Description)
 	info['LV'] = thresholdLevel
-	info['DG'] = dKeys.ToString()
+	info['DG'] = dKeys.ToString()	
 	pMap.Description = InfoToStr(info)
 	ShowLegend(pMap)
 
@@ -579,7 +584,6 @@ def UnifyTwoMaps(mpA, mpB):
 	global dKeys
 	bListA = [b for b in mpA.BodyListEnabled() if not b.Hidden]
 	bListB = [b for b in mpB.BodyListEnabled() if not b.Hidden]
-
 
 	#Unify the labels
 	infoA = InfoFromStr(mpA.Description)
@@ -597,8 +601,8 @@ def UnifyTwoMaps(mpA, mpB):
 	mpB.Description = InfoToStr(infoB)
 	mpB.RedrawAll()
 	gIdList = dKeysA.GeneList()
-	dKeys = dKeysA
-	New.TextPanel("Gene Symbols", MakeLegend(gIdList)).Show()
+	dKeys = dKeysA	
+	ShowLegend(mpB)
 
 	#Unify the cluster color indexes:
 	cA = {b.Type:b.Name for b in bListA if b.ShowName}
@@ -657,15 +661,14 @@ UnifyTwoMaps(mpList[0], mpList[1])
 
 LoopList('Angiogenesis', epochs=2000, SS=50)
 
-LoopList('lncRNA_sorted', epochs=2000, SS=400, saveTo='lncRNA')
+LoopList('lncRNA_SymLoc', epochs=2000, SS=500, saveTo='lncRNA2')
 
 LoopList('lncRNA_Pos', epochs=2000, SS=200, saveTo='lncRNA')
 
 LoopList(['ChrX', 'ChrMT'], epochs=2000, SS=100)
 
-#dsList = ['TCellBreast', 'Perivascular', 'Vascular-C', 'BreastCancel', 'Myeloid']
-dsList = ['Perivascular']
-ftList = ['LncRNA_Pos', 'LncRNA_Length']
-LoopList2(dsList, ftList, saveTo='LncRNA', SS=500, epochs=2000, ex=0.95)
+dsList = ['TCellBreast', 'Perivascular', 'Vascular-C', 'BreastCancel', 'Myeloid']
+ftList = ['lncRNA_WithSummary']
+LoopList2(dsList, ftList, mapName='TestA', saveTo='TestA', SS=0, epochs=2000, EX=4.0)
 
 '''
