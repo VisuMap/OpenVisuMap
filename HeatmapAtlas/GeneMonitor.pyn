@@ -91,7 +91,10 @@ def ConfigBarView(bv, nt, map):
 	dynamicColor = True
 	gt = vv.Folder.ReadDataset('Gene Features')
 	info = InfoFromStr(map.Description)
-	id2key = DominantGenes(info['DG']) if 'DG' in info else None
+	if 'DG' in info:
+		id2key = DominantGenes(info['DG'])
+	else:
+		id2key = None
 	id2sym = GetId2Sym()
 	for k, item in enumerate(items): 
 		key = id2key.Lookup(item.Id) + '  ' if id2key != None else ''
@@ -211,16 +214,16 @@ def LoopList2(dsList, gList, mapName=None, saveTo=None, epochs=1000, PP=0.05, SS
 	x0, y0 = 50, 50
 	for ds in dsList:
 		if ds != vv.Dataset.Name:
-			vv.Folder.OpenDataset(ds)
-			if mapName != None:
-				if vv.Dataset.OpenMap(mapName) == None:
-					vv.Dataset.AddMap(mapName)
+			if vv.Folder.OpenDataset(ds) == None:
+				vv.Message('Cannot open dataset: ' + ds)
+				vv.Return()
+		if mapName != None:
+			if vv.Dataset.OpenMap(mapName) == None:
+				vv.Dataset.AddMap(mapName)
 		LoopList(gList, epochs=epochs, PP=PP, SS=SS, EX=EX, ex=ex)
 		if saveTo != None:
 			SaveToAtlas(saveTo, x0, y0)
 		y0 += 150
-
-
 
 def InfoFromStr(desc):
 	info = {}
@@ -410,8 +413,16 @@ def ShowActiveCells(pMap):
 def SaveToAtlas(atName=None, x0=50, y0=50):
 	vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0).Close()
 
-def SetAtlasItemName():
-	atlas = pp
+# --------------- operations for atlas panel -------------------
+
+def AnnotateAtlasMaps(atlas):
+	for item in atlas.GetSelectedItems():
+		mp = item.Open()
+		ClusterMap(mp)
+		LabelAllClusters(mp)
+		mp.Close()	
+
+def SetAtlasItemName(atlas):
 	for item in atlas.GetSelectedItems():
 		mp = item.Open()
 		info = InfoFromStr(mp.Title)
@@ -420,22 +431,27 @@ def SetAtlasItemName():
 		mp.Close()
 		atlas.RedrawItem(item, True)
 
-def CheckDataset(pMap):
-	info = vv.Map.Description if pMap.Name=='MainForm' else pMap.Description
-	dsName = InfoFromStr(info)['DS']
-	if dsName != vv.Dataset.Name:
-		vv.Folder.OpenDataset(dsName)	
 
-def AdjustAtlasMaps(mpWidth, mpHeight, gSize, gOpacity):
-	for it in pp.GetSelectedItems():
+def AdjustAtlasMaps(atlas, mpWidth, mpHeight, gSize, gOpacity):
+	for it in atlas.GetSelectedItems():
 		mp = it.Open()
 		mp.GlyphSize = gSize
 		mp.GlyphOpacity = gOpacity
 		mp.Resize(0,0,mpWidth,mpHeight)
 		mp.Close()
 
+# --------------------------------------------------------------
+
+def CheckDataset(pMap):
+	info = vv.Map.Description if pMap.Name=='MainForm' else pMap.Description
+	dsName = InfoFromStr(info)['DS']
+	if dsName != vv.Dataset.Name:
+		vv.Folder.OpenDataset(dsName)	
+
 def ClusterMap(pMap):
 	ResetMap(pMap)
+	for b in pMap.BodyList:
+		b.Type = 0
 	pMap.ClusterAlgorithm=0
 	pMap.EpsilonRatio = 1.1
 	pMap.MinClusterPoint = 25
@@ -524,7 +540,7 @@ def MakeLegend(geneList):
 	return symTable
 
 def ShowLegend(pMap):
-	info = InfoFromStr(pp.Description)
+	info = InfoFromStr(pMap.Description)
 	keyTable = DominantGenes(info['DG']) 
 	id2sym = GetId2Sym()	
 	sTable = ''
@@ -535,9 +551,8 @@ def ShowLegend(pMap):
 	tp = New.TextPanel('Dominant Genes', sTable)
 	tp.BackgroundColor = pMap.BackgroundColor
 	tp.TextColor = New.Color('Yellow')
-	tp.Show();
+	tp.Show()
 
-	
 def LabelGenes(pMap): 
 	CheckDataset(pMap)
 	InitDominantGenes()
@@ -592,7 +607,6 @@ def LabelAllClusters(pMap):
 	info['LV'] = thresholdLevel
 	info['DG'] = dKeys.ToString()	
 	pMap.Description = InfoToStr(info)
-	ShowLegend(pMap)
 
 def UnifyTwoMaps(mpA, mpB):
 	global dKeys
@@ -670,13 +684,6 @@ def Unify2Maps(pMap):
 
 
 '''=================================================================================
-mpList = vv.FindFormList('MapSnapshot')
-UnifyTwoMaps(mpList[0], mpList[1])
-
-print(ord('\u25a0'))
-print(chr(9633))
-
-for k in range(128, 256):	print(k, ' ', chr(k))
 
 LoopList('Angiogenesis', epochs=2000, SS=50)
 
@@ -686,9 +693,13 @@ LoopList('lncRNA_Pos', epochs=2000, SS=200, saveTo='lncRNA')
 
 LoopList(['ChrX', 'ChrMT'], epochs=2000, SS=100)
 
-dsList = ['TCellBreast', 'Perivascular', 'Vascular-C', 'BreastCancel', 'Myeloid']
+dsList = ['TCellBreast', 'Perivascular', 'Vascular-C', 'BreastCancer', 'Myeloid']
 ftList = ['lncRNA_WithSummary']
 LoopList2(dsList, ftList, mapName='TestA', saveTo='TestA', SS=0, epochs=2000, EX=4.0)
+
+gId = 'lncRNA_SymLoc'
+
+LoopList2(dsList[3:], gId, mapName=gId, saveTo=gId, SS=500, epochs=2000, EX=4.0)
 
 
 '''

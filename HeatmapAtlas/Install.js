@@ -46,13 +46,15 @@ match vv.EventSource.Item:
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MainForm", null);
 
-scriptStr = `@#MenuLabels - "Set Map Label" "Adjust Atlas Maps"
+scriptStr = `@#MenuLabels - "Set Map Label" "Adjust Atlas Maps" 'Annotate Maps'
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
 	case 'Set Map Label':
-		SetAtlasItemName()
+		SetAtlasItemName(pp)
 	case 'Adjust Atlas Maps':		
-		AdjustAtlasMaps(1000, 700, 0.5, 0.5)`;
+		AdjustAtlasMaps(pp, 1000, 700, 0.5, 0.5)
+	case 'Annotate Maps':
+		AnnotateAtlasMaps(pp)`;
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "Atlas", null);
 
@@ -75,6 +77,7 @@ match vv.EventSource.Item:
 		LabelGenes(pp)
 	case 'LabelAll':
 		LabelAllClusters(pp)
+		ShowLegend(pp)
 	case 'ShowGeneTable':
 		ShowLegend(pp)
 	case 'MatchMap':
