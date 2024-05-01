@@ -52,7 +52,7 @@ match vv.EventSource.Item:
 	case 'Set Map Label':
 		SetAtlasItemName(pp)
 	case 'Adjust Atlas Maps':		
-		AdjustAtlasMaps(pp, 1000, 700, 0.5, 0.5)
+		AdjustAtlasMaps(pp, 1000, 700, gSize=0.25, gOpacity=0.5, hiddenSize=8)
 	case 'Annotate Maps':
 		AnnotateAtlasMaps(pp)`;
 

@@ -432,11 +432,12 @@ def SetAtlasItemName(atlas):
 		atlas.RedrawItem(item, True)
 
 
-def AdjustAtlasMaps(atlas, mpWidth, mpHeight, gSize, gOpacity):
+def AdjustAtlasMaps(atlas, mpWidth, mpHeight, gSize, gOpacity, hiddenSize):
 	for it in atlas.GetSelectedItems():
 		mp = it.Open()
 		mp.GlyphSize = gSize
 		mp.GlyphOpacity = gOpacity
+		mp.HiddenBodySize = hiddenSize
 		mp.Resize(0,0,mpWidth,mpHeight)
 		mp.Close()
 
@@ -453,7 +454,7 @@ def ClusterMap(pMap):
 	for b in pMap.BodyList:
 		b.Type = 0
 	pMap.ClusterAlgorithm=0
-	pMap.EpsilonRatio = 1.1
+	pMap.EpsilonRatio = 1.2
 	pMap.MinClusterPoint = 25
 	pMap.ClusterNoise = False
 	pMap.NoiseSize = 0.5
@@ -583,10 +584,10 @@ def ResetMap(pMap):
 	for b in pMap.BodyList:
 		b.Name = ''
 		b.ShowName = False
-	pMap.GlyphSet = '36 Clusters||||'
-	pMap.GlyphSize = 0.5
+	pMap.GlyphSet = 'C12||||||'
+	pMap.GlyphSize = 0.25
 	pMap.GlyphOpacity = 0.5
-	pMap.HiddenBodySize = 4
+	pMap.HiddenBodySize = 8
 	pMap.HiddenBodyColor = New.Color('Red')
 
 def LabelAllClusters(pMap):
@@ -698,8 +699,7 @@ ftList = ['lncRNA_WithSummary']
 LoopList2(dsList, ftList, mapName='TestA', saveTo='TestA', SS=0, epochs=2000, EX=4.0)
 
 gId = 'lncRNA_SymLoc'
-
-LoopList2(dsList[3:], gId, mapName=gId, saveTo=gId, SS=500, epochs=2000, EX=4.0)
+LoopList2(dsList, gId, mapName=gId, saveTo=gId+'2', SS=1000, epochs=2000, EX=4.0)
 
 
 '''
