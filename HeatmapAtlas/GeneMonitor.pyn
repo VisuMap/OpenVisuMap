@@ -415,10 +415,10 @@ def SaveToAtlas(atName=None, x0=50, y0=50):
 
 # --------------- operations for atlas panel -------------------
 
-def AnnotateAtlasMaps(atlas):
+def AnnotateAtlasMaps(atlas, epsilon, minPoints):
 	for item in atlas.GetSelectedItems():
 		mp = item.Open()
-		ClusterMap(mp)
+		ClusterMap(mp, epsilon, minPoints)
 		LabelAllClusters(mp)
 		mp.Close()	
 
@@ -449,15 +449,14 @@ def CheckDataset(pMap):
 	if dsName != vv.Dataset.Name:
 		vv.Folder.OpenDataset(dsName)	
 
-def ClusterMap(pMap):
+def ClusterMap(pMap, epsilon=1.5, minPoints=25):
 	ResetMap(pMap)
 	for b in pMap.BodyList:
 		b.Type = 0
 	pMap.ClusterAlgorithm=0
-	pMap.EpsilonRatio = 1.2
-	pMap.MinClusterPoint = 25
+	pMap.EpsilonRatio = epsilon
+	pMap.MinClusterPoint = minPoints
 	pMap.ClusterNoise = False
-	pMap.NoiseSize = 0.5
 	pMap.DoDataClustering()
 	pMap.Title = f'Clusters: {pMap.Clusters}; NoisePts: {pMap.NoisePoints} of {pMap.BodyListEnabled().Count}'
 
@@ -585,9 +584,9 @@ def ResetMap(pMap):
 		b.Name = ''
 		b.ShowName = False
 	pMap.GlyphSet = 'C12||||||'
-	pMap.GlyphSize = 0.25
+	pMap.GlyphSize = 0.35
 	pMap.GlyphOpacity = 0.5
-	pMap.HiddenBodySize = 8
+	pMap.HiddenBodySize = 7
 	pMap.HiddenBodyColor = New.Color('Red')
 
 def LabelAllClusters(pMap):
