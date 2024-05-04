@@ -15,8 +15,6 @@ public IBody MeanPoint(IList<IBody> bList){
 	}
 	x /= bList.Count;
 	y /= bList.Count;
-	x -= 35.0;
-	y += 20.0;
 	IBody mBody = null;
 	double mDist = 1.0e10;
 	foreach(IBody b in bList) {
@@ -161,7 +159,7 @@ def StartTracing(idMon, map=None):
 	nt = transform(nt)
 	StartMonitor(nt, map)
 
-def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=None, repeats=1): 
+def LoopList(gList, epochs=1000, PP=0.05, SS=50, EX=4.0, ex=1.0, ss=0, saveTo=None, repeats=1): 
 	if type(gList) is not list: 
 		gList = [ gList ]
 	mds = NewTsne(epochs, PP, EX, ex, repeats)
@@ -175,10 +173,7 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=N
 		L = len(idList)
 		
 		nPairs = []
-		if SS != 0:
-			for n in range(ss, L, SS):
-				nPairs.append( (n,  min(L, n + SS)) )
-		else:
+		if idList[0][0] == '#':
 			n = 1
 			for k in range(1, L):
 				if idList[k].startswith('#'):
@@ -186,13 +181,20 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=100, EX=4.0, ex=1.0, ss=0, saveTo=N
 					n = k+1
 			nPairs.append((n, L))
 			nPairs = nPairs[ss:]
+		else:
+			if SS == 0:
+				nPairs.append((ss, L))
+			else:
+				for n in range(ss, L, SS):
+					nPairs.append( (n,  min(L, n + SS)) )
 		
 		for n, n2 in nPairs:
 			nt = nt0.SelectColumnsById(idList[n:n2])
 			nt = transform(nt)
 			info = {'SQ':listName, 'RG':f'{n}-{n2}', 'CS':nt.Columns, 'DS':vv.Dataset.Name, 
 				'EP':epochs, 'ss':ss, 'SS':SS, 'PP':PP, 'EX':EX, 'ex':ex, }
-			if SS == 0:	info['NM'] = idList[n-1][1:]
+			if idList[0][0] == 0:	
+				info['NM'] = idList[n-1][1:]
 			vv.Map.Description = InfoToStr(info)
 			mds.ChangeTrainingData(nt).Reset().Start()
 			if not mds.Completed:
@@ -223,7 +225,7 @@ def LoopList2(dsList, gList, mapName=None, saveTo=None, epochs=1000, PP=0.05, SS
 		LoopList(gList, epochs=epochs, PP=PP, SS=SS, EX=EX, ex=ex)
 		if saveTo != None:
 			SaveToAtlas(saveTo, x0, y0)
-		y0 += 150
+		y0 += 120
 
 def InfoFromStr(desc):
 	info = {}
@@ -279,11 +281,19 @@ def MonitorMap(pMap):
 
 def ShowGeneDetails():
 	fm = vv.EventSource.Form
-	if (fm.Name == 'HeatMap') and not fm.AttributeMode:
+	gId = ''
+	match fm.Name:
+		case 'TextPanel':
+			gId = fm.SelectedText
+		case 'HeatMap':
+			if fm.AttributeMode and fm.SelectedItems.Count>0:
+				gId = fm.SelectedItems[0]
+		case 'BarView':
+			if fm.SelectedItems.Count>0:
+				gId = fm.SelectedItems[0]
+	if gId == '':
+		vv.Message('No genes selected!')
 		return
-	if fm.SelectedItems.Count < 1:
-		return
-	gId = fm.SelectedItems[0]
 	vv.StartProcess(f'https://useast.ensembl.org/Human/Search/Results?q={gId};site=ensembl;facet_species=Human')
 	vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/gene/?term={gId}')
 
@@ -415,15 +425,20 @@ def SaveToAtlas(atName=None, x0=50, y0=50):
 
 # --------------- operations for atlas panel -------------------
 
-def AnnotateAtlasMaps(atlas, epsilon, minPoints):
-	for item in atlas.GetSelectedItems():
+def ClusterAtlasMaps(atlas, itemList, epsilon, minPoints):
+	for item in itemList:
 		mp = item.Open()
 		ClusterMap(mp, epsilon, minPoints)
+		mp.Close()	
+
+def LabelAtlasMaps(atlas, itemList):
+	for item in itemList:
+		mp = item.Open()
 		LabelAllClusters(mp)
 		mp.Close()	
 
-def SetAtlasItemName(atlas):
-	for item in atlas.GetSelectedItems():
+def SetAtlasItemName(atlas, itemList):
+	for item in itemList:
 		mp = item.Open()
 		info = InfoFromStr(mp.Title)
 		item.Name = info['SQ'] + ':' + info['RG']
@@ -432,8 +447,8 @@ def SetAtlasItemName(atlas):
 		atlas.RedrawItem(item, True)
 
 
-def AdjustAtlasMaps(atlas, mpWidth, mpHeight, gSize, gOpacity, hiddenSize):
-	for it in atlas.GetSelectedItems():
+def AdjustAtlasMaps(atlas, itemList, mpWidth, mpHeight, gSize, gOpacity, hiddenSize):
+	for it in itemList:
 		mp = it.Open()
 		mp.GlyphSize = gSize
 		mp.GlyphOpacity = gOpacity
@@ -551,6 +566,7 @@ def ShowLegend(pMap):
 	tp = New.TextPanel('Dominant Genes', sTable)
 	tp.BackgroundColor = pMap.BackgroundColor
 	tp.TextColor = New.Color('Yellow')
+	tp.AddContextMenu("Atlas/Gene Detail", "@ShowGeneDetails()")
 	tp.Show()
 
 def LabelGenes(pMap): 
@@ -583,11 +599,11 @@ def ResetMap(pMap):
 	for b in pMap.BodyList:
 		b.Name = ''
 		b.ShowName = False
-	pMap.GlyphSet = 'C12||||||'
+	pMap.GlyphSet = 'C12||||||||'
 	pMap.GlyphSize = 0.35
 	pMap.GlyphOpacity = 0.5
 	pMap.HiddenBodySize = 7
-	pMap.HiddenBodyColor = New.Color('Red')
+	pMap.HiddenBodyColor = New.Color('Gray')
 
 def LabelAllClusters(pMap):
 	CheckDataset(pMap)
@@ -682,23 +698,47 @@ def Unify2Maps(pMap):
 	else:
 		UnifyTwoMaps(mpList[0], mpList[1])
 
+def ShowSuperClusters(pMap): 
+	bList = [b for b in pMap.SelectedBodies if b.ShowName]
+	if len(bList) == 0:
+		vv.Message('No cluster item selected')
+		return
+	kSet = set(bList[0].Name)
+	tSet = set([c.Type for c in pMap.BodyList if c.ShowName and kSet <= set(c.Name)])
+	pMap.SelectedItems = [b.Id for b in pMap.BodyList if b.Type in tSet and not b.Hidden]
 
 '''=================================================================================
 
-LoopList('Angiogenesis', epochs=2000, SS=50)
 
 LoopList('lncRNA_SymLoc', epochs=2000, SS=500, saveTo='lncRNA2')
-
-LoopList('lncRNA_Pos', epochs=2000, SS=200, saveTo='lncRNA')
-
-LoopList(['ChrX', 'ChrMT'], epochs=2000, SS=100)
 
 dsList = ['TCellBreast', 'Perivascular', 'Vascular-C', 'BreastCancer', 'Myeloid']
 ftList = ['lncRNA_WithSummary']
 LoopList2(dsList, ftList, mapName='TestA', saveTo='TestA', SS=0, epochs=2000, EX=4.0)
 
-gId = 'lncRNA_SymLoc'
-LoopList2(dsList, gId, mapName=gId, saveTo=gId+'2', SS=1000, epochs=2000, EX=4.0)
+dsList = ['TCellBreast', 'Perivascular', 'Vascular-C', 'BreastCancer', 'Myeloid']
+gIds = [ 'RibosomeLow', 'RibosomeHi', 'RibosomesS', 'RibosomesL', 'Ribosomes' ]
+LoopList2(dsList, gIds, saveTo='RibosomeLow2', SS=1000, epochs=2000, EX=4.0)
 
+dsList, gIds = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid'], ['Laminins']
+LoopList2(dsList, gIds, saveTo=gIds[0], SS=27, epochs=2000, EX=4.0)
+
+
+def TestDBSCAN(N=30, epsilon=1.0):
+	nt = New.NumberTable(1, N)
+	vd = nt.ShowValueDiagram()
+	vd.AutoScaling = True
+	M = nt.Matrix	
+	for k in range(N):
+		pp.EpsilonRatio = epsilon
+		pp.MinClusterPoint = 10 + 2*k
+		pp.DoDataClustering()
+		M[0][k] = pp.Clusters
+	print(f'{M[0][0]:1g}    {M[0][N-1]}')
+	vd.Redraw()
+
+TestDBSCAN(20, 1.25)
+
+pp.Redraw()
 
 '''

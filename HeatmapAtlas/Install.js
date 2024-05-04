@@ -46,19 +46,22 @@ match vv.EventSource.Item:
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MainForm", null);
 
-scriptStr = `@#MenuLabels - "Set Map Label" "Adjust Atlas Maps" 'Annotate Maps'
+scriptStr = `@#MenuLabels - "Set Labels" "Configure Maps" 'Cluster Maps' 'Label Maps'
 vv.Import('GeneMonitor.pyn')
+selected = pp.GetSelectedItems()
 match vv.EventSource.Item:
-	case 'Set Map Label':
-		SetAtlasItemName(pp)
-	case 'Adjust Atlas Maps':		
-		AdjustAtlasMaps(pp, 1000, 700, gSize=0.25, gOpacity=0.5, hiddenSize=8)
-	case 'Annotate Maps':
-		AnnotateAtlasMaps(pp)`;
+	case 'Set Labels':
+		SetAtlasItemName(pp, selected)
+	case 'Configure Maps':		
+		AdjustAtlasMaps(pp, selected, 1000, 700, gSize=0.25, gOpacity=0.5, hiddenSize=8)
+	case 'Cluster Maps':
+		ClusterAtlasMaps(pp, selected, epsilon=1.0, minPoints=25)
+	case 'Label Maps':
+		LabelAtlasMaps(pp, selected)`;
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "Atlas", null);
 
-scriptStr = `@#MenuLabels - Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap
+scriptStr = `@#MenuLabels - Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap 'Show Super Cluster'
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
 	case 'Monitor':
@@ -72,7 +75,7 @@ match vv.EventSource.Item:
 	case 'ActiveCells':
 		ShowActiveCells(pp)
 	case 'Clustering':
-		ClusterMap(pp)
+		ClusterMap(pp, epsilon=1.5, minPoints=25)
 	case 'LabelGenes':
 		LabelGenes(pp)
 	case 'LabelAll':
@@ -81,7 +84,9 @@ match vv.EventSource.Item:
 	case 'ShowGeneTable':
 		ShowLegend(pp)
 	case 'MatchMap':
-		Unify2Maps(pp)`;
+		Unify2Maps(pp)
+	case 'Show Super Cluster':
+		ShowSuperClusters(pp)`;
 
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MapSnapshot", null);
 
