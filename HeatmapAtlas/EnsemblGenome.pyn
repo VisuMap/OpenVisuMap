@@ -21,6 +21,28 @@ print(pformat(gs[1000:1003]))
 
 vv.GroupManager.SetGroupLabels('Xq', GenesFromChromArm('Xq'))
 
+'''
+	# fill the ChrName column with data from Location column.
+	ds = vv.Dataset
+	cIdx1 = ds.IndexOfColumn('ChrName')
+	cIdx2 = ds.IndexOfColumn('Location')
+	for k, b in enumerate(ds.BodyList):
+		chr = ds.GetDataAt(k, cIdx1)
+		if chr==None or len(chr) == 0:			
+			loc = ds.GetDataAt(k, cIdx2)
+			if len(loc) <= 1:
+				continue
+			fs = loc.split('p')
+			if len(fs) > 1:
+				ds.SetDataAt(k, cIdx1, fs[0])
+			else:
+				fs = loc.split('q')
+				if len(fs) > 1:
+					ds.SetDataAt(k, cIdx1, fs[0])
+	ds.CommitChanges()
+
+'''
+
 #-----------------------
 def GetRibosomeRNA():
 	ds = vv.Folder.ReadDataset( 'Gene Features' )

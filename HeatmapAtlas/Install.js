@@ -43,7 +43,6 @@ match vv.EventSource.Item:
 		ShowData(vv.Map)
 	case '3D-Expression':
 		ShowExpress3D(vv.Map)`;
-
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MainForm", null);
 
 scriptStr = `@#MenuLabels - "Set Labels" "Configure Maps" 'Cluster Maps' 'Label Maps'
@@ -53,15 +52,14 @@ match vv.EventSource.Item:
 	case 'Set Labels':
 		SetAtlasItemName(pp, selected)
 	case 'Configure Maps':		
-		AdjustAtlasMaps(pp, selected, 1000, 700, gSize=0.25, gOpacity=0.5, hiddenSize=8)
+		AdjustAtlasMaps(pp, selected, 1000, 700, gSize=0.35, gOpacity=0.5, hiddenSize=7)
 	case 'Cluster Maps':
 		ClusterAtlasMaps(pp, selected, epsilon=1.0, minPoints=25)
 	case 'Label Maps':
 		LabelAtlasMaps(pp, selected)`;
-
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "Atlas", null);
 
-scriptStr = `@#MenuLabels - Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap 'Show Super Cluster'
+scriptStr = `@#MenuLabels - Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap 'Show Super Cluster' 'Show Graph'
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
 	case 'Monitor':
@@ -86,8 +84,9 @@ match vv.EventSource.Item:
 	case 'MatchMap':
 		Unify2Maps(pp)
 	case 'Show Super Cluster':
-		ShowSuperClusters(pp)`;
-
+		ShowSuperClusters(pp)
+	case 'Show Graph':
+		ShowGraph(pp)`;
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MapSnapshot", null);
 
 scriptStr = `@#MenuLabels 'Embed Groups' 'Show Data'
@@ -101,7 +100,6 @@ match vv.EventSource.Item:
 		LoopList(list(gList), epochs=2000, SS=0, EX=4.0, PP=0.05, repeats=1, saveTo=None)
 	case 'Show Data':
 		ShowData0( list(vv.SelectedItems) )`;
-
 mgr.SetCustomMenu('Atlas/*', true, scriptStr, "GroupManager", null);
 
 }
