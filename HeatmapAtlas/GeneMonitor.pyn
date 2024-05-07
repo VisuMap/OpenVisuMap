@@ -730,8 +730,8 @@ def ShowGraph(pMap):
 	L = len(cList)
 	for k in range(L):
 		b = cList[k]
-		clr = C12[ b.Type % 12 ]
-		sz = 0.5*math.sqrt(cWeight[b.Type])
+		clr = C12[b.Type%12]
+		sz = max(10, 0.5*math.sqrt(cWeight[b.Type]))
 		#g.add_node(k, label=b.Name, x=b.X, y=b.Y, shape='ellipse', color=clr, borderWidth=0.5)
 		g.add_node(k, x=b.X, y=b.Y, color=clr, size=sz, borderWidth=0.5)
 		g.add_node(k+L, x=b.X, y=b.Y, label=b.Name, shape='text')
@@ -755,16 +755,17 @@ def ShowGraph(pMap):
 					g.add_edge(j, i, label=lb, color='red', width=linkWidth, arrowStrikethrough=False)
 	for nd in g.nodes:
 		nd['physics'] = False
+		nd['x'] *= 1.25
+		nd['y'] *= 1.25
 		id = nd['id']
-		if id>L:
-			cType = cList[id-L].Type
-			if cType % 8 == 0:	
+		if id>=L:
+			cType = cList[id-L].Type%12
+			if cType==8:
 				nd['font'] = {'size':11, 'color':'white'}
 			else:
 				nd['font'] = {'size':11, 'color':'black'}
-
-	#g.options.edges ={'smooth': {'enabled': False}}
-	#g.set_options(''' ??? ''')
+	g.options.interaction.dragNodes = False
+	#g.options.edges.smooth.enabled = False
 	g.show('AtlasClusterGraph.html', notebook=False)
 
 '''=================================================================================
@@ -785,7 +786,7 @@ dsList, gIds = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloi
 LoopList2(dsList, gIds, saveTo=gIds[0], SS=27, epochs=2000, EX=4.0)
 
 dsList, gIds = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid'], ['X']
-LoopList2(dsList, gIds, saveTo=gIds[0], SS=100, epochs=2000, EX=4.0)
+LoopList2(dsList[3:], gIds, saveTo=gIds[0], SS=100, epochs=2000, EX=4.0)
 
 def TestDBSCAN(N=30, epsilon=1.0):
 	nt = New.NumberTable(1, N)
