@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-mpWidth, mpHeight, thresholdLevel = 500, 350, 1.0
+mpWidth, mpHeight, thresholdLevel = 500, 350, 2.0
 
 cs = New.CsObject('''
 public IBody MeanPoint(IList<IBody> bList){
@@ -454,6 +454,8 @@ def AdjustAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOp
 		mp.GlyphSize = gSize
 		mp.GlyphOpacity = gOpacity
 		mp.HiddenBodySize = hiddenSize
+		mp.NameLabelColor = New.Color('Yellow')
+		mp.NameLabelFont = New.Font('Microsoft Sans Serif', 18.0)
 		mp.Resize(0,0,mpWidth,mpHeight)
 		mp.Close()
 
@@ -782,8 +784,8 @@ LoopList2(dsList, gIds, saveTo='RibosomeLow2', SS=1000, epochs=2000, EX=4.0)
 dsList, gIds = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid'], ['Laminins']
 LoopList2(dsList, gIds, saveTo=gIds[0], SS=27, epochs=2000, EX=4.0)
 
-dsList, gIds = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid'], ['Y']
-LoopList2(dsList, gIds, saveTo=gIds[0], SS=0, epochs=2000, EX=4.0)
+dsList, gIds = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid'], ['X']
+LoopList2(dsList, gIds, saveTo=gIds[0], SS=100, epochs=2000, EX=4.0)
 
 def TestDBSCAN(N=30, epsilon=1.0):
 	nt = New.NumberTable(1, N)

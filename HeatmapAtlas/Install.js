@@ -30,82 +30,17 @@ function InstallAtlas() {
     ]) mgr.SetCustomButton("Atlas/" + label, img, script);
 
 
-var scriptStr = `@#MenuLabels - 'Capture Maps' 'Embed Selected', Monitor 'Show Data' 3D-Expression
-vv.Import('GeneMonitor.pyn')
-match vv.EventSource.Item:
-	case 'Capture Maps':
-		vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
-	case 'Embed Selected':
-		EmbedGenes(vv.SelectedItems, epochs=2000, EX=10, ex=1.0, PP=0.05, repeats=2)
-	case 'Monitor':
-		MonitorMap(vv.Map)
-	case 'Show Data':
-		ShowData(vv.Map)
-	case '3D-Expression':
-		ShowExpress3D(vv.Map)`;
-mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MainForm", null);
-
-scriptStr = `@#MenuLabels - "Set Labels" "Configure Maps" 'Cluster Maps' 'Label Maps'
-vv.Import('GeneMonitor.pyn')
-selected = pp.GetSelectedItems()
-match vv.EventSource.Item:
-	case 'Set Labels':
-		SetAtlasItemName(pp, selected)
-	case 'Configure Maps':		
-		AdjustAtlasMaps(pp, selected, 1000, 700, gSize=0.35, gOpacity=0.5, hiddenSize=7)
-	case 'Cluster Maps':
-		ClusterAtlasMaps(pp, selected, epsilon=1.0, minPoints=25)
-	case 'Label Maps':
-		LabelAtlasMaps(pp, selected)`;
-mgr.SetCustomMenu('Atlas/*', true, scriptStr, "Atlas", null);
-
-scriptStr = `@#MenuLabels - Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap 'Show Super Cluster' 'Show Graph'
-vv.Import('GeneMonitor.pyn')
-match vv.EventSource.Item:
-	case 'Monitor':
-		MonitorMap(pp)
-	case 'ShowData':
-		ShowData(pp)
-	case 'ReEmbedding':
-		ReEmbedding(pp)
-	case '3D-Expression':
-		ShowExpress3D(pp)
-	case 'ActiveCells':
-		ShowActiveCells(pp)
-	case 'Clustering':
-		ClusterMap(pp, epsilon=1.5, minPoints=25)
-	case 'LabelGenes':
-		LabelGenes(pp)
-	case 'LabelAll':
-		LabelAllClusters(pp)
-		ShowLegend(pp)
-	case 'ShowGeneTable':
-		ShowLegend(pp)
-	case 'MatchMap':
-		Unify2Maps(pp)
-	case 'Show Super Cluster':
-		ShowSuperClusters(pp)
-	case 'Show Graph':
-		ShowGraph(pp)`;
-mgr.SetCustomMenu('Atlas/*', true, scriptStr, "MapSnapshot", null);
-
-scriptStr = `@#MenuLabels 'Embed Groups' 'Show Data'
-vv.Import('GeneMonitor.pyn')
-match vv.EventSource.Item:
-	case 'Embed Groups':
-		gList = pp.GetSelectedGroups()
-		if gList.Count==0:
-			vv.Message('Please select some groups!')
-			vv.Return()	
-		LoopList(list(gList), epochs=2000, SS=0, EX=4.0, PP=0.05, repeats=1, saveTo=None)
-	case 'Show Data':
-		ShowData0( list(vv.SelectedItems) )`;
-mgr.SetCustomMenu('Atlas/*', true, scriptStr, "GroupManager", null);
-
+	var sCfg = New.ClassType('System.IO.File').ReadAllText(vv.CurrentScriptDirectory + '/MenuCfg.pyn')
+	var formList = sCfg.substring(sCfg.indexOf(':')+1, sCfg.indexOf('\r\n')).split(',')
+	for(var fm of formList) {
+		var i0 = sCfg.indexOf('#'+fm) + fm.length + 3;
+		var i1 = sCfg.indexOf('##', i0);
+		var sScript = '@' + sCfg.substring(i0, i1);
+		mgr.SetCustomMenu('Atlas/*', true, sScript, fm, null);
+	}
 }
 
 InstallAtlas();
-
 
 if ( vv.ScriptDirectories.indexOf( vv.CurrentScriptDirectory ) < 0 )
 	vv.ScriptDirectories += ";"+vv.CurrentScriptDirectory;
