@@ -33,7 +33,7 @@ function InstallAtlas() {
 	var sCfg = New.ClassType('System.IO.File').ReadAllText(vv.CurrentScriptDirectory + '/MenuCfg.pyn')
 	var formList = sCfg.substring(sCfg.indexOf(':')+1, sCfg.indexOf('\r\n')).split(',')
 	for(var fm of formList) {
-		var i0 = sCfg.indexOf('#'+fm) + fm.length + 3;
+		var i0 = sCfg.indexOf('#MenuLabels', sCfg.indexOf('#'+fm)+1);
 		var i1 = sCfg.indexOf('##', i0);
 		var sScript = '@' + sCfg.substring(i0, i1);
 		mgr.SetCustomMenu('Atlas/*', true, sScript, fm, null);
