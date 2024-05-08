@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-mpWidth, mpHeight, thresholdLevel = 500, 350, 2.0
+mpWidth, mpHeight, thresholdLevel = 500, 350, 1.0
 
 cs = New.CsObject('''
 public IBody MeanPoint(IList<IBody> bList){
@@ -160,7 +160,7 @@ def StartTracing(idMon, map=None):
 	nt = transform(nt)
 	StartMonitor(nt, map)
 
-def LoopList(gList, epochs=1000, PP=0.05, SS=50, EX=4.0, ex=1.0, ss=0, saveTo=None, repeats=1): 
+def LoopList(gList, epochs=1000, PP=0.05, SS=50, EX=4.0, ex=1.0, saveTo=None, repeats=1): 
 	if type(gList) is not list: 
 		gList = [ gList ]
 	mds = NewTsne(epochs, PP, EX, ex, repeats)
@@ -181,19 +181,18 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=50, EX=4.0, ex=1.0, ss=0, saveTo=No
 					nPairs.append( (n, k) )
 					n = k+1
 			nPairs.append((n, L))
-			nPairs = nPairs[ss:]
 		else:
 			if SS == 0:
-				nPairs.append((ss, L))
+				nPairs.append((0, L))
 			else:
-				for n in range(ss, L, SS):
+				for n in range(0, L, SS):
 					nPairs.append( (n,  min(L, n + SS)) )
 		
 		for n, n2 in nPairs:
 			nt = nt0.SelectColumnsById(idList[n:n2])
 			nt = transform(nt)
 			info = {'SQ':listName, 'RG':f'{n}-{n2}', 'CS':nt.Columns, 'DS':vv.Dataset.Name, 
-				'EP':epochs, 'ss':ss, 'SS':SS, 'PP':PP, 'EX':EX, 'ex':ex, }
+				'EP':epochs, 'SS':SS, 'PP':PP, 'EX':EX, 'ex':ex, }
 			if idList[0][0] == 0:	
 				info['NM'] = idList[n-1][1:]
 			vv.Map.Description = InfoToStr(info)
@@ -300,14 +299,17 @@ def ShowGeneDetails():
 
 def ShowData(pMap):
 	CheckDataset(pMap)
-	ShowData0(ExtractFeatures(pMap))
+	ShowData0(ExtractFeatures(pMap), pMap.BodyListEnabled())
 
-def ShowData0(featureList):
+def ShowData0(featureList, bodyList=None):
 	nt = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(featureList)
 	if nt.Rows*nt.Columns == 0:
 		vv.Message('No data selected')
 		vv.Return()
-	nt = transform(nt)	
+	nt = transform(nt)
+	if bodyList!=None and bodyList.Count == nt.Rows:
+		for row in range(nt.Rows):
+			nt.RowSpecList[row].CopyFromBody(bodyList[row])
 	hm = nt.ShowHeatMap()
 	hm.Title = f'Data Dimension: {nt.Rows}x{nt.Columns}'
 	hm.Resize(0, 0, 1015, 500)
@@ -446,7 +448,6 @@ def SetAtlasItemName(atlas, itemList):
 		item.LabelStyle = 2
 		mp.Close()
 		atlas.RedrawItem(item, True)
-
 
 def AdjustAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7):
 	for it in itemList:
@@ -713,29 +714,10 @@ def ShowSuperClusters(pMap):
 def Name2Set(nm):
 	return set() if nm == '\u25a1' else set(nm)
 
-def ShowGraph(pMap):
-	from pyvis.network import Network
-	g = Network(directed=True, width=f'{pMap.Width}px', height=f'{pMap.Height}px', 
-		bgcolor='white', font_color='black')
-	C12 = ['#FE0000', '#FE7F00', '#FEFE00', '#7FFE00', '#00D200', '#00FE7F', 
-		'#00FEFE', '#007FFE', '#0000FE', '#7F00FE', '#FE00FE', '#FE007F']
-	linkWidth=0.25
-	bList = pMap.BodyListEnabled() if pMap.SelectedBodies.Count == 0 else pMap.SelectedBodies
-	bList = [ b for b in bList if not b.Hidden ]
-	cList = [b for b in bList if b.ShowName]
-	cWeight = {b.Type:0 for b in cList}
-	for b in bList: 
-		if b.Type in cWeight:
-			cWeight[b.Type] += 1
-	L = len(cList)
-	for k in range(L):
-		b = cList[k]
-		clr = C12[b.Type%12]
-		sz = 40*math.sqrt(5.0*cWeight[b.Type]/len(bList))
-		sz = min(40, max(10, sz))
-		#g.add_node(k, label=b.Name, x=b.X, y=b.Y, shape='ellipse', color=clr, borderWidth=0.5)
-		g.add_node(k, x=b.X, y=b.Y, color=clr, size=sz, borderWidth=0.5)
-		g.add_node(k+L, x=b.X, y=b.Y, label=b.Name, shape='text')
+
+def ConnectNodes(g, cList, cWeight):
+	L = len(cList)	
+	linkWidth=0.125
 	for i in range(L):
 		iSet = Name2Set(cList[i].Name)
 		for j in range(L):
@@ -747,13 +729,72 @@ def ShowGraph(pMap):
 			elif iSet <= jSet:
 				dSet = jSet - iSet
 				if len(dSet) == 1:
-					lb = next(iter(dSet))
+					lb = ''.join(dSet)
 					g.add_edge(i, j, label=lb, color='red', width=linkWidth, arrowStrikethrough=False)
 			elif jSet <= iSet:
 				dSet = iSet - jSet
 				if len(dSet) == 1:
-					lb = next(iter(dSet))
+					lb = ''.join(dSet)
 					g.add_edge(j, i, label=lb, color='red', width=linkWidth, arrowStrikethrough=False)
+	# connect the isolated nodes.
+	connected = set([e['from'] for e in g.edges] + [e['to'] for e in g.edges])
+	isolated = set(range(L)) - connected
+	for i in connected:
+		iSet = Name2Set(cList[i].Name)
+		for j in isolated:
+			jSet = Name2Set(cList[j].Name)
+			if iSet <= jSet:
+				dSet = jSet - iSet
+				if len(dSet) == 2:
+					lb = ''.join(dSet)
+					g.add_edge(i, j, label=lb, color='red', width=linkWidth, arrowStrikethrough=False)
+			elif jSet <= iSet:
+				dSet = iSet - jSet
+				if len(dSet) == 2:
+					lb = ''.join(dSet)
+					g.add_edge(j, i, label=lb, color='red', width=linkWidth, arrowStrikethrough=False)
+
+# de-color nodes and color edges.
+def SwitchColors(g, L, C12):
+	for nd in g.nodes:
+		id = nd['id']
+		if id < L:
+			nd['color'] = '#C0C0C0'
+	for e in g.edges:
+		if 'label' in e:
+			e['width'] = 2
+			cIdx = ord(e['label'][0]) % 12
+			e['color'] = C12[cIdx]
+
+def ShowGraph(pMap, showEdges=True, showPilotes=True):
+	from pyvis.network import Network
+	g = Network(directed=True, width=f'{pMap.Width}px', height=f'{pMap.Height}px', 
+		bgcolor='lightgray', font_color='black')
+	g.options.interaction.dragNodes = False
+	#g.options.edges.smooth.enabled = False
+
+	# Add nodes.
+	C12 = ['#FE0000', '#FE7F00', '#FEFE00', '#7FFE00', '#00D200', '#00FE7F', 
+		'#00FEFE', '#007FFE', '#0000FE', '#7F00FE', '#FE00FE', '#FE007F']
+	bList = pMap.BodyListEnabled() if pMap.SelectedBodies.Count == 0 else pMap.SelectedBodies
+	bList = [ b for b in bList if not b.Hidden ]
+	cList = [b for b in bList if b.ShowName]
+	cWeight = {b.Type:0 for b in cList}
+	for b in bList: 
+		if b.Type in cWeight:
+			cWeight[b.Type] += 1
+	L = len(cList)
+	for k, b in enumerate(cList):
+		clr = C12[b.Type%12]
+		sz = 40*math.sqrt(5.0*cWeight[b.Type]/len(bList))
+		sz = min(40, max(10, sz))
+		#g.add_node(k, label=b.Name, x=b.X, y=b.Y, shape='ellipse', color=clr, borderWidth=0.5)
+		g.add_node(k, x=b.X, y=b.Y, color=clr, size=sz, borderWidth=0.5)
+		g.add_node(k+L, x=b.X, y=b.Y, label=b.Name, shape='text')
+
+	if showEdges:
+		ConnectNodes(g, cList, cWeight)
+
 	for nd in g.nodes:
 		nd['physics'] = False
 		nd['x'] *= 1.25
@@ -765,12 +806,14 @@ def ShowGraph(pMap):
 				nd['font'] = {'size':11, 'color':'gray'}
 			else:
 				nd['font'] = {'size':11, 'color':'black'}
-	g.options.interaction.dragNodes = False
-	#g.options.edges.smooth.enabled = False
+
+	if showPilotes and showEdges:
+		SwitchColors(g, L, C12)
+
 	g.show('AtlasClusterGraph.html', notebook=False)
 
 '''=================================================================================
-
+pMap=pp
 ShowGraph(pp)
 
 LoopList('lncRNA_SymLoc', epochs=2000, SS=500, saveTo='lncRNA2')
@@ -786,8 +829,9 @@ LoopList2(dsList, gIds, saveTo='RibosomeLow2', SS=1000, epochs=2000, EX=4.0)
 dsList, gIds = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid'], ['Laminins']
 LoopList2(dsList, gIds, saveTo=gIds[0], SS=27, epochs=2000, EX=4.0)
 
-dsList, gIds = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid'], ['Xp']
-LoopList2(dsList[3:], gIds, saveTo=gIds[0], SS=75, epochs=2000, EX=4.0)
+dsList = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid']
+gIds = ['Xq']
+LoopList2(dsList, gIds, saveTo=gIds[0], SS=111, epochs=2000, EX=4.0)
 
 def TestDBSCAN(N=30, epsilon=1.0):
 	nt = New.NumberTable(1, N)
