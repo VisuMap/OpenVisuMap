@@ -25,6 +25,7 @@
     <Content Include="DualClustering.js" />
     <Content Include="DualEmbedding.js" />
     <Content Include="DualSorting.js" />
+    <Content Include="GeneMonitor.pyn" />
     <Content Include="H5adRead.pyn" />
     <Content Include="H5Read.pyn" />
     <Content Include="Install.js" />
@@ -32,6 +33,7 @@
     <Content Include="MapFolding.js" />
     <Content Include="MapMorph.js" />
     <Content Include="MatrixRead.pyn" />
+    <Content Include="MenuCfg.pyn" />
     <Content Include="MenuIcon.png" />
     <Content Include="Package.bat" />
     <Content Include="SaveDataset.js" />
