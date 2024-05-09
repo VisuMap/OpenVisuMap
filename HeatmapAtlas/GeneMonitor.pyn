@@ -714,8 +714,26 @@ def ShowSuperClusters(pMap):
 def Name2Set(nm):
 	return set() if nm == '\u25a1' else set(nm)
 
+def ConnectToNeighbors(g, cList, distance, linkWidth):
+	L = len(cList)
+	connected = set([e['from'] for e in g.edges] + [e['to'] for e in g.edges])
+	isolated = set(range(L)) - connected
+	for i in connected:
+		iSet = Name2Set(cList[i].Name)
+		for j in isolated:
+			jSet = Name2Set(cList[j].Name)
+			if iSet <= jSet:
+				dSet = jSet - iSet
+				if len(dSet) == distance:
+					lb = ''.join(dSet)
+					g.add_edge(i, j, label=lb, color='red', width=linkWidth, arrowStrikethrough=False)
+			elif jSet <= iSet:
+				dSet = iSet - jSet
+				if len(dSet) == distance:
+					lb = ''.join(dSet)
+					g.add_edge(j, i, label=lb, color='red', width=linkWidth, arrowStrikethrough=False)
 
-def ConnectNodes(g, cList, cWeight):
+def ConnectNodes(g, cList):
 	L = len(cList)	
 	linkWidth=0.125
 	for i in range(L):
@@ -736,23 +754,8 @@ def ConnectNodes(g, cList, cWeight):
 				if len(dSet) == 1:
 					lb = ''.join(dSet)
 					g.add_edge(j, i, label=lb, color='red', width=linkWidth, arrowStrikethrough=False)
-	# connect the isolated nodes.
-	connected = set([e['from'] for e in g.edges] + [e['to'] for e in g.edges])
-	isolated = set(range(L)) - connected
-	for i in connected:
-		iSet = Name2Set(cList[i].Name)
-		for j in isolated:
-			jSet = Name2Set(cList[j].Name)
-			if iSet <= jSet:
-				dSet = jSet - iSet
-				if len(dSet) == 2:
-					lb = ''.join(dSet)
-					g.add_edge(i, j, label=lb, color='red', width=linkWidth, arrowStrikethrough=False)
-			elif jSet <= iSet:
-				dSet = iSet - jSet
-				if len(dSet) == 2:
-					lb = ''.join(dSet)
-					g.add_edge(j, i, label=lb, color='red', width=linkWidth, arrowStrikethrough=False)
+	ConnectToNeighbors(g, cList, 2, linkWidth)
+	ConnectToNeighbors(g, cList, 3, linkWidth)
 
 # de-color nodes and color edges.
 def SwitchColors(g, L, C12):
@@ -766,7 +769,7 @@ def SwitchColors(g, L, C12):
 			cIdx = ord(e['label'][0]) % 12
 			e['color'] = C12[cIdx]
 
-def ShowGraph(pMap, showEdges=True, showPilotes=True):
+def ShowGraph(pMap, showEdges=True, showPilotes=False):
 	from pyvis.network import Network
 	g = Network(directed=True, width=f'{pMap.Width}px', height=f'{pMap.Height}px', 
 		bgcolor='lightgray', font_color='black')
@@ -776,7 +779,7 @@ def ShowGraph(pMap, showEdges=True, showPilotes=True):
 	# Add nodes.
 	C12 = ['#FE0000', '#FE7F00', '#FEFE00', '#7FFE00', '#00D200', '#00FE7F', 
 		'#00FEFE', '#007FFE', '#0000FE', '#7F00FE', '#FE00FE', '#FE007F']
-	bList = pMap.BodyListEnabled() if pMap.SelectedBodies.Count == 0 else pMap.SelectedBodies
+	bList = pMap.BodyListEnabled() if pMap.SelectedBodies.Count < 2 else pMap.SelectedBodies
 	bList = [ b for b in bList if not b.Hidden ]
 	cList = [b for b in bList if b.ShowName]
 	cWeight = {b.Type:0 for b in cList}
@@ -793,7 +796,7 @@ def ShowGraph(pMap, showEdges=True, showPilotes=True):
 		g.add_node(k+L, x=b.X, y=b.Y, label=b.Name, shape='text')
 
 	if showEdges:
-		ConnectNodes(g, cList, cWeight)
+		ConnectNodes(g, cList)
 
 	for nd in g.nodes:
 		nd['physics'] = False
