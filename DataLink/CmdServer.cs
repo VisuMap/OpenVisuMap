@@ -543,18 +543,10 @@ namespace VisuMap.DataLink {
 
         public int[] ReadIntArray(TcpClient tcp) {
             var tcpStream = tcp.GetStream();
-            byte[] buf = ReadBytes(tcpStream, 4);
-            int len = BitConverter.ToInt32(buf, 0);
+            int len = BitConverter.ToInt32(ReadBytes(tcpStream, 4), 0);
             int[] idxList = new int[len];
-            buf = new byte[len * 4];
-            int remaining = buf.Length;
-            while (remaining > 0) {
-                int k = tcpStream.Read(buf, 0, remaining);
-                if (k == 0)
-                    throw new TimeoutException("Receiving data timeouted");
-                remaining -= k;
-            }
-            Buffer.BlockCopy(buf, 0, idxList, 0, len * 4);
+            for(int k=0; k<len; k++) 
+                idxList[k] = BitConverter.ToInt32(ReadBytes(tcpStream, 4), 0);
             return idxList;
         }
 
