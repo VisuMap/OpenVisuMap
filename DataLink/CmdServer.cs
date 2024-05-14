@@ -437,19 +437,32 @@ namespace VisuMap.DataLink {
                         SendBackOK(sender);
                         var tcpCnt = TcpListener.AcceptTcpClient();
                         int[] labels = ReadIntArray(tcpCnt);
+                        tcpCnt.Close();
 
                         var bsList = app.Map.SelectedBodies;
                         if (bsList.Count == 0)
                             bsList = app.Dataset.BodyListEnabled();
-                        app.GuiManager.RememberCurrentMap();
+
+                        Root.MainFrm.Invoke(new MethodInvoker(delegate () {
+                            app.GuiManager.RememberCurrentMap();
+                        }));
+
+                        short maxType = (short) labels.Max();
                         for(int i=0; i<labels.Length; i++) {
                             if (i < bsList.Count) {
                                 bsList[i].Type = (short)labels[i];
-                                bsList[i].Hidden = (bsList[i].Type == -1);
+                                if (bsList[i].Type == -1) {
+                                    bsList[i].Hidden = true;
+                                    bsList[i].Type = (short)(maxType + 1);
+                                } else {
+                                    bsList[i].Hidden = false;
+                                }
                             }
                         }
-                        app.Map.Redraw();
-                        tcpCnt.Close();
+
+                        Root.MainFrm.Invoke(new MethodInvoker(delegate () {
+                            app.Map.Redraw();
+                        }));
                     }
                     break;
 

@@ -1,0 +1,83 @@
+#FormList:MainForm,Atlas,MapSnapshot,GroupManager
+
+#MainForm
+#MenuLabels - 'Capture Maps' 'Embed Selected', Monitor 'Show Data' 3D-Expression 'Show Graph' 'ShowGeneTable' 'Show Super Cluster'
+vv.Import('GeneMonitor.pyn')
+match vv.EventSource.Item:
+	case 'Capture Maps':
+		vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
+	case 'Embed Selected':
+		EmbedGenes(vv.SelectedItems, epochs=2000, EX=2, ex=1.0, PP=0.1, repeats=1)
+	case 'Monitor':
+		MonitorMap(vv.Map)
+	case 'Show Data':
+		ShowData(vv.Map)
+	case '3D-Expression':
+		ShowExpress3D(vv.Map)
+	case 'Show Graph':
+		ShowGraph(vv.Map, showEdges=True, showPilotes=False)
+	case 'ShowGeneTable':
+		ShowLegend(pp.Map)
+	case 'Show Super Cluster':
+		ShowSuperClusters(pp.Map)
+##
+
+#Atlas
+#MenuLabels - "Set Labels" "Configure Maps" 'Cluster Maps' 'Label Maps'
+vv.Import('GeneMonitor.pyn')
+selected = pp.GetSelectedItems()
+match vv.EventSource.Item:
+	case 'Set Labels':
+		SetAtlasItemName(pp, selected)
+	case 'Configure Maps':		
+		AdjustAtlasMaps(pp, selected, 1000, 700, gSize=0.35, gOpacity=0.5, hiddenSize=7)
+	case 'Cluster Maps':
+		ClusterAtlasMaps(pp, selected, epsilon=1.0, minPoints=25)
+	case 'Label Maps':
+		LabelAtlasMaps(pp, selected)
+##
+
+#MapSnapshot
+#MenuLabels - Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap 'Show Super Cluster' 'Show Graph'
+vv.Import('GeneMonitor.pyn')
+match vv.EventSource.Item:
+	case 'Monitor':
+		MonitorMap(pp)
+	case 'ShowData':
+		ShowData(pp)
+	case 'ReEmbedding':
+		ReEmbedding(pp)
+	case '3D-Expression':
+		ShowExpress3D(pp)
+	case 'ActiveCells':
+		ShowActiveCells(pp)
+	case 'Clustering':
+		ClusterMap(pp, epsilon=1.5, minPoints=25)
+	case 'LabelGenes':
+		LabelGenes(pp)
+	case 'LabelAll':
+		LabelAllClusters(pp)
+		#ShowLegend(pp)
+	case 'ShowGeneTable':
+		ShowLegend(pp)
+	case 'MatchMap':
+		Unify2Maps(pp)
+	case 'Show Super Cluster':
+		ShowSuperClusters(pp)
+	case 'Show Graph':
+		ShowGraph(pp, showEdges=True, showPilotes=False)
+##
+
+#GroupManager
+#MenuLabels 'Embed Groups' 'Show Data'
+vv.Import('GeneMonitor.pyn')
+match vv.EventSource.Item:
+	case 'Embed Groups':
+		gList = pp.GetSelectedGroups()
+		if gList.Count==0:
+			vv.Message('Please select some groups!')
+			vv.Return()	
+		LoopList(list(gList), epochs=2000, SS=0, EX=4.0, PP=0.05, repeats=1, saveTo=None)
+	case 'Show Data':
+		ShowData0( list(vv.SelectedItems) )
+##
