@@ -428,10 +428,10 @@ def SaveToAtlas(atName=None, x0=50, y0=50):
 
 # --------------- operations for atlas panel -------------------
 
-def ClusterAtlasMaps(atlas, itemList, epsilon=1.0, minPoints=25):
+def ClusterAtlasMaps(atlas, itemList, epsilon=0.0, minPoints=25, cSize=80, minSamples=50):
 	for item in itemList:
 		mp = item.Open()
-		ClusterMap(mp, epsilon, minPoints)
+		ClusterMap(mp, epsilon, minPoints, cSize, minSamples)
 		mp.Close()	
 
 def LabelAtlasMaps(atlas, itemList):
@@ -468,33 +468,49 @@ def CheckDataset(pMap):
 	if dsName != vv.Dataset.Name:
 		vv.Folder.OpenDataset(dsName)	
 
-def RunHDBSCAN(pMap):
+def RunHDBSCAN(pMap, cSize, minSamples):
+	import fast_hdbscan
 	ResetMap(pMap)
 	for b in pMap.BodyList:
 		b.Type = 0
-	pMap.ClickMenu('PyUtils/hDBSCAN')
 	bsList = pMap.BodyListEnabled()
-	noisePts = len([b for b in bsList if b.Hidden])
-	clusters = len( set([b.Type for b in bsList]) )
+	D = mm.ToNumpy(New.NumberTable(bsList, 2))
+	C = fast_hdbscan.HDBSCAN(min_cluster_size=cSize, min_samples=minSamples)
+	labels = C.fit_predict(D)
+	clusters = len(set(labels))
+	noisePts = len(set([b for b in bsList if b.Hidden]))
+	for k, t in enumerate(labels):
+		b = bsList[k]
+		if t>=0:
+			b.Type = int(t)
+			b.Hidden = False
+		else:
+			b.Type = clusters-1
+			b.Hidden = True
+	pMap.RedrawBodiesType()
 	pMap.Title = f'Clusters: {clusters}; NoisePts: {noisePts} of {bsList.Count}'
-
-def ClusterMap(pMap, epsilon=1.0, minPoints=25):
-	RunHDBSCAN(pMap)
-	'''
-	ResetMap(pMap)
-	for b in pMap.BodyList:
-		b.Type = 0
-	pMap.ClusterAlgorithm=0
-	pMap.EpsilonRatio = epsilon
-	pMap.MinClusterPoint = minPoints
-	pMap.ClusterNoise = False
-	pMap.DoDataClustering()
-	pMap.Title = f'Clusters: {pMap.Clusters}; NoisePts: {pMap.NoisePoints} of {pMap.BodyListEnabled().Count}'
 	info = InfoFromStr(pMap.Description)
-	info['EPS'] = pMap.EpsilonRatio
-	info['MPT'] = pMap.MinClusterPoint
+	info['MCS'] = cSize
+	info['MSS'] = minSamples
 	pMap.Description = InfoToStr(info)
-	'''
+
+def ClusterMap(pMap, epsilon=0.0, minPoints=25, cSize=80, minSamples=50):
+	if epsilon == 0.0:
+		RunHDBSCAN(pMap, cSize, minSamples)
+	else:
+		ResetMap(pMap)
+		for b in pMap.BodyList:
+			b.Type = 0
+		pMap.ClusterAlgorithm=0
+		pMap.EpsilonRatio = epsilon
+		pMap.MinClusterPoint = minPoints
+		pMap.ClusterNoise = False
+		pMap.DoDataClustering()
+		pMap.Title = f'Clusters: {pMap.Clusters}; NoisePts: {pMap.NoisePoints} of {pMap.BodyListEnabled().Count}'
+		info = InfoFromStr(pMap.Description)
+		info['EPS'] = pMap.EpsilonRatio
+		info['MPT'] = pMap.MinClusterPoint
+		pMap.Description = InfoToStr(info)
 
 # --------- Labelling related ----------
 
