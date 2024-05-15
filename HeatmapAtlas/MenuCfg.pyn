@@ -32,7 +32,7 @@ match vv.EventSource.Item:
 	case 'Configure Maps':		
 		AdjustAtlasMaps(pp, selected, 1000, 700, gSize=0.35, gOpacity=0.5, hiddenSize=7)
 	case 'Cluster Maps':
-		ClusterAtlasMaps(pp, selected, epsilon=1.0, minPoints=25)
+		ClusterAtlasMaps(pp, selected)
 	case 'Label Maps':
 		LabelAtlasMaps(pp, selected)
 ##
@@ -53,7 +53,7 @@ match vv.EventSource.Item:
 	case 'ActiveCells':
 		ShowActiveCells(pp)
 	case 'Clustering':
-		ClusterMap(pp, epsilon=1.5, minPoints=25)
+		ClusterMap(pp)
 	case 'LabelGenes':
 		LabelGenes(pp)
 	case 'LabelAll':

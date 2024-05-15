@@ -428,7 +428,7 @@ def SaveToAtlas(atName=None, x0=50, y0=50):
 
 # --------------- operations for atlas panel -------------------
 
-def ClusterAtlasMaps(atlas, itemList, epsilon, minPoints):
+def ClusterAtlasMaps(atlas, itemList, epsilon=1.0, minPoints=25):
 	for item in itemList:
 		mp = item.Open()
 		ClusterMap(mp, epsilon, minPoints)
@@ -468,7 +468,19 @@ def CheckDataset(pMap):
 	if dsName != vv.Dataset.Name:
 		vv.Folder.OpenDataset(dsName)	
 
-def ClusterMap(pMap, epsilon=1.5, minPoints=25):
+def RunHDBSCAN(pMap):
+	ResetMap(pMap)
+	for b in pMap.BodyList:
+		b.Type = 0
+	pMap.ClickMenu('PyUtils/hDBSCAN')
+	bsList = pMap.BodyListEnabled()
+	noisePts = len([b for b in bsList if b.Hidden])
+	clusters = len( set([b.Type for b in bsList]) )
+	pMap.Title = f'Clusters: {clusters}; NoisePts: {noisePts} of {bsList.Count}'
+
+def ClusterMap(pMap, epsilon=1.0, minPoints=25):
+	RunHDBSCAN(pMap)
+	'''
 	ResetMap(pMap)
 	for b in pMap.BodyList:
 		b.Type = 0
@@ -482,6 +494,7 @@ def ClusterMap(pMap, epsilon=1.5, minPoints=25):
 	info['EPS'] = pMap.EpsilonRatio
 	info['MPT'] = pMap.MinClusterPoint
 	pMap.Description = InfoToStr(info)
+	'''
 
 # --------- Labelling related ----------
 
