@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-mpWidth, mpHeight, thresholdLevel = 500, 350, 1.0
+mpWidth, mpHeight, thresholdLevel = 500, 350, 1.75
 
 cs = New.CsObject('''
 public IBody MeanPoint(IList<IBody> bList){
@@ -478,6 +478,10 @@ def ClusterMap(pMap, epsilon=1.5, minPoints=25):
 	pMap.ClusterNoise = False
 	pMap.DoDataClustering()
 	pMap.Title = f'Clusters: {pMap.Clusters}; NoisePts: {pMap.NoisePoints} of {pMap.BodyListEnabled().Count}'
+	info = InfoFromStr(pMap.Description)
+	info['EPS'] = pMap.EpsilonRatio
+	info['MPT'] = pMap.MinClusterPoint
+	pMap.Description = InfoToStr(info)
 
 # --------- Labelling related ----------
 
@@ -606,17 +610,17 @@ def ResetMap(pMap):
 	pMap.GlyphSize = 0.35
 	pMap.GlyphOpacity = 0.5
 	pMap.HiddenBodySize = 7
-	pMap.GlyphSet = 'C12||||||||'
+	pMap.GlyphSet = 'C12||||||||||'
 	pMap.HiddenBodyColor = New.Color('Gray')
 
-def LabelAllClusters(pMap):
+def LabelAllClusters(pMap): 
 	CheckDataset(pMap)
 	geneList = ExtractFeatures(pMap)
 	baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(geneList)
 	InitDominantGenes()
 	dKeys.Clear()
 	ResetMap(pMap)
-	bList = [b for b in pMap.BodyListEnabled() if not b.Hidden]
+	bList = [b for b in pMap.BodyListEnabled() if not b.Hidden]	
 	for B in GroupByType(bList):
 		nt = baseNT.SelectRowsByIdView([b.Id for b in B])
 		b = cs.MeanPoint(B)
@@ -650,7 +654,6 @@ def UnifyTwoMaps(mpA, mpB):
 	mpB.RedrawAll()
 	gIdList = dKeysA.GeneList()
 	dKeys = dKeysA	
-	ShowLegend(mpB)
 
 	#Unify the cluster color indexes:
 	cA = {b.Type:b.Name for b in bListA if b.ShowName}
@@ -720,6 +723,7 @@ def ConnectToNeighbors(g, cList, distance, linkWidth):
 	L = len(cList)
 	connected = set([e['from'] for e in g.edges] + [e['to'] for e in g.edges])
 	isolated = set(range(L)) - connected
+	added = False
 	for i in connected:
 		iSet = Name2Set(cList[i].Name)
 		for j in isolated:
@@ -729,12 +733,14 @@ def ConnectToNeighbors(g, cList, distance, linkWidth):
 				if len(dSet) == distance:
 					lb = ''.join(dSet)
 					g.add_edge(i, j, label=lb, color='red', width=linkWidth, arrowStrikethrough=False)
+					added = True
 			elif jSet <= iSet:
 				dSet = iSet - jSet
 				if len(dSet) == distance:
 					lb = ''.join(dSet)
 					g.add_edge(j, i, label=lb, color='red', width=linkWidth, arrowStrikethrough=False)
-
+					added = True
+				
 def ConnectNodes(g, cList):
 	L = len(cList)	
 	linkWidth=0.125
@@ -756,8 +762,10 @@ def ConnectNodes(g, cList):
 				if len(dSet) == 1:
 					lb = ''.join(dSet)
 					g.add_edge(j, i, label=lb, color='red', width=linkWidth, arrowStrikethrough=False)
-	ConnectToNeighbors(g, cList, 2, linkWidth)
-	ConnectToNeighbors(g, cList, 3, linkWidth)
+	for d in range(2, 8):
+		added = ConnectToNeighbors(g, cList, d, linkWidth)
+		if not added:
+			break
 
 # de-color nodes and color edges.
 def SwitchColors(g, L, C12):
@@ -791,8 +799,8 @@ def ShowGraph(pMap, showEdges=True, showPilotes=False):
 	L = len(cList)
 	for k, b in enumerate(cList):
 		clr = C12[b.Type%12]
-		sz = 40*math.sqrt(5.0*cWeight[b.Type]/len(bList))
-		sz = min(40, max(10, sz))
+		sz = 50*math.sqrt(5.0*cWeight[b.Type]/len(bList))
+		sz = min(50, max(10, sz))
 		#g.add_node(k, label=b.Name, x=b.X, y=b.Y, shape='ellipse', color=clr, borderWidth=0.5)
 		g.add_node(k, x=b.X, y=b.Y, color=clr, size=sz, borderWidth=0.5)
 		g.add_node(k+L, x=b.X, y=b.Y, label=b.Name, shape='text')
@@ -801,15 +809,15 @@ def ShowGraph(pMap, showEdges=True, showPilotes=False):
 		ConnectNodes(g, cList)
 
 	for nd in g.nodes:
-		scaling = 2.0
+		scaling = 1.50
 		nd['physics'] = False
 		nd['x'] *= scaling
 		nd['y'] *= scaling
 		id = nd['id']
 		if id>=L:
 			cType = cList[id-L].Type%12
-			if cType==8:
-				nd['font'] = {'size':12, 'color':'gray'}
+			if cType in [7,8,9]:
+				nd['font'] = {'size':12, 'color':'white'}
 			else:
 				nd['font'] = {'size':12, 'color':'black'}
 
@@ -845,7 +853,5 @@ LoopList2(dsList, gIds, saveTo=gIds[0], SS=27, epochs=2000, EX=4.0)
 dsList = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid']
 gIds = ['Xq']
 LoopList2(dsList, gIds, saveTo=gIds[0], SS=111, epochs=2000, EX=4.0)
-
-pp.Redraw()
 
 '''
