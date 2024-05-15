@@ -87,8 +87,7 @@ class DataLinkCmd:
         if self.IsOK():
             with self.ConnectToVisuMap() as tcpCnt:
                 tcpCnt.send(bytearray(struct.pack('i', len(labels))))
-                for k in range(len(labels)):
-                    tcpCnt.send(bytearray(struct.pack('i', labels[k])))
+                self.WriteArray(tcpCnt, labels)
 
     def LoadLabels(self):
         r"""Load the labels (data point type) of selected data points.
