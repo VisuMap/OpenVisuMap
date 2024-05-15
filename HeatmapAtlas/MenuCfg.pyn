@@ -40,6 +40,7 @@ match vv.EventSource.Item:
 #MapSnapshot
 #MenuLabels - Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap 'Show Super Cluster' 'Show Graph'
 vv.Import('GeneMonitor.pyn')
+thresholdLevel = 1.0
 match vv.EventSource.Item:
 	case 'Monitor':
 		MonitorMap(pp)
@@ -57,7 +58,6 @@ match vv.EventSource.Item:
 		LabelGenes(pp)
 	case 'LabelAll':
 		LabelAllClusters(pp)
-		#ShowLegend(pp)
 	case 'ShowGeneTable':
 		ShowLegend(pp)
 	case 'MatchMap':
