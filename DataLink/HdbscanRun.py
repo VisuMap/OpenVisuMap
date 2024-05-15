@@ -5,7 +5,7 @@ import hdbscan, DataLinkCmd, sys, numpy, time
 
 print(f'Loaded hdbscan.')
 
-cSize, minSamples = 35, 35
+cSize, minSamples = 80, 50
 
 cmd = DataLinkCmd.DataLinkCmd()
 D = cmd.LoadMapXyz()
@@ -19,4 +19,4 @@ labels = C.fit_predict(D)
 
 cmd.UpdateLabels(labels)
 print(f'Completed: Data:{D.shape}; MinSize:{cSize}; MinSamples:{minSamples};  Clusters:{C.labels_.max()}')
-time.sleep(2.0)
+

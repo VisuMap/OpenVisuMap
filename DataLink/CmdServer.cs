@@ -439,13 +439,13 @@ namespace VisuMap.DataLink {
                         int[] labels = ReadIntArray(tcpCnt);
                         tcpCnt.Close();
 
-                        var bsList = app.Map.SelectedBodies;
-                        if (bsList.Count == 0)
-                            bsList = app.Dataset.BodyListEnabled();
+                        SnapshotMap snapshot = DataLink.scriptEngine?.ParentForm as SnapshotMap;
+                        IList<IBody> bsList = (snapshot == null) ? app.Dataset.BodyListEnabled() : snapshot.BodyList.EnabledBodies();
 
-                        Root.MainFrm.Invoke(new MethodInvoker(delegate () {
-                            app.GuiManager.RememberCurrentMap();
-                        }));
+                        if (snapshot == null)
+                            Root.MainFrm.Invoke(new MethodInvoker(delegate () {
+                                app.GuiManager.RememberCurrentMap();
+                            }));
 
                         short maxType = (short) labels.Max();
                         for(int i=0; i<labels.Length; i++) {
@@ -461,7 +461,10 @@ namespace VisuMap.DataLink {
                         }
 
                         Root.MainFrm.Invoke(new MethodInvoker(delegate () {
-                            app.Map.Redraw();
+                            if (snapshot == null)
+                                app.Map.Redraw();
+                            else
+                                snapshot.RedrawBodies();
                         }));
                     }
                     break;
@@ -484,11 +487,10 @@ namespace VisuMap.DataLink {
                         CheckTcpListener();
                         SendBackOK(sender);
                         var tcpCnt = TcpListener.AcceptTcpClient();
-
-                        var bsList = app.Map.SelectedBodies;
-                        if (bsList.Count == 0)
-                            bsList = app.Dataset.BodyListEnabled();
-                        double[][] xyz = (app.Map.Dimension == 3) ?
+                        SnapshotMap snapshot = DataLink.scriptEngine?.ParentForm as SnapshotMap;
+                        IList<IBody> bsList = (snapshot == null) ? app.Dataset.BodyListEnabled() : snapshot.BodyList.EnabledBodies() ;
+                        int dim = (snapshot == null) ? app.Map.Dimension : snapshot.BodyMap.MapLayout.Dimension;
+                        double[][] xyz = (dim == 3) ?
                             bsList.Select(b => new double[] { b.X, b.Y, b.Z }).ToArray()
                             : bsList.Select(b => new double[] { b.X, b.Y }).ToArray();
                         using (var bw = new BinaryWriter(new BufferedStream(tcpCnt.GetStream()))) {
@@ -543,10 +545,14 @@ namespace VisuMap.DataLink {
 
         public int[] ReadIntArray(TcpClient tcp) {
             var tcpStream = tcp.GetStream();
-            int len = BitConverter.ToInt32(ReadBytes(tcpStream, 4), 0);
+            byte[] buf = new byte[4];
+            tcpStream.Read(buf, 0, 4);
+            int len = BitConverter.ToInt32(buf, 0);
             int[] idxList = new int[len];
-            for(int k=0; k<len; k++) 
-                idxList[k] = BitConverter.ToInt32(ReadBytes(tcpStream, 4), 0);
+            for (int k = 0; k < len; k++) {
+                tcpStream.Read(buf, 0, 4);
+                idxList[k] = BitConverter.ToInt32(buf, 0);
+            }
             return idxList;
         }
 

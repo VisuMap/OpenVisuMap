@@ -62,6 +62,7 @@
   <ItemGroup>
     <Content Include="BH_SneRUN.py" />
     <Content Include="DataLinkCmd.py" />
+    <Content Include="HdbscanRun.py" />
     <Content Include="Install.js" />
     <Content Include="OpenTsneRun.py" />
     <Content Include="SciKitTsne.py" />
