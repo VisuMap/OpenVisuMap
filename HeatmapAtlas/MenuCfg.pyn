@@ -1,15 +1,17 @@
 #FormList:MainForm,Atlas,MapSnapshot,GroupManager
 
 #MainForm
-#MenuLabels - 'Capture Maps' 'Embed Selected', Monitor 'Show Data' 3D-Expression 'Show Graph' 'ShowGeneTable' 'Show Super Cluster'
+#MenuLabels - Monitor Clustering 'Capture Maps' 'Embed Selected',  'Show Data' 3D-Expression 'Show Graph' 'ShowGeneTable' 'Show Super Cluster'
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
 	case 'Capture Maps':
 		vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
 	case 'Embed Selected':
-		EmbedGenes(vv.SelectedItems, epochs=2000, EX=2, ex=1.0, PP=0.1, repeats=1)
+		EmbedGenes(vv.SelectedItems, epochs=2000, EX=4, ex=1.0, PP=0.01, repeats=1)
 	case 'Monitor':
 		MonitorMap(vv.Map)
+	case 'Clustering':
+		ClusterMap(vv.Map, cSize=200, minSamples=50)
 	case 'Show Data':
 		ShowData(vv.Map)
 	case '3D-Expression':

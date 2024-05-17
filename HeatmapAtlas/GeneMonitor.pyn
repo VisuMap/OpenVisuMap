@@ -479,6 +479,8 @@ def RunHDBSCAN(pMap, cSize, minSamples):
 	labels = C.fit_predict(D)
 	clusters = len(set(labels))
 	noisePts = len(set([b for b in bsList if b.Hidden]))
+	if pMap == vv.Map:
+		vv.GuiManager.RememberCurrentMap()
 	for k, t in enumerate(labels):
 		b = bsList[k]
 		if t>=0:
