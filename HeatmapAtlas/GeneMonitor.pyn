@@ -240,8 +240,7 @@ def InfoToStr(info):
 	return ';'.join([f'{key}:{info[key]}' for key in info])
 
 def ExtractFeatures(pMap):
-	desc = vv.Map.Description if pMap.Name=='MainForm' else pMap.Description
-	return ExtractFeatures0(desc)
+	return ExtractFeatures0(pMap.Description)
 
 def ExtractFeatures0(desc):
 	info = InfoFromStr(desc)
@@ -463,8 +462,7 @@ def AdjustAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOp
 # --------------------------------------------------------------
 
 def CheckDataset(pMap):
-	info = vv.Map.Description if pMap.Name=='MainForm' else pMap.Description
-	dsName = InfoFromStr(info)['DS']
+	dsName = InfoFromStr(pMap.Description)['DS']
 	if dsName != vv.Dataset.Name:
 		vv.Folder.OpenDataset(dsName)	
 
@@ -494,8 +492,11 @@ def RunHDBSCAN(pMap, cSize, minSamples):
 	info['MSS'] = minSamples
 	pMap.Description = InfoToStr(info)
 
+def IsMainMap(pMap):
+	return str(pMap).endswith('.MapImp')
+
 def ClusterMap(pMap, epsilon=0.0, minPoints=25, cSize=80, minSamples=50):
-	if str(pMap).endswith('.MapImp'):  # The method is called from the main window.
+	if IsMainMap(pMap):  # The method is called from the main window.
 		vv.GuiManager.RememberCurrentMap()
 	if epsilon == 0.0:
 		RunHDBSCAN(pMap, cSize, minSamples)
@@ -644,7 +645,7 @@ def ResetMap(pMap):
 	pMap.GlyphSize = 0.35
 	pMap.GlyphOpacity = 0.5
 	pMap.HiddenBodySize = 7
-	pMap.GlyphSet = 'C12||||||||||'
+	pMap.GlyphSet = 'C12||||||||||||'
 	pMap.HiddenBodyColor = New.Color('Gray')
 
 def LabelAllClusters(pMap): 
@@ -653,6 +654,7 @@ def LabelAllClusters(pMap):
 	baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(geneList)
 	InitDominantGenes()
 	dKeys.Clear()
+	if IsMainMap(pMap): vv.GuiManager.RememberCurrentMap()
 	ResetMap(pMap)
 	bList = [b for b in pMap.BodyListEnabled() if not b.Hidden]	
 	for B in GroupByType(bList):
