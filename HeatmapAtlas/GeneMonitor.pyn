@@ -479,8 +479,6 @@ def RunHDBSCAN(pMap, cSize, minSamples):
 	labels = C.fit_predict(D)
 	clusters = len(set(labels))
 	noisePts = len(set([b for b in bsList if b.Hidden]))
-	if pMap == vv.Map:
-		vv.GuiManager.RememberCurrentMap()
 	for k, t in enumerate(labels):
 		b = bsList[k]
 		if t>=0:
@@ -497,6 +495,8 @@ def RunHDBSCAN(pMap, cSize, minSamples):
 	pMap.Description = InfoToStr(info)
 
 def ClusterMap(pMap, epsilon=0.0, minPoints=25, cSize=80, minSamples=50):
+	if str(pMap).endswith('.MapImp'):  # The method is called from the main window.
+		vv.GuiManager.RememberCurrentMap()
 	if epsilon == 0.0:
 		RunHDBSCAN(pMap, cSize, minSamples)
 	else:
@@ -595,6 +595,9 @@ def MakeLegend(geneList):
 
 def ShowLegend(pMap):
 	info = InfoFromStr(pMap.Description)
+	if 'DG' not in info:
+		vv.Message('No gene table available!')
+		return
 	keyTable = DominantGenes(info['DG']) 
 	id2sym = GetId2Sym()	
 	sTable = ''
