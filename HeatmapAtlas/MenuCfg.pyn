@@ -1,12 +1,12 @@
 #FormList:MainForm,Atlas,MapSnapshot,GroupManager
 
 #MainForm
-#MenuLabels - Monitor Clustering LabelAll 'Capture Maps' 'Embed Selected',  'Show Data' 3D-Expression 'Show Graph' 'ShowGeneTable' 'Show Super Cluster'
+#MenuLabels - Monitor Clustering LabelAll CaptureMaps EmbedSelected ShowData 3D-Expression ShowGraph ShowGeneTable ShowSuperCluster
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
-	case 'Capture Maps':
+	case 'CaptureMaps':
 		vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
-	case 'Embed Selected':
+	case 'EmbedSelected':
 		EmbedGenes(vv.SelectedItems, epochs=2000, EX=4, ex=1.0, PP=0.05, repeats=1)
 	case 'Monitor':
 		MonitorMap(vv.Map)
@@ -14,35 +14,35 @@ match vv.EventSource.Item:
 		ClusterMap(vv.Map, cSize=100, minSamples=50)
 	case 'LabelAll':
 		LabelAllClusters(vv.Map)
-	case 'Show Data':
+	case 'ShowData':
 		ShowData(vv.Map)
 	case '3D-Expression':
 		ShowExpress3D(vv.Map)
-	case 'Show Graph':
+	case 'ShowGraph':
 		ShowGraph(vv.Map, showEdges=True, showPilotes=False)
 	case 'ShowGeneTable':
 		ShowLegend(pp.Map)
-	case 'Show Super Cluster':
+	case 'ShowSuperCluster':
 		ShowSuperClusters(pp.Map)
 ##
 
 #Atlas
-#MenuLabels - "Set Labels" "Configure Maps" 'Cluster Maps' 'Label Maps'
+#MenuLabels - SetLabels ConfigureMaps ClusterMaps LabelMaps
 vv.Import('GeneMonitor.pyn')
 selected = pp.GetSelectedItems()
 match vv.EventSource.Item:
-	case 'Set Labels':
+	case 'SetLabels':
 		SetAtlasItemName(pp, selected)
-	case 'Configure Maps':		
+	case 'ConfigureMaps':		
 		AdjustAtlasMaps(pp, selected, 1000, 700, gSize=0.35, gOpacity=0.5, hiddenSize=7)
-	case 'Cluster Maps':
+	case 'ClusterMaps':
 		ClusterAtlasMaps(pp, selected, cSize=80, minSamples=50)
-	case 'Label Maps':
+	case 'LabelMaps':
 		LabelAtlasMaps(pp, selected)
 ##
 
 #MapSnapshot
-#MenuLabels - Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap 'Show Super Cluster' 'Show Graph'
+#MenuLabels - Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap ShowSuperCluster ShowGraph
 vv.Import('GeneMonitor.pyn')
 thresholdLevel = 1.0
 match vv.EventSource.Item:
@@ -66,22 +66,22 @@ match vv.EventSource.Item:
 		ShowLegend(pp)
 	case 'MatchMap':
 		Unify2Maps(pp)
-	case 'Show Super Cluster':
+	case 'ShowSuperCluster':
 		ShowSuperClusters(pp)
-	case 'Show Graph':
+	case 'ShowGraph':
 		ShowGraph(pp, showEdges=True, showPilotes=False)
 ##
 
 #GroupManager
-#MenuLabels 'Embed Groups' 'Show Data'
+#MenuLabels EmbedGroups ShowData
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
-	case 'Embed Groups':
+	case 'EmbedGroups':
 		gList = pp.GetSelectedGroups()
 		if gList.Count==0:
 			vv.Message('Please select some groups!')
 			vv.Return()	
 		LoopList(list(gList), epochs=2000, SS=0, EX=4.0, PP=0.05, repeats=1, saveTo=None)
-	case 'Show Data':
+	case 'ShowData':
 		ShowData0( list(vv.SelectedItems) )
 ##
