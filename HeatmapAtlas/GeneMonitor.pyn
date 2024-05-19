@@ -2,6 +2,7 @@ import math
 import numpy as np
 
 mpWidth, mpHeight, thresholdLevel = 500, 350, 1.0
+nullName = '\u25a1'
 
 cs = New.CsObject('''
 public IBody MeanPoint(IList<IBody> bList){
@@ -582,13 +583,13 @@ def MakeLabel(nt, geneList):
 	vs = [item.Value for item in nt.ColumnMean()]
 	largeV = ThresholdHi(vs)
 	if largeV == 0:
-		return '\u25a1'
+		return nullName
 	nm = ''
 	for k, v in enumerate(vs):
 		if v > largeV:	
 			nm += dKeys.Lookup(nt.ColumnSpecList[k].Id)
 	if len(nm) == 0: 
-		nm = '\u25a1'
+		nm = nullName
 	return nm
 
 def MakeLegend(geneList):
@@ -678,6 +679,22 @@ def LabelAllClusters(pMap):
 		b.Name = MakeLabel(nt, geneList)
 		b.ShowName = True
 		pMap.RedrawAll()
+
+	# Merge null-clusters to a single cluster
+	nullCluster = set()
+	for b in bList:
+		if b.ShowName and b.Name == nullName:
+			nullCluster.add(b.Type)
+			b.Name = ''
+			b.ShowName = False
+	nullType = min( nullCluster )
+	B = [ b for b in bList if b.Type in nullCluster ]
+	for b in B: b.Type = nullType
+	b = cs.MeanPoint(B)
+	b.Name = nullName
+	b.ShowName = True
+	pMap.RedrawAll()
+
 	info = InfoFromStr(pMap.Description)
 	info['LV'] = thresholdLevel
 	info['DG'] = dKeys.ToString()	
@@ -802,7 +819,8 @@ def ConnectNodes(g, cList):
 				continue
 			jSet = Name2Set(cList[j].Name)
 			if iSet == jSet:
-				g.add_edge(i, j, color='green', width=linkWidth, arrowStrikethrough=False)
+				continue
+				#g.add_edge(i, j, color='green', width=0.1, arrowStrikethrough=False)
 			elif iSet <= jSet:
 				dSet = jSet - iSet
 				if len(dSet) == 1:
@@ -929,9 +947,7 @@ dsList, gIds = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloi
 LoopList2(dsList, gIds, saveTo=gIds[0], SS=27, epochs=2000, EX=4.0)
 
 dsList = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid']
-gIds = ['Xq']
-LoopList2(dsList, gIds, saveTo=gIds[0], SS=111, epochs=2000, EX=4.0)
-
-print(pp)
+gIds = ['metabolic']
+LoopList2(dsList, gIds, saveTo=gIds[0], SS=50, epochs=2000, EX=4.0)
 
 '''
