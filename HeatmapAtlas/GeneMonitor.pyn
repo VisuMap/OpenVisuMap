@@ -486,7 +486,11 @@ def RunHDBSCAN(pMap, cSize, minSamples):
 			b.Type = clusters-1
 			b.Hidden = True
 	pMap.RedrawBodiesType()
-	pMap.Title = f'Clusters: {clusters}; NoisePts: {noisePts} of {bsList.Count}'
+	title = f'Clusters: {clusters}; NoisePts: {noisePts} of {bsList.Count}'
+	if IsMainMap(pMap):
+		vv.Title = title
+	else:
+		pMap.Title = title 
 	info = InfoFromStr(pMap.Description)
 	info['MCS'] = cSize
 	info['MSS'] = minSamples
@@ -604,13 +608,17 @@ def ShowLegend(pMap):
 	sTable = ''
 	if 'DS' in info: sTable += info['DS'] + '\n'
 	if 'SQ' in info: sTable += info['SQ'] + ':' + info['RG'] + '\n\n'
+	keyDict = {}
 	for id in keyTable.GeneList():
-		sTable += f'{keyTable.Lookup(id)}: {id2sym(id)}\n'
+		key, sym = keyTable.Lookup(id), id2sym(id)
+		sTable += f'{key}: {sym}\n'
+		keyDict[key] = sym
 	tp = New.TextPanel('Dominant Genes', sTable)
 	tp.BackgroundColor = pMap.BackgroundColor
 	tp.TextColor = New.Color('Yellow')
 	tp.AddContextMenu("Atlas/Gene Detail", "@ShowGeneDetails()")
 	tp.Show()
+	return keyDict, tp
 
 def LabelGenes(pMap): 
 	CheckDataset(pMap)
@@ -644,15 +652,15 @@ def ResetMap(pMap):
 		b.ShowName = False
 	pMap.GlyphSize = 0.35
 	pMap.GlyphOpacity = 0.5
-	if str(pp).endswith('.MapSnapshotImp'):
+	if IsMainMap(pMap):
+		pMap.HiddenGlyphSize = 7
+		pMap.HiddenGlyphColor = New.Color('Gray')
+		pMap.GlyphType = 'C12||||||||||||'
+	else:  # pMap is a Snapshot map.
 		pMap.HiddenBodySize = 7
 		pMap.HiddenBodyColor = New.Color('Gray')
 		pMap.GlyphSet = 'C12||||||||||||'
 		pMap.ReloadGlyphSet()
-	else:
-		pMap.HiddenGlyphSize = 7
-		pMap.HiddenGlyphColor = New.Color('Gray')
-		pMap.GlyphType = 'C12||||||||||||'
 	pMap.RedrawAll()
 
 def LabelAllClusters(pMap): 
@@ -872,9 +880,36 @@ def ShowGraph(pMap, showEdges=True, showPilotes=False):
 		if "label" in e:
 			e["font"]={"size":15, 'color':'darkblue'}
 
+	ShowPilots(pMap, g.edges)
+
 	g.options.edges.smooth = {'enabled': True, 'type': 'directCross'}
 	g.toggle_physics(False)
 	g.show('AtlasClusterGraph.html', notebook=False)
+
+def ShowPilots(pMap, edges):
+	P = {}
+	for e in edges:
+		if "label" in e:
+			lb = e['label']
+			if lb not in P: 
+				P[lb] = 0
+			P[lb] += 1
+	P = {x:P[x] for x in P if P[x] > 1}
+	P = dict( sorted(P.items(), key=lambda x:x[1], reverse=True) )
+	keyDict, _ = ShowLegend(pMap)
+	_.Close()
+	pGenes = ''
+	for x in P:
+		if x in keyDict:
+			pGenes += f'{x}: {keyDict[x]}  {P[x]}\n'
+		else:
+			pGenes += f'{x}: {P[x]}\n'
+	tp = New.TextPanel('Pilot Genes', pGenes)
+	tp.BackgroundColor = New.Color('Lightgray')
+	tp.TextColor = New.Color('Black')
+	tp.Show()
+	return tp
+
 
 '''=================================================================================
 pMap=pp
