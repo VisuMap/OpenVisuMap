@@ -213,7 +213,7 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=50, EX=4.0, ex=1.0, saveTo=None, re
 	if saveTo != None:
 		SaveToAtlas(saveTo)
 
-def LoopList2(dsList, gList, mapName=None, saveTo=None, epochs=1000, PP=0.05, SS=50, EX=4.0, ex=1.0):
+def LoopList2(dsList, gList, mapName=None, saveTo=None, epochs=2000, PP=0.05, SS=50, EX=4.0, ex=1.0):
 	x0, y0 = 50, 50
 	for ds in dsList:
 		if ds != vv.Dataset.Name:
@@ -452,12 +452,17 @@ def SetAtlasItemName(atlas, itemList):
 def AdjustAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7):
 	for it in itemList:
 		mp = it.Open()
+		for b in mp.BodyListEnabled():
+			b.Type = 0
+			b.Hidden = False
+			b.ShowName = False
 		mp.GlyphSize = gSize
 		mp.GlyphOpacity = gOpacity
 		mp.HiddenBodySize = hiddenSize
 		mp.NameLabelColor = New.Color('Yellow')
 		mp.NameLabelFont = New.Font('Microsoft Sans Serif', 18.0)
 		mp.Resize(0,0,mpWidth,mpHeight)
+		mp.NormalizeView()
 		mp.Close()
 
 # --------------------------------------------------------------
@@ -664,6 +669,24 @@ def ResetMap(pMap):
 		pMap.ReloadGlyphSet()
 	pMap.RedrawAll()
 
+def MergeNullClusters(pMap, bList):
+	nullCluster = [b for b in bList if b.ShowName and b.Name == nullName ]
+	if len(nullCluster) <= 1:
+		return
+	for b in nullCluster:
+			b.Name = ''
+			b.ShowName = False
+	nullCluster = { b.Type for b in nullCluster }
+	nullType = min( nullCluster )
+	B = [ b for b in bList if b.Type in nullCluster ]
+	for b in B: 
+		b.Type = nullType
+	b = cs.MeanPoint(B)
+	b.Name = nullName
+	b.ShowName = True
+	pMap.RedrawAll()
+
+
 def LabelAllClusters(pMap): 
 	CheckDataset(pMap)
 	geneList = ExtractFeatures(pMap)
@@ -680,20 +703,7 @@ def LabelAllClusters(pMap):
 		b.ShowName = True
 		pMap.RedrawAll()
 
-	# Merge null-clusters to a single cluster
-	nullCluster = set()
-	for b in bList:
-		if b.ShowName and b.Name == nullName:
-			nullCluster.add(b.Type)
-			b.Name = ''
-			b.ShowName = False
-	nullType = min( nullCluster )
-	B = [ b for b in bList if b.Type in nullCluster ]
-	for b in B: b.Type = nullType
-	b = cs.MeanPoint(B)
-	b.Name = nullName
-	b.ShowName = True
-	pMap.RedrawAll()
+	MergeNullClusters(pMap, bList)
 
 	info = InfoFromStr(pMap.Description)
 	info['LV'] = thresholdLevel
@@ -947,7 +957,7 @@ dsList, gIds = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloi
 LoopList2(dsList, gIds, saveTo=gIds[0], SS=27, epochs=2000, EX=4.0)
 
 dsList = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid']
-gIds = ['metabolic']
-LoopList2(dsList, gIds, saveTo=gIds[0], SS=50, epochs=2000, EX=4.0)
+gIds = ['Angiogenesis']
+LoopList2(dsList, gIds, saveTo=gIds[0], SS=25, EX=4.0)
 
 '''
