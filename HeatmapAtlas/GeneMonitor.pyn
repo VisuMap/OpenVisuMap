@@ -191,6 +191,8 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=50, EX=4.0, ex=1.0, saveTo=None, re
 		
 		for n, n2 in nPairs:
 			nt = nt0.SelectColumnsById(idList[n:n2])
+			if nt.Columns == 0:
+				continue
 			nt = transform(nt)
 			info = {'SQ':listName, 'RG':f'{n}-{n2}', 'CS':nt.Columns, 'DS':vv.Dataset.Name, 
 				'EP':epochs, 'SS':SS, 'PP':PP, 'EX':EX, 'ex':ex, }
@@ -229,6 +231,8 @@ def LoopList2(dsList, gList, mapName=None, saveTo=None, epochs=2000, PP=0.05, SS
 		y0 += 120
 
 def InfoFromStr(desc):
+	if desc == None: 
+		return {}
 	info = {}
 	for s in desc.split(';'):
 		fs = s.strip().split(':', 1)
@@ -431,7 +435,7 @@ def SaveToAtlas(atName=None, x0=50, y0=50):
 def ClusterAtlasMaps(atlas, itemList, epsilon=0.0, minPoints=25, cSize=80, minSamples=50):
 	for item in itemList:
 		mp = item.Open()
-		ClusterMap(mp, epsilon, minPoints, cSize, minSamples)
+		ClusterMap(mp, cSize, minSamples)
 		mp.Close()	
 
 def LabelAtlasMaps(atlas, itemList):
@@ -472,57 +476,49 @@ def CheckDataset(pMap):
 	if dsName != vv.Dataset.Name:
 		vv.Folder.OpenDataset(dsName)	
 
-def RunHDBSCAN(pMap, cSize, minSamples):
-	import fast_hdbscan
-	ResetMap(pMap)
-	for b in pMap.BodyList:
-		b.Type = 0
-	bsList = pMap.BodyListEnabled()
-	D = mm.ToNumpy(New.NumberTable(bsList, 2))
-	C = fast_hdbscan.HDBSCAN(min_cluster_size=cSize, min_samples=minSamples)
-	labels = C.fit_predict(D)
-	clusters = len(set(labels))
-	noisePts = len(set([b for b in bsList if b.Hidden]))
-	for k, t in enumerate(labels):
-		b = bsList[k]
-		if t>=0:
-			b.Type = int(t)
-			b.Hidden = False
-		else:
-			b.Type = clusters-1
-			b.Hidden = True
-	pMap.RedrawBodiesType()
-	title = f'Clusters: {clusters}; NoisePts: {noisePts} of {bsList.Count}'
-	if IsMainMap(pMap):
-		vv.Title = title
-	else:
-		pMap.Title = title 
-	info = InfoFromStr(pMap.Description)
-	info['MCS'] = cSize
-	info['MSS'] = minSamples
-	pMap.Description = InfoToStr(info)
-
 def IsMainMap(pMap):
 	return str(pMap).endswith('.MapImp')
 
-def ClusterMap(pMap, epsilon=0.0, minPoints=25, cSize=80, minSamples=50):
+def ClusterMap(pMap, cSize=80, minSamples=50):
+	import fast_hdbscan
 	if IsMainMap(pMap):  # The method is called from the main window.
 		vv.GuiManager.RememberCurrentMap()
-	if epsilon == 0.0:
-		RunHDBSCAN(pMap, cSize, minSamples)
+	if pMap.SelectedBodies.Count > 2:
+		if IsMainMap(pMap):
+			mp = New.MapSnapshot(pMap.SelectedBodies).Show()
+		else:
+			mp = pMap.NewSnapshot()
+		mp.ClickMenu('Atlas/Clustering')
+		mp.ClickMenu('Utilities/Merge Coloring')
+		mp.Close()
+		pMap.SelectedItems = None
 	else:
 		ResetMap(pMap)
 		for b in pMap.BodyList:
 			b.Type = 0
-		pMap.ClusterAlgorithm=0
-		pMap.EpsilonRatio = epsilon
-		pMap.MinClusterPoint = minPoints
-		pMap.ClusterNoise = False
-		pMap.DoDataClustering()
-		pMap.Title = f'Clusters: {pMap.Clusters}; NoisePts: {pMap.NoisePoints} of {pMap.BodyListEnabled().Count}'
+		bsList = pMap.BodyListEnabled()
+		D = mm.ToNumpy(New.NumberTable(bsList, 2))
+		C = fast_hdbscan.HDBSCAN(min_cluster_size=cSize, min_samples=minSamples)
+		labels = C.fit_predict(D)
+		clusters = len(set(labels))
+		noisePts = len(set([b for b in bsList if b.Hidden]))
+		for k, t in enumerate(labels):
+			b = bsList[k]
+			if t>=0:
+				b.Type = int(t)
+				b.Hidden = False
+			else:
+				b.Type = clusters-1
+				b.Hidden = True
+		pMap.RedrawBodiesType()
+		title = f'Clusters: {clusters}; NoisePts: {noisePts} of {bsList.Count}'
+		if IsMainMap(pMap):
+			vv.Title = title
+		else:
+			pMap.Title = title 
 		info = InfoFromStr(pMap.Description)
-		info['EPS'] = pMap.EpsilonRatio
-		info['MPT'] = pMap.MinClusterPoint
+		info['MCS'] = cSize
+		info['MSS'] = minSamples
 		pMap.Description = InfoToStr(info)
 
 # --------- Labelling related ----------
@@ -860,7 +856,8 @@ def SwitchColors(g, L, C12):
 
 def ShowGraph(pMap, showEdges=True, showPilotes=False):
 	from pyvis.network import Network
-	g = Network(directed=True, width=f'{pMap.Width}px', height=f'{pMap.Height}px', 
+	pw, ph = pMap.MapLayout.Width, pMap.MapLayout.Height
+	g = Network(directed=True, width=f'{pw}px', height=f'{ph}px', 
 		bgcolor='lightgray', font_color='black')
 	g.options.interaction.dragNodes = False
 	#g.options.edges.smooth.enabled = False
@@ -957,7 +954,7 @@ dsList, gIds = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloi
 LoopList2(dsList, gIds, saveTo=gIds[0], SS=27, epochs=2000, EX=4.0)
 
 dsList = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid']
-gIds = ['Angiogenesis']
-LoopList2(dsList, gIds, saveTo=gIds[0], SS=25, EX=4.0)
+gIds = ['phosphate']
+LoopList2(dsList, gIds, saveTo=gIds[0], SS=100, EX=4.0)
 
 '''
