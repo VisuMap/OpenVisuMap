@@ -453,13 +453,14 @@ def SetAtlasItemName(atlas, itemList):
 		mp.Close()
 		atlas.RedrawItem(item, True)
 
-def AdjustAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7):
+def AdjustAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=False):
 	for it in itemList:
 		mp = it.Open()
-		for b in mp.BodyListEnabled():
-			b.Type = 0
-			b.Hidden = False
-			b.ShowName = False
+		if reset:
+			for b in mp.BodyListEnabled():
+				b.Type = 0
+				b.Hidden = False
+				b.ShowName = False
 		mp.GlyphSize = gSize
 		mp.GlyphOpacity = gOpacity
 		mp.HiddenBodySize = hiddenSize
@@ -916,9 +917,10 @@ def ShowPilots(pMap, edges):
 	for e in edges:
 		if "label" in e:
 			lb = e['label']
-			if lb not in P: 
-				P[lb] = 0
-			P[lb] += 1
+			for c in lb:
+				if c not in P: 
+					P[c] = 0
+				P[c] += 1
 	P = {x:P[x] for x in P if P[x] > 1}
 	P = dict( sorted(P.items(), key=lambda x:x[1], reverse=True) )
 	keyDict, _ = ShowLegend(pMap)
