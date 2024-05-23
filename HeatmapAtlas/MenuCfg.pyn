@@ -3,6 +3,7 @@
 #MainForm
 #MenuLabels - Monitor Clustering LabelAll CaptureMaps EmbedSelected ShowData 3D-Expression ShowGraph ShowGeneTable ShowSuperCluster
 vv.Import('GeneMonitor.pyn')
+thresholdLevel = 1.0
 match vv.EventSource.Item:
 	case 'CaptureMaps':
 		vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
@@ -29,6 +30,7 @@ match vv.EventSource.Item:
 #Atlas
 #MenuLabels - SetLabels ConfigureMaps ClusterMaps LabelMaps
 vv.Import('GeneMonitor.pyn')
+thresholdLevel = 1.0
 selected = pp.GetSelectedItems()
 match vv.EventSource.Item:
 	case 'SetLabels':
@@ -36,7 +38,7 @@ match vv.EventSource.Item:
 	case 'ConfigureMaps':		
 		AdjustAtlasMaps(pp, selected, 1000, 700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=True)
 	case 'ClusterMaps':
-		ClusterAtlasMaps(pp, selected, cSize=80, minSamples=50)
+		ClusterAtlasMaps(pp, selected, cSize=100, minSamples=50)
 	case 'LabelMaps':
 		LabelAtlasMaps(pp, selected)
 ##

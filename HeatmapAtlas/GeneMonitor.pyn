@@ -1,8 +1,12 @@
 import math
 import numpy as np
 
-mpWidth, mpHeight, thresholdLevel = 500, 350, 1.0
+# global constants
+mpWidth = 500
+mpHeight = 350
 nullName = '\u25a1'
+geneTable = 'Gene Features'
+thresholdLevel = 1.0
 
 cs = New.CsObject('''
 public IBody MeanPoint(IList<IBody> bList){
@@ -30,25 +34,18 @@ public IBody MeanPoint(IList<IBody> bList){
 
 public INumberTable Transform(INumberTable nt) {
 	MT.Loop(0, nt.Rows, row=>{
-		  double[] R = nt.Matrix[row] as double[];
-        for(int col=0; col<nt.Columns; col++)
-            //R[col] = Math.Sqrt( Math.Abs(Math.Exp(R[col]) - 1) );
-				//R[col] = Math.Exp(R[col]) - 1.0;
-				R[col] = Math.Log(1.0 + R[col]);
+		double[] R = nt.Matrix[row] as double[];
+		for(int col=0; col<nt.Columns; col++)
+			R[col] = Math.Log(1.0 + R[col]);
 	});
-	return nt;
+   return nt;
 }
 ''')
-
 
 def ThresholdHi(vList):
 	tHi = math.sqrt( np.average(np.square(vList)) )
 	tHi = max(0.25, tHi)
 	return thresholdLevel*tHi
-
-def transform(nt):
-	return nt
-	#return cs.Transform(nt)
 
 def NewTsne(epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1):
 	mds = New.TsneMap()
@@ -70,7 +67,7 @@ def GetId2Sym():
 	global fctId2Sym
 	if 'fctId2Sym' in globals():
 		return fctId2Sym
-	gt = vv.Folder.ReadDataset('Gene Features')
+	gt = vv.Folder.ReadDataset(geneTable)
 	if gt != None:
 		cIdx = gt.IndexOfColumn('Symbol')
 		id2sym_dic = {gt.BodyList[row].Id : gt.GetDataAt(row, cIdx) for row in range(gt.Rows)}
@@ -89,7 +86,7 @@ def ConfigBarView(bv, nt, map):
 	bv.TopMost = True
 	items = bv.ItemList
 	dynamicColor = True
-	gt = vv.Folder.ReadDataset('Gene Features')
+	gt = vv.Folder.ReadDataset(geneTable)
 	info = InfoFromStr(map.Description)
 	if 'DG' in info:
 		id2key = DominantGenes(info['DG'])
@@ -158,7 +155,6 @@ def OnSelected(dynamicColor):
 
 def StartTracing(idMon, map=None):
 	nt = vv.GetNumberTableView(True).SelectColumnsById(idMon)
-	nt = transform(nt)
 	StartMonitor(nt, map)
 
 def LoopList(gList, epochs=1000, PP=0.05, SS=50, EX=4.0, ex=1.0, saveTo=None, repeats=1): 
@@ -193,7 +189,6 @@ def LoopList(gList, epochs=1000, PP=0.05, SS=50, EX=4.0, ex=1.0, saveTo=None, re
 			nt = nt0.SelectColumnsById(idList[n:n2])
 			if nt.Columns == 0:
 				continue
-			nt = transform(nt)
 			info = {'SQ':listName, 'RG':f'{n}-{n2}', 'CS':nt.Columns, 'DS':vv.Dataset.Name, 
 				'EP':epochs, 'SS':SS, 'PP':PP, 'EX':EX, 'ex':ex, }
 			if idList[0][0] == 0:	
@@ -269,7 +264,6 @@ def ReEmbedding(pMap):
 	mds = NewTsne(epochs, PP, EX, ex)
 	ftList = ExtractFeatures(pMap)
 	nt = vv.GetNumberTableView(True).SelectColumnsById(ftList)
-	nt = transform(nt)
 	mds.ChangeTrainingData(nt).Reset().Start()
 	if not mds.Completed: return
 	vv.SelectedItems = None
@@ -310,7 +304,6 @@ def ShowData0(featureList, bodyList=None):
 	if nt.Rows*nt.Columns == 0:
 		vv.Message('No data selected')
 		vv.Return()
-	nt = transform(nt)
 	if bodyList!=None and bodyList.Count == nt.Rows:
 		for row in range(nt.Rows):
 			nt.RowSpecList[row].CopyFromBody(bodyList[row])
@@ -328,7 +321,6 @@ def ShowData0(featureList, bodyList=None):
 def ShowExpress3D(pMap):
 	CheckDataset(pMap)
 	nt = vv.GetNumberTableView(True).SelectColumnsById(ExtractFeatures(pMap))
-	nt = transform(nt)
 	tb = mm.ToNumpy(nt)
 	tb = np.sqrt((tb**2).sum(axis=1))
 	MAXV = 500.0
@@ -341,7 +333,7 @@ def ShowExpress3D(pMap):
 	Config3DMap( m3d )
 
 def GetGeneList(chrName):
-	ds = vv.Folder.ReadDataset("Gene Features")
+	ds = vv.Folder.ReadDataset(geneTable)
 	gList = []
 	for k in range(ds.Rows):
 		if ds.ValueAtAsString(k, 4) != 'protein_coding': continue
@@ -367,7 +359,6 @@ def EmbedGenes(idMon, epochs=1000, PP=0.05, EX=4.0, ex=1.0, repeats=1):
 			del info['RG']
 	mds = NewTsne(epochs, PP, EX, ex, repeats)
 	nt = vv.GetNumberTableView(True).SelectColumnsById(idMon)
-	nt = transform(nt)
 	info['EP'] = epochs
 	info['PP'] = PP
 	info['ex'] = ex
@@ -482,18 +473,19 @@ def IsMainMap(pMap):
 
 def ClusterMap(pMap, cSize=80, minSamples=50):
 	import fast_hdbscan
-	if IsMainMap(pMap):  # The method is called from the main window.
-		vv.GuiManager.RememberCurrentMap()
 	if pMap.SelectedBodies.Count > 2:
 		if IsMainMap(pMap):
-			mp = New.MapSnapshot(pMap.SelectedBodies).Show()
+			selected = New.BodyListClone(pMap.SelectedBodies)
+			mp = New.MapSnapshot(selected).Show()
 		else:
 			mp = pMap.NewSnapshot()
-		mp.ClickMenu('Atlas/Clustering')
+		ClusterMap(mp, cSize, int(0.5*minSamples) )
 		mp.ClickMenu('Utilities/Merge Coloring')
 		mp.Close()
 		pMap.SelectedItems = None
 	else:
+		if IsMainMap(pMap):  # The method is called from the main window.
+			vv.GuiManager.RememberCurrentMap()
 		ResetMap(pMap)
 		for b in pMap.BodyList:
 			b.Type = 0
@@ -684,7 +676,7 @@ def MergeNullClusters(pMap, bList):
 	pMap.RedrawAll()
 
 
-def LabelAllClusters(pMap): 
+def LabelAllClusters(pMap):
 	CheckDataset(pMap)
 	geneList = ExtractFeatures(pMap)
 	baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(geneList)
@@ -857,11 +849,16 @@ def SwitchColors(g, L, C12):
 
 def ShowGraph(pMap, showEdges=True, showPilotes=False):
 	from pyvis.network import Network
-	pw, ph = pMap.MapLayout.Width, pMap.MapLayout.Height
+	if IsMainMap(pMap):
+		pw, ph = pMap.Width, pMap.Height
+	else:
+		pw, ph = pMap.MapLayout.Width, pMap.MapLayout.Height
 	g = Network(directed=True, width=f'{pw}px', height=f'{ph}px', 
 		bgcolor='lightgray', font_color='black')
 	g.options.interaction.dragNodes = False
-	#g.options.edges.smooth.enabled = False
+	#g.options.configure.enabled = True
+	#g.options.configure.showButton = True
+	g.options.edges.smooth.enabled = False
 
 	# Add nodes.
 	C12 = ['#FE0000', '#FE7F00', '#FEFE00', '#7FFE00', '#00D200', '#00FE7F', 
@@ -907,8 +904,8 @@ def ShowGraph(pMap, showEdges=True, showPilotes=False):
 			e["font"]={"size":15, 'color':'darkblue'}
 
 	ShowPilots(pMap, g.edges)
-
-	g.options.edges.smooth = {'enabled': True, 'type': 'directCross'}
+	#types: 'dynamic', 'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal', 'vertical', 'curvedCW', 'curvedCCW', 'cubicBezier'
+	g.options.edges.smooth = {'enabled': True, 'type': 'cubicBezier'}
 	g.toggle_physics(False)
 	g.show('AtlasClusterGraph.html', notebook=False)
 
@@ -956,7 +953,7 @@ dsList, gIds = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloi
 LoopList2(dsList, gIds, saveTo=gIds[0], SS=27, epochs=2000, EX=4.0)
 
 dsList = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid']
-gIds = ['phosphate']
-LoopList2(dsList, gIds, saveTo=gIds[0], SS=100, EX=4.0)
+gIds = ['RibosomeRelated']
+LoopList2(dsList[2:], gIds, saveTo=gIds[0], SS=51, EX=4.0)
 
 '''
