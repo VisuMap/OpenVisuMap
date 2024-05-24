@@ -41,9 +41,20 @@ public INumberTable Transform(INumberTable nt) {
    return nt;
 }
 
-public void Log1PTrans(double[] R, double fct) {
-	for(int col=0; col<R.Length; col++)
-		R[col] = Math.Log(1 + fct * R[col]);
+public void LogNormalize(INumberTable nt) {
+	MT.Loop(0, nt.Rows, row=>{
+		double[] R = nt.Matrix[row] as double[];
+		double sum = 0;
+		for(int col=0; col<R.Length; col++)
+			sum += R[col];
+		if ( sum > 0 ) {
+			for(int col=0; col<R.Length; col++)
+				if ( R[col] != 0 )
+					R[col] = Math.Log(1 + 10000 * R[col]/sum);
+					//R[col] = 10000 * R[col]/sum;
+
+		}
+	});
 }
 ''')
 
@@ -955,12 +966,11 @@ def ConvertSym2Id():
 			cs.Id = sym2id[cs.Id]
 	vv.Dataset.CommitChanges()
 
-def NormalizeCounters():
+def LogNormalize():
 	nt = pp.GetNumberTable()
-	rm = nt.RowMean() 
-	for row in range(nt.Rows):
-		cs.Log1PTrans(nt.Matrix[row], 10000.0 / (rm[row].Value*nt.Columns) )
-	nt.ShowHeatMap()
+	nt.CheckForWrite()
+	cs.LogNormalize(nt)	
+	pp.Redraw()
 
 '''=================================================================================
 
@@ -970,6 +980,6 @@ dsList = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid']
 gIds = ['RibosomeRelated']
 LoopList2(dsList[2:], gIds, saveTo=gIds[0], SS=51, EX=4.0)
 
-NormalizeCounters()
+LogNormalize()
 
 '''
