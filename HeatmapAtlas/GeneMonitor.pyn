@@ -40,6 +40,11 @@ public INumberTable Transform(INumberTable nt) {
 	});
    return nt;
 }
+
+public void Log1PTrans(double[] R, double fct) {
+	for(int col=0; col<R.Length; col++)
+		R[col] = Math.Log(1 + fct * R[col]);
+}
 ''')
 
 def ThresholdHi(vList):
@@ -75,6 +80,11 @@ def GetId2Sym():
 	else:
 		fctId2Sym = lambda id: id
 	return fctId2Sym
+
+def GetSym2Id():
+	gt = vv.Folder.ReadDataset(geneTable)
+	cIdx = gt.IndexOfColumn('Symbol')
+	return {gt.GetDataAt(row, cIdx) : gt.BodyList[row].Id for row in range(gt.Rows)}
 
 def ConfigBarView(bv, nt, map):
 	bv.Horizontal = False
@@ -267,11 +277,14 @@ def ReEmbedding(pMap):
 	mds.ChangeTrainingData(nt).Reset().Start()
 	if not mds.Completed: return
 	vv.SelectedItems = None
-	map = New.MapSnapshot().Show()
-	map.Resize(0, 0, mpWidth, mpHeight)
-	map.Title, map.Description = mpTitle, mpDescription
-	mds.Close()
+	for k, b in enumerate(vv.Map.BodyList):
+		b2 = pMap.BodyList[k]
+		b2.SetXYZ(b.X, b.Y, b.Z)
+	pMap.Title = mpTitle
+	pMap.Description = mpDescription
+	pMap.RedrawBodiesXyz()
 	vv.Map.Description = mpDescription
+	mds.Close()
 
 def MonitorMap(pMap):
 	CheckDataset(pMap)
@@ -934,26 +947,29 @@ def ShowPilots(pMap, edges):
 	tp.Show()
 	return tp
 
+def ConvertSym2Id():
+	sym2id = GetSym2Id()
+	for cs in vv.Dataset.ColumnSpecList:
+		cs.Name = cs.Id	
+		if cs.Id in sym2id:
+			cs.Id = sym2id[cs.Id]
+	vv.Dataset.CommitChanges()
+
+def NormalizeCounters():
+	nt = pp.GetNumberTable()
+	rm = nt.RowMean() 
+	for row in range(nt.Rows):
+		cs.Log1PTrans(nt.Matrix[row], 10000.0 / (rm[row].Value*nt.Columns) )
+	nt.ShowHeatMap()
 
 '''=================================================================================
-pMap=pp
-ShowGraph(pp)
 
 LoopList('lncRNA_SymLoc', epochs=2000, SS=500, saveTo='lncRNA2')
-
-dsList = ['TCellBreast', 'Perivascular', 'Vascular-C', 'BreastCancer', 'Myeloid']
-ftList = ['lncRNA_WithSummary']
-LoopList2(dsList, ftList, mapName='TestA', saveTo='TestA', SS=0, epochs=2000, EX=4.0)
-
-dsList = ['TCellBreast', 'Perivascular', 'Vascular-C', 'BreastCancer', 'Myeloid']
-gIds = [ 'RibosomeLow', 'RibosomeHi', 'RibosomesS', 'RibosomesL', 'Ribosomes' ]
-LoopList2(dsList, gIds, saveTo='RibosomeLow2', SS=1000, epochs=2000, EX=4.0)
-
-dsList, gIds = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid'], ['Laminins']
-LoopList2(dsList, gIds, saveTo=gIds[0], SS=27, epochs=2000, EX=4.0)
 
 dsList = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid']
 gIds = ['RibosomeRelated']
 LoopList2(dsList[2:], gIds, saveTo=gIds[0], SS=51, EX=4.0)
+
+NormalizeCounters()
 
 '''
