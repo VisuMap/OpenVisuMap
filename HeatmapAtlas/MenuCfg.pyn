@@ -12,7 +12,7 @@ match vv.EventSource.Item:
 	case 'Monitor':
 		MonitorMap(vv.Map)
 	case 'Clustering':
-		ClusterMap(vv.Map, cSize=100, minSamples=50)
+		ClusterMap(vv.Map, cSize=10, minSamples=100)
 	case 'LabelAll':
 		LabelAllClusters(vv.Map)
 	case 'ShowData':
@@ -38,7 +38,7 @@ match vv.EventSource.Item:
 	case 'ConfigureMaps':		
 		AdjustAtlasMaps(pp, selected, 1000, 700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=True)
 	case 'ClusterMaps':
-		ClusterAtlasMaps(pp, selected, cSize=100, minSamples=50)
+		ClusterAtlasMaps(pp, selected, cSize=10, minSamples=100)
 	case 'LabelMaps':
 		LabelAtlasMaps(pp, selected)
 ##
@@ -59,7 +59,7 @@ match vv.EventSource.Item:
 	case 'ActiveCells':
 		ShowActiveCells(pp)
 	case 'Clustering':
-		ClusterMap(pp, cSize=100, minSamples=50)
+		ClusterMap(pp, cSize=10, minSamples=100)
 	case 'LabelGenes':
 		LabelGenes(pp)
 	case 'LabelAll':

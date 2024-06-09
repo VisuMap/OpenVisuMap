@@ -495,48 +495,70 @@ def CheckDataset(pMap):
 def IsMainMap(pMap):
 	return str(pMap).endswith('.MapImp')
 
-def ClusterMap(pMap, cSize=80, minSamples=50):
+
+
+def ClusterMap(pMap, cSize=20, minSamples=100):
 	import fast_hdbscan
+
+	allBodies = pMap.BodyListEnabled()
 	if pMap.SelectedBodies.Count > 2:
-		if IsMainMap(pMap):
-			selected = New.BodyListClone(pMap.SelectedBodies)
-			mp = New.MapSnapshot(selected).Show()
-		else:
-			mp = pMap.NewSnapshot()
-		ClusterMap(mp, cSize, int(0.5*minSamples) )
-		mp.ClickMenu('Utilities/Merge Coloring')
-		mp.Close()
+		bsList = pMap.SelectedBodies
+		#minSamples = int(1.0 * minSamples * bsList.Count/allBodies.Count )
+	else:
+		bsList = allBodies
+
+	if IsMainMap(pMap):  # The method is called from the main window.
+		vv.GuiManager.RememberCurrentMap()
+
+	D = mm.ToNumpy(New.NumberTable(bsList, 2))
+	C = fast_hdbscan.HDBSCAN(min_cluster_size=cSize, min_samples=minSamples)
+	labels = C.fit_predict(D)
+	labels = [int(lb) for lb in labels]
+	clusters = max(labels) + 1
+	hiddenType = clusters
+	noisePts = len([k for k in labels if k < 0])
+
+	if bsList.Count != allBodies.Count:
+		maxNewIdx = max(labels) + 1 
+		idxMap = []
+		usedIdxes = set([b.Type for b in set(allBodies) - set(bsList) ])
+		for k in range(10000):
+			if k not in usedIdxes:
+				idxMap.append(k)
+			if len(idxMap) > maxNewIdx:
+				break;
+		hiddenType = idxMap[maxNewIdx-1]
+		labels2 = []
+		for t in labels:
+			if t >=0 :
+				labels2.append(idxMap[t])
+			else:
+				labels2.append(-1)
+		labels = labels2
+		for b in bsList:
+			b.Type = 0
 		pMap.SelectedItems = None
 	else:
-		if IsMainMap(pMap):  # The method is called from the main window.
-			vv.GuiManager.RememberCurrentMap()
 		ResetMap(pMap)
-		for b in pMap.BodyList:
-			b.Type = 0
-		bsList = pMap.BodyListEnabled()
-		D = mm.ToNumpy(New.NumberTable(bsList, 2))
-		C = fast_hdbscan.HDBSCAN(min_cluster_size=cSize, min_samples=minSamples)
-		labels = C.fit_predict(D)
-		clusters = len(set(labels))
-		noisePts = len(set([b for b in bsList if b.Hidden]))
-		for k, t in enumerate(labels):
-			b = bsList[k]
-			if t>=0:
-				b.Type = int(t)
-				b.Hidden = False
-			else:
-				b.Type = clusters-1
-				b.Hidden = True
-		pMap.RedrawBodiesType()
-		title = f'Clusters: {clusters}; NoisePts: {noisePts} of {bsList.Count}'
-		if IsMainMap(pMap):
-			vv.Title = title
+
+	for k, t in enumerate(labels):
+		b = bsList[k]
+		if t>=0:
+			b.Type = t
+			b.Hidden = False
 		else:
-			pMap.Title = title 
-		info = InfoFromStr(pMap.Description)
-		info['MCS'] = cSize
-		info['MSS'] = minSamples
-		pMap.Description = InfoToStr(info)
+			b.Type = hiddenType
+			b.Hidden = True
+	pMap.RedrawBodiesType()
+	title = f'Clusters: {clusters}; NoisePts: {noisePts} of {bsList.Count}'
+	if IsMainMap(pMap):
+		vv.Title = title
+	else:
+		pMap.Title = title 
+	info = InfoFromStr(pMap.Description)
+	info['MCS'] = cSize
+	info['MSS'] = minSamples
+	pMap.Description = InfoToStr(info)
 
 # --------- Labelling related ----------
 
@@ -958,19 +980,16 @@ def ShowPilots(pMap, edges):
 	tp.Show()
 	return tp
 
-def ConvertSym2Id():
+def ConvertSym2Id(nt):
 	sym2id = GetSym2Id()
-	for cs in vv.Dataset.ColumnSpecList:
+	for cs in nt.ColumnSpecList:
 		cs.Name = cs.Id	
 		if cs.Id in sym2id:
 			cs.Id = sym2id[cs.Id]
-	vv.Dataset.CommitChanges()
 
-def LogNormalize():
-	nt = pp.GetNumberTable()
+def LogNormalize(nt):
 	nt.CheckForWrite()
 	cs.LogNormalize(nt)	
-	pp.Redraw()
 
 '''=================================================================================
 
@@ -980,6 +999,9 @@ dsList = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid']
 gIds = ['RibosomeRelated']
 LoopList2(dsList[2:], gIds, saveTo=gIds[0], SS=51, EX=4.0)
 
-LogNormalize()
+nt = pp.GetNumberTable()
+ConvertSym2Id(nt)
+LogNormalize(nt)
+pp.Redraw()
 
 '''
