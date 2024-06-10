@@ -495,8 +495,6 @@ def CheckDataset(pMap):
 def IsMainMap(pMap):
 	return str(pMap).endswith('.MapImp')
 
-
-
 def ClusterMap(pMap, cSize=20, minSamples=100):
 	import fast_hdbscan
 
@@ -521,13 +519,18 @@ def ClusterMap(pMap, cSize=20, minSamples=100):
 	if bsList.Count != allBodies.Count:
 		maxNewIdx = max(labels) + 1 
 		idxMap = []
-		usedIdxes = set([b.Type for b in set(allBodies) - set(bsList) ])
+		bsRest = set(allBodies) - set(bsList)
+		usedIdxes = {b.Type for b in bsRest}
 		for k in range(10000):
 			if k not in usedIdxes:
 				idxMap.append(k)
 			if len(idxMap) > maxNewIdx:
 				break;
 		hiddenType = idxMap[maxNewIdx-1]
+		for b in bsRest:
+			if b.Hidden:
+				hiddenType = b.Type
+				break
 		labels2 = []
 		for t in labels:
 			if t >=0 :
@@ -561,6 +564,7 @@ def ClusterMap(pMap, cSize=20, minSamples=100):
 	pMap.Description = InfoToStr(info)
 
 # --------- Labelling related ----------
+
 
 class DominantGenes:
 	def __init__(self, initStr = None):
@@ -996,8 +1000,8 @@ def LogNormalize(nt):
 LoopList('lncRNA_SymLoc', epochs=2000, SS=500, saveTo='lncRNA2')
 
 dsList = ['TCellBreast','Perivascular','Vascular-C','BreastCancer','Myeloid']
-gIds = ['RibosomeRelated']
-LoopList2(dsList[2:], gIds, saveTo=gIds[0], SS=51, EX=4.0)
+gIds = ['carbohydrates']
+LoopList2(dsList, gIds, saveTo=gIds[0], SS=53, EX=4.0)
 
 nt = pp.GetNumberTable()
 ConvertSym2Id(nt)
