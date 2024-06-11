@@ -75,7 +75,7 @@ match vv.EventSource.Item:
 ##
 
 #GroupManager
-#MenuLabels EmbedGroups ShowData
+#MenuLabels EmbedGroups ShowData FeatureMap
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
 	case 'EmbedGroups':
@@ -86,4 +86,6 @@ match vv.EventSource.Item:
 		LoopList(list(gList), epochs=2000, SS=0, EX=4.0, PP=0.05, repeats=1, saveTo=None)
 	case 'ShowData':
 		ShowData0( list(vv.SelectedItems) )
+	case 'FeatureMap':
+		CreateFeatureMap(pp)
 ##

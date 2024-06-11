@@ -993,7 +993,34 @@ def ConvertSym2Id(nt):
 
 def LogNormalize(nt):
 	nt.CheckForWrite()
-	cs.LogNormalize(nt)	
+	cs.LogNormalize(nt)
+
+def CreateFeatureMap(gManager):
+	gList = pp.GetSelectedGroups()
+	if gList.Count==0:
+		vv.Message('Please select some groups!')
+		return
+	fs = set()
+	for g in gList:
+		fs = fs | set(gManager.GetGroup(g))
+	fs = list(fs)
+	nt = vv.GetNumberTableView(True)
+	if vv.SelectedItems.Count > 1:
+		nt = nt.SelectRowsByIdView(vv.SelectedItems)
+	nt = nt.SelectColumnsById(fs)
+	nt.Transpose()
+	if nt.Rows * nt.Columns == 0:
+		vv.Message('No data selected!')
+		return
+	mds = New.MdsCluster(nt)
+	mds.Show()
+	mds.PerplexityRatio = 0.05
+	mds.Metric = 'EuclideanMetric'
+	mds.MaxEpoch = 2000
+	mds.InitialExaggeration = 4.0
+	mds.ExaggerationSmoothen = True
+	mds.AutoNormalizing = True
+	mds.Reset().Start()
 
 '''=================================================================================
 
