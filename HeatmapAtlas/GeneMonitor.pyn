@@ -1000,14 +1000,11 @@ def CreateFeatureMap(gManager):
 	if gList.Count==0:
 		vv.Message('Please select some groups!')
 		return
-	fs = set()
-	for g in gList:
-		fs = fs | set(gManager.GetGroup(g))
-	fs = list(fs)
 	nt = vv.GetNumberTableView(True)
-	if vv.SelectedItems.Count > 1:
-		nt = nt.SelectRowsByIdView(vv.SelectedItems)
-	nt = nt.SelectColumnsById(fs)
+	hiList = vv.Map.BodyListHighlighted()
+	if hiList.Count > 1:
+		nt = nt.SelectRowsByIdView([b.Id for b in hiList])
+	nt = nt.SelectColumnsById(gManager.GetSelectedMembers())
 	nt.Transpose()
 	if nt.Rows * nt.Columns == 0:
 		vv.Message('No data selected!')
@@ -1015,11 +1012,15 @@ def CreateFeatureMap(gManager):
 	mds = New.MdsCluster(nt)
 	mds.Show()
 	mds.PerplexityRatio = 0.05
-	mds.Metric = 'EuclideanMetric'
+	#mds.Metric = 'Correlation.Standard Correlation'
+	mds.Metric = 'Correlation.Cosine Distance'
+	#mds.ClickMenu('Utilities/Centralize Data')
+	#mds.Metric = 'EuclideanMetric'
 	mds.MaxEpoch = 2000
 	mds.InitialExaggeration = 4.0
 	mds.ExaggerationSmoothen = True
 	mds.AutoNormalizing = True
+	mds.ReadOnly = True
 	mds.Reset().Start()
 
 '''=================================================================================
