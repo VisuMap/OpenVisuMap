@@ -1,0 +1,31 @@
+if vv.ScriptDirectories.find( vv.CurrentScriptDirectory ) < 0:
+	vv.ScriptDirectories += ";" + vv.CurrentScriptDirectory
+
+def InstallMenu(sCfg):
+	for b in sCfg.split('##'):
+		b = b.strip()
+		if len(b) == 0: continue
+		i0 = b.index('\n')
+		vv.GuiManager.SetCustomMenu('SeqVis/*', True, '@'+b[i0+1:], b[:i0], None);
+
+InstallMenu('''
+
+##GroupManager
+#MenuLabels CreateMaps
+vv.Import('SeqVis.pyn')
+match vv.EventSource.Item:
+	case 'CreateMaps':
+		MapFromLabel(pp, epochs=10000, winSize=100, stretchFactor=1.0, repeats=1,
+			is3D=False, initExag=10.0, finalExag=2.0, glyphSize=0.8, glyphOpacity=0.1, saveTo=None)
+
+##DataDetails
+#MenuLabels CreateMaps
+vv.Import('SeqVis.pyn')
+match vv.EventSource.Item:
+	case 'CreateMaps':
+		MapFromTable(pp, epochs=10000, winSize=100, stretchFactor=1.0, repeats=1,
+			is3D=False, initExag=10.0, finalExag=2.0, glyphSize=0.8, glyphOpacity=0.1, saveTo=None)
+
+''')
+
+

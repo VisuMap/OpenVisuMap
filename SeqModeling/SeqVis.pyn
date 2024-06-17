@@ -1,0 +1,181 @@
+import numpy as np
+import math
+
+ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
+
+def GetProteinIds(gSymbol):
+	ds = vv.Folder.ReadDataset('Gene Features')	
+	for row in range(ds.Rows):
+		if ds.GetDataAt(row, 5) == gSymbol:
+			pList = ds.GetDataAt(row, 17)
+			return pList.split(',')
+	print('Cannot find gene ' + gSymbol)
+	return None
+
+def FilterSeq(D, P):
+	return ''.join([ c for c in D.upper() if c in P ])
+
+def AddProteins(gSymbol):
+	import urllib.request
+	getUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&rettype=fasta&retmode=text&id='
+	pList = GetProteinIds(gSymbol)
+	if vv.Dataset.Name != 'Protein Table':
+		vv.Folder.OpenDataset('Protein Table')
+	P = {a:k for k,a in enumerate(ALPHABET)}
+	for id in pList:
+		sFasta = urllib.request.urlopen(getUrl+id).read().decode('utf-8')
+		idx = sFasta.index('\n')
+		desc = sFasta[1:idx]
+		pSeq = FilterSeq(sFasta[idx:], P)
+		vv.Dataset.AddRow(id, '', 0, [gSymbol, desc, pSeq, str(len(pSeq))])
+	vv.Dataset.CommitChanges()
+
+'''
+AddProteins('KMT2D')
+'''
+
+def CreateMap0(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag):
+	if len(pList) <= 0:
+		vv.Message("No protein group selected")
+		vv.Return(0)
+	pTable = vv.Folder.ReadDataset('Protein Table')
+	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag)
+	for pId in pList:
+		rowIdx = pTable.IndexOfRow(pId)
+		pSeq = pTable.GetDataAt(rowIdx, 2)		
+		nt = NewDataset(pSeq, winSize=winSize, stretchFactor=stretchFactor)
+		mds.SetTrainingData(nt)
+		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
+	mds.Close()
+	if saveTo != None:
+		SaveToAtlas(saveTo)
+
+def MapFromLabel(pManager, epochs=10000, winSize=30, stretchFactor=1.0, repeats=1, saveTo=None, glyphSize=0.8, glyphOpacity=0.1, is3D=False, initExag=10.0, finalExag=2.5):
+	pList = list(pManager.GetSelectedMembers())
+	CreateMap0(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag)
+
+def MapFromTable(pTable, epochs=10000, winSize=30, stretchFactor=1.0, repeats=1, 
+		saveTo=None, glyphSize=0.8, glyphOpacity=0.1, is3D=False, initExag=10.0, finalExag=2.5):  # pTable = pp
+	pList = pTable.SelectedItems
+	CreateMap0(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag)
+
+def SaveToAtlas(atName=None, x0=50, y0=50):
+	vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0).Close()
+
+def NewDataset(D, winSize=10, stretchFactor=1.0, alphbetList=ALPHABET):
+	P = {a:k for k,a in enumerate(alphbetList)}
+	dimP = len(P)
+
+	D = FilterSeq(D, P)
+	ww = [1.0 - k/winSize for k in range(winSize)]  # window weights
+	W = len(ww)
+	L = len(D)
+	
+	dt = np.zeros([len(D), dimP+1], np.float32)
+	for row, c in enumerate(D):
+		col0 = P[c]
+		#W0 = -W+1  # symmetric window
+		W0 = -5
+		for w in range(W0, W):
+			row_w = row + w
+			if row_w < 0 or row_w >= L:
+				continue
+			col = P[D[row_w]]
+			dt[row, col] += ww[abs(w)]
+	
+	dt[:, -1] = [stretchFactor * t * winSize/4000.0 for t in range(L)]
+	rowWeight = np.array([1+0.02*k for k in range(dimP)])
+	dt2 = rowWeight * dt[:, :-1]
+	dt[:, :-1] = dt2
+
+	nt = mm.ToTable(dt)
+	for k, c in enumerate(D):
+		nt.RowSpecList[k].Name = c
+		nt.RowSpecList[k].Type = P[c]
+	for col in range(dimP):
+		nt.ColumnSpecList[col].Id = alphbetList[col]
+	return nt
+
+def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=2.5):
+	mds = New.MdsCluster(nt)
+	mds.Show()
+	mds.MaxLoops = epochs
+	mds.RefreshFreq = 500
+	mds.InitialExaggeration = initExag
+	mds.FinalExaggeration = finalExag
+	mds.PerplexityRatio = 0.05
+	mds.Repeats = 1
+	mds.ReadOnly = True
+	mds.Is3D = is3D
+	mds.GlyphSet = '36 Clusters'
+	return mds
+
+def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.1):
+	mds.Repeats = repeats
+	mds.Reset().Start()
+	if mds.Repeats == 1:
+		mds.Show2DView()
+
+	for frm in vv.FindFormList('MapSnapshot'):
+		if mds.Is3D:
+			frm.ClickMenu('3D Animation View...')		
+			frm.Close()
+			f3d = vv.LastView
+			f3d.NormalizeView()
+			f3d.GlyphOpacity = glyphOpacity
+			f3d.GlyphSize = glyphSize
+			f3d.Redraw()
+		else:
+			frm.GlyphOpacity = glyphOpacity
+			frm.GlyphSize = glyphSize
+			frm.Redraw()
+			frm.NormalizeView()
+	return mds
+
+
+def DoTest(D, winSize=20, stretchFactor=1.0, is3D=False, repeats=1):
+	nt = NewDataset(D, winSize=winSize, stretchFactor=stretchFactor)
+	mds = NewMds(nt, is3D)
+	RunMds(mds, repeats)
+	return mds
+
+
+def Scanning(pMap):
+	K = 100
+	bsList = [b.Id for b in pMap.BodyList]
+	for k in range(0, len(bsList), 10):
+		#pMap.SelectedItems = bsList[k:k+K]
+		vv.SelectedItems = bsList[k:k+K]
+		vv.Sleep(50)
+		if pMap.SelectedItems.Count == 0:
+			break
+
+'''========================================================================================
+
+CreateMaps(pp)
+
+SYNE2 = FilterSeq(SYNE2)
+
+vv.Dataset.SetDataAt(11, 2, SYNE2)
+
+print(SYNE2)
+
+import random
+s = int(len(SYNE2)/2)
+#T = SYNE2[:s]
+#T = SYNE2
+T = []
+for c in FilterSeq(SYNE2):
+	if random.uniform(0,1)>0.01:
+		T.append(c)
+	else:
+		T.append('A')
+T = ''.join(T)
+
+for D in [SYNE2, T]:	DoTest(D, winSize=50, stretchFactor=0.1, is3D=False, repeats=1).Close()
+
+NewDataset(SYNE2, winSize=50, stretchFactor=0.1).ShowHeatMap()
+
+DoTest(SYNE2, winSize=50, stretchFactor=0.1, is3D=False, repeats=1).Close()
+
+'''
