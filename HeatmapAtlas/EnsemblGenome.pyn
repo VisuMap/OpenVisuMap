@@ -8,12 +8,25 @@ g = mg.getgene('ENSG00000205542')
 g = mg.getgene('ENSG00000205542', field='map_location')
 g = mg.getgene('ENSG00000205542',  field='exons')
 g = mg.getgene('ENSG00000000003',  field='symbol')
-print(pformat(g))
+g = mg.getgene('ENSG00000205542', field='accession')
+print(pformat(g['accession']['protein']))
 
 ds = vv.Dataset
 if ds.Name != 'Gene Features': 
 	vv.Return(1)
 gIds = [ x.Id for x in ds.BodyList ]
+
+#-----------------------
+
+for row, b in enumerate(ds.BodyList):
+	type = ds.GetDataAt(row, 4)
+	if type == 'protein_coding':
+		g = mg.getgene(b.Id, field='accession')
+		if 'accession' in g and 'protein' in g['accession']:
+			pAcc = ','.join(g['accession']['protein'])
+			ds.SetDataAt(row, 17, pAcc)
+
+#-----------------------
 
 
 gs = mg.getgenes(['ENSG00000205542','ENSG00000000003'], field='exons')
@@ -322,3 +335,5 @@ for k, g in enumerate(gs):
 
 ds.CommitChanges()
 vv.Map.Redraw()
+
+

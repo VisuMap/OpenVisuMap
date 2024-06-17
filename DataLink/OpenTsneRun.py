@@ -16,7 +16,7 @@ mtr, A0 = M.e, A.s
 randomizeOrder = True
 sta = 0.1
 ds = vm.LoadFromVisuMap(mtr)
-gdMd = 'bh'  # 'fft', 'bh' or 'auto'
+gdMd = 'fft'  # 'fft', 'bh' or 'auto'
 
 def DoTest():
     global ds
@@ -39,6 +39,7 @@ def DoTest():
 
 #=====================================================
 try:
+  epochs, pp, exa = 10000, 2000.0, 8.0
   for k in [0, 1]:
     DoTest()
 

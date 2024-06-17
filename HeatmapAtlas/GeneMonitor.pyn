@@ -1014,7 +1014,7 @@ def CreateFeatureMap(gManager):
 	mds.PerplexityRatio = 0.05
 	#mds.Metric = 'Correlation.Standard Correlation'
 	mds.Metric = 'Correlation.Cosine Distance'
-	#mds.ClickMenu('Utilities/Centralize Data')
+	mds.ClickMenu('Utilities/Centralize Data')
 	#mds.Metric = 'EuclideanMetric'
 	mds.MaxEpoch = 2000
 	mds.InitialExaggeration = 4.0

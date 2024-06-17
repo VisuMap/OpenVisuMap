@@ -66,8 +66,8 @@ def DoTest():
 try:
   cmd = vm.DataLinkCmd()  
   ResetTest()
-  A0 = A.r
-  for k in range(4):
+  md, sp, ns = 0.23, 1.12, 15	
+  for k in range(2):
     DoTest()
     #cmd.RunScript('vv.GuiManager.TileAllWindows()')
 

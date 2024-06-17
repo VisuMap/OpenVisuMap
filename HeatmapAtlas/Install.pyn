@@ -1,6 +1,45 @@
-#FormList:MainForm,Atlas,MapSnapshot,GroupManager
+def InstallMenu(sCfg):
+	for b in sCfg.split('##'):
+		b = b.strip()
+		if len(b) == 0: continue
+		i0 = b.index('\n')
+		vv.GuiManager.SetCustomMenu('Atlas/*', True, '@'+b[i0+1:], b[:i0], None);
 
-#MainForm
+def InstallMain():
+	mgr = vv.GuiManager
+	icon = vv.CurrentScriptDirectory + "\\MenuIcon.png"
+
+	for (label, script, view, img) in [
+		("Dual Sorting", "DualSorting.js", "HeatMap", icon),
+		("Dual Embedding", "DualEmbedding.js", "HeatMap", None),
+		("Dual Clustering", "DualClustering.js", "HeatMap", None),
+		("Active Genes", "ShowActiveGenes.js", "HeatMap", None),
+		("Active Cells", "ShowActiveCells.js", "HeatMap", None),
+		("Save Data", "SaveDataset.js", "HeatMap", None),
+		("Save HeatMap", "SaveSortedHeatmap.js", "HeatMap", None),
+		("Save DsHm", "!vv.Import('AtlasHelp.js');SaveDsHm(pp);", "HeatMap", None),
+		("Show Mean", "ShowMeanVector.js", "HeatMap", None),		 
+		("Merge DS", "!vv.Import('AtlasHelp.js');ConcatDatasets(SelectedDs(), 5000, None)", "Atlas", None),
+		("Compare Maps", "MapMorph.js", "MainForm|MapSnapshot|D3dRender", icon),
+		("Variation Tracing", "VariationTracing.js", "MainForm", None),
+		("Merge Maps", "CascadingTsne.pyn", "Atlas", None)]:
+		mgr.SetCustomMenu("Atlas/" + label, True, script, view, img)
+
+	for (label, img, script) in [
+		("Import Loom", icon, "LoomRead.pyn"),
+		("Import H5AD", None, "H5adRead.pyn"),
+		("Import H5", None, "H5Read.pyn"),
+		("Import VCF", None, "VcfRead.pyn"),
+		("Imp Cnt Mtx (*.mtx.gz)", None, "MatrixRead.pyn"),
+		("Show Maps", None, "ShowMaps.js")]:
+		mgr.SetCustomButton("Atlas/" + label, img, script)
+
+
+	if vv.ScriptDirectories.find( vv.CurrentScriptDirectory ) < 0:
+		vv.ScriptDirectories += ";" + vv.CurrentScriptDirectory
+
+	InstallMenu('''
+##MainForm
 #MenuLabels - Monitor Clustering LabelAll CaptureMaps EmbedSelected ShowData 3D-Expression ShowGraph ShowGeneTable ShowSuperCluster
 vv.Import('GeneMonitor.pyn')
 thresholdLevel = 1.0
@@ -25,9 +64,8 @@ match vv.EventSource.Item:
 		ShowLegend(pp.Map)
 	case 'ShowSuperCluster':
 		ShowSuperClusters(pp.Map)
-##
 
-#Atlas
+##Atlas
 #MenuLabels - SetLabels ResetMaps Clustering LabelMaps
 vv.Import('GeneMonitor.pyn')
 thresholdLevel = 1.0
@@ -41,9 +79,8 @@ match vv.EventSource.Item:
 		ClusterAtlasMaps(pp, selected, cSize=50, minSamples=50)
 	case 'LabelMaps':
 		LabelAtlasMaps(pp, selected)
-##
 
-#MapSnapshot
+##MapSnapshot
 #MenuLabels - Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap ShowSuperCluster ShowGraph
 vv.Import('GeneMonitor.pyn')
 thresholdLevel = 1.0
@@ -72,9 +109,8 @@ match vv.EventSource.Item:
 		ShowSuperClusters(pp)
 	case 'ShowGraph':
 		ShowGraph(pp, showEdges=True, showPilotes=False)
-##
 
-#GroupManager
+##GroupManager
 #MenuLabels EmbedGroups ShowData FeatureMap
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
@@ -88,4 +124,7 @@ match vv.EventSource.Item:
 		ShowData0( list(vv.SelectedItems) )
 	case 'FeatureMap':
 		CreateFeatureMap(pp)
-##
+##''')
+
+InstallMain()
+
