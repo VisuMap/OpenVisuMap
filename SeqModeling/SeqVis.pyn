@@ -2,6 +2,7 @@ import numpy as np
 import math
 
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
+PROTEIN_TABLE = 'Protein Table'
 
 def GetProteinIds(gSymbol):
 	ds = vv.Folder.ReadDataset('Gene Features')	
@@ -15,63 +16,106 @@ def GetProteinIds(gSymbol):
 def FilterSeq(D, P):
 	return ''.join([ c for c in D.upper() if c in P ])
 
+# protein embedding map information
+class MapInfo():
+	def __init__(self, initStr = None):
+		self.pId = None
+		self.Gene = None
+		self.pLen = None
+		self.Epochs = None
+		self.InitE = None
+		self.FinalE = None
+		self.PP = None
+		self.WinSize = None
+		if initStr is not None:
+			self.ParseStr(initStr)
+	def ToStr(self):
+		dic = self.__dict__
+		return ';'.join([f'{key}:{str(dic[key])}' for  key in dic if dic[key] is not None])
+	def ParseStr(self, initStr):
+		dic = self.__dict__
+		for f in initStr.split(';'):
+			if f is not None:
+				fs = f.split(':')
+				if len(fs) == 2:
+					dic[fs[0]] = fs[1]
+
 def AddProteins(gSymbol):
 	import urllib.request
 	getUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&rettype=fasta&retmode=text&id='
 	pList = GetProteinIds(gSymbol)
-	if vv.Dataset.Name != 'Protein Table':
-		vv.Folder.OpenDataset('Protein Table')
+	if vv.Dataset.Name != PROTEIN_TABLE:
+		vv.Folder.OpenDataset(PROTEIN_TABLE)
 	P = {a:k for k,a in enumerate(ALPHABET)}
 	for id in pList:
 		sFasta = urllib.request.urlopen(getUrl+id).read().decode('utf-8')
 		idx = sFasta.index('\n')
 		desc = sFasta[1:idx]
 		pSeq = FilterSeq(sFasta[idx:], P)
-		vv.Dataset.AddRow(id, '', 0, [desc,gSymbol,pSeq,str(len(pSeq))])
+		vv.Dataset.AddRow(id, gSymbol, 0, [desc,gSymbol,pSeq,str(len(pSeq))])
 	vv.Dataset.CommitChanges()
 
-'''
-AddProteins('KMT2D')
-'''
+
+def GetProteinTable():
+	pTable = vv.Folder.ReadDataset(PROTEIN_TABLE) if vv.Dataset.Name != PROTEIN_TABLE else vv.Dataset
+	return pTable
 
 def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag):
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
 		vv.Return(0)
-	pTable = vv.Folder.ReadDataset('Protein Table')
+	pTable = GetProteinTable()
 	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag)
+	info = MapInfo()
+	info.Epochs = epochs
+	info.InitE = initExag
+	info.FinalE = finalExag
+	info.PP = mds.PerplexityRatio
 	for pId in pList:
 		rowIdx = pTable.IndexOfRow(pId)
 		pSeq = pTable.GetDataAt(rowIdx, 2)
-		winSize = int(0.012727*len(pSeq) + 23.638)
-		nt = NewDataset(pSeq, winSize=winSize, stretchFactor=stretchFactor)
+		wSize = max(5, int(0.012727*len(pSeq) + 23.638)) if winSize==0 else winSize
+		info.WinSize = wSize
+		nt = NewDataset(pSeq, winSize=wSize, stretchFactor=stretchFactor)
 		mds.SetTrainingData(nt)
 		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
-		vv.LastView.Title = pId + ": " + f'N: {nt.Rows}'
+		info.pId = pId
+		info.pLen = len(pSeq)
+		map = vv.LastView
+		map.Title = pId + ": " + f'N: {nt.Rows}'
+		map.Description = info.ToStr()
+
 	mds.Close()
 	if saveTo != None:
 		SaveToAtlas(saveTo)
 
-def CreateProteinMap(idList):
+def CreateProteinMap(idList):	
 	from collections import Counter
-	columns = len(ALPHABET)
-	rows = len(idList)
-	pTable = vv.Folder.ReadDataset('Protein Table')
-	nt = New.NumberTable(rows, columns)
-	bsList = pTable.BodyList
+	pTable = GetProteinTable()
+	rows, columns = len(idList), len(ALPHABET)
+	if rows == 0:
+		bsList = pTable.BodyListEnabled()
+		rows = bsList.Count
+		idList = [b.Id for b in bsList]
+		print(bsList.Count, rows, len(idList))
+	else:
+		bsList = pTable.BodyListForId(idList)
+	nt = New.NumberTable(bsList, columns)
 	for row in range(rows):
 		pId = idList[row]
 		pIdx = pTable.IndexOfRow(pId)
-		rs, body = nt.RowSpecList[row], bsList[pIdx]
-		rs.Id, rs.Type = body.Id, body.Type
 		pSeq = pTable.GetDataAt(pIdx, 2)
 		pCnt = Counter(pSeq)
 		R = nt.Matrix[row]
+		fct = 10000/len(pSeq)
 		for c, a in enumerate(ALPHABET):
-			R[c] = pCnt[a]
-	mds = NewMds(nt, epochs=1000, initExag=4.0, finalExag=1.0)
-	RunMds(mds, repeats=1, glyphSize=1.0, glyphOpacity=1.0)
-	mds.Close()
+			R[c] =fct* pCnt[a]
+	for c, a in enumerate(ALPHABET):
+		nt.ColumnSpecList[c].Id = a
+	mds = NewMds(nt, epochs=5000, initExag=5.0, finalExag=1.0)
+	mds.PerplexityRatio = 0.2
+	mds.RefreshFreq = 50
+	mds.Reset().Start()
 
 def SaveToAtlas(atName=None, x0=50, y0=50):
 	vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0).Close()
@@ -122,6 +166,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=2.5):
 	mds.Repeats = 1
 	mds.ReadOnly = True
 	mds.Is3D = is3D
+	mds.AutoNormalizing =True
 	mds.GlyphSet = '36 Clusters'
 	return mds
 
@@ -184,6 +229,8 @@ def ResetAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpa
 
 '''========================================================================================
 
+info = MapInfo('pId:AGQ48858.1;pLen:790;Epochs:10000;InitE:10.0;FinalE:2.0;PP:0.05;WinSize:33')
+print(info.ToStr())
 CreateMaps(pp)
 
 SYNE2 = FilterSeq(SYNE2)
