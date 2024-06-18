@@ -468,7 +468,7 @@ def SetAtlasItemName(atlas, itemList):
 		mp.Close()
 		atlas.RedrawItem(item, True)
 
-def AdjustAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=False):
+def ResetAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=False):
 	for it in itemList:
 		mp = it.Open()
 		if reset:

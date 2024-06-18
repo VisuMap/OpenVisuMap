@@ -74,7 +74,7 @@ match vv.EventSource.Item:
 	case 'SetLabels':
 		SetAtlasItemName(pp, selected)
 	case 'ResetMaps':		
-		AdjustAtlasMaps(pp, selected, 1000, 700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=True)
+		ResetAtlasMaps(pp, selected, 1000, 700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=True)
 	case 'Clustering':
 		ClusterAtlasMaps(pp, selected, cSize=50, minSamples=50)
 	case 'LabelMaps':
