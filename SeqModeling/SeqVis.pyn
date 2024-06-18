@@ -27,14 +27,14 @@ def AddProteins(gSymbol):
 		idx = sFasta.index('\n')
 		desc = sFasta[1:idx]
 		pSeq = FilterSeq(sFasta[idx:], P)
-		vv.Dataset.AddRow(id, '', 0, [gSymbol, desc, pSeq, str(len(pSeq))])
+		vv.Dataset.AddRow(id, '', 0, [desc,gSymbol,pSeq,str(len(pSeq))])
 	vv.Dataset.CommitChanges()
 
 '''
 AddProteins('KMT2D')
 '''
 
-def CreateMap0(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag):
+def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag):
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
 		vv.Return(0)
@@ -42,22 +42,36 @@ def CreateMap0(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize
 	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag)
 	for pId in pList:
 		rowIdx = pTable.IndexOfRow(pId)
-		pSeq = pTable.GetDataAt(rowIdx, 2)		
+		pSeq = pTable.GetDataAt(rowIdx, 2)
+		winSize = int(0.012727*len(pSeq) + 23.638)
 		nt = NewDataset(pSeq, winSize=winSize, stretchFactor=stretchFactor)
 		mds.SetTrainingData(nt)
 		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
+		vv.LastView.Title = pId + ": " + f'N: {nt.Rows}'
 	mds.Close()
 	if saveTo != None:
 		SaveToAtlas(saveTo)
 
-def MapFromLabel(pManager, epochs=10000, winSize=30, stretchFactor=1.0, repeats=1, saveTo=None, glyphSize=0.8, glyphOpacity=0.1, is3D=False, initExag=10.0, finalExag=2.5):
-	pList = list(pManager.GetSelectedMembers())
-	CreateMap0(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag)
-
-def MapFromTable(pTable, epochs=10000, winSize=30, stretchFactor=1.0, repeats=1, 
-		saveTo=None, glyphSize=0.8, glyphOpacity=0.1, is3D=False, initExag=10.0, finalExag=2.5):  # pTable = pp
-	pList = pTable.SelectedItems
-	CreateMap0(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag)
+def CreateProteinMap(idList):
+	from collections import Counter
+	columns = len(ALPHABET)
+	rows = len(idList)
+	pTable = vv.Folder.ReadDataset('Protein Table')
+	nt = New.NumberTable(rows, columns)
+	bsList = pTable.BodyList
+	for row in range(rows):
+		pId = idList[row]
+		pIdx = pTable.IndexOfRow(pId)
+		rs, body = nt.RowSpecList[row], bsList[pIdx]
+		rs.Id, rs.Type = body.Id, body.Type
+		pSeq = pTable.GetDataAt(pIdx, 2)
+		pCnt = Counter(pSeq)
+		R = nt.Matrix[row]
+		for c, a in enumerate(ALPHABET):
+			R[c] = pCnt[a]
+	mds = NewMds(nt, epochs=1000, initExag=4.0, finalExag=1.0)
+	RunMds(mds, repeats=1, glyphSize=1.0, glyphOpacity=1.0)
+	mds.Close()
 
 def SaveToAtlas(atName=None, x0=50, y0=50):
 	vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0).Close()
@@ -104,6 +118,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=2.5):
 	mds.InitialExaggeration = initExag
 	mds.FinalExaggeration = finalExag
 	mds.PerplexityRatio = 0.05
+	mds.Metric = 'EuclideanMetric'
 	mds.Repeats = 1
 	mds.ReadOnly = True
 	mds.Is3D = is3D
@@ -150,6 +165,23 @@ def Scanning(pMap):
 		if pMap.SelectedItems.Count == 0:
 			break
 
+def ResetAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=False):
+	for it in itemList:
+		mp = it.Open()
+		if reset:
+			for b in mp.BodyListEnabled():
+				b.Type = 0
+				b.Hidden = False
+				b.ShowName = False
+		mp.GlyphSize = gSize
+		mp.GlyphOpacity = gOpacity
+		mp.HiddenBodySize = hiddenSize
+		mp.NameLabelColor = New.Color('Yellow')
+		mp.NameLabelFont = New.Font('Microsoft Sans Serif', 18.0)
+		mp.Resize(0,0,mpWidth,mpHeight)
+		mp.NormalizeView()
+		mp.Close()
+
 '''========================================================================================
 
 CreateMaps(pp)
@@ -159,6 +191,9 @@ SYNE2 = FilterSeq(SYNE2)
 vv.Dataset.SetDataAt(11, 2, SYNE2)
 
 print(SYNE2)
+100 - 0.012727*6000
+
+int(0.12727*500 - 663.6)
 
 import random
 s = int(len(SYNE2)/2)

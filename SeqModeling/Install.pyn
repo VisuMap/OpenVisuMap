@@ -15,17 +15,36 @@ InstallMenu('''
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'CreateMaps':
-		MapFromLabel(pp, epochs=10000, winSize=100, stretchFactor=1.0, repeats=1,
+		CreateMaps(list(pp.GetSelectedMembers()), epochs=10000, winSize=100, stretchFactor=1.0, repeats=1,
 			is3D=False, initExag=10.0, finalExag=2.0, glyphSize=0.8, glyphOpacity=0.1, saveTo=None)
 
 ##DataDetails
-#MenuLabels CreateMaps
+#MenuLabels CreateMaps ProteinMap
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'CreateMaps':
-		MapFromTable(pp, epochs=10000, winSize=100, stretchFactor=1.0, repeats=1,
-			is3D=False, initExag=10.0, finalExag=2.0, glyphSize=0.8, glyphOpacity=0.1, saveTo=None)
+		CreateMaps(list(reversed(pp.SelectedItems)), epochs=10000, winSize=35, stretchFactor=0.1, repeats=1,
+			is3D=False, initExag=10.0, finalExag=2.0, glyphSize=0.8, glyphOpacity=0.1, saveTo=None) # 'AllMaps')
+	case 'ProteinMap':
+		CreateProteinMap(pp.SelectedItems)
 
+##Atlas
+#MenuLabels ResetMaps
+vv.Import('SeqVis.pyn')
+match vv.EventSource.Item:
+	case 'ResetMaps':
+		ResetAtlasMaps(pp, pp.GetSelectedItems(), 1000, 700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=True)
+
+##MainForm
+#MenuLabels CreateMaps ProteinMap
+vv.Import('SeqVis.pyn')
+match vv.EventSource.Item:
+	case 'CreateMaps':
+		CreateMaps(pp.SelectedItems, epochs=10000, winSize=35, stretchFactor=0.1, repeats=1,
+			is3D=False, initExag=10.0, finalExag=2.0, glyphSize=0.8, glyphOpacity=0.1, saveTo=None) # 'AllMaps')
+
+	case 'ProteinMap':
+		CreateProteinMap(pp.SelectedItems)
 ''')
 
 
