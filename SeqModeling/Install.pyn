@@ -20,7 +20,7 @@ vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'CreateMaps':
 		CreateMaps(list(pp.GetSelectedMembers()), epochs=10000, winSize=0, stretchFactor=1.0, repeats=1,
-			is3D=False, initExag=10.0, finalExag=2.0, glyphSize=0.8, glyphOpacity=0.1, saveTo=None)
+			is3D=False, initExag=10.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo=None)
 
 ##DataDetails
 #MenuLabels CreateMaps ProteinMap LoadSeq
@@ -28,7 +28,7 @@ vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'CreateMaps':
 		CreateMaps(list(reversed(pp.SelectedItems)), epochs=10000, winSize=0, stretchFactor=0.1, repeats=1,
-			is3D=False, initExag=10.0, finalExag=2.0, glyphSize=0.8, glyphOpacity=0.1, saveTo=None) # 'AllMaps')
+			is3D=False, initExag=10.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo=None) # 'AllMaps')
 	case 'ProteinMap':
 		CreateProteinMap(pp.SelectedItems)
 	case 'LoadSeq':
@@ -39,7 +39,7 @@ match vv.EventSource.Item:
 			AddProteins(txtTable.Matrix[0][0])
 
 ##MapSnapshot
-#MenuLabels ShowData Scanning ShowSeq
+#MenuLabels ShowData Scanning ShowSeq ReCreatMap
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'ShowData':
@@ -48,13 +48,15 @@ match vv.EventSource.Item:
 		Scanning(pp)
 	case 'ShowSeq':
 		ShowTracingSeq(pp)
+	case ReCreatMap:
+		CreateMapById(pp)
 
 ##Atlas
 #MenuLabels ResetMaps
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'ResetMaps':
-		ResetAtlasMaps(pp, pp.GetSelectedItems(), 1000, 700, gSize=0.5, gOpacity=0.75, hiddenSize=7, reset=False)
+		ResetAtlasMaps(pp, pp.GetSelectedItems(), 1000, 700, gSize=0.8, gOpacity=0.5, hiddenSize=7, reset=False)
 
 ##MainForm
 #MenuLabels CreateMaps ProteinMap
@@ -62,7 +64,7 @@ vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'CreateMaps':
 		CreateMaps(pp.SelectedItems, epochs=10000, winSize=0, stretchFactor=0.1, repeats=1,
-			is3D=False, initExag=10.0, finalExag=2.0, glyphSize=0.8, glyphOpacity=0.1, saveTo='TestMaps')
+			is3D=False, initExag=10.0, finalExag=2.0, glyphSize=0.8, glyphOpacity=0.5, saveTo='TestMaps')
 
 	case 'ProteinMap':
 		CreateProteinMap(pp.SelectedItems)

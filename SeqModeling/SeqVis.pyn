@@ -4,6 +4,26 @@ import math
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
 PROTEIN_TABLE = 'Protein Table'
 
+def FilterSeq(D, P):
+	return ''.join([ c for c in D.upper() if c in P ])
+
+def OpenProteinTable():
+	if vv.Dataset.Name != PROTEIN_TABLE:
+		vv.Folder.OpenDataset(PROTEIN_TABLE)
+
+def GetProteinTable():
+	if vv.Dataset.Name != PROTEIN_TABLE:
+		pTable = vv.Folder.ReadDataset(PROTEIN_TABLE)
+	else:
+		pTable = vv.Dataset
+	return pTable
+
+def GetProteinSeq(pTable, pId):
+	rowIdx = pTable.IndexOfRow(pId)
+	return pTable.GetDataAt(rowIdx, 2)
+
+#-----------------------------------------------------------
+
 def GetProteinIds(gSymbol):
 	ds = vv.Folder.ReadDataset('Gene Features')	
 	for row in range(ds.Rows):
@@ -12,9 +32,6 @@ def GetProteinIds(gSymbol):
 			return pList.split(',')
 	print('Cannot find gene ' + gSymbol)
 	return None
-
-def FilterSeq(D, P):
-	return ''.join([ c for c in D.upper() if c in P ])
 
 # protein embedding map information
 class MapInfo():
@@ -45,15 +62,15 @@ def AddProteins(gSymbol):
 	import urllib.request
 	getUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&rettype=fasta&retmode=text&id='
 	pList = GetProteinIds(gSymbol)
-	if vv.Dataset.Name != PROTEIN_TABLE:
-		vv.Folder.OpenDataset(PROTEIN_TABLE)
+	OpenProteinTable()
 	P = {a:k for k,a in enumerate(ALPHABET)}
+	typeIdx = max([b.Type for b in vv.Dataset.BodyList]) + 1
 	for id in pList:
 		sFasta = urllib.request.urlopen(getUrl+id).read().decode('utf-8')
 		idx = sFasta.index('\n')
 		desc = sFasta[1:idx]
 		pSeq = FilterSeq(sFasta[idx:], P)
-		vv.Dataset.AddRow(id, gSymbol, 0, [desc,gSymbol,pSeq,str(len(pSeq))])
+		vv.Dataset.AddRow(id, gSymbol, typeIdx, [desc,gSymbol,pSeq,str(len(pSeq))])
 	vv.Dataset.CommitChanges()
 
 def ShowMapData(pMap):
@@ -63,13 +80,6 @@ def ShowMapData(pMap):
 	nt = NewDataset(pSeq, winSize=int(info.WinSize), stretchFactor=float(info.SFactor))
 	nt.ShowHeatMap().NormalizeView()
 
-def GetProteinTable():
-	pTable = vv.Folder.ReadDataset(PROTEIN_TABLE) if vv.Dataset.Name != PROTEIN_TABLE else vv.Dataset
-	return pTable
-
-def GetProteinSeq(pTable, pId):
-	rowIdx = pTable.IndexOfRow(pId)
-	return pTable.GetDataAt(rowIdx, 2)
 
 def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag):
 	if len(pList) <= 0:
@@ -83,22 +93,19 @@ def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize
 	info.FinalE = finalExag
 	info.PP = mds.PerplexityRatio
 	info.SFactor = stretchFactor
-	for pId in pList:
+	info.WinSize = winSize
+	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
-		wSize = max(5, int(0.012727*len(pSeq) + 23.638)) if winSize==0 else winSize
-		info.WinSize = wSize
-		nt = NewDataset(pSeq, winSize=wSize, stretchFactor=stretchFactor)
+		nt = NewDataset(pSeq, winSize=winSize, stretchFactor=stretchFactor)
 		mds.SetTrainingData(nt)
 		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
 		info.pId = pId
 		info.pLen = len(pSeq)
 		map = vv.LastView
-		map.Title = pId + ": " + f'N: {nt.Rows}'
+		map.Title = f'{k}: {pId}, N: {nt.Rows}'
 		map.Description = info.ToStr()
-
 	mds.Close()
-	if saveTo != None:
-		SaveToAtlas(saveTo)
+	SaveToAtlas(saveTo)
 
 def CreateProteinMap(idList):	
 	from collections import Counter
@@ -126,18 +133,24 @@ def CreateProteinMap(idList):
 	mds.RefreshFreq = 50
 	mds.Reset().Start()
 
-def SaveToAtlas(atName=None, x0=50, y0=50):
-	vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0).Close()
+def SaveToAtlas(atName, x0=50, y0=50):
+	if atName is not None:
+		vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0).Close()
 
-def NewDataset(D, winSize=10, stretchFactor=1.0, alphbetList=ALPHABET):
+def NewDataset(D, winSize=0, stretchFactor=1.0, alphbetList=ALPHABET):
 	P = {a:k for k,a in enumerate(alphbetList)}
 	dimP = len(P)
+
+	if winSize == 0:
+		#winSize = max(5, int(0.012727*len(pSeq) + 23.638))
+		winSize = max(5, int(6.086 + 0.015652*len(D)))
 
 	D = FilterSeq(D, P)
 	ww = [1.0 - k/winSize for k in range(winSize)]  # window weights
 	W = len(ww)
 	L = len(D)
 	
+
 	dt = np.zeros([len(D), dimP+1], np.float32)
 	for row, c in enumerate(D):
 		col0 = P[c]
@@ -163,7 +176,7 @@ def NewDataset(D, winSize=10, stretchFactor=1.0, alphbetList=ALPHABET):
 		nt.ColumnSpecList[col].Id = alphbetList[col]
 	return nt
 
-def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=2.5):
+def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0):
 	mds = New.MdsCluster(nt)
 	mds.Show()
 	mds.MaxLoops = epochs
@@ -179,7 +192,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=2.5):
 	mds.GlyphSet = '36 Clusters'
 	return mds
 
-def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.1):
+def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.5):
 	mds.Repeats = repeats
 	mds.Reset().Start()
 	if mds.Repeats == 1:
@@ -224,7 +237,7 @@ def ShowTracingSeq(pMap):
 
 def OnSeqSelection():
 	pMap = pp.Tag
-	if pMap.TheForm.IsDisposed:
+	if pMap.TheForm.IsDisposed or not vv.MouseButtons.LeftButtonPressed:
 		return
 	iBegin = pp.TextBox.SelectionStart
 	iEnd = pp.TextBox.SelectionStart + pp.TextBox.SelectionLength
@@ -259,9 +272,20 @@ def ResetAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpa
 		mp.NameLabelFont = New.Font('Microsoft Sans Serif', 18.0)
 		mp.Resize(0,0,mpWidth,mpHeight)
 		mp.NormalizeView()
+		info = MapInfo(mp.Description)
+		it.LabelStyle = 2
+		it.Name = info.pId
 		mp.Close()
 
-'''========================================================================================
+def CreateMapById(pMap): 
+	info = MapInfo(pMap.Description)
+	pTable = GetProteinTable()
+	pSeq = GetProteinSeq(pTable, info.pId)
+	nt = NewDataset(pSeq, winSize=int(info.WinSize), stretchFactor=float(info.SFactor))
+	mds = NewMds(nt, epochs=int(info.Epochs), is3D=False, initExag=float(info.InitE), finalExag=float(info.FinalE))
+	RunMds(mds)
+	vv.LastView.Description = info.ToStr()
 
+'''========================================================================================
 
 '''
