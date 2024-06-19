@@ -59,13 +59,17 @@ def AddProteins(gSymbol):
 def ShowMapData(pMap):
 	info = MapInfo(pMap.Description)
 	pTable = GetProteinTable()
-	pSeq = pTable.GetDataAt(pTable.IndexOfRow(info.pId), 2)
+	pSeq = GetProteinSeq(pTable, info.pId)
 	nt = NewDataset(pSeq, winSize=int(info.WinSize), stretchFactor=float(info.SFactor))
 	nt.ShowHeatMap().NormalizeView()
 
 def GetProteinTable():
 	pTable = vv.Folder.ReadDataset(PROTEIN_TABLE) if vv.Dataset.Name != PROTEIN_TABLE else vv.Dataset
 	return pTable
+
+def GetProteinSeq(pTable, pId):
+	rowIdx = pTable.IndexOfRow(pId)
+	return pTable.GetDataAt(rowIdx, 2)
 
 def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag):
 	if len(pList) <= 0:
@@ -80,8 +84,7 @@ def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize
 	info.PP = mds.PerplexityRatio
 	info.SFactor = stretchFactor
 	for pId in pList:
-		rowIdx = pTable.IndexOfRow(pId)
-		pSeq = pTable.GetDataAt(rowIdx, 2)
+		pSeq = GetProteinSeq(pTable, pId)
 		wSize = max(5, int(0.012727*len(pSeq) + 23.638)) if winSize==0 else winSize
 		info.WinSize = wSize
 		nt = NewDataset(pSeq, winSize=wSize, stretchFactor=stretchFactor)
@@ -110,9 +113,7 @@ def CreateProteinMap(idList):
 		bsList = pTable.BodyListForId(idList)
 	nt = New.NumberTable(bsList, columns)
 	for row in range(rows):
-		pId = idList[row]
-		pIdx = pTable.IndexOfRow(pId)
-		pSeq = pTable.GetDataAt(pIdx, 2)
+		pSeq = GetProteinSeq(pTable, idList[row])
 		pCnt = Counter(pSeq)
 		R = nt.Matrix[row]
 		fct = 10000/len(pSeq)
@@ -210,6 +211,38 @@ def Scanning(pMap):
 		vv.Sleep(50)
 		if pMap.SelectedItems.Count == 0:
 			break
+#------------------
+def ShowTracingSeq(pMap):
+	info = MapInfo(pMap.Description)
+	pSeq = GetProteinSeq(GetProteinTable(), info.pId)
+	tp = New.TextPanel("Protein Sequence", pSeq)
+	tp.Tag = pMap
+	pMap.Tag = tp
+	tp.OnSelection = '@OnSeqSelection()'
+	pMap.AddEventHandler('ItemsSelected', '@OnSeqSelected()')
+	tp.Show()
+
+def OnSeqSelection():
+	pMap = pp.Tag
+	if pMap.TheForm.IsDisposed:
+		return
+	iBegin = pp.TextBox.SelectionStart
+	iEnd = pp.TextBox.SelectionStart + pp.TextBox.SelectionLength
+	pMap.SelectedItems = [f'R{i}' for i in range(iBegin, iEnd)]
+
+def OnSeqSelected():
+	tp = pp.Tag	
+	if tp.TheForm.IsDisposed: 
+		return
+	tb = tp.TextBox
+	idxList = [int(id[1:]) for id in pp.SelectedItems]
+	if len(idxList) == 0:
+		tb.Select(0, 0)
+		return				
+	idxMax, idxMin = max(idxList), min(idxList)
+	tb.Select(idxMin, idxMax - idxMin + 1)
+	tp.TheForm.Activate()
+#------------------
 
 def ResetAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=False):
 	for it in itemList:

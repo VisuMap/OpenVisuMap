@@ -39,13 +39,15 @@ match vv.EventSource.Item:
 			AddProteins(txtTable.Matrix[0][0])
 
 ##MapSnapshot
-#MenuLabels ShowData Scanning
+#MenuLabels ShowData Scanning ShowSeq
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'ShowData':
 		ShowMapData(pp)
 	case 'Scanning':
 		Scanning(pp)
+	case 'ShowSeq':
+		ShowTracingSeq(pp)
 
 ##Atlas
 #MenuLabels ResetMaps
