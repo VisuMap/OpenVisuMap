@@ -1,3 +1,7 @@
+'''
+vv.RunScript('UnInstall.pyn')
+'''
+
 if vv.ScriptDirectories.find( vv.CurrentScriptDirectory ) < 0:
 	vv.ScriptDirectories += ";" + vv.CurrentScriptDirectory
 
@@ -34,6 +38,14 @@ match vv.EventSource.Item:
 		else:
 			AddProteins(txtTable.Matrix[0][0])
 
+##MapSnapshot
+#MenuLabels ShowData Scanning
+vv.Import('SeqVis.pyn')
+match vv.EventSource.Item:
+	case 'ShowData':
+		ShowMapData(pp)
+	case 'Scanning':
+		Scanning(pp)
 
 ##Atlas
 #MenuLabels ResetMaps
@@ -48,7 +60,7 @@ vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'CreateMaps':
 		CreateMaps(pp.SelectedItems, epochs=10000, winSize=0, stretchFactor=0.1, repeats=1,
-			is3D=False, initExag=10.0, finalExag=2.0, glyphSize=0.8, glyphOpacity=0.1, saveTo=None) # 'AllMaps')
+			is3D=False, initExag=10.0, finalExag=2.0, glyphSize=0.8, glyphOpacity=0.1, saveTo='TestMaps')
 
 	case 'ProteinMap':
 		CreateProteinMap(pp.SelectedItems)

@@ -27,6 +27,7 @@ class MapInfo():
 		self.FinalE = None
 		self.PP = None
 		self.WinSize = None
+		self.SFactor = None
 		if initStr is not None:
 			self.ParseStr(initStr)
 	def ToStr(self):
@@ -55,6 +56,12 @@ def AddProteins(gSymbol):
 		vv.Dataset.AddRow(id, gSymbol, 0, [desc,gSymbol,pSeq,str(len(pSeq))])
 	vv.Dataset.CommitChanges()
 
+def ShowMapData(pMap):
+	info = MapInfo(pMap.Description)
+	pTable = GetProteinTable()
+	pSeq = pTable.GetDataAt(pTable.IndexOfRow(info.pId), 2)
+	nt = NewDataset(pSeq, winSize=int(info.WinSize), stretchFactor=float(info.SFactor))
+	nt.ShowHeatMap().NormalizeView()
 
 def GetProteinTable():
 	pTable = vv.Folder.ReadDataset(PROTEIN_TABLE) if vv.Dataset.Name != PROTEIN_TABLE else vv.Dataset
@@ -71,6 +78,7 @@ def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize
 	info.InitE = initExag
 	info.FinalE = finalExag
 	info.PP = mds.PerplexityRatio
+	info.SFactor = stretchFactor
 	for pId in pList:
 		rowIdx = pTable.IndexOfRow(pId)
 		pSeq = pTable.GetDataAt(rowIdx, 2)
@@ -193,13 +201,6 @@ def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.1):
 	return mds
 
 
-def DoTest(D, winSize=20, stretchFactor=1.0, is3D=False, repeats=1):
-	nt = NewDataset(D, winSize=winSize, stretchFactor=stretchFactor)
-	mds = NewMds(nt, is3D)
-	RunMds(mds, repeats)
-	return mds
-
-
 def Scanning(pMap):
 	K = 100
 	bsList = [b.Id for b in pMap.BodyList]
@@ -229,35 +230,5 @@ def ResetAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpa
 
 '''========================================================================================
 
-info = MapInfo('pId:AGQ48858.1;pLen:790;Epochs:10000;InitE:10.0;FinalE:2.0;PP:0.05;WinSize:33')
-print(info.ToStr())
-CreateMaps(pp)
-
-SYNE2 = FilterSeq(SYNE2)
-
-vv.Dataset.SetDataAt(11, 2, SYNE2)
-
-print(SYNE2)
-100 - 0.012727*6000
-
-int(0.12727*500 - 663.6)
-
-import random
-s = int(len(SYNE2)/2)
-#T = SYNE2[:s]
-#T = SYNE2
-T = []
-for c in FilterSeq(SYNE2):
-	if random.uniform(0,1)>0.01:
-		T.append(c)
-	else:
-		T.append('A')
-T = ''.join(T)
-
-for D in [SYNE2, T]:	DoTest(D, winSize=50, stretchFactor=0.1, is3D=False, repeats=1).Close()
-
-NewDataset(SYNE2, winSize=50, stretchFactor=0.1).ShowHeatMap()
-
-DoTest(SYNE2, winSize=50, stretchFactor=0.1, is3D=False, repeats=1).Close()
 
 '''
