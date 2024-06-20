@@ -51,6 +51,19 @@ match vv.EventSource.Item:
 	case ReCreatMap:
 		CreateMapById(pp)
 
+##D3dRender
+#MenuLabels ShowData Scanning ShowSeq ReCreatMap
+vv.Import('SeqVis.pyn')
+match vv.EventSource.Item:
+	case 'ShowData':
+		ShowMapData(pp)
+	case 'Scanning':
+		Scanning(pp)
+	case 'ShowSeq':
+		ShowTracingSeq(pp)
+	case ReCreatMap:
+		CreateMapById(pp)
+
 ##Atlas
 #MenuLabels ResetMaps
 vv.Import('SeqVis.pyn')

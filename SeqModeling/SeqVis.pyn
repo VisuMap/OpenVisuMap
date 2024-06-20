@@ -98,6 +98,7 @@ def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize
 	info.Is3D = is3D
 	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
+		mds.FinalExaggeration = 2.0 if len(pSeq) > 500 else 1.0
 		nt = NewDataset(pSeq, winSize=winSize, stretchFactor=stretchFactor)
 		mds.SetTrainingData(nt)
 		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
@@ -106,8 +107,10 @@ def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize
 		map = vv.LastView
 		map.Title = f'{k}: {pId}, N: {nt.Rows}'
 		map.Description = info.ToStr()
+		if (k+1)%8 == 0:
+			SaveToAtlas(saveTo, is3D)
 	mds.Close()
-	SaveToAtlas(saveTo)
+	SaveToAtlas(saveTo, is3D)
 
 def CreateProteinMap(idList):	
 	from collections import Counter
@@ -135,9 +138,10 @@ def CreateProteinMap(idList):
 	mds.RefreshFreq = 50
 	mds.Reset().Start()
 
-def SaveToAtlas(atName, x0=50, y0=50):
+def SaveToAtlas(atName, is3D, x0=50, y0=50):
+	vwName = 'D3dRender' if is3D else 'MapSnapshot'
 	if atName is not None:
-		vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0).Close()
+		vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0, vwName).Close()
 
 def NewDataset(D, winSize=0, stretchFactor=1.0, alphbetList=ALPHABET):
 	P = {a:k for k,a in enumerate(alphbetList)}
