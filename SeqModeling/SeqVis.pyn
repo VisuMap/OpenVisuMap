@@ -22,16 +22,10 @@ def GetProteinSeq(pTable, pId):
 	rowIdx = pTable.IndexOfRow(pId)
 	return pTable.GetDataAt(rowIdx, 2)
 
-#-----------------------------------------------------------
-
-def GetProteinIds(gSymbol):
-	ds = vv.Folder.ReadDataset('Gene Features')	
-	for row in range(ds.Rows):
-		if ds.GetDataAt(row, 5) == gSymbol:
-			pList = ds.GetDataAt(row, 17)
-			return pList.split(',')
-	print('Cannot find gene ' + gSymbol)
-	return None
+def SaveToAtlas(atName, is3D, x0=50, y0=50):
+	vwName = 'D3dRender' if is3D else 'MapSnapshot'
+	if atName is not None:
+		vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0, vwName).Close()
 
 # protein embedding map information
 class MapInfo():
@@ -59,10 +53,26 @@ class MapInfo():
 				if len(fs) == 2:
 					dic[fs[0]] = fs[1]
 
-def AddProteins(gSymbol):
+#-----------------------------------------------------------
+# Code to maintain the protein table.
+#-----------------------------------------------------------
+ 
+def GetProteinIds(gSymbol):
+	ds = vv.Folder.ReadDataset('Gene Features')	
+	for row in range(ds.Rows):
+		if ds.GetDataAt(row, 5) == gSymbol:
+			pList = ds.GetDataAt(row, 17)
+			return pList.split(',')
+	print('Cannot find gene ' + gSymbol)
+	return None
+
+
+def AddProteins(gSymbol, maxCount=0):
 	import urllib.request
 	getUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&rettype=fasta&retmode=text&id='
 	pList = GetProteinIds(gSymbol)
+	if maxCount != 0:
+		pList = pList[:maxCount]
 	OpenProteinTable()
 	P = {a:k for k,a in enumerate(ALPHABET)}
 	typeIdx = max([b.Type for b in vv.Dataset.BodyList]) + 1
@@ -73,44 +83,6 @@ def AddProteins(gSymbol):
 		pSeq = FilterSeq(sFasta[idx:], P)
 		vv.Dataset.AddRow(id, gSymbol, typeIdx, [desc,gSymbol,pSeq,str(len(pSeq))])
 	vv.Dataset.CommitChanges()
-
-def ShowMapData(pMap):
-	info = MapInfo(pMap.Description)
-	pTable = GetProteinTable()
-	pSeq = GetProteinSeq(pTable, info.pId)
-	nt = NewDataset(pSeq, winSize=int(info.WinSize), stretchFactor=float(info.SFactor))
-	nt.ShowHeatMap().NormalizeView()
-
-
-def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag):
-	if len(pList) <= 0:
-		vv.Message("No protein group selected")
-		vv.Return(0)
-	pTable = GetProteinTable()
-	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag)
-	info = MapInfo()
-	info.Epochs = epochs
-	info.InitE = initExag
-	info.FinalE = finalExag
-	info.PP = mds.PerplexityRatio
-	info.SFactor = stretchFactor
-	info.WinSize = winSize
-	info.Is3D = is3D
-	for k, pId in enumerate(pList):
-		pSeq = GetProteinSeq(pTable, pId)
-		mds.FinalExaggeration = 2.0 if len(pSeq) > 500 else 1.0
-		nt = NewDataset(pSeq, winSize=winSize, stretchFactor=stretchFactor)
-		mds.SetTrainingData(nt)
-		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
-		info.pId = pId
-		info.pLen = len(pSeq)
-		map = vv.LastView
-		map.Title = f'{k}: {pId}, N: {nt.Rows}'
-		map.Description = info.ToStr()
-		if (k+1)%8 == 0:
-			SaveToAtlas(saveTo, is3D)
-	mds.Close()
-	SaveToAtlas(saveTo, is3D)
 
 def CreateProteinMap(idList):	
 	from collections import Counter
@@ -138,30 +110,23 @@ def CreateProteinMap(idList):
 	mds.RefreshFreq = 50
 	mds.Reset().Start()
 
-def SaveToAtlas(atName, is3D, x0=50, y0=50):
-	vwName = 'D3dRender' if is3D else 'MapSnapshot'
-	if atName is not None:
-		vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0, vwName).Close()
+#-----------------------------------------------------------
 
 def NewDataset(D, winSize=0, stretchFactor=1.0, alphbetList=ALPHABET):
 	P = {a:k for k,a in enumerate(alphbetList)}
 	dimP = len(P)
-
 	if winSize == 0:
-		#winSize = max(5, int(0.012727*len(pSeq) + 23.638))
 		winSize = max(5, int(6.086 + 0.015652*len(D)))
-
 	D = FilterSeq(D, P)
 	ww = [1.0 - k/winSize for k in range(winSize)]  # window weights
 	W = len(ww)
 	L = len(D)
 	
-
 	dt = np.zeros([len(D), dimP+1], np.float32)
 	for row, c in enumerate(D):
 		col0 = P[c]
-		#W0 = -W+1  # symmetric window
-		W0 = -5
+		W0 = -W+1  # symmetric window
+		#W0 = -5
 		for w in range(W0, W):
 			row_w = row + w
 			if row_w < 0 or row_w >= L:
@@ -202,24 +167,55 @@ def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.5):
 	mds.Repeats = repeats
 	mds.Reset().Start()
 	if mds.Repeats == 1:
-		mds.Show2DView()
-
-	for frm in vv.FindFormList('MapSnapshot'):
 		if mds.Is3D:
-			frm.Show3DView()	
-			frm.Close()
-			f3d = vv.LastView
-			f3d.NormalizeView()
-			f3d.GlyphOpacity = glyphOpacity
-			f3d.GlyphSize = glyphSize
-			f3d.Redraw()
+			mp = mds.Show3DView()
+			mp.NormalizeView()
 		else:
-			frm.GlyphOpacity = glyphOpacity
-			frm.GlyphSize = glyphSize
-			frm.Redraw()
-			frm.NormalizeView()
+			mp = mds.Show2DView()
+	else:
+		mp = vv.LastView
+	mp.GlyphOpacity = glyphOpacity
+	mp.GlyphSize = glyphSize
+	mp.Redraw()
 	return mds
 
+#-------------------------------------------------------------------
+
+def ShowMapData(pMap):
+	info = MapInfo(pMap.Description)
+	pTable = GetProteinTable()
+	pSeq = GetProteinSeq(pTable, info.pId)
+	nt = NewDataset(pSeq, winSize=int(info.WinSize), stretchFactor=float(info.SFactor))
+	nt.ShowHeatMap().NormalizeView()
+
+def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag):
+	if len(pList) <= 0:
+		vv.Message("No protein group selected")
+		vv.Return(0)
+	pTable = GetProteinTable()
+	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag)
+	info = MapInfo()
+	info.Epochs = epochs
+	info.InitE = initExag
+	info.FinalE = finalExag
+	info.PP = mds.PerplexityRatio
+	info.SFactor = stretchFactor
+	info.WinSize = winSize
+	info.Is3D = is3D
+	for k, pId in enumerate(pList):
+		pSeq = GetProteinSeq(pTable, pId)
+		nt = NewDataset(pSeq, winSize=winSize, stretchFactor=stretchFactor)
+		mds.SetTrainingData(nt)
+		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
+		info.pId = pId
+		info.pLen = len(pSeq)
+		map = vv.LastView
+		map.Title = f'{k}: {pId}, N: {nt.Rows}'
+		map.Description = info.ToStr()
+		if (k+1)%8 == 0:
+			SaveToAtlas(saveTo, is3D)
+	mds.Close()
+	SaveToAtlas(saveTo, is3D)
 
 def Scanning(pMap):
 	K = 100
@@ -230,7 +226,9 @@ def Scanning(pMap):
 		vv.Sleep(50)
 		if pMap.SelectedItems.Count == 0:
 			break
-#------------------
+
+#-------------------------------------------------------------------
+
 def ShowTracingSeq(pMap):
 	info = MapInfo(pMap.Description)
 	pSeq = GetProteinSeq(GetProteinTable(), info.pId)
@@ -261,7 +259,8 @@ def OnSeqSelected():
 	idxMax, idxMin = max(idxList), min(idxList)
 	tb.Select(idxMin, idxMax - idxMin + 1)
 	tp.TheForm.Activate()
-#------------------
+
+#-----------------------------------------------------------------------
 
 def ResetAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=False):
 	for it in itemList:
@@ -293,5 +292,7 @@ def CreateMapById(pMap):
 	vv.LastView.Description = info.ToStr()
 
 '''========================================================================================
+pList = [1,2,3,4]
+aaa = pList[:20]
 
 '''
