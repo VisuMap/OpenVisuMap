@@ -220,12 +220,13 @@ def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize
 def Scanning(pMap):
 	K = 100
 	bsList = [b.Id for b in pMap.BodyList]
-	for k in range(0, len(bsList), 10):
-		#pMap.SelectedItems = bsList[k:k+K]
-		vv.SelectedItems = bsList[k:k+K]
-		vv.Sleep(50)
-		if pMap.SelectedItems.Count == 0:
-			break
+	for pause in [50, 150]:
+		for k in range(0, len(bsList), 10):
+			vv.SelectedItems = bsList[k:k+K]
+			vv.Sleep(pause)
+			if pMap.SelectedItems.Count == 0: 
+				return
+		vv.Sleep(1000)
 
 #-------------------------------------------------------------------
 
