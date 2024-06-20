@@ -45,6 +45,7 @@ class MapInfo():
 		self.PP = None
 		self.WinSize = None
 		self.SFactor = None
+		self.Is3D = None
 		if initStr is not None:
 			self.ParseStr(initStr)
 	def ToStr(self):
@@ -94,6 +95,7 @@ def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize
 	info.PP = mds.PerplexityRatio
 	info.SFactor = stretchFactor
 	info.WinSize = winSize
+	info.Is3D = is3D
 	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
 		nt = NewDataset(pSeq, winSize=winSize, stretchFactor=stretchFactor)
@@ -200,7 +202,7 @@ def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.5):
 
 	for frm in vv.FindFormList('MapSnapshot'):
 		if mds.Is3D:
-			frm.ClickMenu('3D Animation View...')		
+			frm.Show3DView()	
 			frm.Close()
 			f3d = vv.LastView
 			f3d.NormalizeView()
@@ -282,7 +284,7 @@ def CreateMapById(pMap):
 	pTable = GetProteinTable()
 	pSeq = GetProteinSeq(pTable, info.pId)
 	nt = NewDataset(pSeq, winSize=int(info.WinSize), stretchFactor=float(info.SFactor))
-	mds = NewMds(nt, epochs=int(info.Epochs), is3D=False, initExag=float(info.InitE), finalExag=float(info.FinalE))
+	mds = NewMds(nt, epochs=int(info.Epochs), is3D=eval(info.Is3D), initExag=float(info.InitE), finalExag=float(info.FinalE))
 	RunMds(mds)
 	vv.LastView.Description = info.ToStr()
 
