@@ -121,13 +121,15 @@ def AugmentData(N, augCfg='a|500|2.0|2.0'):
 	a = 2.0*math.pi/spanCount
 	sX = spanSize/spanCount
 	for n in range(N):
-		A[n] = math.sin(n*a), math.cos(n*a), n*sX
+		A[n] = math.sin(n*a), 1.2*math.cos(n*a), n*sX
 	return spanScale*A
 
 def NewDataset(S, winSize=0, stretchFactor=1.0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
 	P = {a:k for k,a in enumerate(alphbetList)}
 	S = FilterSeq(S, P)
-	if winSize == 0: winSize = max(5, int(6.086 + 0.015652*len(S)))
+	if winSize == 0: 
+		winSize = int(6.086 + 0.015652*len(S))
+		winSize = max(5, int(0.5*winSize))
 	ww = [1.0 - k/winSize for k in range(winSize)]  # window weights
 	W, L, dimP = len(ww), len(S), len(P)
 
@@ -194,7 +196,8 @@ def ShowMapData(pMap):
 	nt = NewDataset(pSeq, winSize=int(info.WinSize), stretchFactor=float(info.SFactor))
 	nt.ShowHeatMap().NormalizeView()
 
-def CreateMaps(pList, epochs, winSize, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag, augCfg='a|500|2.0|2.0'):
+def CreateMaps(pList, epochs=10000, winSize=0, repeats=1, saveTo=None, glyphSize=0.8, 
+		glyphOpacity=0.5, is3D=False, initExag=10.0, finalExag=1.0, augCfg='a|500|2.0|2.0'):
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
 		vv.Return(0)
