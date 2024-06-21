@@ -38,8 +38,8 @@ class MapInfo():
 		self.FinalE = None
 		self.PP = None
 		self.WinSize = None
-		self.SFactor = None
-		self.Is3D = None
+		self.AugCfg = None
+		self.Is3D = None		
 		if initStr is not None:
 			self.ParseStr(initStr)
 	def ToStr(self):
@@ -112,18 +112,30 @@ def CreateProteinMap(idList):
 
 #-----------------------------------------------------------
 
-def NewDataset(D, winSize=0, stretchFactor=1.0, alphbetList=ALPHABET):
+def AugmentData(N, augCfg='a|500|2.0|2.0'):
+	fs = augCfg.split('|')
+	spanCount = int(fs[1])
+	spanSize = float(fs[2])
+	spanScale = float(fs[3])
+	A = np.zeros((N, 3), np.float32 )
+	a = 2.0*math.pi/spanCount
+	sX = spanSize/spanCount
+	for n in range(N):
+		A[n] = math.sin(n*a), math.cos(n*a), n*sX
+	return spanScale*A
+
+def NewDataset(S, winSize=0, stretchFactor=1.0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
 	P = {a:k for k,a in enumerate(alphbetList)}
-	dimP = len(P)
-	if winSize == 0:
-		winSize = max(5, int(6.086 + 0.015652*len(D)))
-	D = FilterSeq(D, P)
+	S = FilterSeq(S, P)
+	if winSize == 0: winSize = max(5, int(6.086 + 0.015652*len(S)))
 	ww = [1.0 - k/winSize for k in range(winSize)]  # window weights
-	W = len(ww)
-	L = len(D)
-	
-	dt = np.zeros([len(D), dimP+1], np.float32)
-	for row, c in enumerate(D):
+	W, L, dimP = len(ww), len(S), len(P)
+
+	augData = AugmentData(L, augCfg)
+	dt = np.zeros([len(S), dimP+augData.shape[1]], np.float32)
+	dt[:, dimP:] = augData
+
+	for row, c in enumerate(S):
 		col0 = P[c]
 		W0 = -W+1  # symmetric window
 		#W0 = -5
@@ -131,16 +143,10 @@ def NewDataset(D, winSize=0, stretchFactor=1.0, alphbetList=ALPHABET):
 			row_w = row + w
 			if row_w < 0 or row_w >= L:
 				continue
-			col = P[D[row_w]]
-			dt[row, col] += ww[abs(w)]
-	
-	dt[:, -1] = [stretchFactor * t * winSize/4000.0 for t in range(L)]
-	rowWeight = np.array([1+0.02*k for k in range(dimP)])
-	dt2 = rowWeight * dt[:, :-1]
-	dt[:, :-1] = dt2
-
+			col = P[S[row_w]]
+			dt[row, col] += ww[abs(w)]	
 	nt = mm.ToTable(dt)
-	for k, c in enumerate(D):
+	for k, c in enumerate(S):
 		nt.RowSpecList[k].Name = c
 		nt.RowSpecList[k].Type = P[c]
 	for col in range(dimP):
@@ -188,7 +194,7 @@ def ShowMapData(pMap):
 	nt = NewDataset(pSeq, winSize=int(info.WinSize), stretchFactor=float(info.SFactor))
 	nt.ShowHeatMap().NormalizeView()
 
-def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag):
+def CreateMaps(pList, epochs, winSize, repeats, saveTo, glyphSize, glyphOpacity, is3D, initExag, finalExag, augCfg='a|500|2.0|2.0'):
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
 		vv.Return(0)
@@ -199,12 +205,12 @@ def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize
 	info.InitE = initExag
 	info.FinalE = finalExag
 	info.PP = mds.PerplexityRatio
-	info.SFactor = stretchFactor
-	info.WinSize = winSize
+	info.WinSize = winSize	
 	info.Is3D = is3D
+	info.AugCfg = augCfg
 	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
-		nt = NewDataset(pSeq, winSize=winSize, stretchFactor=stretchFactor)
+		nt = NewDataset(pSeq, winSize=winSize, augCfg=augCfg)
 		mds.SetTrainingData(nt)
 		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
 		info.pId = pId
@@ -217,6 +223,12 @@ def CreateMaps(pList, epochs, winSize, stretchFactor, repeats, saveTo, glyphSize
 	mds.Close()
 	SaveToAtlas(saveTo, is3D)
 
+def CreateOneMap(pSeq, epochs=10000, winSize=0, repeats=1, 
+		saveTo=None, glyphSize=0.8, glyphOpacity=0.5, is3D=True, initExag=10.0, finalExag=1.0,  augCfg='a|500|2.0|2.0'):
+	nt = NewDataset(pSeq, winSize=winSize, augCfg=augCfg)
+	mds = NewMds(nt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag)
+	mds.Reset().Start()
+
 def Scanning(pMap):
 	K = 100
 	bsList = [b.Id for b in pMap.BodyList]
@@ -224,8 +236,7 @@ def Scanning(pMap):
 		for k in range(0, len(bsList), 10):
 			vv.SelectedItems = bsList[k:k+K]
 			vv.Sleep(pause)
-			if pMap.SelectedItems.Count == 0: 
-				return
+			if pMap.SelectedItems.Count == 0: return
 		vv.Sleep(1000)
 
 #-------------------------------------------------------------------
@@ -296,4 +307,9 @@ def CreateMapById(pMap):
 pList = [1,2,3,4]
 aaa = pList[:20]
 
+pSeq = GetProteinSeq(GetProteinTable(), 'SYNE2')
+pSeq = GetProteinSeq(GetProteinTable(), 'NP_001394894.1')
+
+
+CreateOneMap(pSeq, augCfg='a|500|2.0|2.0')
 '''

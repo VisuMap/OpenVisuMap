@@ -19,16 +19,16 @@ InstallMenu('''
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'CreateMaps':
-		CreateMaps(list(pp.GetSelectedMembers()), epochs=10000, winSize=0, stretchFactor=0.1, repeats=1,
-			is3D=True, initExag=10.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo=None)
+		CreateMaps(list(pp.GetSelectedMembers()), epochs=10000, winSize=0, repeats=1,
+			is3D=True, initExag=10.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo=None,  augCfg='a|500|2.0|2.0')
 
 ##DataDetails
 #MenuLabels CreateMaps ProteinMap LoadSeq
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'CreateMaps':
-		CreateMaps(list(reversed(pp.SelectedItems)), epochs=10000, winSize=0, stretchFactor=0.1, repeats=1,
-			is3D=False, initExag=10.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo=None) # 'AllMaps')
+		CreateMaps(list(reversed(pp.SelectedItems)), epochs=10000, winSize=0, repeats=1,
+			is3D=False, initExag=10.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo=None,  augCfg='a|500|2.0|2.0') # 'AllMaps')
 	case 'ProteinMap':
 		CreateProteinMap(pp.SelectedItems)
 	case 'LoadSeq':
@@ -76,8 +76,8 @@ match vv.EventSource.Item:
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'CreateMaps':
-		CreateMaps(pp.SelectedItems, epochs=10000, winSize=0, stretchFactor=0.1, repeats=1,
-			is3D=False, initExag=10.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo='TestMaps')
+		CreateMaps(pp.SelectedItems, epochs=10000, winSize=0, repeats=1,
+			is3D=False, initExag=10.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo='TestMaps', augCfg='a|500|2.0|2.0')
 	case 'ProteinMap':
 		CreateProteinMap(pp.SelectedItems)
 ''')
