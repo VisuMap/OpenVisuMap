@@ -66,7 +66,6 @@ def GetProteinIds(gSymbol):
 	print('Cannot find gene ' + gSymbol)
 	return None
 
-
 def AddProteins(gSymbol, maxCount=0):
 	import urllib.request
 	getUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&rettype=fasta&retmode=text&id='
@@ -121,7 +120,8 @@ def AugmentData(N, augCfg='a|500|2.0|2.0'):
 	a = 2.0*math.pi/spanCount
 	sX = spanSize/spanCount
 	for n in range(N):
-		A[n] = math.sin(n*a), 1.2*math.cos(n*a), n*sX
+		c = 1.0 + 2.5*n/N
+		A[n] = math.sin(n*a), c*math.cos(n*a), n*sX
 	return spanScale*A
 
 def NewDataset(S, winSize=0, stretchFactor=1.0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
@@ -155,14 +155,14 @@ def NewDataset(S, winSize=0, stretchFactor=1.0, alphbetList=ALPHABET, augCfg='a|
 		nt.ColumnSpecList[col].Id = alphbetList[col]
 	return nt
 
-def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0):
+def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.05):
 	mds = New.MdsCluster(nt)
 	mds.Show()
 	mds.MaxLoops = epochs
 	mds.RefreshFreq = 500
 	mds.InitialExaggeration = initExag
 	mds.FinalExaggeration = finalExag
-	mds.PerplexityRatio = 0.05
+	mds.PerplexityRatio = pp
 	mds.Metric = 'EuclideanMetric'
 	mds.Repeats = 1
 	mds.ReadOnly = True
@@ -180,11 +180,11 @@ def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.5):
 			mp.NormalizeView()
 		else:
 			mp = mds.Show2DView()
-	else:
-		mp = vv.LastView
-	mp.GlyphOpacity = glyphOpacity
-	mp.GlyphSize = glyphSize
-	mp.Redraw()
+	mpName = 'D3dRender' if mds.Is3D else 'MapSnapshot'
+	for mp in vv.FindFormList(mpName):
+		mp.GlyphOpacity = glyphOpacity
+		mp.GlyphSize = glyphSize
+		mp.Redraw()
 	return mds
 
 #-------------------------------------------------------------------
@@ -193,16 +193,16 @@ def ShowMapData(pMap):
 	info = MapInfo(pMap.Description)
 	pTable = GetProteinTable()
 	pSeq = GetProteinSeq(pTable, info.pId)
-	nt = NewDataset(pSeq, winSize=int(info.WinSize), stretchFactor=float(info.SFactor))
+	nt = NewDataset(pSeq, winSize=int(info.WinSize), augCfg=info.AugCfg)
 	nt.ShowHeatMap().NormalizeView()
 
-def CreateMaps(pList, epochs=10000, winSize=0, repeats=1, saveTo=None, glyphSize=0.8, 
+def CreateMaps(pList, epochs=10000, winSize=0, repeats=1, saveTo=None, glyphSize=0.8, pp=0.05,
 		glyphOpacity=0.5, is3D=False, initExag=10.0, finalExag=1.0, augCfg='a|500|2.0|2.0'):
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
 		vv.Return(0)
 	pTable = GetProteinTable()
-	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag)
+	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp)
 	info = MapInfo()
 	info.Epochs = epochs
 	info.InitE = initExag
@@ -226,10 +226,10 @@ def CreateMaps(pList, epochs=10000, winSize=0, repeats=1, saveTo=None, glyphSize
 	mds.Close()
 	SaveToAtlas(saveTo, is3D)
 
-def CreateOneMap(pSeq, epochs=10000, winSize=0, repeats=1, 
+def CreateOneMap(pSeq, epochs=10000, winSize=0, repeats=1, pp=0.05,
 		saveTo=None, glyphSize=0.8, glyphOpacity=0.5, is3D=True, initExag=10.0, finalExag=1.0,  augCfg='a|500|2.0|2.0'):
 	nt = NewDataset(pSeq, winSize=winSize, augCfg=augCfg)
-	mds = NewMds(nt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag)
+	mds = NewMds(nt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp)
 	mds.Reset().Start()
 
 def Scanning(pMap):
@@ -291,19 +291,20 @@ def ResetAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpa
 		mp.NameLabelColor = New.Color('Yellow')
 		mp.NameLabelFont = New.Font('Microsoft Sans Serif', 18.0)
 		mp.Resize(0,0,mpWidth,mpHeight)
-		mp.NormalizeView()
+		#mp.NormalizeView()
 		info = MapInfo(mp.Description)
 		it.LabelStyle = 2
 		it.Name = info.pId
 		mp.Close()
 
-def CreateMapById(pMap): 
+def CreateMapById(pMap, repeats=1):
 	info = MapInfo(pMap.Description)
 	pTable = GetProteinTable()
 	pSeq = GetProteinSeq(pTable, info.pId)
-	nt = NewDataset(pSeq, winSize=int(info.WinSize), stretchFactor=float(info.SFactor))
-	mds = NewMds(nt, epochs=int(info.Epochs), is3D=eval(info.Is3D), initExag=float(info.InitE), finalExag=float(info.FinalE))
-	RunMds(mds)
+	nt = NewDataset(pSeq, winSize=int(info.WinSize), augCfg=info.AugCfg)
+	mds = NewMds(nt, epochs=int(info.Epochs), is3D=eval(info.Is3D), 
+		initExag=float(info.InitE), finalExag=float(info.FinalE), pp=float(info.PP))
+	RunMds(mds, repeats=repeats,)
 	vv.LastView.Description = info.ToStr()
 
 '''========================================================================================
