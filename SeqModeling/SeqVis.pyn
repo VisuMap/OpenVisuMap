@@ -109,34 +109,16 @@ def CreateProteinMap(idList):
 	mds.RefreshFreq = 50
 	mds.Reset().Start()
 
-#-----------------------------------------------------------
+#-----------------------------------------------------------------------------
 
-def AugmentData(N, augCfg='a|500|2.0|2.0'):
-	fs = augCfg.split('|')
-	spanCount = int(fs[1])
-	spanSize = float(fs[2])
-	spanScale = float(fs[3])
-	A = np.zeros((N, 3), np.float32 )
-	a = 2.0*math.pi/spanCount
-	sX = spanSize/spanCount
-	for n in range(N):
-		c = 1.0 + 2.5*n/N
-		A[n] = math.sin(n*a), c*math.cos(n*a), n*sX
-	return spanScale*A
-
-def NewDataset(S, winSize=0, stretchFactor=1.0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
-	P = {a:k for k,a in enumerate(alphbetList)}
+def NewDataset0(P, S, winSize):
 	S = FilterSeq(S, P)
 	if winSize == 0: 
 		winSize = int(6.086 + 0.015652*len(S))
 		winSize = max(5, int(0.5*winSize))
 	ww = [1.0 - k/winSize for k in range(winSize)]  # window weights
-	W, L, dimP = len(ww), len(S), len(P)
-
-	augData = AugmentData(L, augCfg)
-	dt = np.zeros([len(S), dimP+augData.shape[1]], np.float32)
-	dt[:, dimP:] = augData
-
+	W, L = len(ww), len(S)
+	dt = np.zeros([len(S), len(P)], np.float32)
 	for row, c in enumerate(S):
 		col0 = P[c]
 		W0 = -W+1  # symmetric window
@@ -147,15 +129,34 @@ def NewDataset(S, winSize=0, stretchFactor=1.0, alphbetList=ALPHABET, augCfg='a|
 				continue
 			col = P[S[row_w]]
 			dt[row, col] += ww[abs(w)]	
+	return dt
+
+def AugmentData(N, augCfg='a|500|2.0|2.0', phase=0.0):
+	fs = augCfg.split('|')
+	nC = int(fs[1])   # point-per-circle
+	R  = float(fs[2]) # radius of circle
+	sC = float(fs[3]) # width of circle
+	a = 2.0*math.pi/nC  # angular speed
+	sX = sC/nC  # speed in X direction.
+	A = np.zeros((N, 3), np.float32 )
+	for n in range(N):
+		A[n] = R*math.sin(n*a+phase), R*math.cos(n*a+phase), n*sX
+	return A
+
+def NewDataset(S, winSize=0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
+	P = {a:k for k,a in enumerate(alphbetList)}
+	dt = np.hstack([NewDataset0(P, S, winSize), AugmentData(len(S), augCfg)])
 	nt = mm.ToTable(dt)
 	for k, c in enumerate(S):
 		nt.RowSpecList[k].Name = c
 		nt.RowSpecList[k].Type = P[c]
-	for col in range(dimP):
+	for col in range(len(P)):
 		nt.ColumnSpecList[col].Id = alphbetList[col]
 	return nt
 
-def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.05):
+#-----------------------------------------------------------------------------
+
+def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.05, repeats=1):
 	mds = New.MdsCluster(nt)
 	mds.Show()
 	mds.MaxLoops = epochs
@@ -164,7 +165,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.05):
 	mds.FinalExaggeration = finalExag
 	mds.PerplexityRatio = pp
 	mds.Metric = 'EuclideanMetric'
-	mds.Repeats = 1
+	mds.Repeats = repeats
 	mds.ReadOnly = True
 	mds.Is3D = is3D
 	mds.AutoNormalizing =True
@@ -225,12 +226,6 @@ def CreateMaps(pList, epochs=10000, winSize=0, repeats=1, saveTo=None, glyphSize
 			SaveToAtlas(saveTo, is3D)
 	mds.Close()
 	SaveToAtlas(saveTo, is3D)
-
-def CreateOneMap(pSeq, epochs=10000, winSize=0, repeats=1, pp=0.05,
-		saveTo=None, glyphSize=0.8, glyphOpacity=0.5, is3D=True, initExag=10.0, finalExag=1.0,  augCfg='a|500|2.0|2.0'):
-	nt = NewDataset(pSeq, winSize=winSize, augCfg=augCfg)
-	mds = NewMds(nt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp)
-	mds.Reset().Start()
 
 def Scanning(pMap):
 	K = 100
@@ -307,13 +302,35 @@ def CreateMapById(pMap, repeats=1):
 	RunMds(mds, repeats=repeats,)
 	vv.LastView.Description = info.ToStr()
 
+def CreateSeqMap(pSeq, epochs=10000, winSize=0, repeats=1, pp=0.15, saveTo=None, glyphSize=0.8, 
+		glyphOpacity=0.5, is3D=True, initExag=10.0, finalExag=1.0,  augCfg='a|500|2.0|2.0'):
+	nt = NewDataset(pSeq, winSize=winSize, augCfg=augCfg)
+
+	N = nt.Rows
+	nt = nt.Append(nt).Append(nt)
+	M = int( nt.Rows/N )
+	for s in range(1, M):
+		aT = AugmentData(N, augCfg, phase=2.0*s*math.pi/M)
+		for k in range(N):
+			R = nt.Matrix[s*N+k]
+			R[20], R[21] = float(aT[k, 0]), float(aT[k, 1])
+	for row in range(M*N):
+		nt.RowSpecList[row].Type = int(row/N)
+
+	mds = NewMds(nt, epochs=epochs, is3D=is3D, initExag=initExag, 
+		finalExag=finalExag, pp=pp, repeats=repeats)
+	mds.Reset().Start()
+	mds.Show3DView().NormalizeView()
+	mds.Close()
+
 '''========================================================================================
+
 pList = [1,2,3,4]
 aaa = pList[:20]
 
 pSeq = GetProteinSeq(GetProteinTable(), 'SYNE2')
 pSeq = GetProteinSeq(GetProteinTable(), 'NP_001394894.1')
+pSeq = GetProteinSeq(GetProteinTable(), 'UGU37881.1')
 
-
-CreateOneMap(pSeq, augCfg='a|500|2.0|2.0')
+CreateSeqMap(pSeq, initExag=5.0, repeats=1, augCfg='a|500|2.0|4.0')
 '''
