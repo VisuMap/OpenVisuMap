@@ -324,7 +324,7 @@ def CreateSeqMap(pSeq, epochs=10000, winSize=0, repeats=1, pp=0.15, saveTo=None,
 	mds.Close()
 
 '''========================================================================================
-
+AddProteins('RHD', maxCount=100)
 pList = [1,2,3,4]
 aaa = pList[:20]
 
