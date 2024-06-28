@@ -58,7 +58,7 @@ match vv.EventSource.Item:
 	case 'ShowData':
 		ShowMapData(pp)
 	case 'Scanning':
-		Scanning(pp)
+		Scanning(pp, stepSize=20)
 	case 'ShowSeq':
 		ShowTracingSeq(pp)
 	case ReCreatMap:

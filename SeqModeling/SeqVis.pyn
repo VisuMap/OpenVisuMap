@@ -140,16 +140,31 @@ def NewDataset0(P, pSeq, winSize=0):
 			dt[row, col] += ww[abs(w)]	
 	return dt
 
-def AugmentData(N, augCfg='a|500|2.0|2.0', phase=0.0):
+def AugmentData(N, augCfg='a|500|2.0|2.0'):
 	fs = augCfg.split('|')
-	nC = int(fs[1])   # point-per-circle
-	R  = float(fs[2]) # radius of circle
-	sC = float(fs[3]) # width of circle
-	a = 2.0*math.pi/nC  # angular speed
-	sX = sC/nC  # speed in X direction.
-	A = np.zeros((N, 3), np.float32 )
-	for n in range(N):
-		A[n] = R*math.sin(n*a+phase), R*math.cos(n*a+phase), n*sX
+	match fs[0][0]:
+		case 'a': # spiral augmentation
+			nC = int(fs[1])   # point-per-circle
+			R  = float(fs[2]) # radius of circle
+			sC = float(fs[3]) # width of circle
+			phase = float(fs[4]) if len(fs)==5 else 0
+			a = 2.0*math.pi/nC  # angular speed
+			sX = sC/nC  # speed in X direction.
+			A = np.zeros((N, 3), np.float32 )
+			for n in range(N):
+				A[n] = R*math.sin(n*a+phase), R*math.cos(n*a+phase), n*sX
+		case 'b':  # simple linear augmentation
+			sf = float(fs[1])
+			A = np.zeros((N, 1), np.float32 )
+			for n in range(N):
+				A[n] = sf * n
+		case 'c':  # circle augmentation
+			R = float(fs[1])
+			A = np.zeros((N, 2), np.float32 )
+			a = 2.0*math.pi/N
+			phase = float(fs[2]) if len(fs)==3 else 0
+			for n in range(N):
+				A[n] = R*math.sin(n*a+phase), R*math.cos(n*a+phase)
 	return A
 
 
@@ -186,11 +201,7 @@ def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.5):
 	mds.Repeats = repeats
 	mds.Reset().Start()
 	if mds.Repeats == 1:
-		if mds.Is3D:
-			mp = mds.Show3DView()
-			mp.NormalizeView()
-		else:
-			mp = mds.Show2DView()
+		mp = mds.ShowSnapshot()
 	mpName = 'D3dRender' if mds.Is3D else 'MapSnapshot'
 	for mp in vv.FindFormList(mpName):
 		mp.GlyphOpacity = glyphOpacity
@@ -237,12 +248,12 @@ def CreateMaps(pList, epochs=10000, winSize=0, repeats=1, saveTo=None, glyphSize
 	mds.Close()
 	SaveToAtlas(saveTo, is3D)
 
-def Scanning(pMap):
-	K = 100
+def Scanning(pMap, stepSize=20):
 	bsList = [b.Id for b in pMap.BodyList]
+	inc = max(1, int(stepSize/2))
 	for pause in [50, 150]:
-		for k in range(0, len(bsList), 10):
-			vv.SelectedItems = bsList[k:k+K]
+		for k in range(0, len(bsList), inc):
+			vv.SelectedItems = bsList[k:k+stepSize]
 			vv.Sleep(pause)
 			if pMap.SelectedItems.Count == 0: return
 		vv.Sleep(1000)
@@ -320,7 +331,7 @@ def CreateSeqMap(pSeq, pSeq1=None, epochs=10000, winSize=0, repeats=1, pp=0.15, 
 		P = {a:k for k,a in enumerate(ALPHABET)}
 		N, N1 = len(pSeq), len(pSeq1)
 		nt = np.vstack( [NewDataset0(P, pSeq), NewDataset0(P, pSeq1)] )
-		A = np.vstack( [AugmentData(N, augCfg, phase=0), AugmentData(N1, augCfg, phase=0.125*math.pi)] )
+		A = np.vstack( [AugmentData(N, augCfg), AugmentData(N1, augCfg + '|' + str(0.125*math.pi)) ] )
 		nt = mm.ToTable(np.hstack((nt, A)))
 		for row in range(N+N1):
 			nt.RowSpecList[row].Type = 0 if row<N else 1
@@ -343,7 +354,12 @@ pSeq1 = GetProteinSeq(pTable, 'random1')
 pSeq = GetProteinSeq(pTable, 'EAW60935.1')
 pSeq1 = GetProteinSeq(pTable, 'EAW60936.1')
 
-CreateSeqMap(pSeq, pSeq1, initExag=5.0, repeats=1, augCfg='a|200|2.0|3.0')
+pSeq = 'MTVEFEECVKDSPRFRATIDEVETDVVEIEAKLDKLVKLCSGMVEAGKAYVSTSRLFVSGVRDLSQQCQGDTVISECLQRFADSLQEVVNYHMILFDQAQRSVRQQLQSFVKEDVRKFKETKKQFDKVREDLELSLVRNAQAPRHRPHEVEEATGALTLTRKCFRHLALDYVLQINVLQAKKKFEILDSMLSFMHAQSSFFQQGYSLLHQLDPYMKKLAAELDQLVIDSAVEKREMERKHAAIQQRTLLQDFSYDESKVEFDVDAPSGVVMEGYLFKRASNAFKTWNRRWFSIQNSQLVYQKKLKDALTVVVDDLRLCSVKPCEDIERRFCFEVLSPTKSCMLQADSEKLRQAWVQAVQASIASAYRESPDSCYSERLDRTASPSTSSIDSATDTRERGVKGESVLQRVQSVAGNSQCGDCGQPDPRWASINLGVLLCIECSGIHRSLGVHCSKVRSLTLDSWEPELLKLMCELGNSAVNQIYEAQCEGAGSRKPTASSSRQDKEAWIKDKYVEKKFLRKAPMAPALEAPRRWRVQKCLRPHSSPRAPTARRKVRLEPVLPCVAALSSVGTLDRKFRRDSLFCPDELDSLFSYFDAGAAGAGPRSLSSDSGLGGSSDGSSDVLAFGSGSVVDSVTEEEGAESEESSGEADGDTEAEAWGLADVRELHPGLLAHRAARARDLPALAAALAHGAEVNWADAEDEGKTPLVQAVLGGSLIVCEFLLQNGADVNQRDSRGRAPLHHATLLGRTGQVCLFLKRGADQHALDQEQRDPLAIAVQAANADIVTLLRLARMAEEMREAEAAPGPPGALAGSPTELQFRRCIQEFISLHLEES'
+pSeq1 = 'MTVEFEECVKDSPRFRATIDEVETDVVEIEAKLDKLVKLCSGMVEAGKAYVSTSRLFVSGVRDLSQQCQGDTVISVRGRLTSDLKECLQRFADSLQEVVNYHMILFDQAQRSVRQQLQSFVKEDVRKFKETKKQFDKVREDLELSLVRNAQAPRHRPHEVEEATGALTLTRKCFRHLALDYVLQINVLQAKKKFEILDSLDQLVIDSAVEKREMERKHAAIQQRTLLQDFSYDESKVEFDVDAPSGVVMEGYLFKRASNAFKTWNRRWFSIQNSQLVYQKKLKDALTVVVDDLRLCSVKPCEDIERRFCFEVLSPTKSCMLQADSEKLRQAWVQAVQASIASAYRESPDSCYSERLDRTASPSTSSIDSATDTRERGVKGESVLQRVQSVAGNSQCGDCGQPDPRWASINLGVLLCIECSGIHRSLGVHCSKVRSLTLDSWEPELLKLMCELGNSAVNQIYEAQCEGAGSRKPTASSSRQDKEAWIKDKYVEKKFLRKAPMAPALEAPRRWRVQKCLRPHSSPRAPTARRKVRLEPVLPCVAALSSVGTLDRKFRRDSLFCPDELDSLFSYFDAGAAGAGPRSLSSDSGLGGSSDGSSDVLAFGSGSVVDSVTEEEGAESEESSGEADGDTEAEAWGLADVRELHPGLLAHRAARARDLPALAAALAHGAEVNWADAEDEGKTPLVQAVLGGSLIVCEFLLQNGADVNQRDSRGRAPLHHATLLGRTGQVCLFLKRGADQHALDQEQRDPLAIAVQAANADIVTLLRLARMAEEMREAEAAPGPPGALAGSPTELQFRRCIQEFISLHLEES'
+
+CreateSeqMap(pSeq, pSeq1, initExag=5.0, winSize=1, repeats=1, augCfg='a|200|2.0|3.0')
+CreateSeqMap(pSeq, pSeq1, initExag=5.0, winSize=0, repeats=1, augCfg='b|0.02')
+CreateSeqMap(pSeq, pSeq1, initExag=5.0, winSize=0, repeats=1, augCfg='c|2.0|0')
 
 CreateSeqMap(pSeq1, initExag=5.0, repeats=1, augCfg='a|500|2.0|4.0')
 
