@@ -27,19 +27,36 @@ def SaveToAtlas(atName, is3D, x0=50, y0=50):
 	if atName is not None:
 		vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0, vwName).Close()
 
+cs = New.CsObject('''
+public IBody MeanPoint(IList<IBody> bList){
+	if (bList.Count == 0) 
+		return null;
+	double x = 0;
+	double y = 0;
+	foreach(IBody b in bList) {
+		x += b.X;
+		y += b.Y;
+	}
+	x /= bList.Count;
+	y /= bList.Count;
+	IBody mBody = null;
+	double mDist = 1.0e10;
+	foreach(IBody b in bList) {
+		double d2 = (b.X - x)*(b.X - x) + (b.Y - y)*(b.Y - y);
+		if (  d2 < mDist ) {
+			mBody = b;
+			mDist = d2;
+		}
+	}	
+	return mBody;
+}
+''')
+
 # protein embedding map information
 class MapInfo():
 	def __init__(self, initStr = None):
-		self.pId = None
-		self.Gene = None
-		self.pLen = None
-		self.Epochs = None
-		self.InitE = None
-		self.FinalE = None
-		self.PP = None
-		self.WinSize = None
-		self.AugCfg = None
-		self.Is3D = None		
+		for nm in 'pId,Gene,pLen,Epochs,InitE,FinalE,PP,WinSize,AugCfg,Is3D'.split(','):
+			setattr(self, nm, None)
 		if initStr is not None:
 			self.ParseStr(initStr)
 	def ToStr(self):
@@ -91,6 +108,14 @@ def AddRandomSeq(N=20, L=1000):
 		vv.Dataset.AddRow('random'+str(n), 'Random', 15, ['rand', 'Random', s, str(len(s))])
 	vv.Dataset.CommitChanges()
 
+def GroupByType(bList):
+	G = {}
+	for b in bList:
+		if b.Type not in G: 
+			G[b.Type] = []
+		G[b.Type].append(b)
+	return G.values()
+
 def CreateProteinMap(idList):	
 	from collections import Counter
 	pTable = GetProteinTable()
@@ -116,9 +141,48 @@ def CreateProteinMap(idList):
 	mds.PerplexityRatio = 0.2
 	mds.RefreshFreq = 50
 	mds.Reset().Start()
+	for b in mds.BodyList: 
+		b.ShowName = False
+	for B in GroupByType(mds.BodyList):
+		cs.MeanPoint(B).ShowName = True
+	mds.RedrawBodies()
+
 
 #-----------------------------------------------------------------------------
+def NewDataset1(P, pSeq, decay=1.0):
+	L = len(P)
+	hv = np.zeros((L))  # head-vector.
+	stepSz = 0.1*np.ones((L))
+	dt = np.zeros([len(pSeq), len(P)], np.float32)
+	for k, c in enumerate(pSeq):
+		hv += stepSz
+		hv[P[c]] = 0
+		dt[k] = hv
+	dt = decay*np.reciprocal(decay+dt)
 
+	aData = AugmentData(len(pSeq), augCfg='b|0.0075')
+	dt = np.hstack([dt, aData])
+
+	nt = mm.ToTable(dt)
+	for k in range(nt.Rows):
+		nt.RowSpecList[k].Type = P[pSeq[k]]
+
+	mds = New.MdsCluster(nt)
+	mds.ReadOnly = True
+	mds.InitialExaggeration = 8.0
+	mds.FinalExaggeration = 1.0
+	mds.PerplexityRatio = 0.1
+	mds.Repeats = 2
+	mds.MaxLoops = 10000
+	mds.Is3D = True	
+	mds.AutoNormalizing = True
+	mds.Show().Start()
+
+'''
+NewDataset1(P, pSeq, decay=1000.0)
+
+P = {a:k for k,a in enumerate(ALPHABET)}
+'''
 
 def NewDataset0(P, pSeq, winSize=0):
 	pSeq = FilterSeq(pSeq, P)
@@ -154,7 +218,7 @@ def AugmentData(N, augCfg='a|500|2.0|2.0'):
 			for n in range(N):
 				A[n] = R*math.sin(n*a+phase), R*math.cos(n*a+phase), n*sX
 		case 'b':  # simple linear augmentation
-			sf = float(fs[1])
+			sf = float(fs[1])/1000.0
 			A = np.zeros((N, 1), np.float32 )
 			for n in range(N):
 				A[n] = sf * n
@@ -342,9 +406,6 @@ def CreateSeqMap(pSeq, pSeq1=None, epochs=10000, winSize=0, repeats=1, pp=0.15, 
 	mds.Close()
 
 '''========================================================================================
-pTable = GetProteinTable()
-
-pSeq = GetProteinSeq(pTable, 'SYNE2')
 pSeq1 = GetProteinSeq(pTable, 'NP_001394894.1')
 pSeq1 = GetProteinSeq(pTable, 'UGU37881.1')
 
@@ -359,8 +420,47 @@ pSeq1 = 'MTVEFEECVKDSPRFRATIDEVETDVVEIEAKLDKLVKLCSGMVEAGKAYVSTSRLFVSGVRDLSQQCQGD
 
 CreateSeqMap(pSeq, pSeq1, initExag=5.0, winSize=1, repeats=1, augCfg='a|200|2.0|3.0')
 CreateSeqMap(pSeq, pSeq1, initExag=5.0, winSize=0, repeats=1, augCfg='b|0.02')
-CreateSeqMap(pSeq, pSeq1, initExag=5.0, winSize=0, repeats=1, augCfg='c|2.0|0')
+CreateSeqMap(pSeq, pSeq1, initExag=5.0, winSize=0, repeats=1, augCfg='c|2.0|0.2')
 
 CreateSeqMap(pSeq1, initExag=5.0, repeats=1, augCfg='a|500|2.0|4.0')
+
+pTable = GetProteinTable()
+pSeq = GetProteinSeq(pTable, 'SYNE2')
+
+def FS(ch, c):
+	return c if c==ch else '_'
+def FilterSq(idx):
+	c = ALPHABET[idx]
+	pp.Text = ''.join([FS(ch, c) for ch in pSeq])
+FilterSq(16) #0:19  
+
+from collections import Counter
+
+def ShowFreq(sId):
+	pTable = GetProteinTable()
+	pSeq = GetProteinSeq(pTable, sId)
+	K = 50
+	nt = New.NumberTable(20, K)
+	for idx in range(20):
+		c = ALPHABET[idx]
+		nt.RowSpecList[idx].Id = c
+		s = ''.join([FS(ch, c) for ch in pSeq])
+		cnt = Counter([ len(blk) for blk in s.split(c) ])
+		R = nt.Matrix[idx]
+		for k in cnt:
+			if k<K:
+				R[k] = cnt[k]
+	bb = New.BarBand(nt)
+	bb.BaseLineType = 0	
+	bb.Title = sId
+	bb.Show()
+
+for sId in ['NP_001361665.1', 'SYNE2', 'Q03001.4', 'EAW58036.1', 'XP_054199104.1']:
+	ShowFreq(sId)
+
+ShowFreq('NP_001394626.1')
+
+for sId in 'EAW58034.1,EAW58035.1,EAW58036.1,NP_003473.3,NP_001394626.1,NP_001361665.1,SYNE2,Q03001.4,EAW58036.1,XP_054199104.1'.split(','):
+	ShowFreq(sId)
 
 '''
