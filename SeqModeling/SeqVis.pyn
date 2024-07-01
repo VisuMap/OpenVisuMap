@@ -164,8 +164,9 @@ def NewDataset1(P, pSeq, decay=1.0):
 	dt = np.hstack([dt, aData])
 
 	nt = mm.ToTable(dt)
-	for k in range(nt.Rows):
-		nt.RowSpecList[k].Type = P[pSeq[k]]
+	for k, rs in enumerate(nt.RowSpecList):	
+		rs.Type = P[pSeq[k]]
+		rs.Name = pSeq[k]
 
 	mds = New.MdsCluster(nt)
 	mds.ReadOnly = True
@@ -342,18 +343,47 @@ def OnSeqSelection():
 	iEnd = pp.TextBox.SelectionStart + pp.TextBox.SelectionLength
 	pMap.SelectedItems = [f'R{i}' for i in range(iBegin, iEnd)]
 
+def MarkSeq(tb, idxBegin, idxEnd):
+	if idxEnd<=idxBegin:
+		return
+	tb.Select(idxBegin, idxEnd-idxBegin)
+	tb.SelectionBackColor = New.Color('Green')	
+	#print('M:', idxBegin, idxEnd)
+
+def ClearMark(tb):
+	tb.Select(0, len(tb.Text))
+	tb.SelectionBackColor = tb.BackColor	
+	tb.SelectionLength = 0
+
+'''
+MarkSeq(pp.TextBox, 6900, 6907)
+ClearMark(pp.TextBox)
+print(len(pp.Text))
+MarkSeq(pp.TextBox, 5495, 5500)
+'''
+
 def OnSeqSelected():
 	tp = pp.Tag	
 	if tp.TheForm.IsDisposed: 
 		return
 	tb = tp.TextBox
-	idxList = [int(id[1:]) for id in pp.SelectedItems]
-	if len(idxList) == 0:
-		tb.Select(0, 0)
-		return				
-	idxMax, idxMin = max(idxList), min(idxList)
-	tb.Select(idxMin, idxMax - idxMin + 1)
-	tp.TheForm.Activate()
+	idxList = sorted( [int(id[1:]) for id in pp.SelectedItems] )
+	ClearMark(tb)
+	L = len(idxList)
+	k0 = 0
+	while k0 < L:
+		v0 = idxList[k0]
+		if k0 == L-1:
+			MarkSeq(tb, v0, v0+1)
+			break
+		for k1 in range(k0+1, L):
+			if idxList[k1] - idxList[k1-1] > 1:
+				MarkSeq(tb, v0, idxList[k1-1]+1)
+				break
+		if k1 == L-1:
+			MarkSeq(tb, idxList[k0], idxList[k1]+1)
+			break
+		k0 = k1
 
 #-----------------------------------------------------------------------
 
