@@ -149,7 +149,7 @@ def CreateProteinMap(idList):
 
 
 #-----------------------------------------------------------------------------
-def NewDataset1(P, pSeq, decay=1.0):
+def NewDataset1(P, pSeq, decay=1000.0):
 	L = len(P)
 	hv = np.zeros((L))  # head-vector.
 	stepSz = 0.1*np.ones((L))
@@ -158,32 +158,7 @@ def NewDataset1(P, pSeq, decay=1.0):
 		hv += stepSz
 		hv[P[c]] = 0
 		dt[k] = hv
-	dt = decay*np.reciprocal(decay+dt)
-
-	aData = AugmentData(len(pSeq), augCfg='b|0.0075')
-	dt = np.hstack([dt, aData])
-
-	nt = mm.ToTable(dt)
-	for k, rs in enumerate(nt.RowSpecList):	
-		rs.Type = P[pSeq[k]]
-		rs.Name = pSeq[k]
-
-	mds = New.MdsCluster(nt)
-	mds.ReadOnly = True
-	mds.InitialExaggeration = 8.0
-	mds.FinalExaggeration = 1.0
-	mds.PerplexityRatio = 0.1
-	mds.Repeats = 2
-	mds.MaxLoops = 10000
-	mds.Is3D = True	
-	mds.AutoNormalizing = True
-	mds.Show().Start()
-
-'''
-NewDataset1(P, pSeq, decay=1000.0)
-
-P = {a:k for k,a in enumerate(ALPHABET)}
-'''
+	return decay*np.reciprocal(decay+dt)
 
 def NewDataset0(P, pSeq, winSize=0):
 	pSeq = FilterSeq(pSeq, P)
@@ -205,8 +180,9 @@ def NewDataset0(P, pSeq, winSize=0):
 			dt[row, col] += ww[abs(w)]	
 	return dt
 
-def AugmentData(N, augCfg='a|500|2.0|2.0'):
+def AugmentData(nt, augCfg='a|500|2.0|2.0'):
 	fs = augCfg.split('|')
+	N = nt.shape[0]
 	match fs[0][0]:
 		case 'a': # spiral augmentation
 			nC = int(fs[1])   # point-per-circle
@@ -230,12 +206,13 @@ def AugmentData(N, augCfg='a|500|2.0|2.0'):
 			phase = float(fs[2]) if len(fs)==3 else 0
 			for n in range(N):
 				A[n] = R*math.sin(n*a+phase), R*math.cos(n*a+phase)
-	return A
+	return np.hstack((nt, A))
 
 
 def NewDataset(S, winSize=0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
 	P = {a:k for k,a in enumerate(alphbetList)}
-	dt = np.hstack([NewDataset0(P, S, winSize), AugmentData(len(S), augCfg)])
+	dt = AugmentData(NewDataset0(P, S, winSize), augCfg)
+	#dt = AugmentData(NewDataset1(P, S, decay=1000.0), 'b|0.00075')
 	nt = mm.ToTable(dt)
 	for k, c in enumerate(S):
 		nt.RowSpecList[k].Name = c
@@ -326,8 +303,7 @@ def Scanning(pMap, stepSize=20):
 #-------------------------------------------------------------------
 
 def ShowTracingSeq(pMap):
-	info = MapInfo(pMap.Description)
-	pSeq = GetProteinSeq(GetProteinTable(), info.pId)
+	pSeq = ''.join([b.Name for b in pMap.BodyList])
 	tp = New.TextPanel("Protein Sequence", pSeq)
 	tp.Tag = pMap
 	pMap.Tag = tp
@@ -354,13 +330,6 @@ def ClearMark(tb):
 	tb.Select(0, len(tb.Text))
 	tb.SelectionBackColor = tb.BackColor	
 	tb.SelectionLength = 0
-
-'''
-MarkSeq(pp.TextBox, 6900, 6907)
-ClearMark(pp.TextBox)
-print(len(pp.Text))
-MarkSeq(pp.TextBox, 5495, 5500)
-'''
 
 def OnSeqSelected():
 	tp = pp.Tag	
@@ -424,9 +393,10 @@ def CreateSeqMap(pSeq, pSeq1=None, epochs=10000, winSize=0, repeats=1, pp=0.15, 
 	else:
 		P = {a:k for k,a in enumerate(ALPHABET)}
 		N, N1 = len(pSeq), len(pSeq1)
-		nt = np.vstack( [NewDataset0(P, pSeq), NewDataset0(P, pSeq1)] )
-		A = np.vstack( [AugmentData(N, augCfg), AugmentData(N1, augCfg + '|' + str(0.125*math.pi)) ] )
-		nt = mm.ToTable(np.hstack((nt, A)))
+		nt  = AugmentData(NewDataset0(P, pSeq),  augCfg)
+		nt1 = AugmentData(NewDataset0(P, pSeq1), augCfg + '|' + str(0.125*math.pi))
+		nt = np.vstack((nt, nt1))
+		nt = mm.ToTable(nt)
 		for row in range(N+N1):
 			nt.RowSpecList[row].Type = 0 if row<N else 1
 	mds = NewMds(nt, epochs=epochs, is3D=is3D, initExag=initExag, 
