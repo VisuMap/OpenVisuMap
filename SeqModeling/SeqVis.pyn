@@ -152,7 +152,7 @@ def CreateProteinMap(idList):
 def NewDataset1(P, pSeq, decay=1000.0):
 	L = len(P)
 	hv = np.zeros((L))  # head-vector.
-	stepSz = 0.1*np.ones((L))
+	stepSz = np.ones((L))
 	dt = np.zeros([len(pSeq), len(P)], np.float32)
 	for k, c in enumerate(pSeq):
 		hv += stepSz
@@ -211,8 +211,8 @@ def AugmentData(nt, augCfg='a|500|2.0|2.0'):
 
 def NewDataset(S, winSize=0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
 	P = {a:k for k,a in enumerate(alphbetList)}
-	dt = AugmentData(NewDataset0(P, S, winSize), augCfg)
-	#dt = AugmentData(NewDataset1(P, S, decay=1000.0), 'b|0.00075')
+	#dt = AugmentData(NewDataset0(P, S, winSize), augCfg)
+	dt = AugmentData(NewDataset1(P, S, decay=1000.0), 'b|0.075')
 	nt = mm.ToTable(dt)
 	for k, c in enumerate(S):
 		nt.RowSpecList[k].Name = c
@@ -315,44 +315,39 @@ def OnSeqSelection():
 	pMap = pp.Tag
 	if pMap.TheForm.IsDisposed or not vv.MouseButtons.LeftButtonPressed:
 		return
-	iBegin = pp.TextBox.SelectionStart
-	iEnd = pp.TextBox.SelectionStart + pp.TextBox.SelectionLength
+	tb = pp.TextBox
+	iBegin = tb.SelectionStart
+	iEnd = tb.SelectionStart + tb.SelectionLength
 	pMap.SelectedItems = [f'R{i}' for i in range(iBegin, iEnd)]
 
 def MarkSeq(tb, idxBegin, idxEnd):
-	if idxEnd<=idxBegin:
+	if idxEnd<=idxBegin: 
 		return
 	tb.Select(idxBegin, idxEnd-idxBegin)
 	tb.SelectionBackColor = New.Color('Green')	
-	#print('M:', idxBegin, idxEnd)
-
-def ClearMark(tb):
-	tb.Select(0, len(tb.Text))
-	tb.SelectionBackColor = tb.BackColor	
-	tb.SelectionLength = 0
 
 def OnSeqSelected():
 	tp = pp.Tag	
 	if tp.TheForm.IsDisposed: 
 		return
+	L = sorted( [int(id[1:]) for id in pp.SelectedItems] )
 	tb = tp.TextBox
-	idxList = sorted( [int(id[1:]) for id in pp.SelectedItems] )
-	ClearMark(tb)
-	L = len(idxList)
-	k0 = 0
-	while k0 < L:
-		v0 = idxList[k0]
-		if k0 == L-1:
-			MarkSeq(tb, v0, v0+1)
-			break
-		for k1 in range(k0+1, L):
-			if idxList[k1] - idxList[k1-1] > 1:
-				MarkSeq(tb, v0, idxList[k1-1]+1)
+	tb.SelectAll()
+	tb.SelectionBackColor = tb.BackColor	
+	tb.SelectionLength = 0
+	N = len(L)
+	i = 0
+	while i < N:
+		j = i+1
+		while j < N:
+			if L[j] - L[j-1] > 1:
+				MarkSeq(tb, L[i], L[j-1]+1)
 				break
-		if k1 == L-1:
-			MarkSeq(tb, idxList[k0], idxList[k1]+1)
-			break
-		k0 = k1
+			else:
+				j += 1
+		if j == N:
+			MarkSeq(tb, L[i], L[j-1]+1)
+		i = j
 
 #-----------------------------------------------------------------------
 
