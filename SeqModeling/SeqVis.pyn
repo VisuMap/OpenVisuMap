@@ -83,21 +83,25 @@ def GetProteinIds(gSymbol):
 	print('Cannot find gene ' + gSymbol)
 	return None
 
-def AddProteins(gSymbol, maxCount=0):
+def AddProteins(gSymbol, maxCount=100, minLength=400):
 	import urllib.request
 	getUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&rettype=fasta&retmode=text&id='
 	pList = GetProteinIds(gSymbol)
-	if maxCount != 0:
-		pList = pList[:maxCount]
 	OpenProteinTable()
 	P = {a:k for k,a in enumerate(ALPHABET)}
 	typeIdx = max([b.Type for b in vv.Dataset.BodyList]) + 1
+	cnt = 0
 	for id in pList:
 		sFasta = urllib.request.urlopen(getUrl+id).read().decode('utf-8')
 		idx = sFasta.index('\n')
 		desc = sFasta[1:idx]
 		pSeq = FilterSeq(sFasta[idx:], P)
+		if len(pSeq) < minLength:
+			continue
 		vv.Dataset.AddRow(id, gSymbol, typeIdx, [desc,gSymbol,pSeq,str(len(pSeq))])
+		cnt += 1
+		if cnt >= maxCount:
+			break		
 	vv.Dataset.CommitChanges()
 
 def AddRandomSeq(N=20, L=1000):
@@ -116,7 +120,7 @@ def GroupByType(bList):
 		G[b.Type].append(b)
 	return G.values()
 
-def CreateProteinMap(idList):	
+def CreateProteinMapByCounts(idList):	
 	from collections import Counter
 	pTable = GetProteinTable()
 	rows, columns = len(idList), len(ALPHABET)
@@ -141,12 +145,41 @@ def CreateProteinMap(idList):
 	mds.PerplexityRatio = 0.2
 	mds.RefreshFreq = 50
 	mds.Reset().Start()
-	for b in mds.BodyList: 
-		b.ShowName = False
-	for B in GroupByType(mds.BodyList):
-		cs.MeanPoint(B).ShowName = True
-	mds.RedrawBodies()
+	AddClusterLabel(mds)
 
+def AddClusterLabel(pMap):
+	for b in pMap.BodyList: 
+		b.ShowName = False
+	for B in GroupByType(pMap.BodyList):
+		cs.MeanPoint(B).ShowName = True
+	pMap.RedrawAll()
+
+def CreateProteinMap(idList):
+	pTable = GetProteinTable()
+	P = {a:k for k,a in enumerate(ALPHABET)}
+	L, M, N = len(P), 25, len(idList)
+	nt = np.zeros((N, L), np.float32)
+	weight = np.array([1.0/(k+1.0) for k in range(M)]).reshape((-1,1))
+	for n, pId in enumerate(idList):
+		pSeq = GetProteinSeq(pTable, pId)
+		# aaSize holds the period size, up to M, for each amino-acid in pSeq.
+		aaSize = np.zeros((L, M), np.int32)
+		# aaPos[] holds the last sequencial-position of each amino-acid.
+		aaPos = np.array(L*[-1])
+		for k, c in enumerate(pSeq):
+			aaIdx = P[c]
+			sz = k - aaPos[aaIdx]
+			if sz <= M:
+				aaSize[aaIdx, sz-1] += 1  # 0-column count number of period of size 1.
+			aaPos[aaIdx] = k
+		nt[n] = np.matmul(aaSize, weight).reshape(-1)
+	dt = mm.ToTable(nt)
+	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
+		dt.RowSpecList[k].CopyFromBody(b)
+	mds = NewMds(dt, pp=0.1)
+	RunMds(mds, repeats=2)
+	mds.Close()
+	#AddClusterLabel(vv.LastView)
 
 #-----------------------------------------------------------------------------
 def NewDataset1(P, pSeq, decay=1000.0):
@@ -223,7 +256,7 @@ def NewDataset(S, winSize=0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
 
 #-----------------------------------------------------------------------------
 
-def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.05, repeats=1):
+def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.1, repeats=1):
 	mds = New.MdsCluster(nt)
 	mds.Show()
 	mds.MaxLoops = epochs
@@ -419,8 +452,6 @@ CreateSeqMap(pSeq, pSeq1, initExag=5.0, winSize=0, repeats=1, augCfg='c|2.0|0.2'
 
 CreateSeqMap(pSeq1, initExag=5.0, repeats=1, augCfg='a|500|2.0|4.0')
 
-pTable = GetProteinTable()
-pSeq = GetProteinSeq(pTable, 'SYNE2')
 
 def FS(ch, c):
 	return c if c==ch else '_'
@@ -450,12 +481,156 @@ def ShowFreq(sId):
 	bb.Title = sId
 	bb.Show()
 
+def WaveSizeTable(P, pSeq, M=50):
+	L = len(P)
+	szMtr = np.zeros((L, M), np.int32)
+	posV = np.array(L*[-1])
+	for k, c in enumerate(pSeq):
+		row = P[c]
+		sz = k - posV[row]
+		if sz < M:
+			szMtr[row, sz] += 1
+		posV[row] = k
+	return szMtr.reshape(-1).astype(np.float32)
+
+pTable = GetProteinTable()
+pSeq = GetProteinSeq(pTable, 'SYNE2')
+P = {a:k for k,a in enumerate(ALPHABET)}
+wSz = WaveSizeTable(P, pSeq)
+vs = mm.ToValueList(wSz)
+vs = mm.ToArray64(wSz)
+
+
 for sId in ['NP_001361665.1', 'SYNE2', 'Q03001.4', 'EAW58036.1', 'XP_054199104.1']:
 	ShowFreq(sId)
 
-ShowFreq('NP_001394626.1')
+ShowFreq('SYNE2')
 
 for sId in 'EAW58034.1,EAW58035.1,EAW58036.1,NP_003473.3,NP_001394626.1,NP_001361665.1,SYNE2,Q03001.4,EAW58036.1,XP_054199104.1'.split(','):
 	ShowFreq(sId)
+
+
+symList = """NANOG
+TYR
+GYPC
+SPATA16
+UNG
+FCGR3A
+RALGPS1
+CD36
+MC1R
+EEF1D
+RABL2A
+PCBP3
+ST3GAL3
+CRACR2B
+LARP1B
+WDR20
+CREM
+GDI1
+COMT
+STK33
+FOXI1
+MELK
+GDF5
+IL17RC
+G6PD
+EWSR1
+ARPP21
+PRNP
+KEL
+TP53
+RHD
+AQP1"""
+
+symList="""DMTN
+CYP2C9
+GYPA
+EZH2
+GPS1
+SMUG1
+TJAP1
+SNCAIP
+DMPK
+IFT88
+F9
+ITGB7
+MSTN
+ZNF384
+APOL1
+SUPT20H
+LRRFIP2
+ANKS1B
+PTPN20
+NCOR1
+LIG3
+COL13A1
+NIPA2
+MBD1
+PRDM9
+ZNF438
+GULP1
+PARPBP
+CD5
+MIA2
+ELN
+ANKMY1
+BCAM
+EDA2R
+RAP1GAP
+HERC5"""
+
+symList="""DPP4
+TTLL6
+PIGA
+APBA2
+CCR5
+PIP5K1A
+DMTF1
+ABLIM2
+CAMK2G
+MCPH1
+DDX11
+TLR2
+CELF4
+EPB41L3
+EGFR
+CYRIB
+TLR9
+ATXN2L
+SYNE1
+ATP13A2
+TNK2
+SLC14A1
+MTRR
+LRRFIP1
+PPP6R2
+SYTL2
+ECT2
+PAX9
+NAB1
+GAK
+ADGRG1
+FADS1
+STAT2
+TCF3
+R3HDM2
+RHOBTB1
+CAPRIN2
+MYC
+XRRA1
+SEMA4D
+CELF1
+FGFR2
+CSNK1G3"""
+
+
+loaded = set([b.Name for b in vv.Dataset.BodyList])
+
+for k, sym in enumerate( symList.split('\n') ):
+	if sym not in loaded:
+		AddProteins(sym)
+	vv.Echo(f'{k}: {sym}')
+
 
 '''
