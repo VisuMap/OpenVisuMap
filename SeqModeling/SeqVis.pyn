@@ -93,6 +93,7 @@ def AddProteins(gSymbol, maxCount=100, minLength=400):
 	cnt = 0
 	for id in pList:
 		sFasta = urllib.request.urlopen(getUrl+id).read().decode('utf-8')
+		vv.DoEvents()
 		idx = sFasta.index('\n')
 		desc = sFasta[1:idx]
 		pSeq = FilterSeq(sFasta[idx:], P)
@@ -141,8 +142,8 @@ def CreateProteinMapByCounts(idList):
 			R[c] =fct* pCnt[a]
 	for c, a in enumerate(ALPHABET):
 		nt.ColumnSpecList[c].Id = a
-	mds = NewMds(nt, epochs=5000, initExag=5.0, finalExag=1.0)
-	mds.PerplexityRatio = 0.2
+	mds = NewMds(nt, epochs=5000, initExag=3.0, finalExag=1.0)
+	mds.PerplexityRatio = 0.1
 	mds.RefreshFreq = 50
 	mds.Reset().Start()
 	AddClusterLabel(mds)
@@ -154,10 +155,10 @@ def AddClusterLabel(pMap):
 		cs.MeanPoint(B).ShowName = True
 	pMap.RedrawAll()
 
-def CreateProteinMap(idList):
+def CreateProteinMap(idList, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.1, repeats=1, saveTo=None):
 	pTable = GetProteinTable()
 	P = {a:k for k,a in enumerate(ALPHABET)}
-	L, M, N = len(P), 25, len(idList)
+	L, M, N = len(P), 50, len(idList)
 	nt = np.zeros((N, L), np.float32)
 	weight = np.array([1.0/(k+1.0) for k in range(M)]).reshape((-1,1))
 	for n, pId in enumerate(idList):
@@ -168,17 +169,16 @@ def CreateProteinMap(idList):
 		aaPos = np.array(L*[-1])
 		for k, c in enumerate(pSeq):
 			aaIdx = P[c]
-			sz = k - aaPos[aaIdx]
-			if sz <= M:
-				aaSize[aaIdx, sz-1] += 1  # 0-column count number of period of size 1.
+			sz = min(M, k - aaPos[aaIdx])			
+			aaSize[aaIdx, sz-1] += 1  # 0-column count number of period of size 1.
 			aaPos[aaIdx] = k
 		nt[n] = np.matmul(aaSize, weight).reshape(-1)
 	dt = mm.ToTable(nt)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
-	mds = NewMds(dt, pp=0.1)
-	RunMds(mds, repeats=2)
-	mds.Close()
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp)
+	RunMds(mds, repeats=repeats)
+	SaveToAtlas(saveTo, is3D)
 	#AddClusterLabel(vv.LastView)
 
 #-----------------------------------------------------------------------------
@@ -458,7 +458,11 @@ def FS(ch, c):
 def FilterSq(idx):
 	c = ALPHABET[idx]
 	pp.Text = ''.join([FS(ch, c) for ch in pSeq])
-FilterSq(16) #0:19  
+	for s in pp.Text.split(c):
+		vv.Echo2(f'{len(s)}, ')
+	vv.Echo('')
+
+FilterSq(11) #0:19  
 
 from collections import Counter
 
@@ -508,129 +512,6 @@ ShowFreq('SYNE2')
 
 for sId in 'EAW58034.1,EAW58035.1,EAW58036.1,NP_003473.3,NP_001394626.1,NP_001361665.1,SYNE2,Q03001.4,EAW58036.1,XP_054199104.1'.split(','):
 	ShowFreq(sId)
-
-
-symList = """NANOG
-TYR
-GYPC
-SPATA16
-UNG
-FCGR3A
-RALGPS1
-CD36
-MC1R
-EEF1D
-RABL2A
-PCBP3
-ST3GAL3
-CRACR2B
-LARP1B
-WDR20
-CREM
-GDI1
-COMT
-STK33
-FOXI1
-MELK
-GDF5
-IL17RC
-G6PD
-EWSR1
-ARPP21
-PRNP
-KEL
-TP53
-RHD
-AQP1"""
-
-symList="""DMTN
-CYP2C9
-GYPA
-EZH2
-GPS1
-SMUG1
-TJAP1
-SNCAIP
-DMPK
-IFT88
-F9
-ITGB7
-MSTN
-ZNF384
-APOL1
-SUPT20H
-LRRFIP2
-ANKS1B
-PTPN20
-NCOR1
-LIG3
-COL13A1
-NIPA2
-MBD1
-PRDM9
-ZNF438
-GULP1
-PARPBP
-CD5
-MIA2
-ELN
-ANKMY1
-BCAM
-EDA2R
-RAP1GAP
-HERC5"""
-
-symList="""DPP4
-TTLL6
-PIGA
-APBA2
-CCR5
-PIP5K1A
-DMTF1
-ABLIM2
-CAMK2G
-MCPH1
-DDX11
-TLR2
-CELF4
-EPB41L3
-EGFR
-CYRIB
-TLR9
-ATXN2L
-SYNE1
-ATP13A2
-TNK2
-SLC14A1
-MTRR
-LRRFIP1
-PPP6R2
-SYTL2
-ECT2
-PAX9
-NAB1
-GAK
-ADGRG1
-FADS1
-STAT2
-TCF3
-R3HDM2
-RHOBTB1
-CAPRIN2
-MYC
-XRRA1
-SEMA4D
-CELF1
-FGFR2
-CSNK1G3"""
-
-
-loaded = set([b.Name for b in vv.Dataset.BodyList])
-
-for k, sym in enumerate( symList.split('\n') ):
-	if sym not in loaded:
-		AddProteins(sym)
-	vv.Echo(f'{k}: {sym}')
 
 
 '''

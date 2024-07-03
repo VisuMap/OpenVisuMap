@@ -72,12 +72,19 @@ match vv.EventSource.Item:
 		ResetAtlasMaps(pp, pp.GetSelectedItems(), 1000, 700, gSize=0.8, gOpacity=0.5, hiddenSize=7, reset=False)
 
 ##MainForm
-#MenuLabels CreateMaps ProteinMap
+#MenuLabels CreateMaps ProteinMap ShowSeq
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'CreateMaps':
 		CreateMaps(pp.SelectedItems, epochs=10000, winSize=0, repeats=1, pp=0.15,
 			is3D=True, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo='TestMaps', augCfg='a|500|2.0|2.0')
 	case 'ProteinMap':
-		CreateProteinMap(pp.SelectedItems)
+		#CreateProteinMapByCounts(pp.AllItems)
+		CreateProteinMap(pp.AllItems,  is3D=True)
+	case 'ShowSeq':
+		pId = pp.SelectedItems[0]
+		rowIndex = pp.Dataset.IndexOfRow(pId)
+		pSeq = vv.Dataset.GetDataAt(rowIndex, 2)
+		New.TextPanel("Protein Sequence", pSeq).Show()
+
 ''')
