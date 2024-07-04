@@ -72,15 +72,21 @@ match vv.EventSource.Item:
 		ResetAtlasMaps(pp, pp.GetSelectedItems(), 1000, 700, gSize=0.8, gOpacity=0.5, hiddenSize=7, reset=False)
 
 ##MainForm
-#MenuLabels CreateMaps ProteinMap ShowSeq
+#MenuLabels SeqMap SeqMap2 ProteinMap ProteinMap2 ShowSeq
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
-	case 'CreateMaps':
-		CreateMaps(pp.SelectedItems, epochs=10000, winSize=0, repeats=1, pp=0.15,
-			is3D=True, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo='TestMaps', augCfg='a|500|2.0|2.0')
+	case 'SeqMap':
+		CreateMaps(pp.SelectedItems, epochs=10000, winSize=0, repeats=1, pp=0.15,  saveTo='TestMaps', 
+			is3D=True, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='a|500|2.0|2.0')
+	case 'SeqMap2':
+		CreateMaps(pp.SelectedItems, epochs=10000, winSize=-1, repeats=1, pp=0.15,  saveTo=None,
+			is3D=False, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='x|0.001')		
 	case 'ProteinMap':
-		#CreateProteinMapByCounts(pp.AllItems)
-		CreateProteinMap(pp.AllItems,  is3D=True)
+		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
+		CreateProteinMapByCounts(pList,  repeats=1)
+	case 'ProteinMap2':
+		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
+		CreateProteinMap(pList,  is3D=False, repeats=0, decay=1000.0)
 	case 'ShowSeq':
 		pId = pp.SelectedItems[0]
 		rowIndex = pp.Dataset.IndexOfRow(pId)

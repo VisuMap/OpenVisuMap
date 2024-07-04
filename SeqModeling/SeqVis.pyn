@@ -121,7 +121,7 @@ def GroupByType(bList):
 		G[b.Type].append(b)
 	return G.values()
 
-def CreateProteinMapByCounts(idList):	
+def CreateProteinMapByCounts(idList, repeats=1):	
 	from collections import Counter
 	pTable = GetProteinTable()
 	rows, columns = len(idList), len(ALPHABET)
@@ -145,8 +145,9 @@ def CreateProteinMapByCounts(idList):
 	mds = NewMds(nt, epochs=5000, initExag=3.0, finalExag=1.0)
 	mds.PerplexityRatio = 0.1
 	mds.RefreshFreq = 50
+	mds.Repeats = repeats
 	mds.Reset().Start()
-	AddClusterLabel(mds)
+	#AddClusterLabel(mds)
 
 def AddClusterLabel(pMap):
 	for b in pMap.BodyList: 
@@ -155,12 +156,12 @@ def AddClusterLabel(pMap):
 		cs.MeanPoint(B).ShowName = True
 	pMap.RedrawAll()
 
-def CreateProteinMap(idList, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.1, repeats=1, saveTo=None):
+def CreateProteinMap(idList, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.1, decay=1.0, repeats=1, saveTo=None):
 	pTable = GetProteinTable()
 	P = {a:k for k,a in enumerate(ALPHABET)}
 	L, M, N = len(P), 50, len(idList)
 	nt = np.zeros((N, L), np.float32)
-	weight = np.array([1.0/(k+1.0) for k in range(M)]).reshape((-1,1))
+	weight = np.array([1.0/(k+decay) for k in range(M)]).reshape((-1,1))
 	for n, pId in enumerate(idList):
 		pSeq = GetProteinSeq(pTable, pId)
 		# aaSize holds the period size, up to M, for each amino-acid in pSeq.
@@ -177,7 +178,7 @@ def CreateProteinMap(idList, epochs=10000, is3D=False, initExag=10.0, finalExag=
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp)
-	RunMds(mds, repeats=repeats)
+	RunMds(mds, repeats=repeats, glyphSize=0.25, glyphOpacity=0.5)
 	if saveTo is not None:
 		SaveToAtlas(saveTo)
 		mds.Close()
@@ -191,7 +192,7 @@ def NewDataset1(P, pSeq, decay=1000.0):
 	dt = np.zeros([len(pSeq), len(P)], np.float32)
 	for k, c in enumerate(pSeq):
 		hv += stepSz
-		hv[P[c]] = 50
+		hv[P[c]] = 0
 		dt[k] = hv
 	return decay*np.reciprocal(decay+dt)
 
@@ -251,7 +252,7 @@ def NewDataset(S, winSize=0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
 	if winSize>= 0:
 		dt = AugmentData(NewDataset0(P, S, winSize), augCfg)
 	else:
-		dt = AugmentData(NewDataset1(P, S, decay=1000.0), augCfg)
+		dt = AugmentData(NewDataset1(P, S), augCfg)
 	nt = mm.ToTable(dt)
 	for k, c in enumerate(S):
 		nt.RowSpecList[k].Name = c
@@ -281,9 +282,9 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.1, r
 def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.5):
 	mds.Repeats = repeats
 	mds.Reset().Start()
-	if mds.Repeats == 1:
+	if repeats == 1:
 		mp = mds.ShowSnapshot()
-	mpName = 'D3dRender' if mds.Is3D else 'MapSnapshot'
+	mpName = vv.LastView.Name
 	for mp in vv.FindFormList(mpName):
 		mp.GlyphOpacity = glyphOpacity
 		mp.GlyphSize = glyphSize
@@ -522,5 +523,14 @@ for sId in 'EAW58034.1,EAW58035.1,EAW58036.1,NP_003473.3,NP_001394626.1,NP_00136
 
 CreateMaps(pp.SelectedItems, epochs=10000, winSize=-1, repeats=1, pp=0.15,  saveTo='TestMaps', 
 	is3D=False, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='b|0.01')
+
+def SelectUniSet():
+	pSet = {}
+	for k in range(vv.Dataset.Rows):
+		pId = vv.Dataset.BodyList[k].Id
+		pSq = vv.Dataset.GetDataAt(k, 2)
+		if pSq not in pSet:
+			pSet[pSq] = pId
+	vv.SelectedItems = list(pSet.values())
 
 '''
