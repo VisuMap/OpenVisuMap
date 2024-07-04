@@ -22,9 +22,9 @@ def GetProteinSeq(pTable, pId):
 	rowIdx = pTable.IndexOfRow(pId)
 	return pTable.GetDataAt(rowIdx, 2)
 
-def SaveToAtlas(atName, is3D, x0=50, y0=50):
-	vwName = 'D3dRender' if is3D else 'MapSnapshot'
+def SaveToAtlas(atName, x0=50, y0=50):	
 	if atName is not None:
+		vwName = vv.LastView.Name
 		vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0, vwName).Close()
 
 cs = New.CsObject('''
@@ -178,7 +178,9 @@ def CreateProteinMap(idList, epochs=10000, is3D=False, initExag=10.0, finalExag=
 		dt.RowSpecList[k].CopyFromBody(b)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp)
 	RunMds(mds, repeats=repeats)
-	SaveToAtlas(saveTo, is3D)
+	if saveTo is not None:
+		SaveToAtlas(saveTo)
+		mds.Close()
 	#AddClusterLabel(vv.LastView)
 
 #-----------------------------------------------------------------------------
@@ -189,7 +191,7 @@ def NewDataset1(P, pSeq, decay=1000.0):
 	dt = np.zeros([len(pSeq), len(P)], np.float32)
 	for k, c in enumerate(pSeq):
 		hv += stepSz
-		hv[P[c]] = 0
+		hv[P[c]] = 50
 		dt[k] = hv
 	return decay*np.reciprocal(decay+dt)
 
@@ -239,13 +241,17 @@ def AugmentData(nt, augCfg='a|500|2.0|2.0'):
 			phase = float(fs[2]) if len(fs)==3 else 0
 			for n in range(N):
 				A[n] = R*math.sin(n*a+phase), R*math.cos(n*a+phase)
+		case 'x':
+			return nt
 	return np.hstack((nt, A))
 
 
 def NewDataset(S, winSize=0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
 	P = {a:k for k,a in enumerate(alphbetList)}
-	#dt = AugmentData(NewDataset0(P, S, winSize), augCfg)
-	dt = AugmentData(NewDataset1(P, S, decay=1000.0), 'b|0.075')
+	if winSize>= 0:
+		dt = AugmentData(NewDataset0(P, S, winSize), augCfg)
+	else:
+		dt = AugmentData(NewDataset1(P, S, decay=1000.0), augCfg)
 	nt = mm.ToTable(dt)
 	for k, c in enumerate(S):
 		nt.RowSpecList[k].Name = c
@@ -269,7 +275,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.1, r
 	mds.ReadOnly = True
 	mds.Is3D = is3D
 	mds.AutoNormalizing =True
-	mds.GlyphSet = '36 Clusters'
+	mds.GlyphSet = 'C12|||||||||||'
 	return mds
 
 def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.5):
@@ -319,9 +325,10 @@ def CreateMaps(pList, epochs=10000, winSize=0, repeats=1, saveTo=None, glyphSize
 		map.Title = f'{k}: {pId}, N: {nt.Rows}'
 		map.Description = info.ToStr()
 		if (k+1)%8 == 0:
-			SaveToAtlas(saveTo, is3D)
-	mds.Close()
-	SaveToAtlas(saveTo, is3D)
+			SaveToAtlas(saveTo)
+	SaveToAtlas(saveTo)
+	if saveTo is not None:
+		mds.Close()
 
 def Scanning(pMap, stepSize=20):
 	bsList = [b.Id for b in pMap.BodyList]
@@ -513,5 +520,7 @@ ShowFreq('SYNE2')
 for sId in 'EAW58034.1,EAW58035.1,EAW58036.1,NP_003473.3,NP_001394626.1,NP_001361665.1,SYNE2,Q03001.4,EAW58036.1,XP_054199104.1'.split(','):
 	ShowFreq(sId)
 
+CreateMaps(pp.SelectedItems, epochs=10000, winSize=-1, repeats=1, pp=0.15,  saveTo='TestMaps', 
+	is3D=False, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='b|0.01')
 
 '''
