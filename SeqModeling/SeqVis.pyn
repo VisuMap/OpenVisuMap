@@ -51,6 +51,46 @@ public IBody MeanPoint(IList<IBody> bList){
 	}	
 	return mBody;
 }
+
+public INumberTable VectorizeProtein(string alphabet, int M, double decay, IList<string> pList, VisuMap.Script.IDataset pTable) {
+	int L = alphabet.Length;
+	Dictionary<char, int> P = new Dictionary<char, int>();
+	int[][] aaSize = new int[L][];
+	int[] aaPos = new int[L];
+	double[] weight = new double[M];
+	for(int k=0; k<L; k++) {
+		P[alphabet[k]] = k;
+		aaSize[k] = new int[M];
+	}
+	for(int k=0; k<M; k++) 
+		weight[k] = 1.0/(k+decay);
+	pList = new List<string>(pList);
+
+	List<double[]> vList = new List<double[]>();
+	foreach(string pId in pList) {
+		int rowIdx = pTable.IndexOfRow(pId);
+		if (rowIdx < 0)
+			continue;
+		string pSeq = pTable.GetDataAt(rowIdx, 2);	
+		for(int k=0; k<L; k++) {
+			aaPos[k] = -1;
+			for(int i=0; i<M; i++)
+				aaSize[k][i] = 0;
+		}
+		for(int k=0; k<pSeq.Length; k++) {
+				int aaIdx = P[pSeq[k]];
+				int sz = Math.Min(M, k - aaPos[aaIdx]);
+				aaSize[aaIdx][sz-1] += 1;
+				aaPos[aaIdx] = k;
+		}	
+		double[] pV = new double[L];
+		for (int k=0; k<L; k++)
+			for(int i=0; i<M; i++)
+				pV[k] += aaSize[k][i] * weight[i];
+		vList.Add(pV);		
+	}
+	return New.NumberTable(vList.ToArray());
+}
 ''')
 
 # protein embedding map information
@@ -161,28 +201,7 @@ def AddClusterLabel(pMap):
 def CreateProteinMap(idList, epochs=10000, is3D=False, initExag=10.0, 
 		finalExag=1.0, pp=0.1, decay=20.0, repeats=1, saveTo=None):
 	pTable = GetProteinTable()
-	P = {a:k for k,a in enumerate(ALPHABET)}
-	L, M, N = len(P), 50, len(idList)
-	nt = np.zeros((N, L), np.float32)
-	ww = np.array([1.0/(k+decay) for k in range(M)]).reshape((-1, 1))
-	#ww =  np.array(list(range(M))).reshape((-1, 1))
-	#ww = np.log(1.0+weight)
-	#ww = np.sqrt(weight)
-	# aaSize holds the period size, up to M, for each amino-acid in pSeq.
-	# aaPos[] holds the last sequencial-position of each amino-acid.
-	aaSize = np.empty((L, M), np.int32)
-	aaPos = np.empty((L), np.int32)
-	for n, pId in enumerate(idList):
-		pSeq = GetProteinSeq(pTable, pId)
-		aaSize[:,:] = 0
-		aaPos[:] = -1
-		for k, c in enumerate(pSeq):
-			aaIdx = P[c]
-			sz = min(M, k - aaPos[aaIdx])			
-			aaSize[aaIdx, sz-1] += 1  # 0-column count number of period of size 1.
-			aaPos[aaIdx] = k
-		nt[n] = np.matmul(aaSize, ww).reshape(-1)
-	dt = mm.ToTable(nt)
+	dt = cs.VectorizeProtein(ALPHABET, 50, decay, idList, pTable)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp)
