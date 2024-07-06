@@ -4,6 +4,7 @@ import math
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
 PROTEIN_TABLE = 'Protein Table'
 
+
 def FilterSeq(D, P):
 	return ''.join([ c for c in D.upper() if c in P ])
 
@@ -156,24 +157,31 @@ def AddClusterLabel(pMap):
 		cs.MeanPoint(B).ShowName = True
 	pMap.RedrawAll()
 
-def CreateProteinMap(idList, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.1, decay=1.0, repeats=1, saveTo=None):
+
+def CreateProteinMap(idList, epochs=10000, is3D=False, initExag=10.0, 
+		finalExag=1.0, pp=0.1, decay=20.0, repeats=1, saveTo=None):
 	pTable = GetProteinTable()
 	P = {a:k for k,a in enumerate(ALPHABET)}
 	L, M, N = len(P), 50, len(idList)
 	nt = np.zeros((N, L), np.float32)
-	weight = np.array([1.0/(k+decay) for k in range(M)]).reshape((-1,1))
+	ww = np.array([1.0/(k+decay) for k in range(M)]).reshape((-1, 1))
+	#ww =  np.array(list(range(M))).reshape((-1, 1))
+	#ww = np.log(1.0+weight)
+	#ww = np.sqrt(weight)
+	# aaSize holds the period size, up to M, for each amino-acid in pSeq.
+	# aaPos[] holds the last sequencial-position of each amino-acid.
+	aaSize = np.empty((L, M), np.int32)
+	aaPos = np.empty((L), np.int32)
 	for n, pId in enumerate(idList):
 		pSeq = GetProteinSeq(pTable, pId)
-		# aaSize holds the period size, up to M, for each amino-acid in pSeq.
-		aaSize = np.zeros((L, M), np.int32)
-		# aaPos[] holds the last sequencial-position of each amino-acid.
-		aaPos = np.array(L*[-1])
+		aaSize[:,:] = 0
+		aaPos[:] = -1
 		for k, c in enumerate(pSeq):
 			aaIdx = P[c]
 			sz = min(M, k - aaPos[aaIdx])			
 			aaSize[aaIdx, sz-1] += 1  # 0-column count number of period of size 1.
 			aaPos[aaIdx] = k
-		nt[n] = np.matmul(aaSize, weight).reshape(-1)
+		nt[n] = np.matmul(aaSize, ww).reshape(-1)
 	dt = mm.ToTable(nt)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
@@ -182,10 +190,9 @@ def CreateProteinMap(idList, epochs=10000, is3D=False, initExag=10.0, finalExag=
 	if saveTo is not None:
 		SaveToAtlas(saveTo)
 		mds.Close()
-	#AddClusterLabel(vv.LastView)
 
 #-----------------------------------------------------------------------------
-def NewDataset1(P, pSeq, decay=1000.0):
+def NewDataset1(P, pSeq, decay):
 	L = len(P)
 	hv = np.zeros((L))  # head-vector.
 	stepSz = np.ones((L))
@@ -194,7 +201,10 @@ def NewDataset1(P, pSeq, decay=1000.0):
 		hv += stepSz
 		hv[P[c]] = 0
 		dt[k] = hv
-	return decay*np.reciprocal(decay+dt)
+	dt = np.reciprocal(decay+dt)
+	for k in range(1, dt.shape[0]):
+		dt[k, :] = 0.8*dt[k-1] + 0.2*dt[k]
+	return dt
 
 def NewDataset0(P, pSeq, winSize=0):
 	pSeq = FilterSeq(pSeq, P)
@@ -207,7 +217,6 @@ def NewDataset0(P, pSeq, winSize=0):
 	for row, c in enumerate(pSeq):
 		col0 = P[c]
 		W0 = -W+1  # symmetric window
-		#W0 = -5
 		for w in range(W0, W):
 			row_w = row + w
 			if row_w < 0 or row_w >= L:
@@ -247,12 +256,12 @@ def AugmentData(nt, augCfg='a|500|2.0|2.0'):
 	return np.hstack((nt, A))
 
 
-def NewDataset(S, winSize=0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
+def NewDataset(S, winSize=0, decay=1.0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
 	P = {a:k for k,a in enumerate(alphbetList)}
 	if winSize>= 0:
 		dt = AugmentData(NewDataset0(P, S, winSize), augCfg)
 	else:
-		dt = AugmentData(NewDataset1(P, S), augCfg)
+		dt = AugmentData(NewDataset1(P, S, decay=decay), augCfg)
 	nt = mm.ToTable(dt)
 	for k, c in enumerate(S):
 		nt.RowSpecList[k].Name = c
@@ -282,6 +291,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.1, r
 def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.5):
 	mds.Repeats = repeats
 	mds.Reset().Start()
+	if not mds.Completed: vv.Return(0)
 	if repeats == 1:
 		mp = mds.ShowSnapshot()
 	mpName = vv.LastView.Name
@@ -300,7 +310,7 @@ def ShowMapData(pMap):
 	nt = NewDataset(pSeq, winSize=int(info.WinSize), augCfg=info.AugCfg)
 	nt.ShowHeatMap().NormalizeView()
 
-def CreateMaps(pList, epochs=10000, winSize=0, repeats=1, saveTo=None, glyphSize=0.8, pp=0.05,
+def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None, glyphSize=0.8, pp=0.05,
 		glyphOpacity=0.5, is3D=False, initExag=10.0, finalExag=1.0, augCfg='a|500|2.0|2.0'):
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
@@ -317,7 +327,7 @@ def CreateMaps(pList, epochs=10000, winSize=0, repeats=1, saveTo=None, glyphSize
 	info.AugCfg = augCfg
 	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
-		nt = NewDataset(pSeq, winSize=winSize, augCfg=augCfg)
+		nt = NewDataset(pSeq, winSize=winSize, decay=decay, augCfg=augCfg)
 		mds.SetTrainingData(nt)
 		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
 		info.pId = pId
@@ -345,7 +355,8 @@ def Scanning(pMap, stepSize=20):
 
 def ShowTracingSeq(pMap):
 	pSeq = ''.join([b.Name for b in pMap.BodyList])
-	tp = New.TextPanel("Protein Sequence", pSeq)
+	info = MapInfo(pMap.Description)
+	tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
 	tp.Tag = pMap
 	pMap.Tag = tp
 	tp.OnSelection = '@OnSeqSelection()'
@@ -438,6 +449,7 @@ def CreateSeqMap(pSeq, pSeq1=None, epochs=10000, winSize=0, repeats=1, pp=0.15, 
 	mds = NewMds(nt, epochs=epochs, is3D=is3D, initExag=initExag, 
 		finalExag=finalExag, pp=pp, repeats=repeats)
 	mds.Reset().Start()
+	if not mds.Completed: vv.Return()
 	mds.Show3DView().NormalizeView()
 	mds.Close()
 
