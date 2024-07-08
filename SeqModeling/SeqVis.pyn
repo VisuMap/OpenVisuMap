@@ -1,6 +1,5 @@
 import numpy as np
-import math
-
+import math, random, time
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
 PROTEIN_TABLE = 'Protein Table'
 
@@ -64,6 +63,7 @@ public INumberTable VectorizeProtein(string alphabet, int M, double decay, IList
 	}
 	for(int k=0; k<M; k++) 
 		weight[k] = 1.0/(k+decay);
+	
 	pList = new List<string>(pList);
 
 	List<double[]> vList = new List<double[]>();
@@ -114,36 +114,78 @@ class MapInfo():
 #-----------------------------------------------------------
 # Code to maintain the protein table.
 #-----------------------------------------------------------
- 
-def GetProteinIds(gSymbol):
-	ds = vv.Folder.ReadDataset('Gene Features')	
+
+def Sym2Id(ds, gSymbol):
 	for row in range(ds.Rows):
 		if ds.GetDataAt(row, 5) == gSymbol:
-			pList = ds.GetDataAt(row, 17)
-			return pList.split(',')
+			return ds.BodyList[row].Id
 	print('Cannot find gene ' + gSymbol)
 	return None
 
-def AddProteins(gSymbol, maxCount=100, minLength=400):
+def Id2Sym(ds, gId):
+	rowIdx = ds.IndexOfRow(gId)
+	if rowIdx >= 0:
+		return ds.GetDataAt(rowIdx, 5);
+	else:
+		return None
+
+def GetProteinIds(ds, gId):
+	rowIdx = ds.IndexOfRow(gId)
+	if rowIdx >= 0:
+		pList = ds.GetDataAt(rowIdx, 17)
+		return pList.split(',')
+	else:
+		return None
+
+def AddProteins(ds, pId, maxCount=20, minLength=400):
 	import urllib.request
 	getUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&rettype=fasta&retmode=text&id='
-	pList = GetProteinIds(gSymbol)
+	gSymbol = Id2Sym(ds, pId)
+	pList = GetProteinIds(ds, pId)
+	random.shuffle(pList)
 	OpenProteinTable()
 	P = {a:k for k,a in enumerate(ALPHABET)}
 	typeIdx = max([b.Type for b in vv.Dataset.BodyList]) + 1
 	cnt = 0
+	cntSmall = 0
+	cntDuplicate = 0
+	newSeq = set()
+	print(f'Fetching {len(pList)} proteins of gene: ', pId)	
 	for id in pList:
-		sFasta = urllib.request.urlopen(getUrl+id).read().decode('utf-8')
-		vv.DoEvents()
-		idx = sFasta.index('\n')
-		desc = sFasta[1:idx]
-		pSeq = FilterSeq(sFasta[idx:], P)
-		if len(pSeq) < minLength:
+		try:
+			sFasta = urllib.request.urlopen(getUrl+id).read().decode('utf-8')
+		except:
+			print('Exception: ', id)
+			time.sleep(2.0)
 			continue
-		vv.Dataset.AddRow(id, gSymbol, typeIdx, [desc,gSymbol,pSeq,str(len(pSeq))])
+		vv.DoEvents()
+		if vv.GuiManager.StopFlag:
+			vv.Return()
+		idx = sFasta.index('\n')
+		desc = pId + ': ' + sFasta[1:idx]
+		pSeq = FilterSeq(sFasta[idx:], P)
+		pLen = len(pSeq)
+		if pLen < minLength:
+			if pLen < minLength*0.75:
+				cntSmall += 1
+				if cntSmall > 20:
+					print('Skipped short protein!')
+					break
+			print('Skipped: len:', pLen)
+			continue
+		if pSeq in newSeq:
+			print('Skipped duplicate!')	
+			cntDuplicate += 1
+			if cntDuplicate > 30:
+				print('Skipped bc too many duplicates!')
+				break			
+			continue
+		newSeq.add(pSeq)
+		vv.Dataset.AddRow(id, gSymbol, typeIdx, [desc,gSymbol,pSeq,str(pLen)])
+		print('     ', id, gSymbol, pLen)
 		cnt += 1
 		if cnt >= maxCount:
-			break		
+			break
 	vv.Dataset.CommitChanges()
 
 def AddRandomSeq(N=20, L=1000):
@@ -563,5 +605,11 @@ def SelectUniSet():
 		if pSq not in pSet:
 			pSet[pSq] = pId
 	vv.SelectedItems = list(pSet.values())
+
+ds = vv.Folder.ReadDataset('Gene Features')
+pList = vv.GroupManager.GetGroupLabels("Protein-2000")
+for k, pId in enumerate(pList):
+	print(k, pId)
+	AddProteins(ds, pId, minLength=200)
 
 '''
