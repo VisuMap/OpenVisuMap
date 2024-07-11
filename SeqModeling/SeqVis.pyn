@@ -62,10 +62,8 @@ public INumberTable VectorizeProtein(string alphabet, int M, double decay, IList
 		aaSize[k] = new int[M];
 	}
 	for(int k=0; k<M; k++) 
-		weight[k] = 1.0/(k+decay);
-	
+		weight[k] = 1.0/(k+decay);	
 	pList = new List<string>(pList);
-
 	List<double[]> vList = new List<double[]>();
 	foreach(string pId in pList) {
 		int rowIdx = pTable.IndexOfRow(pId);
@@ -91,6 +89,53 @@ public INumberTable VectorizeProtein(string alphabet, int M, double decay, IList
 	}
 	return New.NumberTable(vList.ToArray());
 }
+
+public INumberTable VectorizeProtein2( IList<string> ppList, int M, double decay, IList<string> pList, VisuMap.Script.IDataset pTable) {
+	int L = ppList.Count;
+	var P = new Dictionary<string, int>();
+	int[][] aaSize = new int[L][];
+	int[] aaPos = new int[L];
+	for(int k=0; k<L; k++) {
+		P[ppList[k]] = k;
+		aaSize[k] = new int[M];
+	}
+	double[] weight = new double[M];
+	for(int k=0; k<M; k++) 
+		weight[k] = 1.0/(k+decay);	
+	pList = new List<string>(pList);
+	List<double[]> vList = new List<double[]>();
+	foreach(string pId in pList) {
+		int rowIdx = pTable.IndexOfRow(pId);
+		if (rowIdx < 0)
+			continue;
+		string pSeq = pTable.GetDataAt(rowIdx, 2);	
+		for(int k=0; k<L; k++) {
+			aaPos[k] = -1;
+			for(int i=0; i<M; i++)
+				aaSize[k][i] = 0;
+		}
+		for(int k=0; k<(pSeq.Length-1); k+=1) {
+				string aaPair = pSeq.Substring(k, 2);
+				if ( P.ContainsKey(aaPair) ) {
+					int aaIdx = P[aaPair];
+					int sz = Math.Min(M, k - aaPos[aaIdx]);
+					aaSize[aaIdx][sz-1] += 1;
+					aaPos[aaIdx] = k;
+				}
+		}	
+		double[] pV = new double[L];
+		for (int k=0; k<L; k++)
+			for(int i=0; i<M; i++)
+				pV[k] += aaSize[k][i] * weight[i];
+		vList.Add(pV);		
+	}
+
+	var nt = New.NumberTable(vList.ToArray());
+	for(int col=0; col<L; col++)
+		nt.ColumnSpecList[col].Id = ppList[col];
+	return nt;
+}
+
 ''')
 
 # protein embedding map information
@@ -150,7 +195,7 @@ def AddProteins(ds, pId, maxCount=20, minLength=400):
 	cntSmall = 0
 	cntDuplicate = 0
 	newSeq = set()
-	print(f'Fetching {len(pList)} proteins of gene: ', pId)	
+	print(f'----- Fetching {len(pList)} proteins of gene: {pId}')	
 	for id in pList:
 		try:
 			sFasta = urllib.request.urlopen(getUrl+id).read().decode('utf-8')
@@ -230,7 +275,39 @@ def CreateProteinMapByCounts(idList, repeats=1):
 	mds.RefreshFreq = 50
 	mds.Repeats = repeats
 	mds.Reset().Start()
-	#AddClusterLabel(mds)
+
+def ProteinMapByPairs(idList):	
+	pTable = GetProteinTable()
+	rows, columns = len(idList), len(ALPHABET)
+	if rows == 0:
+		bsList = pTable.BodyListEnabled()
+		rows = bsList.Count
+		idList = [b.Id for b in bsList]
+	else:
+		bsList = pTable.BodyListForId(idList)
+	dt = np.zeros((rows, columns*columns), np.float32)
+	aaCnt = {}
+	for c1 in ALPHABET:
+		for c2 in ALPHABET:
+			aaCnt[c1+c2] = 0
+	for row in range(rows):
+		pSeq = GetProteinSeq(pTable, idList[row])
+		pLen = len(pSeq)
+		for pp in aaCnt:
+			aaCnt[pp] = 0
+		for k in range(0, pLen-1, 1):
+			aaCnt[pSeq[k:k+2]] += 1
+		ppCnt = list(aaCnt.values())
+		for col in range(dt.shape[1]):
+			dt[row, col] = float( ppCnt[col] ) 
+	nt = mm.ToTable(dt, bsList)
+	for k, key in enumerate(aaCnt.keys()):
+		nt.ColumnSpecList[k].Id = key
+	mds = NewMds(nt, epochs=5000, initExag=3.0, finalExag=1.0)
+	mds.PerplexityRatio = 0.1
+	mds.RefreshFreq = 50
+	mds.Repeats = 1
+	mds.Reset().Start()
 
 def AddClusterLabel(pMap):
 	for b in pMap.BodyList: 
@@ -251,6 +328,16 @@ def CreateProteinMap(idList, epochs=10000, is3D=False, initExag=10.0,
 	if saveTo is not None:
 		SaveToAtlas(saveTo)
 		mds.Close()
+
+def CreateProteinMap2(idList, epochs=10000, is3D=False, initExag=6.0, ppList=None,	finalExag=1.0, pp=0.1, decay=20.0, repeats=1):
+	pTable = GetProteinTable()
+	if ppList is None:
+		ppList = vv.GroupManager.GetGroupLabels("KeyPairs20")
+	dt = cs.VectorizeProtein2(ppList, 200, decay, idList, pTable)
+	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
+		dt.RowSpecList[k].CopyFromBody(b)
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp, metric='Correlation.Consine Distance')
+	RunMds(mds, repeats=repeats, glyphSize=0.25, glyphOpacity=0.5)
 
 #-----------------------------------------------------------------------------
 def NewDataset1(P, pSeq, decay):
@@ -333,7 +420,7 @@ def NewDataset(S, winSize=0, decay=1.0, alphbetList=ALPHABET, augCfg='a|500|2.0|
 
 #-----------------------------------------------------------------------------
 
-def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.1, repeats=1):
+def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.1, repeats=1, metric='EuclideanMetric'):
 	mds = New.MdsCluster(nt)
 	mds.Show()
 	mds.MaxLoops = epochs
@@ -341,7 +428,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.1, r
 	mds.InitialExaggeration = initExag
 	mds.FinalExaggeration = finalExag
 	mds.PerplexityRatio = pp
-	mds.Metric = 'EuclideanMetric'
+	mds.Metric = metric
 	mds.Repeats = repeats
 	mds.ReadOnly = True
 	mds.Is3D = is3D
@@ -607,9 +694,102 @@ def SelectUniSet():
 	vv.SelectedItems = list(pSet.values())
 
 ds = vv.Folder.ReadDataset('Gene Features')
-pList = vv.GroupManager.GetGroupLabels("Protein-2000")
-for k, pId in enumerate(pList):
-	print(k, pId)
+pList = list( vv.GroupManager.GetGroupLabels("Protein-2000") )
+idx = pList.index('ENSG00000131323')
+pList2 = pList[idx:]
+print(len(pList2))
+for k, pId in enumerate(pList2):
+	print(f'---- {k}: {pId}')
 	AddProteins(ds, pId, minLength=200)
 
+pSeq = vv.Dataset.GetDataAt(0, 2)
+
+def ShowProteinPair(pSeq):
+	pLen = len(pSeq)
+	aaCnt = {}
+	for c1 in ALPHABET:
+		for c2 in ALPHABET:
+			aaCnt[c1+c2] = 0
+	for k in range(0, pLen-1, 1):
+		aaCnt[pSeq[k:k+2]] += 1
+	bv = New.BarView(len(aaCnt))
+	for k, pp in enumerate(aaCnt):
+		bv.ItemList[k].Id = pp
+		bv.ItemList[k].Value = float(aaCnt[pp])
+	bv.BaseLineType = 0
+	bv.AutoScaling = True
+	bv.Show()
+	return bv
+
+def GetPairTable():
+	aaCnt = {}
+	for c1 in ALPHABET:
+		for c2 in ALPHABET:
+			aaCnt[c1+c2] = 0
+	for k in range(21, vv.Dataset.Rows):
+		pSeq = vv.Dataset.GetDataAt(k, 2)
+		pLen = len(pSeq)
+		for k in range(0, pLen-1, 1):
+			aaCnt[pSeq[k:k+2]] += 1
+	return aaCnt
+
+def ShowStatistics():
+	aaCnt = GetPairTable()
+	bv = New.BarView(len(aaCnt))
+	for k, pp in enumerate(aaCnt):
+		bv.ItemList[k].Id = pp
+		bv.ItemList[k].Value = float(aaCnt[pp])
+	bv.BaseLineType = 0
+	bv.AutoScaling = True
+	bv.BarLabelType=4
+	bv.NumberFormat = 'g8'
+	bv.Show()
+
+def ShowPairTable():
+	aaCnt = GetPairTable()
+	nt = New.NumberTable(20, 20)
+	for k1, c1 in enumerate(ALPHABET):
+		R = nt.Matrix[k1]
+		for k2, c2 in enumerate(ALPHABET):
+			R[k2] = aaCnt[c1+c2]
+	for k, c in enumerate(ALPHABET):
+		nt.RowSpecList[k].Id = c
+		nt.ColumnSpecList[k].Id = c
+	M = nt.Matrix
+	for k in range(20):
+		for cl in range(0, k):
+			v = 0.5 * (M[k][cl] + M[cl][k])
+			if cl > 0:
+				vv.Echo2(' ')
+			vv.Echo2( f'{(100000.0/v):.8g}' )
+		vv.Echo('')
+	nt.ShowHeatMap()
+
+ShowPairTable()
+
+def ShowPP(pId):
+	pIdx = vv.Dataset.IndexOfRow(pId)
+	pSeq = vv.Dataset.GetDataAt(pIdx, 2)
+	bv = ShowProteinPair(pSeq)
+	bv.Title = f'{pId}: L:{len(pSeq)}'
+
+ShowPairTable()
+
+ShowPP('XP_054199642.1')
+ShowPP('EAX11017.1')
+for pId in vv.SelectedItems:
+	ShowPP(pId)
+
+ShowProteinPair(pp.Text)
+
+ppList = []
+for c1 in ALPHABET:
+	for c2 in ALPHABET:
+		ppList.append(c1+c2)
+
+vv.GroupManager.SetGroupLabels('KeyPairs400', ppList)
+
+
+ppList = [ 'C'+c for c in ALPHABET ]
+print('|'.join(ppList))
 '''
