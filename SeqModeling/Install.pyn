@@ -15,12 +15,16 @@ def InstallMenu(sCfg):
 InstallMenu('''
 
 ##GroupManager
-#MenuLabels CreateMaps
+#MenuLabels CreateMaps ProteinMap4
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'CreateMaps':
 		CreateMaps(list(pp.GetSelectedMembers()), epochs=10000, winSize=0, repeats=1, pp=0.15,
 			is3D=True, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo=None,  augCfg='a|500|2.0|2.0')
+	case 'ProteinMap4':
+		pList = vv.AllItems
+		ppList = pp.GetSelectedMembers()
+		CreateProteinMap2(pList,  epochs=5000, is3D=False, repeats=0, initExag=4.0, pp=0.1, finalExag=1.25, decay=0.1, ppList=ppList)
 
 ##DataDetails
 #MenuLabels CreateMaps ProteinMap LoadSeq
@@ -72,7 +76,7 @@ match vv.EventSource.Item:
 		ResetAtlasMaps(pp, pp.GetSelectedItems(), 1000, 700, gSize=0.8, gOpacity=0.5, hiddenSize=7, reset=False)
 
 ##MainForm
-#MenuLabels SeqMap SeqMap2 ProteinMap ProteinMap2 ShowSeq
+#MenuLabels SeqMap SeqMap2 - ShowSeq ProteinMap ProteinMap2 ProteinMap4
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'SeqMap':
@@ -88,9 +92,17 @@ match vv.EventSource.Item:
 		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
 		CreateProteinMap(pList,  is3D=False, repeats=0, decay=1000.0)
 	case 'ShowSeq':
-		pId = pp.SelectedItems[0]
-		rowIndex = pp.Dataset.IndexOfRow(pId)
-		pSeq = vv.Dataset.GetDataAt(rowIndex, 2)
-		New.TextPanel("Protein Sequence", pSeq).Show()
+		if pp.SelectedItems.Count > 0:
+			pId = pp.SelectedItems[0]
+			ds = pp.Dataset
+			rIdx = ds.IndexOfRow(pId)
+			pGene = ds.BodyList[rIdx].Name			
+			pSeq = ds.GetDataAt(rIdx, 2)
+			New.TextPanel(f'Protein: {pGene}, {pId}', pSeq).Show()
+	case 'ProteinMap4':
+		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
+		ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
+		CreateProteinMap2(pList,  epochs=5000, is3D=False, repeats=0, initExag=4.0, pp=0.1, finalExag=1.25, decay=0.1, ppList=ppList)
+
 
 ''')
