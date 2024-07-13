@@ -136,6 +136,31 @@ public INumberTable VectorizeProtein2( IList<string> ppList, int M, double decay
 	return nt;
 }
 
+public INumberTable ToWaveTable(string pSeq, IList<string> ppList, int M) {
+	int L = ppList.Count;
+	var P = new Dictionary<string, int>();
+	double[][] aaSize = new double[L][];
+	int[] aaPos = new int[L];
+	for(int k=0; k<L; k++) {
+		P[ppList[k]] = k;
+		aaSize[k] = new double[M];
+		aaPos[k] = -1;
+	}
+	for(int k=0; k<(pSeq.Length-1); k+=1) {
+			string aaPair = pSeq.Substring(k, 2);
+			if ( P.ContainsKey(aaPair) ) {
+				int aaIdx = P[aaPair];
+				int sz = Math.Min(M, k - aaPos[aaIdx]);
+				aaSize[aaIdx][sz-1] += 1.0;
+				aaPos[aaIdx] = k;
+			}
+	}
+	var nt = New.NumberTable(aaSize);
+	for(int row=0; row<L; row++)
+		nt.RowSpecList[row].Id = ppList[row];
+	return nt;
+}
+
 ''')
 
 # protein embedding map information
@@ -252,7 +277,8 @@ def GroupByType(bList):
 def CreateProteinMapByCounts(idList, repeats=1):	
 	from collections import Counter
 	pTable = GetProteinTable()
-	rows, columns = len(idList), len(ALPHABET)
+	rows = len(idList)
+	columns = len(ALPHABET)
 	if rows == 0:
 		bsList = pTable.BodyListEnabled()
 		rows = bsList.Count
@@ -320,7 +346,7 @@ def AddClusterLabel(pMap):
 def CreateProteinMap(idList, epochs=10000, is3D=False, initExag=10.0, 
 		finalExag=1.0, pp=0.1, decay=20.0, repeats=1, saveTo=None):
 	pTable = GetProteinTable()
-	dt = cs.VectorizeProtein(ALPHABET, 50, decay, idList, pTable)
+	dt = cs.VectorizeProtein(ALPHABET, 100, decay, idList, pTable)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp)
@@ -329,13 +355,33 @@ def CreateProteinMap(idList, epochs=10000, is3D=False, initExag=10.0,
 		SaveToAtlas(saveTo)
 		mds.Close()
 
-def CreateProteinMap2(idList, epochs=10000, is3D=False, initExag=6.0, ppList=None,	finalExag=1.0, pp=0.1, decay=20.0, repeats=1):
+def CreateProteinMap2(idList, epochs=10000, is3D=False, initExag=6.0, ppList=None, finalExag=1.0, pp=0.1, decay=20.0, repeats=1):
 	pTable = GetProteinTable()
 	dt = cs.VectorizeProtein2(ppList, 500, decay, idList, pTable)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
-	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp, metric='Correlation.Consine Distance')
-	RunMds(mds, repeats=repeats, glyphSize=0.25, glyphOpacity=0.5)
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp)
+	RunMds(mds, repeats=repeats, glyphSize=0.8, glyphOpacity=0.5)
+
+#-----------------------------------------------------------------------------
+
+def ShowSeqInfo(pMap):
+	if pMap.SelectedItems.Count == 0:
+		vv.Message('No protein selected')
+		return
+	pId = pMap.SelectedItems[0]
+	ds = vv.Dataset
+	rIdx = ds.IndexOfRow(pId)
+	pSeq = ds.GetDataAt(rIdx, 2)
+	'''
+	pGene = ds.BodyList[rIdx].Name			
+	pLen = int(ds.GetDataAt(rIdx, 3))
+	tp = New.TextPanel(f'Protein: {pGene}, {pId}, {pLen}', pSeq)
+	tp.Show()
+	'''
+	ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
+	nt = cs.ToWaveTable(pSeq, ppList, 1000)
+	nt.ShowHeatMap()
 
 #-----------------------------------------------------------------------------
 def NewDataset1(P, pSeq, decay):
@@ -431,7 +477,8 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.1, r
 	mds.ReadOnly = True
 	mds.Is3D = is3D
 	mds.AutoNormalizing =True
-	mds.GlyphSet = 'C12|||||||||||'
+	#mds.GlyphSet = 'C12|||||||||||'
+	mds.GlyphSet = vv.Map.GlyphType
 	return mds
 
 def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.5):
@@ -547,6 +594,15 @@ def OnSeqSelected():
 			MarkSeq(tb, L[i], L[j-1]+1)
 		i = j
 
+def ShowProteinSeq(pMap):
+	pId = pMap.SelectedItems[0]
+	rowIdx = vv.Dataset.IndexOfRow(pId)
+	pSeq = vv.Dataset.GetDataAt(rowIdx, 2)
+	pSym = vv.Dataset.GetDataAt(rowIdx, 1)
+	pLen = int(vv.Dataset.GetDataAt(rowIdx, 3))
+	tb = New.TextPanel(f'{pId}: {pSym}, {pLen}', pSeq)
+	tb.Show()
+
 #-----------------------------------------------------------------------
 
 def ResetAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=False):
@@ -624,11 +680,12 @@ def FS(ch, c):
 def FilterSq(idx):
 	c = ALPHABET[idx]
 	pp.Text = ''.join([FS(ch, c) for ch in pSeq])
-	for s in pp.Text.split(c):
-		vv.Echo2(f'{len(s)}, ')
-	vv.Echo('')
 
-FilterSq(11) #0:19  
+FilterSq(3) #0:19  
+
+ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
+nt = cs.ToWaveTable(pSeq, ppList, 1000)
+nt.ShowHeatMap()
 
 from collections import Counter
 
@@ -788,6 +845,8 @@ for c1 in ALPHABET:
 vv.GroupManager.SetGroupLabels('KeyPairs400', ppList)
 
 
-ppList = [ 'C'+c for c in ALPHABET ]
+ppList = [ 'W'+c for c in ALPHABET ]
 print('|'.join(ppList))
+
+ProteinMapByPairs([])
 '''
