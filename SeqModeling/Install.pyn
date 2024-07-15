@@ -92,13 +92,7 @@ match vv.EventSource.Item:
 		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
 		CreateProteinMap(pList,  is3D=False, repeats=0, decay=1000.0)
 	case 'ShowSeq':
-		if pp.SelectedItems.Count > 0:
-			pId = pp.SelectedItems[0]
-			ds = pp.Dataset
-			rIdx = ds.IndexOfRow(pId)
-			pGene = ds.BodyList[rIdx].Name			
-			pSeq = ds.GetDataAt(rIdx, 2)
-			New.TextPanel(f'Protein: {pGene}, {pId}', pSeq).Show()
+		ShowSeqInfo(pp, showSeq=False, showTable=True, barView=True)
 	case 'ProteinMap4':
 		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
 		ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")

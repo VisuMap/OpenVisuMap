@@ -1,8 +1,10 @@
 import numpy as np
 import math, random, time
-ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
-PROTEIN_TABLE = 'Protein Table'
 
+PROTEIN_TABLE = 'Protein Table'
+ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
+P = {ALPHABET[k]:k for k in range(len(ALPHABET))}
+ALPHABET_s = 'WCMYHFNIDQTRVKGPAESL'
 
 def FilterSeq(D, P):
 	return ''.join([ c for c in D.upper() if c in P ])
@@ -365,7 +367,7 @@ def CreateProteinMap2(idList, epochs=10000, is3D=False, initExag=6.0, ppList=Non
 
 #-----------------------------------------------------------------------------
 
-def ShowSeqInfo(pMap):
+def ShowSeqInfo(pMap, showSeq, showTable, barView):
 	if pMap.SelectedItems.Count == 0:
 		vv.Message('No protein selected')
 		return
@@ -373,17 +375,47 @@ def ShowSeqInfo(pMap):
 	ds = vv.Dataset
 	rIdx = ds.IndexOfRow(pId)
 	pSeq = ds.GetDataAt(rIdx, 2)
-	'''
 	pGene = ds.BodyList[rIdx].Name			
-	pLen = int(ds.GetDataAt(rIdx, 3))
-	tp = New.TextPanel(f'Protein: {pGene}, {pId}, {pLen}', pSeq)
-	tp.Show()
-	'''
-	ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
-	nt = cs.ToWaveTable(pSeq, ppList, 1000)
-	nt.ShowHeatMap()
+	pLen = int(ds.GetDataAt(rIdx, 3))	
+	if showSeq:
+		tp = New.TextPanel(f'Protein: {pGene}, {pId}, L:{pLen}', pSeq)
+		tp.Show()
+	if showTable:
+		ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
+		nt = cs.ToWaveTable(pSeq, ppList, 1000)
+		for rs in nt.RowSpecList:
+			rs.Type = P[rs.Id[0]]
+		hm = nt.ShowHeatMap()
+		hm.Title = f'{pGene}, {pId}, L:{pLen}' 
+		hm.SpectrumType = 4
+		hm.ColorPaletteName = 'rP8'
+	if barView:
+		bv = New.BarView(pLen)
+		for k, item in enumerate(bv.ItemList):
+			item.Group = P[pSeq[k]]
+			item.Value = 1.0
+		bv.Horizontal = False
+		bv.BarLabelType = 0
+		bv.Show()
+		bv.Tag = (pSeq, 0, vv.GroupManager.GetGroupLabels("KeyPairs400"))
+		#bv.Tag = (pSeq, 0, ALPHABET)
+		bv.SetMouseWheelHandler('@FilterSq2()')
+
+def FilterSq2():
+	bv = vv.EventSource.Form
+	(pSeq, filterIdx, filterList) = bv.Tag
+	L = len(filterList)
+	filterIdx = (filterIdx + vv.EventSource.Argument + L) % L
+	bv.Tag = (pSeq, filterIdx, filterList)
+	a2 = filterList[filterIdx]
+	for k, item in enumerate(bv.ItemList):
+		item.Value = 1.0 if pSeq[k:k+2].startswith(a2) else 0.0
+	vv.SelectedItems = [ a2 ]
+	bv.Title = f'AA key: {filterIdx}: {a2}'
+	bv.Redraw()
 
 #-----------------------------------------------------------------------------
+
 def NewDataset1(P, pSeq, decay):
 	L = len(P)
 	hv = np.zeros((L))  # head-vector.
@@ -656,32 +688,41 @@ def CreateSeqMap(pSeq, pSeq1=None, epochs=10000, winSize=0, repeats=1, pp=0.15, 
 	mds.Close()
 
 '''========================================================================================
-pSeq1 = GetProteinSeq(pTable, 'NP_001394894.1')
-pSeq1 = GetProteinSeq(pTable, 'UGU37881.1')
 
-pSeq = GetProteinSeq(pTable, 'random0')
-pSeq1 = GetProteinSeq(pTable, 'random1')
+#--------------------------------------
+filterIdx = 0
+filterList = None
 
-pSeq = GetProteinSeq(pTable, 'EAW60935.1')
-pSeq1 = GetProteinSeq(pTable, 'EAW60936.1')
-
-pSeq = 'MTVEFEECVKDSPRFRATIDEVETDVVEIEAKLDKLVKLCSGMVEAGKAYVSTSRLFVSGVRDLSQQCQGDTVISECLQRFADSLQEVVNYHMILFDQAQRSVRQQLQSFVKEDVRKFKETKKQFDKVREDLELSLVRNAQAPRHRPHEVEEATGALTLTRKCFRHLALDYVLQINVLQAKKKFEILDSMLSFMHAQSSFFQQGYSLLHQLDPYMKKLAAELDQLVIDSAVEKREMERKHAAIQQRTLLQDFSYDESKVEFDVDAPSGVVMEGYLFKRASNAFKTWNRRWFSIQNSQLVYQKKLKDALTVVVDDLRLCSVKPCEDIERRFCFEVLSPTKSCMLQADSEKLRQAWVQAVQASIASAYRESPDSCYSERLDRTASPSTSSIDSATDTRERGVKGESVLQRVQSVAGNSQCGDCGQPDPRWASINLGVLLCIECSGIHRSLGVHCSKVRSLTLDSWEPELLKLMCELGNSAVNQIYEAQCEGAGSRKPTASSSRQDKEAWIKDKYVEKKFLRKAPMAPALEAPRRWRVQKCLRPHSSPRAPTARRKVRLEPVLPCVAALSSVGTLDRKFRRDSLFCPDELDSLFSYFDAGAAGAGPRSLSSDSGLGGSSDGSSDVLAFGSGSVVDSVTEEEGAESEESSGEADGDTEAEAWGLADVRELHPGLLAHRAARARDLPALAAALAHGAEVNWADAEDEGKTPLVQAVLGGSLIVCEFLLQNGADVNQRDSRGRAPLHHATLLGRTGQVCLFLKRGADQHALDQEQRDPLAIAVQAANADIVTLLRLARMAEEMREAEAAPGPPGALAGSPTELQFRRCIQEFISLHLEES'
-pSeq1 = 'MTVEFEECVKDSPRFRATIDEVETDVVEIEAKLDKLVKLCSGMVEAGKAYVSTSRLFVSGVRDLSQQCQGDTVISVRGRLTSDLKECLQRFADSLQEVVNYHMILFDQAQRSVRQQLQSFVKEDVRKFKETKKQFDKVREDLELSLVRNAQAPRHRPHEVEEATGALTLTRKCFRHLALDYVLQINVLQAKKKFEILDSLDQLVIDSAVEKREMERKHAAIQQRTLLQDFSYDESKVEFDVDAPSGVVMEGYLFKRASNAFKTWNRRWFSIQNSQLVYQKKLKDALTVVVDDLRLCSVKPCEDIERRFCFEVLSPTKSCMLQADSEKLRQAWVQAVQASIASAYRESPDSCYSERLDRTASPSTSSIDSATDTRERGVKGESVLQRVQSVAGNSQCGDCGQPDPRWASINLGVLLCIECSGIHRSLGVHCSKVRSLTLDSWEPELLKLMCELGNSAVNQIYEAQCEGAGSRKPTASSSRQDKEAWIKDKYVEKKFLRKAPMAPALEAPRRWRVQKCLRPHSSPRAPTARRKVRLEPVLPCVAALSSVGTLDRKFRRDSLFCPDELDSLFSYFDAGAAGAGPRSLSSDSGLGGSSDGSSDVLAFGSGSVVDSVTEEEGAESEESSGEADGDTEAEAWGLADVRELHPGLLAHRAARARDLPALAAALAHGAEVNWADAEDEGKTPLVQAVLGGSLIVCEFLLQNGADVNQRDSRGRAPLHHATLLGRTGQVCLFLKRGADQHALDQEQRDPLAIAVQAANADIVTLLRLARMAEEMREAEAAPGPPGALAGSPTELQFRRCIQEFISLHLEES'
-
-CreateSeqMap(pSeq, pSeq1, initExag=5.0, winSize=1, repeats=1, augCfg='a|200|2.0|3.0')
-CreateSeqMap(pSeq, pSeq1, initExag=5.0, winSize=0, repeats=1, augCfg='b|0.02')
-CreateSeqMap(pSeq, pSeq1, initExag=5.0, winSize=0, repeats=1, augCfg='c|2.0|0.2')
-
-CreateSeqMap(pSeq1, initExag=5.0, repeats=1, augCfg='a|500|2.0|4.0')
+def FilterSq1():
+	global filterIdx
+	bv = vv.EventSource.Form
+	L = len(ALPHABET)	
+	filterIdx = (filterIdx + vv.EventSource.Argument + L) % L
+	for k, item in enumerate(bv.ItemList):
+		item.Value = 1.0 if item.Group == filterIdx else 0.0
+	bv.Title = f'AA: {filterIdx}: {ALPHABET[filterIdx]}'
+	bv.Redraw()
 
 
-def FS(ch, c):
-	return c if c==ch else '_'
-def FilterSq(idx):
-	c = ALPHABET[idx]
-	pp.Text = ''.join([FS(ch, c) for ch in pSeq])
+def FilterSq2():
+	global filterIdx
+	global filterList 
+	bv = vv.EventSource.Form
+	pSeq = bv.Tag
+	if filterList == None:
+		filterList = vv.GroupManager.GetGroupLabels("KeyPairs400")
+	L = len(filterList)
+	filterIdx = (filterIdx + vv.EventSource.Argument + L) % L
+	a2 = filterList[filterIdx]
+	for k, item in enumerate(bv.ItemList):
+		item.Value = 1.0 if pSeq[k:k+2] == a2 else 0.0
+	vv.SelectedItems = [ a2 ]
+	bv.Title = f'AA pair: {filterIdx}: {a2}'
+	bv.Redraw()
 
-FilterSq(3) #0:19  
+pp.SetMouseWheelHandler('@FilterSq2()')
+
+#--------------------------------------
 
 ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
 nt = cs.ToWaveTable(pSeq, ppList, 1000)
@@ -748,15 +789,6 @@ def SelectUniSet():
 			pSet[pSq] = pId
 	vv.SelectedItems = list(pSet.values())
 
-ds = vv.Folder.ReadDataset('Gene Features')
-pList = list( vv.GroupManager.GetGroupLabels("Protein-2000") )
-idx = pList.index('ENSG00000131323')
-pList2 = pList[idx:]
-print(len(pList2))
-for k, pId in enumerate(pList2):
-	print(f'---- {k}: {pId}')
-	AddProteins(ds, pId, minLength=200)
-
 pSeq = vv.Dataset.GetDataAt(0, 2)
 
 def ShowProteinPair(pSeq):
@@ -776,10 +808,10 @@ def ShowProteinPair(pSeq):
 	bv.Show()
 	return bv
 
-def GetPairTable():
+def GetPairTable(alphabet):
 	aaCnt = {}
-	for c1 in ALPHABET:
-		for c2 in ALPHABET:
+	for c1 in alphabet:
+		for c2 in alphabet:
 			aaCnt[c1+c2] = 0
 	for k in range(21, vv.Dataset.Rows):
 		pSeq = vv.Dataset.GetDataAt(k, 2)
@@ -788,8 +820,20 @@ def GetPairTable():
 			aaCnt[pSeq[k:k+2]] += 1
 	return aaCnt
 
+def ShowAA():
+	ds = vv.Dataset
+	cnt = 20*[0.0]
+	for k in range(21, ds.Rows):
+		for c in ds.GetDataAt(k, 2):
+			cnt[P[c]] += 1.0
+	bv = New.BarView(20)
+	for k, item in enumerate(bv.ItemList):
+		item.Id = ALPHABET[k]
+		item.Value = cnt[k]
+	bv.Show()
+
 def ShowStatistics():
-	aaCnt = GetPairTable()
+	aaCnt = GetPairTable(ALPHABET_s)
 	bv = New.BarView(len(aaCnt))
 	for k, pp in enumerate(aaCnt):
 		bv.ItemList[k].Id = pp
@@ -801,7 +845,7 @@ def ShowStatistics():
 	bv.Show()
 
 def ShowPairTable():
-	aaCnt = GetPairTable()
+	aaCnt = GetPairTable(ALPHABET)
 	nt = New.NumberTable(20, 20)
 	for k1, c1 in enumerate(ALPHABET):
 		R = nt.Matrix[k1]
@@ -842,11 +886,16 @@ for c1 in ALPHABET:
 	for c2 in ALPHABET:
 		ppList.append(c1+c2)
 
-vv.GroupManager.SetGroupLabels('KeyPairs400', ppList)
+g1 = vv.GroupManager.GetGroupLabels('KeyPairsW-20')
 
-
+g2 = [ w[::-1] for w in g1 ]
+ppList = g2
+vv.GroupManager.SetGroupLabels('Sorted400', vv.SelectedItems)
 ppList = [ 'W'+c for c in ALPHABET ]
 print('|'.join(ppList))
 
 ProteinMapByPairs([])
+
+ALPHABET_s = ''.join(pp.AllItems)
+
 '''
