@@ -96,7 +96,7 @@ match vv.EventSource.Item:
 	case 'ProteinMap4':
 		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
 		ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
-		CreateProteinMap2(pList,  epochs=5000, is3D=False, repeats=0, initExag=4.0, pp=0.1, finalExag=1.25, decay=0.1, ppList=ppList)
+		CreateProteinMap2(pList,  epochs=5000, is3D=False, repeats=0, initExag=4.0, pp=0.1, finalExag=1.25, ppList=ppList)
 
 
 ''')

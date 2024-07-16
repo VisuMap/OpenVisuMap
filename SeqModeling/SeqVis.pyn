@@ -103,7 +103,7 @@ public INumberTable VectorizeProtein2( IList<string> ppList, int M, IList<string
 	}
 	double[] weight = new double[M];
 	for(int k=0; k<M; k++) 
-		weight[k] = 1.0/(k+0.01);
+		weight[k] = 1.0/(k+0.5);
 	pList = new List<string>(pList);
 	List<double[]> vList = new List<double[]>();
 	foreach(string pId in pList) {
@@ -127,8 +127,8 @@ public INumberTable VectorizeProtein2( IList<string> ppList, int M, IList<string
 		}	
 		double[] pV = new double[L];
 		for (int k=0; k<L; k++)
-			for(int i=0; i<M; i++)
-				pV[k] += aaSize[k][i] * weight[i];
+		for(int i=0; i<M; i++)
+			pV[k] += aaSize[k][i] * weight[i];
 		vList.Add(pV);		
 	}
 
@@ -359,7 +359,7 @@ def CreateProteinMap(idList, epochs=10000, is3D=False, initExag=10.0,
 
 def CreateProteinMap2(idList, epochs=10000, is3D=False, initExag=6.0, ppList=None, finalExag=1.0, pp=0.1, repeats=1):
 	pTable = GetProteinTable()
-	dt = cs.VectorizeProtein2(ppList, 100, idList, pTable)
+	dt = cs.VectorizeProtein2(ppList, 50, idList, pTable)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp)
@@ -689,41 +689,6 @@ def CreateSeqMap(pSeq, pSeq1=None, epochs=10000, winSize=0, repeats=1, pp=0.15, 
 
 '''========================================================================================
 
-#--------------------------------------
-filterIdx = 0
-filterList = None
-
-def FilterSq1():
-	global filterIdx
-	bv = vv.EventSource.Form
-	L = len(ALPHABET)	
-	filterIdx = (filterIdx + vv.EventSource.Argument + L) % L
-	for k, item in enumerate(bv.ItemList):
-		item.Value = 1.0 if item.Group == filterIdx else 0.0
-	bv.Title = f'AA: {filterIdx}: {ALPHABET[filterIdx]}'
-	bv.Redraw()
-
-
-def FilterSq2():
-	global filterIdx
-	global filterList 
-	bv = vv.EventSource.Form
-	pSeq = bv.Tag
-	if filterList == None:
-		filterList = vv.GroupManager.GetGroupLabels("KeyPairs400")
-	L = len(filterList)
-	filterIdx = (filterIdx + vv.EventSource.Argument + L) % L
-	a2 = filterList[filterIdx]
-	for k, item in enumerate(bv.ItemList):
-		item.Value = 1.0 if pSeq[k:k+2] == a2 else 0.0
-	vv.SelectedItems = [ a2 ]
-	bv.Title = f'AA pair: {filterIdx}: {a2}'
-	bv.Redraw()
-
-pp.SetMouseWheelHandler('@FilterSq2()')
-
-#--------------------------------------
-
 ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
 nt = cs.ToWaveTable(pSeq, ppList, 1000)
 nt.ShowHeatMap()
@@ -886,11 +851,12 @@ for c1 in ALPHABET:
 	for c2 in ALPHABET:
 		ppList.append(c1+c2)
 
-g1 = vv.GroupManager.GetGroupLabels('KeyPairsW-20')
-
-g2 = [ w[::-1] for w in g1 ]
+g1 = list(vv.GroupManager.GetGroupLabels('Sorted400'))
+g2 = g1[::-1]
 ppList = g2
 vv.GroupManager.SetGroupLabels('Sorted400', vv.SelectedItems)
+vv.GroupManager.SetGroupLabels('Sorted400', g2)
+
 ppList = [ 'W'+c for c in ALPHABET ]
 print('|'.join(ppList))
 
