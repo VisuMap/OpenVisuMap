@@ -53,7 +53,7 @@ public IBody MeanPoint(IList<IBody> bList){
 	return mBody;
 }
 
-public INumberTable VectorizeProtein(string alphabet, int M, double decay, IList<string> pList, VisuMap.Script.IDataset pTable) {
+public INumberTable VectorizeProtein1(string alphabet, int M, IList<string> pList, VisuMap.Script.IDataset pTable) {
 	int L = alphabet.Length;
 	Dictionary<char, int> P = new Dictionary<char, int>();
 	int[][] aaSize = new int[L][];
@@ -64,7 +64,7 @@ public INumberTable VectorizeProtein(string alphabet, int M, double decay, IList
 		aaSize[k] = new int[M];
 	}
 	for(int k=0; k<M; k++) 
-		weight[k] = 1.0/(k+decay);	
+		weight[k] = 1.0/(k+0.1);
 	pList = new List<string>(pList);
 	List<double[]> vList = new List<double[]>();
 	foreach(string pId in pList) {
@@ -78,10 +78,12 @@ public INumberTable VectorizeProtein(string alphabet, int M, double decay, IList
 				aaSize[k][i] = 0;
 		}
 		for(int k=0; k<pSeq.Length; k++) {
-				int aaIdx = P[pSeq[k]];
-				int sz = Math.Min(M, k - aaPos[aaIdx]);
-				aaSize[aaIdx][sz-1] += 1;
-				aaPos[aaIdx] = k;
+				if ( P.ContainsKey(pSeq[k]) ) {
+					int aaIdx = P[pSeq[k]];
+					int sz = Math.Min(M, k - aaPos[aaIdx]);
+					aaSize[aaIdx][sz-1] += 1;
+					aaPos[aaIdx] = k;
+				}
 		}	
 		double[] pV = new double[L];
 		for (int k=0; k<L; k++)
@@ -116,10 +118,10 @@ public INumberTable VectorizeProtein2( IList<string> ppList, int M, IList<string
 			for(int i=0; i<M; i++)
 				aaSize[k][i] = 0;
 		}
-		for(int k=0; k<(pSeq.Length-1); k+=1) {
-				string aaPair = pSeq.Substring(k, 2);
-				if ( P.ContainsKey(aaPair) ) {
-					int aaIdx = P[aaPair];
+		for(int k=0; k<(pSeq.Length-1); k++) {
+				string aaKey = pSeq.Substring(k, 2);
+				if ( P.ContainsKey(aaKey) ) {
+					int aaIdx = P[aaKey];
 					int sz = Math.Min(M, k - aaPos[aaIdx]);
 					aaSize[aaIdx][sz-1] += 1;
 					aaPos[aaIdx] = k;
@@ -135,6 +137,9 @@ public INumberTable VectorizeProtein2( IList<string> ppList, int M, IList<string
 	var nt = New.NumberTable(vList.ToArray());
 	for(int col=0; col<L; col++)
 		nt.ColumnSpecList[col].Id = ppList[col];
+	var bList = vv.Dataset.BodyListForId(pList);
+	for(int row=0; row<pList.Count; row++)
+		nt.RowSpecList[row].CopyFromBody(bList[row]);
 	return nt;
 }
 
@@ -345,25 +350,23 @@ def AddClusterLabel(pMap):
 	pMap.RedrawAll()
 
 
-def CreateProteinMap(idList, epochs=10000, is3D=False, initExag=10.0, 
-		finalExag=1.0, pp=0.1, decay=20.0, repeats=1, saveTo=None):
-	pTable = GetProteinTable()
-	dt = cs.VectorizeProtein(ALPHABET, 100, decay, idList, pTable)
+def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0, 
+		finalExag=1.0, ppl=0.1, repeats=1, saveTo=None):
+	pTable = GetProteinTable()	
+	dt = cs.VectorizeProtein1(ALPHABET, 100, idList, pTable)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
-	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp)
-	RunMds(mds, repeats=repeats, glyphSize=0.25, glyphOpacity=0.5)
-	if saveTo is not None:
-		SaveToAtlas(saveTo)
-		mds.Close()
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
+	RunMds(mds, repeats=repeats, glyphSize=0.75, glyphOpacity=0.5)
+	SaveToAtlas(saveTo)
+	mds.Close()
 
-def CreateProteinMap2(idList, epochs=10000, is3D=False, initExag=6.0, ppList=None, finalExag=1.0, pp=0.1, repeats=1):
+def CreateProteinMap2(idList, epochs=10000, is3D=False, initExag=6.0, ppList=None, finalExag=1.0, ppl=0.1, repeats=1):
 	pTable = GetProteinTable()
 	dt = cs.VectorizeProtein2(ppList, 50, idList, pTable)
-	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
-		dt.RowSpecList[k].CopyFromBody(b)
-	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp)
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	RunMds(mds, repeats=repeats, glyphSize=0.8, glyphOpacity=0.5)
+	mds.Close()
 
 #-----------------------------------------------------------------------------
 
@@ -496,14 +499,14 @@ def NewDataset(S, winSize=0, decay=1.0, alphbetList=ALPHABET, augCfg='a|500|2.0|
 
 #-----------------------------------------------------------------------------
 
-def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, pp=0.1, repeats=1, metric='EuclideanMetric'):
+def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, repeats=1, metric='EuclideanMetric'):
 	mds = New.MdsCluster(nt)
 	mds.Show()
 	mds.MaxLoops = epochs
 	mds.RefreshFreq = 500
 	mds.InitialExaggeration = initExag
 	mds.FinalExaggeration = finalExag
-	mds.PerplexityRatio = pp
+	mds.PerplexityRatio = ppl
 	mds.Metric = metric
 	mds.Repeats = repeats
 	mds.ReadOnly = True
@@ -519,11 +522,12 @@ def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.5):
 	if not mds.Completed: vv.Return(0)
 	if repeats == 1:
 		mp = mds.ShowSnapshot()
-	mpName = vv.LastView.Name
-	for mp in vv.FindFormList(mpName):
-		mp.GlyphOpacity = glyphOpacity
-		mp.GlyphSize = glyphSize
-		mp.Redraw()
+	if repeats >= 1:
+		mpName = vv.LastView.Name
+		for mp in vv.FindFormList(mpName):
+			mp.GlyphOpacity = glyphOpacity
+			mp.GlyphSize = glyphSize
+			mp.Redraw()
 	return mds
 
 #-------------------------------------------------------------------
@@ -663,7 +667,7 @@ def CreateMapById(pMap, repeats=1):
 	pSeq = GetProteinSeq(pTable, info.pId)
 	nt = NewDataset(pSeq, winSize=int(info.WinSize), augCfg=info.AugCfg)
 	mds = NewMds(nt, epochs=int(info.Epochs), is3D=eval(info.Is3D), 
-		initExag=float(info.InitE), finalExag=float(info.FinalE), pp=float(info.PP))
+		initExag=float(info.InitE), finalExag=float(info.FinalE), ppl=float(info.PP))
 	RunMds(mds, repeats=repeats,)
 	vv.LastView.Description = info.ToStr()
 
@@ -681,7 +685,7 @@ def CreateSeqMap(pSeq, pSeq1=None, epochs=10000, winSize=0, repeats=1, pp=0.15, 
 		for row in range(N+N1):
 			nt.RowSpecList[row].Type = 0 if row<N else 1
 	mds = NewMds(nt, epochs=epochs, is3D=is3D, initExag=initExag, 
-		finalExag=finalExag, pp=pp, repeats=repeats)
+		finalExag=finalExag, ppl=ppl, repeats=repeats)
 	mds.Reset().Start()
 	if not mds.Completed: vv.Return()
 	mds.Show3DView().NormalizeView()
@@ -742,7 +746,7 @@ ShowFreq('SYNE2')
 for sId in 'EAW58034.1,EAW58035.1,EAW58036.1,NP_003473.3,NP_001394626.1,NP_001361665.1,SYNE2,Q03001.4,EAW58036.1,XP_054199104.1'.split(','):
 	ShowFreq(sId)
 
-CreateMaps(pp.SelectedItems, epochs=10000, winSize=-1, repeats=1, pp=0.15,  saveTo='TestMaps', 
+CreateMaps(pp.SelectedItems, epochs=10000, winSize=-1, repeats=1, ppl=0.15,  saveTo='TestMaps', 
 	is3D=False, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='b|0.01')
 
 def SelectUniSet():
@@ -857,11 +861,8 @@ ppList = g2
 vv.GroupManager.SetGroupLabels('Sorted400', vv.SelectedItems)
 vv.GroupManager.SetGroupLabels('Sorted400', g2)
 
-ppList = [ 'W'+c for c in ALPHABET ]
-print('|'.join(ppList))
-
-ProteinMapByPairs([])
-
-ALPHABET_s = ''.join(pp.AllItems)
+ppList = [ 'E'+c for c in ALPHABET ]
+vv.GroupManager.SetGroupLabels('E20', ppList)
+vv.GroupManager.SetGroupLabels('ALPHABET', [c for c in ALPHABET])
 
 '''
