@@ -42,7 +42,7 @@ match vv.EventSource.Item:
 			AddProteins(txtTable.Matrix[0][0], maxCount=100)
 
 ##MapSnapshot
-#MenuLabels ShowData Scanning ShowSeq ReCreatMap
+#MenuLabels ShowData Scanning ShowSeq ReCreatMap ProteinMap4
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'ShowData':
@@ -51,8 +51,11 @@ match vv.EventSource.Item:
 		Scanning(pp)
 	case 'ShowSeq':
 		ShowTracingSeq(pp)
-	case ReCreatMap:
+	case 'ReCreatMap':
 		CreateMapById(pp, repeats=1)
+	case 'ProteinMap4':
+		CreateProteinMap2(vv.AllItems,  epochs=5000, is3D=False, repeats=0, 
+			initExag=4.0, ppl=0.15, finalExag=1.0, ppList=pp.SelectedItems)
 
 ##D3dRender
 #MenuLabels ShowData Scanning ShowSeq ReCreatMap
@@ -83,7 +86,8 @@ match vv.EventSource.Item:
 			is3D=True, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='a|500|2.0|2.0')
 	case 'SeqMap2':
 		CreateMaps(pp.SelectedItems, epochs=10000, winSize=-1, repeats=1, ppl=0.15,  saveTo=None,
-			is3D=False, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='x|0.001')		
+			is3D=False, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='x|0.001')
+		
 	case 'ShowSeq':
 		ShowSeqInfo(pp, showSeq=False, showTable=True, barView=True)
 
@@ -92,7 +96,7 @@ match vv.EventSource.Item:
 		CreateProteinMapByCounts(pList,  repeats=1)
 	case 'ProteinMap2':
 		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
-		CreateProteinMap(pList,  is3D=False, repeats=0)
+		CreateProteinMap(pList,  epochs=5000, is3D=False, repeats=1)
 	case 'ProteinMap4':
 		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
 		ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")

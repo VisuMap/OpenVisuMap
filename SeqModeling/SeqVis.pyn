@@ -55,14 +55,12 @@ public IBody MeanPoint(IList<IBody> bList){
 
 public INumberTable VectorizeProtein1(string alphabet, int M, IList<string> pList, VisuMap.Script.IDataset pTable) {
 	int L = alphabet.Length;
-	Dictionary<char, int> P = new Dictionary<char, int>();
+	Dictionary<char, int> P = Enumerable.Range(0, alphabet.Length).ToDictionary(k=>alphabet[k], k=>k);
 	int[][] aaSize = new int[L][];
 	int[] aaPos = new int[L];
 	double[] weight = new double[M];
-	for(int k=0; k<L; k++) {
-		P[alphabet[k]] = k;
+	for(int k=0; k<L; k++) 
 		aaSize[k] = new int[M];
-	}
 	for(int k=0; k<M; k++) 
 		weight[k] = 1.0/(k+0.1);
 	pList = new List<string>(pList);
@@ -168,36 +166,50 @@ public INumberTable ToWaveTable(string pSeq, IList<string> ppList, int M) {
 	return nt;
 }
 
-public INumberTable EstimatePairLinkage() {
+const	string AB = "WCMYHFNIDQTRVKGPAESL";
+
+public INumberTable EstimatePairLinkage(bool toDistances=true) {
 	var ppList = vv.GroupManager.GetGroupLabels("KeyPairs400");
 	var PP = new Dictionary<string, int>();
 	int L = ppList.Count;
 	for(int k=0; k<L; k++) 
 		PP[ppList[k]] = k;
-	var lnkTable = New.NumberTable(L, L);
+	var T = New.NumberTable(L, L);
 	for(int row=21; row<vv.Dataset.Rows; row++) {
 		string S = vv.Dataset.GetDataAt(row, 2);
-		int N = S.Length;
-		for(int k=0; k<(N-3); k++) {
+		for(int k=0; k<(S.Length-3); k++) {
 			int rIdx = PP[ S.Substring(k, 2) ];
-			double[] R = lnkTable.Matrix[rIdx] as double[];
-			R[ PP[S.Substring(k+1, 2)] ] += 1.0;
-			R[ PP[S.Substring(k+2, 2)] ] += 0.5;
+			double[] R = T.Matrix[rIdx] as double[];
+			R[ PP[S.Substring(k+2, 2)] ] += 1.0;
 		}
 	}
+
+	var P = Enumerable.Range(0, AB.Length).ToDictionary(k=>AB[k], k=>k);
 	for(int k=0; k<L; k++) {
-		lnkTable.ColumnSpecList[k].Id =
-		lnkTable.RowSpecList[k].Id = ppList[k];
+		string id = ppList[k];
+		short ty = (short) P[id[0]];
+		T.ColumnSpecList[k].Id = id;
+		T.RowSpecList[k].Id = id;
+		T.ColumnSpecList[k].Group = ty;
+		T.RowSpecList[k].Type = ty;
 	}
-	lnkTable.NormalizeRows();
-	var M = lnkTable.Matrix;
-	for(int row=0; row<L; row++)
-	for(int col=0; col<row; col++){
-		double v = 0.5 * (M[row][col] + M[col][row]);
-		v = -Math.Log( Math.Max(0.000001, v) );
-		M[row][col] = M[col][row] = v;
+
+	var M = T.Matrix;
+	foreach(double[] R in M){
+		double rowSum = vv.Math.Sum(R);
+		for(int col=0; col<L; col++)
+			R[col] /= rowSum;
 	}
-	return lnkTable;
+
+	if ( toDistances ) {
+		for(int row=0; row<L; row++)
+		for(int col=0; col<row; col++){
+			double v = 0.5 * (M[row][col] + M[col][row]);
+			v = -Math.Log( Math.Max(0.000001, v) );
+			M[row][col] = M[col][row] = v;
+		}
+	}
+	return T;
 }
 ''')
 
@@ -397,7 +409,8 @@ def CreateProteinMap2(idList, epochs=10000, is3D=False, initExag=6.0, ppList=Non
 	dt = cs.VectorizeProtein2(ppList, 50, idList, pTable)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	RunMds(mds, repeats=repeats, glyphSize=0.8, glyphOpacity=0.5)
-	mds.Close()
+	if repeats > 0:
+		mds.Close()
 
 #-----------------------------------------------------------------------------
 
@@ -570,13 +583,13 @@ def ShowMapData(pMap):
 	nt = NewDataset(pSeq, winSize=int(info.WinSize), augCfg=info.AugCfg)
 	nt.ShowHeatMap().NormalizeView()
 
-def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None, glyphSize=0.8, pp=0.05,
+def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
 		glyphOpacity=0.5, is3D=False, initExag=10.0, finalExag=1.0, augCfg='a|500|2.0|2.0'):
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
 		vv.Return(0)
 	pTable = GetProteinTable()
-	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, pp=pp)
+	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo()
 	info.Epochs = epochs
 	info.InitE = initExag
@@ -872,13 +885,15 @@ def ShowPP(pId):
 	bv = ShowProteinPair(pSeq)
 	bv.Title = f'{pId}: L:{len(pSeq)}'
 
-tb = cs.EstimatePairLinkage()
-vList = []
+tb = cs.EstimatePairLinkage(False)
+tb.ShowHeatMap()
+
 M = tb.Matrix
+vList = []
 for row in range(1, 400):
 	for col in range(row):
-		vList.append(str(M[row][col]))
-print(' '.join(vList))
+		vList.append(M[row][col])
+print( ' '.join([str(v) for v in vList]) )
 
 ShowPP('XP_054199642.1')
 ShowPP('EAX11017.1')
