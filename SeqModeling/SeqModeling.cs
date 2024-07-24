@@ -9,8 +9,8 @@ namespace VisuMap
         IVisuMap vv;
         INew New;
 
-        public void Init(IVisuMap vv) {
-            this.vv = vv;
+        public SeqModeling() {
+            this.vv = VisuMapImp.GetVisuMapImp();
             this.New = vv.New;
         }
 

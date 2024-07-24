@@ -1,5 +1,5 @@
 import numpy as np
-import math, random, time
+import math, random, time, os
 
 PROTEIN_TABLE = 'Protein Table'
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
@@ -30,16 +30,12 @@ def SaveToAtlas(atName, x0=50, y0=50):
 		vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0, vwName).Close()
 
 def LoadSeqModeling():
-	import os
-	msbuild = 'C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/MSBuild.exe'
-	cmdStr = msbuild + ' SeqModeling.csproj /p:Configuration=Release'
 	dllFile = vv.CurrentScriptDirectory + '/bin/Release/SeqModeling.dll'
 	if not os.path.exists(dllFile):
-		return None
+		msbuild = '"C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/MSBuild.exe"'
+		vv.StartProcess(msbuild, 'SeqModeling.csproj /p:Configuration=Release', False).WaitForExit(1000)
 	ret = vv.LoadLibrary(dllFile)
-	csObj = New.Instance('VisuMap.SeqModeling')
-	csObj.Init(vv)
-	return csObj
+	return New.Instance('VisuMap.SeqModeling')
 
 cs = LoadSeqModeling()
 
@@ -726,7 +722,7 @@ for row in range(1, 400):
 print( ' '.join([str(v) for v in vList]) )
 
 
-nt = cs.GetMarkovCoding2(2000)
+nt = cs.GetMarkovCoding2(1000)
 nt.ShowHeatMap()
 
 ShowPP('XP_054199642.1')
