@@ -39,6 +39,7 @@ def LoadSeqModeling(seqdll = 'SeqModeling.dll', className='VisuMap.SeqModeling')
 		msbuild = '"C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/MSBuild.exe"'
 		vv.StartProcess(msbuild, 'SeqModeling.csproj /p:Configuration=Release', False).WaitForExit(1000)
 		copy(vv.CurrentScriptDirectory + '/bin/Release/' + seqdll, vv.CurrentScriptDirectory)
+	#dllFile = vv.CurrentScriptDirectory + '/bin/Debug/SeqModeling.dll'
 	ret = vv.LoadLibrary(dllFile)
 	return New.Instance(className)
 
@@ -759,11 +760,10 @@ for c1 in ALPHABET:
 	for c2 in ALPHABET:
 		ppList.append(c1+c2)
 
-g1 = list(vv.GroupManager.GetGroupLabels('Sorted400'))
-g2 = g1[::-1]
-ppList = g2
-vv.GroupManager.SetGroupLabels('Sorted400', vv.SelectedItems)
-vv.GroupManager.SetGroupLabels('Sorted400', g2)
+g1 = list(vv.GroupManager.GetGroupLabels('L20'))
+
+g2 = [g[::-1] for g in g1]
+vv.GroupManager.SetGroupLabels('L20r', g2)
 
 ppList = [ 'E'+c for c in ALPHABET ]
 vv.GroupManager.SetGroupLabels('E20', ppList)

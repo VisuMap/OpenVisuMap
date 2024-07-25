@@ -270,10 +270,10 @@ namespace VisuMap
                 }
 
                 foreach (double[] R in M) {
-                    double rowSum = R.Sum(v=>v*v);
+                    double rowSum = R.Sum();
                     if (rowSum > 0)
                         for (int col = 0; col < L; col++)
-                            R[col] *= R[col]/rowSum;
+                            R[col] /= rowSum;
                 }
 
                 IterateMarkovian(M, L, 16, T.Matrix[row] as double[]);
