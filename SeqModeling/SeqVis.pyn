@@ -741,7 +741,7 @@ for row in range(1, 400):
 		vList.append(M[row][col])
 print( ' '.join([str(v) for v in vList]) )
 
-nt = cs.GetMarkovCoding2(5000)
+nt = cs.GetMarkovCoding2()
 nt.ShowHeatMap()
 
 

@@ -223,10 +223,8 @@ namespace VisuMap
                         for (int col = 0; col < L; col++)
                             R[col] /= rowSum;
                 }
-                for (int k = 0; k < 3; k++)
-                    M = VisuMap.LinearAlgebra.Matrix.Mult(M, M);
 
-                Array.Copy(M[0], T.Matrix[row] as double[], L);
+                IterateMarkovian(M, L, 16, T.Matrix[row] as double[]);
                 T.RowSpecList[row].Id = ds.BodyList[row].Id;
             }
 
@@ -235,12 +233,23 @@ namespace VisuMap
             return T;
         }
 
-        public INumberTable GetMarkovCoding2(int cnt) {
+        // Iterate the markovian process by given steps and store the equalibrium/stationary distribution into 
+        // given vector.
+        public void IterateMarkovian(double[][] M, int L, int steps, double[] stDistribution) {
+            double[] D = new double[L];
+            Array.Copy(M[0], D, L);
+            M = Matrix.Transpose(M);
+            for (int n = 0; n < steps; n++)
+                D = Matrix.MultVector(M, D);
+            Array.Copy(D, stDistribution, L);
+        }
+
+        public INumberTable GetMarkovCoding2(int cnt = 0) {
             var ppList = vv.GroupManager.GetGroupLabels("KeyPairs400");
             int L = ppList.Count;
             var PP = Enumerable.Range(0, L).ToDictionary(k => ppList[k], k => k);
             var ds = vv.Dataset;
-            int dsRows = cnt; // ds.Rows;
+            int dsRows = (cnt==0) ? ds.Rows : cnt; // ds.Rows;
             var T = New.NumberTable(dsRows, L);
 
             for (int row = 0; row < dsRows; row++) {
@@ -267,14 +276,7 @@ namespace VisuMap
                             R[col] /= rowSum;
                 }
 
-                // D is the initial stationary distribution.                
-                double[] D = new double[L];
-                for (int k = 0; k < L; k++)
-                    D[k] = 1.0 / L;
-                for (int n = 0; n < 16; n++)
-                    D = Matrix.MultVector(M, D);
-                Array.Copy(D, T.Matrix[row] as double[], L);
-
+                IterateMarkovian(M, L, 16, T.Matrix[row] as double[]);
                 T.RowSpecList[row].Id = ds.BodyList[row].Id;
             }
 
