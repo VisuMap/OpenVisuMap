@@ -1,5 +1,5 @@
 import numpy as np
-import math, random, time, os
+import math, random, time
 
 PROTEIN_TABLE = 'Protein Table'
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
@@ -29,15 +29,19 @@ def SaveToAtlas(atName, x0=50, y0=50):
 		vwName = vv.LastView.Name
 		vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0, vwName).Close()
 
-def LoadSeqModeling():
-	dllFile = vv.CurrentScriptDirectory + '/bin/Release/SeqModeling.dll'
-	if not os.path.exists(dllFile):
+def LoadSeqModeling(seqdll = 'SeqModeling.dll', className='VisuMap.SeqModeling'):
+	from shutil import move
+	from os.path import exists
+	dllFile = vv.CurrentScriptDirectory + '/' + seqdll
+	if not exists(dllFile):
 		msbuild = '"C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/MSBuild.exe"'
 		vv.StartProcess(msbuild, 'SeqModeling.csproj /p:Configuration=Release', False).WaitForExit(1000)
+		move(vv.CurrentScriptDirectory + '/bin/Release/' + seqdll, vv.CurrentScriptDirectory)
 	ret = vv.LoadLibrary(dllFile)
-	return New.Instance('VisuMap.SeqModeling')
+	return New.Instance(className)
 
-cs = LoadSeqModeling()
+if 'cs' not in globals():
+	cs = LoadSeqModeling()
 
 # protein embedding map information
 class MapInfo():
@@ -562,10 +566,26 @@ def CreateSeqMap(pSeq, pSeq1=None, epochs=10000, winSize=0, repeats=1, pp=0.15, 
 	mds.Close()
 
 '''========================================================================================
+def GetMarkovMatrix(pSeq, PP):
+	L = len(PP)
+	M = np.zeros((L,L), np.float32)
+	idx0 = PP[pSeq[:2]]
+	for k in range(1, len(pSeq)-1, 2):
+		idx1 = PP[pSeq[k:k+2]]
+		M[idx0, idx1] += 1.0
+		idx0 = idx1
+	rowSum = np.sum(M, axis=1, keepdims=True)
+	for k in range(L):
+		if rowSum[k,0] == 0:
+			rowSum[k,0] = 1.0
+	return M * np.reciprocal(rowSum)
 
 ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
-nt = cs.ToWaveTable(pSeq, ppList, 1000)
-nt.ShowHeatMap()
+PP = {aa:k for k, aa in enumerate(ppList)}
+pSeq = vv.Dataset.GetDataAt(0, 2)
+
+MkM = GetMarkovMatrix(pSeq, PP)
+mm.ToTable(MkM).ShowHeatMap()
 
 from collections import Counter
 
@@ -721,9 +741,9 @@ for row in range(1, 400):
 		vList.append(M[row][col])
 print( ' '.join([str(v) for v in vList]) )
 
-
-nt = cs.GetMarkovCoding2(1000)
+nt = cs.GetMarkovCoding2(5000)
 nt.ShowHeatMap()
+
 
 ShowPP('XP_054199642.1')
 ShowPP('EAX11017.1')

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using VisuMap.Script;
+using VisuMap.LinearAlgebra;
 
 namespace VisuMap
 {
@@ -243,31 +244,46 @@ namespace VisuMap
             var T = New.NumberTable(dsRows, L);
 
             for (int row = 0; row < dsRows; row++) {
-
                 double[][] M = MathUtil.NewMatrix(L, L);
 
                 string S = ds.GetDataAt(row, 2);
                 int rIdx = PP[S.Substring(0, 2)];
-                for (int k = 1; k < S.Length-1; k++) {
+                for (int k = 2; k <S.Length-2; k+=2) {
+                    int cIdx = PP[S.Substring(k, 2)];
+                    M[rIdx][cIdx] += 1.0f;
+                    rIdx = cIdx;
+                }
+                rIdx = PP[S.Substring(1, 2)];
+                for (int k = 3; k < S.Length - 2; k += 2) {
                     int cIdx = PP[S.Substring(k, 2)];
                     M[rIdx][cIdx] += 1.0;
                     rIdx = cIdx;
                 }
 
                 foreach (double[] R in M) {
-                    double rowSum = vv.Math.Sum(R);
+                    double rowSum = R.Sum();
                     if (rowSum > 0)
                         for (int col = 0; col < L; col++)
                             R[col] /= rowSum;
                 }
-                for (int k = 0; k < 3; k++)
-                    M = LinearAlgebra.Matrix.Mult(M, M);
-                Array.Copy(M[0], T.Matrix[row] as double[], L);
+
+                // D is the initial stationary distribution.                
+                double[] D = new double[L];
+                for (int k = 0; k < L; k++)
+                    D[k] = 1.0 / L;
+                for (int n = 0; n < 16; n++)
+                    D = Matrix.MultVector(M, D);
+                Array.Copy(D, T.Matrix[row] as double[], L);
+
                 T.RowSpecList[row].Id = ds.BodyList[row].Id;
             }
 
-            for (int col = 0; col < L; col++)
-                T.ColumnSpecList[col].Id = ppList[col];
+            var P = Enumerable.Range(0, 20).ToDictionary(k => AB[k], k => k);
+            for (int col = 0; col < L; col++) {
+                var cs = T.ColumnSpecList[col];
+                cs.Id = ppList[col];
+                cs.Group = (short)P[cs.Id[0]];
+            }
             return T;
         }
     }
