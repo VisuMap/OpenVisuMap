@@ -30,13 +30,15 @@ def SaveToAtlas(atName, x0=50, y0=50):
 		vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0, vwName).Close()
 
 def LoadSeqModeling(seqdll = 'SeqModeling.dll', className='VisuMap.SeqModeling'):
-	from shutil import move
+	from shutil import copy
 	from os.path import exists
+	from os import stat
 	dllFile = vv.CurrentScriptDirectory + '/' + seqdll
-	if not exists(dllFile):
+	srcFile = vv.CurrentScriptDirectory + '/' + 'SeqModeling.cs'
+	if not exists(dllFile) or stat(dllFile).st_mtime < stat(srcFile).st_mtime:
 		msbuild = '"C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/MSBuild.exe"'
 		vv.StartProcess(msbuild, 'SeqModeling.csproj /p:Configuration=Release', False).WaitForExit(1000)
-		move(vv.CurrentScriptDirectory + '/bin/Release/' + seqdll, vv.CurrentScriptDirectory)
+		copy(vv.CurrentScriptDirectory + '/bin/Release/' + seqdll, vv.CurrentScriptDirectory)
 	ret = vv.LoadLibrary(dllFile)
 	return New.Instance(className)
 

@@ -53,5 +53,11 @@
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Install.pyn" />
+    <None Include="Package.bat" />
+    <None Include="SeqVis.pyn" />
+    <None Include="UnInstall.pyn" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
