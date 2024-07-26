@@ -1,0 +1,9 @@
+#MenuLabels CreateMaps ProteinMap4
+vv.Import('SeqVis.pyn')
+match vv.EventSource.Item:
+	case 'CreateMaps':
+		CreateMaps(list(pp.GetSelectedMembers()), epochs=10000, winSize=0, repeats=1, ppl=0.15,
+			is3D=True, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo=None,  augCfg='a|500|2.0|2.0')
+	case 'ProteinMap4':
+		CreateProteinMap2(vv.AllItems,  epochs=5000, is3D=False, repeats=1, 
+			initExag=6.0, ppl=0.15, finalExag=1.0, ppList=pp.GetSelectedMembers())

@@ -1,0 +1,5 @@
+#MenuLabels ResetMaps
+vv.Import('SeqVis.pyn')
+match vv.EventSource.Item:
+	case 'ResetMaps':
+		ResetAtlasMaps(pp, pp.GetSelectedItems(), 1000, 700, gSize=0.8, gOpacity=0.5, hiddenSize=7, reset=False)

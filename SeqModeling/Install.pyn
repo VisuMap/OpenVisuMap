@@ -1,108 +1,11 @@
 '''
 vv.RunScript('UnInstall.pyn')
 '''
-
+import os
 if vv.ScriptDirectories.find( vv.CurrentScriptDirectory ) < 0:
 	vv.ScriptDirectories += ";" + vv.CurrentScriptDirectory
 
-def InstallMenu(sCfg):
-	for b in sCfg.split('##'):
-		b = b.strip()
-		if len(b) == 0: continue
-		i0 = b.index('\n')
-		vv.GuiManager.SetCustomMenu('SeqVis/*', True, '@'+b[i0+1:], b[:i0], None);
-
-InstallMenu('''
-
-##GroupManager
-#MenuLabels CreateMaps ProteinMap4
-vv.Import('SeqVis.pyn')
-match vv.EventSource.Item:
-	case 'CreateMaps':
-		CreateMaps(list(pp.GetSelectedMembers()), epochs=10000, winSize=0, repeats=1, ppl=0.15,
-			is3D=True, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo=None,  augCfg='a|500|2.0|2.0')
-	case 'ProteinMap4':
-		CreateProteinMap2(vv.AllItems,  epochs=5000, is3D=False, repeats=1, 
-			initExag=6.0, ppl=0.15, finalExag=1.0, ppList=pp.GetSelectedMembers())
-
-##DataDetails
-#MenuLabels CreateMaps ProteinMap LoadSeq
-vv.Import('SeqVis.pyn')
-match vv.EventSource.Item:
-	case 'CreateMaps':
-		CreateMaps(list(reversed(pp.SelectedItems)), epochs=10000, winSize=0, repeats=1, ppl=0.15,
-			is3D=True, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo=None,  augCfg='a|500|2.0|2.0')
-	case 'ProteinMap':
-		CreateProteinMap(pp.SelectedItems)
-	case 'LoadSeq':
-		txtTable = pp.GetSelectedRegion()
-		if txtTable.Rows * txtTable.Columns == 0:
-			vv.Message('No gene symbol selected')
-		else:
-			AddProteins(txtTable.Matrix[0][0], maxCount=100)
-
-##MapSnapshot
-#MenuLabels ShowData Scanning ShowSeq ReCreatMap ProteinMap4
-vv.Import('SeqVis.pyn')
-match vv.EventSource.Item:
-	case 'ShowData':
-		ShowMapData(pp)
-	case 'Scanning':
-		Scanning(pp)
-	case 'ShowSeq':
-		ShowTracingSeq(pp)
-	case 'ReCreatMap':
-		CreateMapById(pp, repeats=1)
-	case 'ProteinMap4':
-		CreateProteinMap2(vv.AllItems,  epochs=5000, is3D=False, repeats=0, 
-			initExag=4.0, ppl=0.15, finalExag=1.0, ppList=pp.SelectedItems)
-
-##D3dRender
-#MenuLabels ShowData Scanning ShowSeq ReCreatMap
-vv.Import('SeqVis.pyn')
-match vv.EventSource.Item:
-	case 'ShowData':
-		ShowMapData(pp)
-	case 'Scanning':
-		Scanning(pp, stepSize=20)
-	case 'ShowSeq':
-		ShowTracingSeq(pp)
-	case ReCreatMap:
-		CreateMapById(pp, repeats=1)
-
-##Atlas
-#MenuLabels ResetMaps
-vv.Import('SeqVis.pyn')
-match vv.EventSource.Item:
-	case 'ResetMaps':
-		ResetAtlasMaps(pp, pp.GetSelectedItems(), 1000, 700, gSize=0.8, gOpacity=0.5, hiddenSize=7, reset=False)
-
-##MainForm
-#MenuLabels SeqMap SeqMap2 - ShowSeq ProteinMap ProteinMap2 ProteinMap3 ProteinMap4
-vv.Import('SeqVis.pyn')
-match vv.EventSource.Item:
-	case 'SeqMap':
-		CreateMaps(pp.SelectedItems, epochs=10000, winSize=0, repeats=1, ppl=0.15,  saveTo='TestMaps', 
-			is3D=True, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='a|500|2.0|2.0')
-	case 'SeqMap2':
-		CreateMaps(pp.SelectedItems, epochs=10000, winSize=-1, repeats=1, ppl=0.15,  saveTo=None,
-			is3D=False, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='x|0.001')		
-	case 'ShowSeq':
-		ShowSeqInfo(pp, showSeq=False, showTable=True, barView=True)
-
-	case 'ProteinMap':
-		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
-		CreateProteinMapByCounts(pList,  repeats=1)
-	case 'ProteinMap2':
-		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
-		CreateProteinMap(pList,  epochs=5000, is3D=False, repeats=1)
-	case 'ProteinMap3':
-		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
-		CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=6.0, ppl=0.15, finalExag=1.5)
-	case 'ProteinMap4':
-		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
-		ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
-		CreateProteinMap2(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, ppl=0.1, finalExag=1.25, ppList=ppList)
-
-
-''')
+for pf in os.listdir(vv.CurrentScriptDirectory):
+	if pf.endswith('.pyn') and pf.startswith('Cfg'):  
+		fpath = vv.CurrentScriptDirectory + '\\' + pf
+		vv.GuiManager.SetCustomMenu('SeqVis/*', True, fpath, pf[3:-4], None)
