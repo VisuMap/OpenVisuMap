@@ -1,11 +1,5 @@
-def InstallMenu(sCfg):
-	for b in sCfg.split('##'):
-		b = b.strip()
-		if len(b) == 0: continue
-		i0 = b.index('\n')
-		vv.GuiManager.SetCustomMenu('Atlas/*', True, '@'+b[i0+1:], b[:i0], None);
-
 def InstallMain():
+	import os
 	mgr = vv.GuiManager
 	icon = vv.CurrentScriptDirectory + "\\MenuIcon.png"
 
@@ -38,93 +32,10 @@ def InstallMain():
 	if vv.ScriptDirectories.find( vv.CurrentScriptDirectory ) < 0:
 		vv.ScriptDirectories += ";" + vv.CurrentScriptDirectory
 
-	InstallMenu('''
-##MainForm
-#MenuLabels - Monitor Clustering LabelAll CaptureMaps EmbedSelected ShowData 3D-Expression ShowGraph ShowGeneTable ShowSuperCluster
-vv.Import('GeneMonitor.pyn')
-thresholdLevel = 1.0
-match vv.EventSource.Item:
-	case 'CaptureMaps':
-		vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
-	case 'EmbedSelected':
-		EmbedGenes(vv.SelectedItems, epochs=2000, EX=4, ex=1.0, PP=0.05, repeats=1)
-	case 'Monitor':
-		MonitorMap(vv.Map)
-	case 'Clustering':
-		ClusterMap(vv.Map, cSize=50, minSamples=50)
-	case 'LabelAll':
-		LabelAllClusters(vv.Map)
-	case 'ShowData':
-		ShowData(vv.Map)
-	case '3D-Expression':
-		ShowExpress3D(vv.Map)
-	case 'ShowGraph':
-		ShowGraph(vv.Map, showEdges=True, showPilotes=False)
-	case 'ShowGeneTable':
-		ShowLegend(pp.Map)
-	case 'ShowSuperCluster':
-		ShowSuperClusters(pp.Map)
-
-##Atlas
-#MenuLabels - SetLabels ResetMaps Clustering LabelMaps
-vv.Import('GeneMonitor.pyn')
-thresholdLevel = 1.0
-selected = pp.GetSelectedItems()
-match vv.EventSource.Item:
-	case 'SetLabels':
-		SetAtlasItemName(pp, selected)
-	case 'ResetMaps':		
-		ResetAtlasMaps(pp, selected, 1000, 700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=True)
-	case 'Clustering':
-		ClusterAtlasMaps(pp, selected, cSize=50, minSamples=50)
-	case 'LabelMaps':
-		LabelAtlasMaps(pp, selected)
-
-##MapSnapshot
-#MenuLabels - Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap ShowSuperCluster ShowGraph
-vv.Import('GeneMonitor.pyn')
-thresholdLevel = 1.0
-match vv.EventSource.Item:
-	case 'Monitor':
-		MonitorMap(pp)
-	case 'ShowData':
-		ShowData(pp)
-	case 'ReEmbedding':
-		ReEmbedding(pp)
-	case '3D-Expression':
-		ShowExpress3D(pp)
-	case 'ActiveCells':
-		ShowActiveCells(pp)
-	case 'Clustering':
-		ClusterMap(pp, cSize=50, minSamples=50)
-	case 'LabelGenes':
-		LabelGenes(pp)
-	case 'LabelAll':
-		LabelAllClusters(pp)
-	case 'ShowGeneTable':
-		ShowLegend(pp)
-	case 'MatchMap':
-		Unify2Maps(pp)
-	case 'ShowSuperCluster':
-		ShowSuperClusters(pp)
-	case 'ShowGraph':
-		ShowGraph(pp, showEdges=True, showPilotes=False)
-
-##GroupManager
-#MenuLabels EmbedGroups ShowData FeatureMap
-vv.Import('GeneMonitor.pyn')
-match vv.EventSource.Item:
-	case 'EmbedGroups':
-		gList = pp.GetSelectedGroups()
-		if gList.Count==0:
-			vv.Message('Please select some groups!')
-			vv.Return()	
-		LoopList(list(gList), epochs=2000, SS=0, EX=4.0, PP=0.05, repeats=1, saveTo=None)
-	case 'ShowData':
-		ShowData0( list(vv.SelectedItems) )
-	case 'FeatureMap':
-		CreateFeatureMap(pp)
-##''')
+	for pf in os.listdir(vv.CurrentScriptDirectory):
+		if pf.endswith('.pyn') and pf.startswith('Cfg'):  
+			fpath = vv.CurrentScriptDirectory + '\\' + pf
+			vv.GuiManager.SetCustomMenu('Atlas/*', True, fpath, pf[3:-4], None)
 
 InstallMain()
 

@@ -1,0 +1,28 @@
+#MenuLabels - Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap ShowSuperCluster ShowGraph
+vv.Import('GeneMonitor.pyn')
+thresholdLevel = 1.0
+match vv.EventSource.Item:
+	case 'Monitor':
+		MonitorMap(pp)
+	case 'ShowData':
+		ShowData(pp)
+	case 'ReEmbedding':
+		ReEmbedding(pp)
+	case '3D-Expression':
+		ShowExpress3D(pp)
+	case 'ActiveCells':
+		ShowActiveCells(pp)
+	case 'Clustering':
+		ClusterMap(pp, cSize=50, minSamples=50)
+	case 'LabelGenes':
+		LabelGenes(pp)
+	case 'LabelAll':
+		LabelAllClusters(pp)
+	case 'ShowGeneTable':
+		ShowLegend(pp)
+	case 'MatchMap':
+		Unify2Maps(pp)
+	case 'ShowSuperCluster':
+		ShowSuperClusters(pp)
+	case 'ShowGraph':
+		ShowGraph(pp, showEdges=True, showPilotes=False)
