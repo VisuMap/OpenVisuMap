@@ -245,6 +245,15 @@ def CreateProteinMap2(idList, epochs=10000, is3D=False, initExag=6.0, ppList=Non
 	if repeats > 0:
 		mds.Close()
 
+def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, ppl=0.1, finalExag=1.0):
+	pTable = GetProteinTable()
+	#dt = cs.GetMarkovCoding1(pTable, pList)
+	dt = cs.GetMarkovCoding2(pTable, pList)
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
+	RunMds(mds, repeats=repeats, glyphSize=0.8, glyphOpacity=0.5)
+	if repeats > 0:
+		mds.Close()
+
 #-----------------------------------------------------------------------------
 
 def ShowSeqInfo(pMap, showSeq, showTable, barView):

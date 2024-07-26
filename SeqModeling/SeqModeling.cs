@@ -200,16 +200,15 @@ namespace VisuMap
             return T;
         }
 
-        public INumberTable GetMarkovCoding() {
+        public INumberTable GetMarkovCoding1(Script.IDataset ds, List<string> pList) {
             int L = AB.Length;
             var P = Enumerable.Range(0, L).ToDictionary(k => AB[k], k => k);
-            var ds = vv.Dataset;
             var T = New.NumberTable(ds.Rows, L);
 
-            for (int row = 0; row < ds.Rows; row++) {
+            for (int row = 0; row < pList.Count; row++) {
                 double[][] M = VisuMap.MathUtil.NewMatrix(L, L);
-
-                string S = ds.GetDataAt(row, 2);
+                int pIdx = ds.IndexOfRow(pList[row]);
+                string S = ds.GetDataAt(pIdx, 2);
                 int rIdx = P[S[0]];
                 for (int k = 1; k < S.Length; k++) {
                     int cIdx = P[S[k]];
@@ -225,7 +224,7 @@ namespace VisuMap
                 }
 
                 IterateMarkovian(M, L, 16, T.Matrix[row] as double[]);
-                T.RowSpecList[row].Id = ds.BodyList[row].Id;
+                T.RowSpecList[row].CopyFromBody(ds.BodyList[pIdx]);
             }
 
             for (int col = 0; col < L; col++)
@@ -244,18 +243,16 @@ namespace VisuMap
             Array.Copy(D, stDistribution, L);
         }
 
-        public INumberTable GetMarkovCoding2(int cnt = 0) {
+        public INumberTable GetMarkovCoding2(Script.IDataset ds, List<string> pList) {
             var ppList = vv.GroupManager.GetGroupLabels("KeyPairs400");
             int L = ppList.Count;
             var PP = Enumerable.Range(0, L).ToDictionary(k => ppList[k], k => k);
-            var ds = vv.Dataset;
-            int dsRows = (cnt==0) ? ds.Rows : cnt; // ds.Rows;
-            var T = New.NumberTable(dsRows, L);
-
-            for (int row = 0; row < dsRows; row++) {
+            var T = New.NumberTable(pList.Count, L);
+            
+            for (int row = 0; row < pList.Count; row++) {
                 double[][] M = MathUtil.NewMatrix(L, L);
-
-                string S = ds.GetDataAt(row, 2);
+                int pIdx = ds.IndexOfRow(pList[row]);
+                string S = ds.GetDataAt(pIdx, 2);
                 int rIdx = PP[S.Substring(0, 2)];
                 for (int k = 2; k <S.Length-2; k+=2) {
                     int cIdx = PP[S.Substring(k, 2)];
@@ -277,7 +274,7 @@ namespace VisuMap
                 }
 
                 IterateMarkovian(M, L, 16, T.Matrix[row] as double[]);
-                T.RowSpecList[row].Id = ds.BodyList[row].Id;
+                T.RowSpecList[row].CopyFromBody(ds.BodyList[pIdx]);
             }
 
             var P = Enumerable.Range(0, 20).ToDictionary(k => AB[k], k => k);
