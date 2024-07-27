@@ -1,5 +1,7 @@
-#MenuLabels SeqMap SeqMap2 - ShowSeq ProteinMap ProteinMap2 ProteinMap3 ProteinMap4
+#MenuLabels SeqMap SeqMap2 - SeqInfo ProteinMap ProteinMap2 ProteinMap3 ProteinMap4
 vv.Import('SeqVis.pyn')
+pList = pp.AllItems if pp.SelectedItems.Count < 2 else pp.SelectedItems
+
 match vv.EventSource.Item:
 	case 'SeqMap':
 		CreateMaps(pp.SelectedItems, epochs=10000, winSize=0, repeats=1, ppl=0.15,  saveTo='TestMaps', 
@@ -7,20 +9,17 @@ match vv.EventSource.Item:
 	case 'SeqMap2':
 		CreateMaps(pp.SelectedItems, epochs=10000, winSize=-1, repeats=1, ppl=0.15,  saveTo=None,
 			is3D=False, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='x|0.001')		
-	case 'ShowSeq':
+
+	case 'SeqInfo':
 		ShowSeqInfo(pp, showSeq=False, showTable=True, barView=True)
 
 	case 'ProteinMap':
-		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
 		CreateProteinMapByCounts(pList,  repeats=1)
 	case 'ProteinMap2':
-		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
 		CreateProteinMap(pList,  epochs=5000, is3D=False, repeats=1)
 	case 'ProteinMap3':
-		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
 		CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=6.0, ppl=0.15, finalExag=1.5)
 	case 'ProteinMap4':
-		pList = pp.AllItems if pp.SelectedItems.Count == 0 else pp.SelectedItems
 		ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
 		CreateProteinMap2(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, ppl=0.1, finalExag=1.25, ppList=ppList)
 

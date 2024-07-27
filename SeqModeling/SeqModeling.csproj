@@ -54,6 +54,12 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CfgAtlas.pyn" />
+    <None Include="CfgD3dRender.pyn" />
+    <None Include="CfgDataDetails.pyn" />
+    <None Include="CfgGroupManager.pyn" />
+    <None Include="CfgMainForm.pyn" />
+    <None Include="CfgMapSnapshot.pyn" />
     <None Include="Install.pyn" />
     <None Include="Package.bat" />
     <None Include="SeqVis.pyn" />

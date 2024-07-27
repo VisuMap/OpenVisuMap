@@ -4,7 +4,6 @@ import math, random, time
 PROTEIN_TABLE = 'Protein Table'
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
 P = {ALPHABET[k]:k for k in range(len(ALPHABET))}
-ALPHABET_s = 'WCMYHFNIDQTRVKGPAESL'
 
 def FilterSeq(D, P):
 	return ''.join([ c for c in D.upper() if c in P ])
@@ -29,7 +28,7 @@ def SaveToAtlas(atName, x0=50, y0=50):
 		vwName = vv.LastView.Name
 		vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0, vwName).Close()
 
-def LoadSeqModeling(seqdll = 'SeqModeling.dll', className='VisuMap.SeqModeling'):
+def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling'):
 	from shutil import copy
 	from os.path import exists
 	from os import stat
@@ -40,7 +39,7 @@ def LoadSeqModeling(seqdll = 'SeqModeling.dll', className='VisuMap.SeqModeling')
 		vv.StartProcess(msbuild, 'SeqModeling.csproj /p:Configuration=Release', False).WaitForExit(1000)
 		copy(vv.CurrentScriptDirectory + '/bin/Release/' + seqdll, vv.CurrentScriptDirectory)
 	#dllFile = vv.CurrentScriptDirectory + '/bin/Debug/SeqModeling.dll'
-	ret = vv.LoadLibrary(dllFile)
+	vv.LoadLibrary(dllFile)
 	return New.Instance(className)
 
 if 'cs' not in globals():
@@ -141,13 +140,21 @@ def AddProteins(ds, pId, maxCount=20, minLength=400):
 			break
 	vv.Dataset.CommitChanges()
 
-def AddRandomSeq(N=20, L=1000):
+def SetRandomSeq():
 	import random
 	OpenProteinTable()
+	# aaList is string filled with AA distribution of all proteins.
+	N, aaL, row = 20, len(aaList)-1, 1
+	ds = vv.Dataset
 	for n in range(N):
-		s = ''.join([ALPHABET[random.randint(0, 19)] for k in range(L)])
-		vv.Dataset.AddRow('random'+str(n), 'Random', 15, ['rand', 'Random', s, str(len(s))])
-	vv.Dataset.CommitChanges()
+		L = random.randint(500, 2500)
+		s = ''.join([aaList[random.randint(0, aaL)] for k in range(L)])
+		ds.SetDataAt(row, 2, s)
+		ds.SetValueAt(row, 3, len(s))
+		row += 1
+	ds.CommitChanges()
+
+#SetRandomSeq()
 
 def GroupByType(bList):
 	G = {}
@@ -278,6 +285,7 @@ def ShowSeqInfo(pMap, showSeq, showTable, barView):
 		hm.Title = f'{pGene}, {pId}, L:{pLen}' 
 		hm.SpectrumType = 4
 		hm.ColorPaletteName = 'rP8'
+		hm.ScrollingSteps = 1
 	if barView:
 		bv = New.BarView(pLen)
 		for k, item in enumerate(bv.ItemList):
@@ -285,23 +293,38 @@ def ShowSeqInfo(pMap, showSeq, showTable, barView):
 			item.Value = 1.0
 		bv.Horizontal = False
 		bv.BarLabelType = 0
+		bv.HighlightColor = New.Color('White')
 		bv.Show()
 		bv.Tag = (pSeq, 0, vv.GroupManager.GetGroupLabels("KeyPairs400"))
 		#bv.Tag = (pSeq, 0, ALPHABET)
-		bv.SetMouseWheelHandler('@FilterSq2()')
+		bv.SetMouseWheelHandler('@FilterSq2(vv.EventSource.Form)')
+		if showTable:
+			hm.Tag = bv
+			hm.AddEventHandler('ItemsSelected', '@SetFilterIdx()')
 
-def FilterSq2():
-	bv = vv.EventSource.Form
+def UpdateBv(bv, pSeq, filterIdx, filterList):
+		bv.Tag = (pSeq, filterIdx, filterList)
+		a2 = filterList[filterIdx]
+		for k, item in enumerate(bv.ItemList):
+			item.Value = 1.0 if pSeq[k:k+2].startswith(a2) else 0.0
+		bv.Title = f'AA key: #{filterIdx}:{a2} of {len(filterList)}'
+		bv.Redraw()
+
+def SetFilterIdx():
+	if vv.EventSource.Item.Name == 'HeatMap':
+		hm = pp
+		if hm.SelectedItems.Count == 0: return
+		bv = hm.Tag
+		(pSeq, filterIdx, filterList) = bv.Tag
+		filterIdx = filterList.index(hm.SelectedItems[0])
+		UpdateBv(bv, pSeq, filterIdx, filterList)
+
+def FilterSq2(bv):
 	(pSeq, filterIdx, filterList) = bv.Tag
 	L = len(filterList)
 	filterIdx = (filterIdx + vv.EventSource.Argument + L) % L
-	bv.Tag = (pSeq, filterIdx, filterList)
-	a2 = filterList[filterIdx]
-	for k, item in enumerate(bv.ItemList):
-		item.Value = 1.0 if pSeq[k:k+2].startswith(a2) else 0.0
-	vv.SelectedItems = [ a2 ]
-	bv.Title = f'AA key: {filterIdx}: {a2}'
-	bv.Redraw()
+	UpdateBv(bv, pSeq, filterIdx, filterList)
+	vv.SelectedItems = [ filterList[filterIdx] ]
 
 #-----------------------------------------------------------------------------
 
@@ -442,6 +465,9 @@ def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None
 	info.AugCfg = augCfg
 	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
+		if pSeq is None:
+			vv.Message("Cannot get aa-seq of: " + pId)
+			continue
 		nt = NewDataset(pSeq, winSize=winSize, decay=decay, augCfg=augCfg)
 		mds.SetTrainingData(nt)
 		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
@@ -578,89 +604,10 @@ def CreateSeqMap(pSeq, pSeq1=None, epochs=10000, winSize=0, repeats=1, pp=0.15, 
 	mds.Close()
 
 '''========================================================================================
-def GetMarkovMatrix(pSeq, PP):
-	L = len(PP)
-	M = np.zeros((L,L), np.float32)
-	idx0 = PP[pSeq[:2]]
-	for k in range(1, len(pSeq)-1, 2):
-		idx1 = PP[pSeq[k:k+2]]
-		M[idx0, idx1] += 1.0
-		idx0 = idx1
-	rowSum = np.sum(M, axis=1, keepdims=True)
-	for k in range(L):
-		if rowSum[k,0] == 0:
-			rowSum[k,0] = 1.0
-	return M * np.reciprocal(rowSum)
-
 ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
 PP = {aa:k for k, aa in enumerate(ppList)}
 pSeq = vv.Dataset.GetDataAt(0, 2)
 
-MkM = GetMarkovMatrix(pSeq, PP)
-mm.ToTable(MkM).ShowHeatMap()
-
-from collections import Counter
-
-def ShowFreq(sId):
-	pTable = GetProteinTable()
-	pSeq = GetProteinSeq(pTable, sId)
-	K = 50
-	nt = New.NumberTable(20, K)
-	for idx in range(20):
-		c = ALPHABET[idx]
-		nt.RowSpecList[idx].Id = c
-		s = ''.join([FS(ch, c) for ch in pSeq])
-		cnt = Counter([ len(blk) for blk in s.split(c) ])
-		R = nt.Matrix[idx]
-		for k in cnt:
-			if k<K:
-				R[k] = cnt[k]
-	bb = New.BarBand(nt)
-	bb.BaseLineType = 0	
-	bb.Title = sId
-	bb.Show()
-
-def WaveSizeTable(P, pSeq, M=50):
-	L = len(P)
-	szMtr = np.zeros((L, M), np.int32)
-	posV = np.array(L*[-1])
-	for k, c in enumerate(pSeq):
-		row = P[c]
-		sz = k - posV[row]
-		if sz < M:
-			szMtr[row, sz] += 1
-		posV[row] = k
-	return szMtr.reshape(-1).astype(np.float32)
-
-pTable = GetProteinTable()
-pSeq = GetProteinSeq(pTable, 'SYNE2')
-P = {a:k for k,a in enumerate(ALPHABET)}
-wSz = WaveSizeTable(P, pSeq)
-vs = mm.ToValueList(wSz)
-vs = mm.ToArray64(wSz)
-
-
-for sId in ['NP_001361665.1', 'SYNE2', 'Q03001.4', 'EAW58036.1', 'XP_054199104.1']:
-	ShowFreq(sId)
-
-ShowFreq('SYNE2')
-
-for sId in 'EAW58034.1,EAW58035.1,EAW58036.1,NP_003473.3,NP_001394626.1,NP_001361665.1,SYNE2,Q03001.4,EAW58036.1,XP_054199104.1'.split(','):
-	ShowFreq(sId)
-
-CreateMaps(pp.SelectedItems, epochs=10000, winSize=-1, repeats=1, ppl=0.15,  saveTo='TestMaps', 
-	is3D=False, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='b|0.01')
-
-def SelectUniSet():
-	pSet = {}
-	for k in range(vv.Dataset.Rows):
-		pId = vv.Dataset.BodyList[k].Id
-		pSq = vv.Dataset.GetDataAt(k, 2)
-		if pSq not in pSet:
-			pSet[pSq] = pId
-	vv.SelectedItems = list(pSet.values())
-
-pSeq = vv.Dataset.GetDataAt(0, 2)
 
 def ShowProteinPair(pSeq):
 	pLen = len(pSeq)
@@ -704,7 +651,7 @@ def ShowAA():
 	bv.Show()
 
 def ShowStatistics():
-	aaCnt = GetPairTable(ALPHABET_s)
+	aaCnt = GetPairTable(ALPHABET)
 	bv = New.BarView(len(aaCnt))
 	for k, pp in enumerate(aaCnt):
 		bv.ItemList[k].Id = pp
@@ -784,4 +731,13 @@ cs.Init(vv, vv.New)
 values = New.NumberArray([1.1,2.2]).ToArray()
 print(tt.Sum(values))
 
+aaSum = sum([aaD[aa] for aa in aaD])
+for aa in aaD:	aaD[aa] = aaD[aa]/aaSum
+
+aaList = []
+for aa in aaD:
+	aaList.append( aa * int(10000*aaD[aa]) )
+
+aaList = ''.join(aaList)
+len(aaList)
 '''
