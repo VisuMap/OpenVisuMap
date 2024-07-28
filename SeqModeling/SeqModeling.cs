@@ -268,7 +268,6 @@ namespace VisuMap
                     M[rIdx][cIdx] += 1.0;
                     rIdx = cIdx;
                 }
-
                 foreach (double[] R in M) {
                     double rowSum = R.Sum();
                     if (rowSum > 0)

@@ -273,7 +273,7 @@ def ShowSeqInfo(pMap, showSeq=False, showTable=True, barView=True, useAApair=Tru
 	pSeq = ds.GetDataAt(rIdx, 2)
 	pGene = ds.BodyList[rIdx].Name			
 	pLen = int(ds.GetDataAt(rIdx, 3))
-	ppList = vv.GroupManager.GetGroupLabels("KeyPairs400") if useAApair else [ aa for aa in ALPHABET ]
+	ppList = vv.GroupManager.GetGroupLabels("KeyPairs400") if useAApair else list(ALPHABET)
 	if showSeq:
 		tp = New.TextPanel(f'Protein: {pGene}, {pId}, L:{pLen}', pSeq)
 		tp.Show()
@@ -288,6 +288,8 @@ def ShowSeqInfo(pMap, showSeq=False, showTable=True, barView=True, useAApair=Tru
 		hm.ColorPaletteName = 'rP8'
 		hm.ScrollingSteps = 1
 		hm.BaseLineType = 0
+		hm.SpectrumType = 4
+		hm.ReadOnly = True
 	if barView:
 		bv = New.BarView(pLen)
 		for k, item in enumerate(bv.ItemList):
@@ -299,6 +301,8 @@ def ShowSeqInfo(pMap, showSeq=False, showTable=True, barView=True, useAApair=Tru
 		bv.Show()
 		bv.Tag = (pSeq, 0, ppList)
 		bv.SetMouseWheelHandler('@FilterSq2(vv.EventSource.Form)')
+		bv.AutoScaling = True
+		bv.ReadOnly = True
 		if showTable:
 			hm.Tag = bv
 			hm.AddEventHandler('ItemsSelected', '@SetFilterIdx()')
@@ -725,7 +729,7 @@ vv.GroupManager.SetGroupLabels('L20r', g2)
 
 ppList = [ 'E'+c for c in ALPHABET ]
 vv.GroupManager.SetGroupLabels('E20', ppList)
-vv.GroupManager.SetGroupLabels('ALPHABET', [c for c in ALPHABET])
+vv.GroupManager.SetGroupLabels('ALPHABET', list(ALPHABET))
 
 ret = vv.LoadLibrary('C:/temp/SeqModeling/bin/Release/SeqModeling.dll')
 cs = New.Instance('VisuMap.SeqModeling')
@@ -742,4 +746,5 @@ for aa in aaD:
 
 aaList = ''.join(aaList)
 len(aaList)
+
 '''
