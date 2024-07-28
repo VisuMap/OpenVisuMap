@@ -127,17 +127,20 @@ namespace VisuMap
         }
 
         public INumberTable ToWaveTable(string pSeq, IList<string> ppList, int M) {
+            ppList = new List<string>(ppList);
             int L = ppList.Count;
             var P = new Dictionary<string, int>();
             double[][] aaSize = new double[L][];
             int[] aaPos = new int[L];
+            int kSize = ppList[0].Length;
             for (int k = 0; k < L; k++) {
                 P[ppList[k]] = k;
                 aaSize[k] = new double[M];
                 aaPos[k] = -1;
             }
-            for (int k = 0; k < (pSeq.Length - 1); k += 1) {
-                string aaPair = pSeq.Substring(k, 2);
+            int kEnd = pSeq.Length - kSize + 1;
+            for (int k = 0; k < kEnd; k += 1) {
+                string aaPair = pSeq.Substring(k, kSize);
                 if (P.ContainsKey(aaPair)) {
                     int aaIdx = P[aaPair];
                     int sz = Math.Min(M, k - aaPos[aaIdx]);

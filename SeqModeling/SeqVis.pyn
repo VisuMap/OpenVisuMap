@@ -263,7 +263,7 @@ def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, 
 
 #-----------------------------------------------------------------------------
 
-def ShowSeqInfo(pMap, showSeq, showTable, barView):
+def ShowSeqInfo(pMap, showSeq=False, showTable=True, barView=True, useAApair=True):
 	if pMap.SelectedItems.Count == 0:
 		vv.Message('No protein selected')
 		return
@@ -272,13 +272,14 @@ def ShowSeqInfo(pMap, showSeq, showTable, barView):
 	rIdx = ds.IndexOfRow(pId)
 	pSeq = ds.GetDataAt(rIdx, 2)
 	pGene = ds.BodyList[rIdx].Name			
-	pLen = int(ds.GetDataAt(rIdx, 3))	
+	pLen = int(ds.GetDataAt(rIdx, 3))
+	ppList = vv.GroupManager.GetGroupLabels("KeyPairs400") if useAApair else [ aa for aa in ALPHABET ]
 	if showSeq:
 		tp = New.TextPanel(f'Protein: {pGene}, {pId}, L:{pLen}', pSeq)
 		tp.Show()
 	if showTable:
-		ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
-		nt = cs.ToWaveTable(pSeq, ppList, 1000)
+		maxWaveLen = 1000 if useAApair else 100
+		nt = cs.ToWaveTable(pSeq, ppList, maxWaveLen)
 		for rs in nt.RowSpecList:
 			rs.Type = P[rs.Id[0]]
 		hm = nt.ShowHeatMap()
@@ -286,6 +287,7 @@ def ShowSeqInfo(pMap, showSeq, showTable, barView):
 		hm.SpectrumType = 4
 		hm.ColorPaletteName = 'rP8'
 		hm.ScrollingSteps = 1
+		hm.BaseLineType = 0
 	if barView:
 		bv = New.BarView(pLen)
 		for k, item in enumerate(bv.ItemList):
@@ -295,8 +297,7 @@ def ShowSeqInfo(pMap, showSeq, showTable, barView):
 		bv.BarLabelType = 0
 		bv.HighlightColor = New.Color('White')
 		bv.Show()
-		bv.Tag = (pSeq, 0, vv.GroupManager.GetGroupLabels("KeyPairs400"))
-		#bv.Tag = (pSeq, 0, ALPHABET)
+		bv.Tag = (pSeq, 0, ppList)
 		bv.SetMouseWheelHandler('@FilterSq2(vv.EventSource.Form)')
 		if showTable:
 			hm.Tag = bv
@@ -313,6 +314,7 @@ def UpdateBv(bv, pSeq, filterIdx, filterList):
 def SetFilterIdx():
 	if vv.EventSource.Item.Name == 'HeatMap':
 		hm = pp
+		if hm.SelectionMode != 0 : return
 		if hm.SelectedItems.Count == 0: return
 		bv = hm.Tag
 		(pSeq, filterIdx, filterList) = bv.Tag
