@@ -1,5 +1,8 @@
-#MenuLabels ResetMaps
+#MenuLabels ResetMaps SelectSeq
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
 	case 'ResetMaps':
-		ResetAtlasMaps(pp, pp.GetSelectedItems(), 1000, 700, gSize=2.0, gOpacity=1.0, hiddenSize=7, reset=False)
+		ResetAtlasMaps(pp, pp.GetSelectedItems(), 1000, 700, gSize=0.8, gOpacity=1.0, hiddenSize=7, reset=False)
+	case 'SelectSeq':
+		idList = [item.Name for item in pp.GetSelectedItems()]
+		vv.SelectedItems = New.StringArray(idList)

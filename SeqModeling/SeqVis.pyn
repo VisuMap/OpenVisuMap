@@ -397,6 +397,12 @@ def AugmentData(nt, augCfg='a|500|2.0|2.0'):
 			phase = float(fs[2]) if len(fs)==3 else 0
 			for n in range(N):
 				A[n] = R*math.sin(n*a+phase), R*math.cos(n*a+phase)
+		case 'm':
+			mom = float(fs[1])
+			g = 1.0 - mom
+			for k in range(1, N):
+				nt[k, :] = mom*nt[k-1, :] + g*nt[k, :]
+			return nt
 		case 'x':
 			return nt
 	return np.hstack((nt, A))

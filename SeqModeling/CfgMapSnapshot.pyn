@@ -8,7 +8,7 @@ match vv.EventSource.Item:
 	case 'ShowSeq':
 		ShowTracingSeq(pp)
 	case 'ReCreateMap':
-		ReCreateMap(pp, repeats=1)
+		ReCreateMap(pp, repeats=0)
 	case 'ProteinMap4':
 		CreateProteinMap2(vv.AllItems,  epochs=5000, is3D=False, repeats=0, 
 			initExag=4.0, ppl=0.15, finalExag=1.0, ppList=pp.SelectedItems)
