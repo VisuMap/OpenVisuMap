@@ -287,5 +287,32 @@ namespace VisuMap
             }
             return T;
         }
+
+        public INumberTable MarkovianMatrix1(Script.IDataset ds) {
+            int L = AB.Length;
+            var P = Enumerable.Range(0, L).ToDictionary(k => AB[k], k => k);
+            double[][] M = VisuMap.MathUtil.NewMatrix(L, L);
+
+            for (int row = 21; row < ds.Rows; row++) {
+                string S = ds.GetDataAt(row, 2);
+                int rIdx = P[S[0]];
+                for (int k = 1; k < S.Length; k++) {
+                    int cIdx = P[S[k]];
+                    M[rIdx][cIdx] += 1.0;
+                    rIdx = cIdx;
+                }
+            }
+            foreach (double[] R in M) {
+                double rowSum = vv.Math.Sum(R);
+                if (rowSum > 0)
+                    for (int col = 0; col < L; col++)
+                        R[col] /= rowSum;
+            }
+            var T = New.NumberTable(M);
+            for (int k = 0; k < L; k++) 
+                T.RowSpecList[k].Id = T.ColumnSpecList[k].Id = AB[k].ToString();
+            return T;
+        }
+
     }
 }

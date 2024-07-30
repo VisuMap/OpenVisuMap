@@ -1,4 +1,4 @@
-#MenuLabels SeqMap SeqMap2 SeqInfo - ProteinMap ProteinMap2 ProteinMap3 ProteinMap4
+#MenuLabels SeqMap SeqMap2 SeqMap3 SeqInfo - ProteinMap ProteinMap2 ProteinMap3 ProteinMap4
 
 vv.Import('SeqVis.pyn')
 pList = pp.AllItems if pp.SelectedItems.Count < 2 else pp.SelectedItems
@@ -9,7 +9,12 @@ match vv.EventSource.Item:
 			is3D=True, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='a|500|2.0|2.0')
 	case 'SeqMap2':
 		CreateMaps(pp.SelectedItems, epochs=10000, winSize=-1, repeats=1, ppl=0.15,  saveTo=None,
-			is3D=False, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='x|0.001')		
+			is3D=False, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='x|0.001')
+	case 'SeqMap3':
+		r = 0.005
+		SeqMapByMarkovian(pp.SelectedItems, epochs=10000, repeats=1, ppl=0.2,  saveTo=None,
+			is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.5, glyphOpacity=0.5, augCfg=f'a|1000|{r}|{r}')
+
 	case 'SeqInfo':
 		ShowSeqInfo(pp, showSeq=False, showTable=True, barView=True, useAApair=True)
 

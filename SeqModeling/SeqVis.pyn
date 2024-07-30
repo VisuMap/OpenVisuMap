@@ -48,7 +48,7 @@ if 'cs' not in globals():
 # protein embedding map information
 class MapInfo():
 	def __init__(self, initStr = None):
-		for nm in 'pId,Gene,pLen,Epochs,InitE,FinalE,PP,WinSize,AugCfg,Is3D'.split(','):
+		for nm in 'pId,Gene,pLen,Epochs,InitE,FinalE,PP,WinSize,AugCfg,Is3D,Obo'.split(','):
 			setattr(self, nm, None)
 		if initStr is not None:
 			self.ParseStr(initStr)
@@ -143,11 +143,14 @@ def AddProteins(ds, pId, maxCount=20, minLength=400):
 def SetRandomSeq():
 	import random
 	OpenProteinTable()
+	'''
 	# aaList is string filled with AA distribution of all proteins.
-	N, aaL, row = 20, len(aaList)-1, 1
-	ds = vv.Dataset
+	aaDist = list(vv.AtlasManager.ReadValueList('TestMaps', 'i2'))
+	aaList = ''.join([x.Id*int(x.Value*10000) for x in aaDist])
+	'''
+	N, aaL, row, ds = 20, len(aaList)-1, 1, vv.Dataset
 	for n in range(N):
-		L = random.randint(500, 2500)
+		L = random.randint(500, 5000)
 		s = ''.join([aaList[random.randint(0, aaL)] for k in range(L)])
 		ds.SetDataAt(row, 2, s)
 		ds.SetValueAt(row, 3, len(s))
@@ -290,6 +293,7 @@ def ShowSeqInfo(pMap, showSeq=False, showTable=True, barView=True, useAApair=Tru
 		hm.BaseLineType = 0
 		hm.SpectrumType = 4
 		hm.ReadOnly = True
+		hm.Redraw()
 	if barView:
 		bv = New.BarView(pLen)
 		for k, item in enumerate(bv.ItemList):
@@ -469,6 +473,7 @@ def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None
 	info.WinSize = winSize	
 	info.Is3D = is3D
 	info.AugCfg = augCfg
+	info.Obo = 'Frg'
 	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
 		if pSeq is None:
@@ -497,6 +502,66 @@ def Scanning(pMap, stepSize=20):
 			vv.Sleep(pause)
 			if pMap.SelectedItems.Count == 0: return
 		vv.Sleep(1000)
+
+def NewDatasetMkv(tm, pSeq, augCfg):
+	L = len(pSeq)
+	nt = np.zeros((L, len(ALPHABET)), np.float64)
+	for n in range(L):
+		nt[n] = tm[ P[pSeq[n]] ]
+	dt = mm.ToTable(AugmentData(nt, augCfg))
+	nameSet = set()
+	for n in range(L):
+		rs = dt.RowSpecList[n]
+		aaId = pSeq[n]
+		rs.Name = aaId
+		rs.Type = P[aaId]
+		if aaId not in nameSet:
+			rs.ShowName = True
+			nameSet.add(aaId)
+	return dt
+
+
+def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
+		glyphOpacity=0.5, is3D=False, initExag=10.0, finalExag=1.0, augCfg='a|500|2.0|2.0'):
+	tm = mm.ToNumpy(vv.AtlasManager.ReadNumberTable('TestMaps', 'i4'))
+	if len(pList) <= 0:
+		vv.Message("No protein group selected")
+		vv.Return(0)
+	pTable = GetProteinTable()
+	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
+	mds.GlyphSet = '36 Clusters'
+	mds.GlyphSize = glyphSize
+	mds.GlyphOpacity = glyphOpacity
+
+	info = MapInfo()
+	info.Epochs = epochs
+	info.InitE = initExag
+	info.FinalE = finalExag
+	info.PP = mds.PerplexityRatio
+	info.Is3D = is3D
+	info.AugCfg = augCfg
+	info.Obo = 'Mkv'
+
+	for k, pId in enumerate(pList):
+		pSeq = GetProteinSeq(pTable, pId)
+		if pSeq is None:
+			vv.Message("Cannot get aa-seq of: " + pId)
+			continue
+		nt = NewDatasetMkv(tm, pSeq, augCfg)
+		mds.SetTrainingData(nt)
+		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
+		info.pId = pId
+		info.pLen = len(pSeq)
+		map = vv.LastView
+		map.Title = f'{k}: {pId}, N: {nt.Rows}'
+		map.Description = info.ToStr()
+		if (k+1)%8 == 0:
+			SaveToAtlas(saveTo)
+
+	SaveToAtlas(saveTo)
+	if repeats > 0:
+		mds.Close()
+
 
 #-------------------------------------------------------------------
 
@@ -579,35 +644,22 @@ def ResetAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpa
 		it.Name = info.pId
 		mp.Close()
 
-def CreateMapById(pMap, repeats=1):
+def ReCreateMap(pMap, repeats=1):
 	info = MapInfo(pMap.Description)
 	pTable = GetProteinTable()
 	pSeq = GetProteinSeq(pTable, info.pId)
-	nt = NewDataset(pSeq, winSize=int(info.WinSize), augCfg=info.AugCfg)
+	if info.Obo == 'Mkv':
+		tm = mm.ToNumpy(vv.AtlasManager.ReadNumberTable('TestMaps', 'i4'))
+		nt = NewDatasetMkv(tm, pSeq, augCfg=info.AugCfg)
+	else:
+		nt = NewDataset(pSeq, winSize=int(info.WinSize), augCfg=info.AugCfg)
 	mds = NewMds(nt, epochs=int(info.Epochs), is3D=eval(info.Is3D), 
 		initExag=float(info.InitE), finalExag=float(info.FinalE), ppl=float(info.PP))
+	mds.GlyphSet = pMap.GlyphSet
+	mds.GlyphSize = pMap.GlyphSize
+	mds.GlyphOpacity = pMap.GlyphOpacity
 	RunMds(mds, repeats=repeats,)
 	vv.LastView.Description = info.ToStr()
-
-def CreateSeqMap(pSeq, pSeq1=None, epochs=10000, winSize=0, repeats=1, pp=0.15, saveTo=None, glyphSize=0.8, 
-		glyphOpacity=0.5, is3D=True, initExag=10.0, finalExag=1.0,  augCfg='a|500|2.0|2.0'):
-	if pSeq1 is None:
-		nt = NewDataset(pSeq, augCfg=augCfg)
-	else:
-		P = {a:k for k,a in enumerate(ALPHABET)}
-		N, N1 = len(pSeq), len(pSeq1)
-		nt  = AugmentData(NewDataset0(P, pSeq),  augCfg)
-		nt1 = AugmentData(NewDataset0(P, pSeq1), augCfg + '|' + str(0.125*math.pi))
-		nt = np.vstack((nt, nt1))
-		nt = mm.ToTable(nt)
-		for row in range(N+N1):
-			nt.RowSpecList[row].Type = 0 if row<N else 1
-	mds = NewMds(nt, epochs=epochs, is3D=is3D, initExag=initExag, 
-		finalExag=finalExag, ppl=ppl, repeats=repeats)
-	mds.Reset().Start()
-	if not mds.Completed: vv.Return()
-	mds.Show3DView().NormalizeView()
-	mds.Close()
 
 '''========================================================================================
 ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
@@ -746,5 +798,11 @@ for aa in aaD:
 
 aaList = ''.join(aaList)
 len(aaList)
+
+
+nt = cs.MarkovianMatrix1(vv.Dataset)
+nt.ShowHeatMap()
+
+nt = vv.AtlasManager.ReadNumberTable('TestMaps', 'i4')
 
 '''
