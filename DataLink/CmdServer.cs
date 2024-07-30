@@ -919,6 +919,8 @@ namespace VisuMap.DataLink {
 
         void ShowTable(double[][] matrix, int viewType = 0, string winTitle = "", short[] rowTypes = null, short[] rowFlags = null, string access = "n", int viewIdx = 0) {
             var nt = app.New.NumberTable(matrix);
+            string glyphSet = null;
+
             if (nt == null) {
                 MessageBox.Show("No data available: empty table.");
                 return;
@@ -972,6 +974,11 @@ namespace VisuMap.DataLink {
                             }
                         }
                     }
+                    var gSet = activeFrm.GetType().GetProperty("GlyphSet");
+                    if ( gSet != null) {
+                        glyphSet = gSet.GetValue(activeFrm) as string;
+                    }
+
                 }
 
                 if (!typeSet) {
@@ -990,11 +997,11 @@ namespace VisuMap.DataLink {
             }
 
             mainForm.Invoke(new MethodInvoker(delegate () {
-                UpdateView(nt, viewType, winTitle, access, viewIdx);
+                UpdateView(nt, viewType, winTitle, access, viewIdx, glyphSet);
             }));
         }
 
-        void UpdateView(INumberTable nt, int viewType, string winTitle, string access, int viewIdx) {
+        void UpdateView(INumberTable nt, int viewType, string winTitle, string access, int viewIdx, string glyphSet=null) {
             if( (viewIdx<0) || (viewIdx >= MAX_VIEWS) ) {
                 MessageBox.Show("View index too large (> " + MAX_VIEWS + "): " + viewIdx);
                 return ;
@@ -1069,6 +1076,8 @@ namespace VisuMap.DataLink {
                             preMap2D.GlyphSet = app.Map.GlyphType;
                             preMap2D.MapType = app.Map.MapTypeIndex;
                         }
+                        if (!string.IsNullOrEmpty(glyphSet))
+                            preMap2D.GlyphSet = glyphSet;
                         preMap2D.Show();
                         map2DViewList[viewIdx] = preMap2D;
                     } else {
@@ -1084,6 +1093,8 @@ namespace VisuMap.DataLink {
                     var preMap3D = map3DViewList[viewIdx];
                     if (NeedNewView(preMap3D, access)) {
                         preMap3D = app.New.Map3DView(bs, null);
+                        if (!string.IsNullOrEmpty(glyphSet))
+                            preMap3D.GlyphSet = glyphSet;
                         preMap3D.Show();
                         map3DViewList[viewIdx] = preMap3D;
                     } else {
