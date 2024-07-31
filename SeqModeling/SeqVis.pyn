@@ -514,16 +514,21 @@ def NewDatasetMkv(tm, pSeq, augCfg):
 	nt = np.zeros((L, len(ALPHABET)), np.float64)
 	for n in range(L):
 		nt[n] = tm[ P[pSeq[n]] ]
-	dt = mm.ToTable(AugmentData(nt, augCfg))
-	nameSet = set()
+	nt = AugmentData(nt, augCfg)
+	dt = mm.ToTable(nt)
+	aaIdx = {}	
 	for n in range(L):
 		rs = dt.RowSpecList[n]
 		aaId = pSeq[n]
 		rs.Name = aaId
 		rs.Type = P[aaId]
-		if aaId not in nameSet:
+		if aaId not in aaIdx:
 			rs.ShowName = True
-			nameSet.add(aaId)
+		aaIdx[aaId] = n
+	for n in aaIdx.values():
+		rs = dt.RowSpecList[n]
+		rs.ShowName = True
+		rs.Name = rs.Name.lower()
 	return dt
 
 
@@ -630,7 +635,7 @@ def ShowProteinSeq(pMap):
 
 #-----------------------------------------------------------------------
 
-def ResetAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=False):
+def ConfigAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=False):
 	for it in itemList:
 		mp = it.Open()
 		if reset:
