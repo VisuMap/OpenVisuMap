@@ -314,5 +314,24 @@ namespace VisuMap
             return T;
         }
 
+        public double[][] MarkovianMatrix0(string pSeq) {
+            int L = AB.Length;
+            double[][] M = VisuMap.MathUtil.NewMatrix(L, L); 
+            Dictionary<char, int> P = Enumerable.Range(0, L).ToDictionary(k => AB[k], k => k);
+
+            int rIdx = P[pSeq[0]];
+            for (int k = 1; k < pSeq.Length; k++) {
+                int cIdx = P[pSeq[k]];
+                M[rIdx][cIdx] += 1.0;
+                rIdx = cIdx;
+            }
+            foreach (double[] R in M) {
+                double rowSum = vv.Math.Sum(R);
+                if (rowSum > 0)
+                    for (int col = 0; col<L; col++)
+                        R[col] /= rowSum;
+            }
+            return M;
+        }
     }
 }

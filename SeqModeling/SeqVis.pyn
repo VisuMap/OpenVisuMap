@@ -266,7 +266,7 @@ def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, 
 
 #-----------------------------------------------------------------------------
 
-def ShowSeqInfo(pMap, showSeq=False, showTable=True, barView=True, useAApair=True):
+def ShowSeqInfo(pMap, showSeq=False, showTable=True, barView=True, useAApair=True, markovTrans=False):
 	if pMap.SelectedItems.Count == 0:
 		vv.Message('No protein selected')
 		return
@@ -277,8 +277,9 @@ def ShowSeqInfo(pMap, showSeq=False, showTable=True, barView=True, useAApair=Tru
 	pGene = ds.BodyList[rIdx].Name			
 	pLen = int(ds.GetDataAt(rIdx, 3))
 	ppList = vv.GroupManager.GetGroupLabels("KeyPairs400") if useAApair else list(ALPHABET)
+	sTitle = f'Protein: {pGene}, {pId}, L:{pLen}'
 	if showSeq:
-		tp = New.TextPanel(f'Protein: {pGene}, {pId}, L:{pLen}', pSeq)
+		tp = New.TextPanel(sTitle, pSeq)
 		tp.Show()
 	if showTable:
 		maxWaveLen = 1000 if useAApair else 100
@@ -286,7 +287,7 @@ def ShowSeqInfo(pMap, showSeq=False, showTable=True, barView=True, useAApair=Tru
 		for rs in nt.RowSpecList:
 			rs.Type = P[rs.Id[0]]
 		hm = nt.ShowHeatMap()
-		hm.Title = f'{pGene}, {pId}, L:{pLen}' 
+		hm.Title = sTitle
 		hm.SpectrumType = 4
 		hm.ColorPaletteName = 'rP8'
 		hm.ScrollingSteps = 1
@@ -310,6 +311,20 @@ def ShowSeqInfo(pMap, showSeq=False, showTable=True, barView=True, useAApair=Tru
 		if showTable:
 			hm.Tag = bv
 			hm.AddEventHandler('ItemsSelected', '@SetFilterIdx()')
+		bv.Title = sTitle
+	if markovTrans:
+		nt = New.NumberTable(cs.MarkovianMatrix0(pSeq))
+		for k, rs in enumerate(nt.RowSpecList):
+			rs.Id = ALPHABET[k]
+			rs.Type = k
+			nt.ColumnSpecList[k].Type = k
+			nt.ColumnSpecList[k].Id = rs.Id
+		bb = New.BarBand(nt)
+		bb.UsingColorPalette = True
+		bb.AutoScaling = True
+		bb.AttributeMode = False
+		bb.Title = sTitle
+		bb.Show()
 
 def UpdateBv(bv, pSeq, filterIdx, filterList):
 		bv.Tag = (pSeq, filterIdx, filterList)
@@ -534,7 +549,7 @@ def NewDatasetMkv(tm, pSeq, augCfg):
 
 def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
 		glyphOpacity=0.5, is3D=False, initExag=10.0, finalExag=1.0, augCfg='a|500|2.0|2.0'):
-	tm = mm.ToNumpy(vv.AtlasManager.ReadNumberTable('TestMaps', 'i4'))
+	tm = mm.ToNumpy(vv.AtlasManager.ReadNumberTable('TestMaps', 'MkvTrans'))
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
 		vv.Return(0)
@@ -660,7 +675,7 @@ def ReCreateMap(pMap, repeats=1):
 	pTable = GetProteinTable()
 	pSeq = GetProteinSeq(pTable, info.pId)
 	if info.Obo == 'Mkv':
-		tm = mm.ToNumpy(vv.AtlasManager.ReadNumberTable('TestMaps', 'i4'))
+		tm = mm.ToNumpy(vv.AtlasManager.ReadNumberTable('TestMaps', 'MkvTrans'))
 		nt = NewDatasetMkv(tm, pSeq, augCfg=info.AugCfg)
 	else:
 		nt = NewDataset(pSeq, winSize=int(info.WinSize), augCfg=info.AugCfg)
@@ -814,6 +829,6 @@ len(aaList)
 nt = cs.MarkovianMatrix1(vv.Dataset)
 nt.ShowHeatMap()
 
-nt = vv.AtlasManager.ReadNumberTable('TestMaps', 'i4')
+nt = vv.AtlasManager.ReadNumberTable('TestMaps', 'MkvTrans')
 
 '''

@@ -1,7 +1,19 @@
-#MenuLabels ConfigMaps SelectSeq
+#MenuLabels ConfigMaps 'Enable Selection'
 vv.Import('SeqVis.pyn')
+
+def HighlightItems():
+	srcClassName = vv.EventSource.Item.ToString()
+	#Only continues if the event is not triggered by vv.SelectedItems call in HighlightBodies().
+	if not srcClassName.endswith('.VisuMapImp'):
+		sIds = set(vv.SelectedItems)
+		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])
+
+def HighlightBodies():
+	vv.SelectedItems = [x.Name for x in pp.GetSelectedItems()]
+
 match vv.EventSource.Item:
 	case 'ConfigMaps':
 		ConfigAtlasMaps(pp, pp.GetSelectedItems(), 1000, 700, gSize=0.8, gOpacity=1.0, hiddenSize=7, reset=False)
-	case 'SelectSeq':
-		vv.SelectedItems = [x.Name for x in pp.GetSelectedItems()]
+	case 'Enable Selection':
+		pp.OnItemsSelected = '@HighlightBodies()'
+		pp.SetEventHandler('ItemsSelected', '@HighlightItems()')
