@@ -501,6 +501,7 @@ def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None
 			vv.Message("Cannot get aa-seq of: " + pId)
 			continue
 		nt = NewDataset(pSeq, winSize=winSize, decay=decay, augCfg=augCfg)
+		SeqLabeling(nt, pSeq)
 		mds.SetTrainingData(nt)
 		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
 		info.pId = pId
@@ -531,20 +532,22 @@ def NewDatasetMkv(tm, pSeq, augCfg):
 		nt[n] = tm[ P[pSeq[n]] ]
 	nt = AugmentData(nt, augCfg)
 	dt = mm.ToTable(nt)
-	aaIdx = {}	
-	for n in range(L):
-		rs = dt.RowSpecList[n]
-		aaId = pSeq[n]
-		rs.Name = aaId
-		rs.Type = P[aaId]
-		if aaId not in aaIdx:
+	return dt
+
+def SeqLabeling(dt, pSeq):
+	aaIdx, aaNr = {}, {ch:0 for ch in ALPHABET}
+	for n, rs in enumerate(dt.RowSpecList):
+		ch = pSeq[n]
+		rs.Name, rs.Type = ch, P[ch]
+		if ch not in aaIdx:
 			rs.ShowName = True
-		aaIdx[aaId] = n
+		aaIdx[ch] = n
+		rs.Id = ch + str(aaNr[ch])
+		aaNr[ch] += 1
 	for n in aaIdx.values():
 		rs = dt.RowSpecList[n]
 		rs.ShowName = True
 		rs.Name = rs.Name.lower()
-	return dt
 
 
 def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
@@ -574,6 +577,7 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 			vv.Message("Cannot get aa-seq of: " + pId)
 			continue
 		nt = NewDatasetMkv(tm, pSeq, augCfg)
+		SeqLabeling(nt, pSeq)
 		mds.SetTrainingData(nt)
 		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
 		info.pId = pId

@@ -1,4 +1,5 @@
-#MenuLabels ConfigMaps 'Enable Selection'
+#MenuLabels ConfigMaps
+
 vv.Import('SeqVis.pyn')
 
 def HighlightItems():
@@ -8,12 +9,8 @@ def HighlightItems():
 		sIds = set(vv.SelectedItems)
 		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])
 
-def HighlightBodies():
-	vv.SelectedItems = [x.Name for x in pp.GetSelectedItems()]
-
 match vv.EventSource.Item:
 	case 'ConfigMaps':
 		ConfigAtlasMaps(pp, pp.GetSelectedItems(), 1000, 700, gSize=0.8, gOpacity=1.0, hiddenSize=7, reset=False)
-	case 'Enable Selection':
-		pp.OnItemsSelected = '@HighlightBodies()'
+		pp.OnItemsSelected = '@vv.SelectedItems = [x.Name for x in pp.GetSelectedItems()]'
 		pp.SetEventHandler('ItemsSelected', '@HighlightItems()')
