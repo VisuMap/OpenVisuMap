@@ -386,7 +386,7 @@ def NewDataset0(P, pSeq, winSize=0):
 			dt[row, col] += ww[abs(w)]	
 	return dt
 
-def AugmentData(nt, augCfg='a|500|2.0|2.0'):
+def AugmentData(nt, augCfg='a|400|0.02|0.02'):
 	fs = augCfg.split('|')
 	N = nt.shape[0]
 	match fs[0][0]:
@@ -526,8 +526,11 @@ def Scanning(pMap, stepSize=20):
 		vv.Sleep(1000)
 
 def NewDatasetMkv(tm, pSeq, augCfg):
+	#tmT = mm.ToNumpy(vv.AtlasManager.ReadNumberTable('TestMaps', 'MkvTransT'))
+	#tm = np.concatenate((tm, tmT), axis=1)
+
 	L = len(pSeq)
-	nt = np.zeros((L, len(ALPHABET)), np.float64)
+	nt = np.zeros((L, tm.shape[1]), np.float64)
 	for n in range(L):
 		nt[n] = tm[ P[pSeq[n]] ]
 	nt = AugmentData(nt, augCfg)
@@ -826,6 +829,11 @@ aaList = []
 for aa in aaD:
 	aaList.append( aa * int(10000*aaD[aa]) )
 
+aa = np.array([[1,2], [3, 4], [5, 6]])
+aaSum = aa.sum(axis=1, keepdims=True)
+bb = aa/aa.sum(axis=1, keepdims=True)
+
+
 aaList = ''.join(aaList)
 len(aaList)
 
@@ -834,5 +842,23 @@ nt = cs.MarkovianMatrix1(vv.Dataset)
 nt.ShowHeatMap()
 
 nt = vv.AtlasManager.ReadNumberTable('TestMaps', 'MkvTrans')
+
+nt = cs.MarkovianMatrix1(vv.Dataset, False)
+nt.ShowAsTable()
+nt.ShowHeatMap()
+nt.Transpose()
+
+for row in range(20):
+	R = nt.Matrix[row]
+	rs = vv.Math.Sum(R)
+	if rs > 0:
+		for col in range(20):
+			R[col] /= rs
+for k in range(20):
+	nt.RowSpecList[k].Type = k
+	nt.ColumnSpecList[k].Type = k
+
+
+nt.ShowAsBarBand()
 
 '''

@@ -156,16 +156,14 @@ namespace VisuMap
 
         const string AB = "ARNDCEQGHILKMFPSTWYV"; // "WCMYHFNIDQTRVKGPAESL";
 
-        public INumberTable GetPairLinkage(bool toDistances = true) {
+        public INumberTable GetPairLinkage(bool toDistances = true, bool normalizing=true) {
             var ppList = vv.GroupManager.GetGroupLabels("KeyPairs400");
             var PP = new Dictionary<string, int>();
             int L = ppList.Count;
             for (int k = 0; k < L; k++)
                 PP[ppList[k]] = k;
             var T = New.NumberTable(L, L);
-            for (int row = 21; row < vv.Dataset.Rows; row++)
-           //for(int row=1; row<21; row++)
-           {
+            for (int row = 21; row < vv.Dataset.Rows; row++)  {
                 string S = vv.Dataset.GetDataAt(row, 2);
                 for (int k = 0; k < (S.Length - 3); k++) {
                     int rIdx = PP[S.Substring(k, 2)];
@@ -185,11 +183,14 @@ namespace VisuMap
             }
 
             var M = T.Matrix;
-            foreach (double[] R in M) {
-                double rowSum = vv.Math.Sum(R);
-                if (rowSum != 0)
-                    for (int col = 0; col < L; col++)
-                        R[col] /= rowSum;
+
+            if (normalizing) {
+                foreach (double[] R in M) {
+                    double rowSum = vv.Math.Sum(R);
+                    if (rowSum != 0)
+                        for (int col = 0; col < L; col++)
+                            R[col] /= rowSum;
+                }
             }
 
             if (toDistances) {
@@ -288,7 +289,7 @@ namespace VisuMap
             return T;
         }
 
-        public INumberTable MarkovianMatrix1(Script.IDataset ds) {
+        public INumberTable MarkovianMatrix1(Script.IDataset ds, bool normalizing=true) {
             int L = AB.Length;
             var P = Enumerable.Range(0, L).ToDictionary(k => AB[k], k => k);
             double[][] M = VisuMap.MathUtil.NewMatrix(L, L);
@@ -302,11 +303,13 @@ namespace VisuMap
                     rIdx = cIdx;
                 }
             }
-            foreach (double[] R in M) {
-                double rowSum = vv.Math.Sum(R);
-                if (rowSum > 0)
-                    for (int col = 0; col < L; col++)
-                        R[col] /= rowSum;
+
+            if ( normalizing ) 
+                foreach (double[] R in M) {
+                    double rowSum = vv.Math.Sum(R);
+                    if (rowSum > 0)
+                        for (int col = 0; col < L; col++)
+                            R[col] /= rowSum;
             }
             var T = New.NumberTable(M);
             for (int k = 0; k < L; k++) 

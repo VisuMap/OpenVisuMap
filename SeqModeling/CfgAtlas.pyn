@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps
+#MenuLabels ConfigMaps LinkSelection
 
 vv.Import('SeqVis.pyn')
 
@@ -12,5 +12,6 @@ def HighlightItems():
 match vv.EventSource.Item:
 	case 'ConfigMaps':
 		ConfigAtlasMaps(pp, pp.GetSelectedItems(), 1000, 700, gSize=0.8, gOpacity=1.0, hiddenSize=7, reset=False)
+	case 'LinkSelection':
 		pp.OnItemsSelected = '@vv.SelectedItems = [x.Name for x in pp.GetSelectedItems()]'
 		pp.SetEventHandler('ItemsSelected', '@HighlightItems()')
