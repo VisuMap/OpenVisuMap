@@ -2,7 +2,7 @@
 
 vv.Import('SeqVis.pyn')
 pList = pp.AllItems if pp.SelectedItems.Count < 2 else pp.SelectedItems
-dstAtlas = 'TestMaps'
+#dstAtlas = 'TestMaps'
 dstAtlas = None
 match vv.EventSource.Item:
 	case 'SeqMap':
@@ -13,18 +13,19 @@ match vv.EventSource.Item:
 			is3D=False, initExag=3.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='x|0.001')
 
 	case 'SeqMap3':
-		for f in [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4]:
+		for f in [ 0.42, 0.46 ]:
 			n, r, w = 1000, 0.05*f, 0.02*f
 			SeqMapByMarkovian(pp.SelectedItems, epochs=5000, repeats=1, ppl=0.2,  saveTo=dstAtlas,
 				is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.5, glyphOpacity=0.5, augCfg=f'a|{n}|{r}|{w}')
 
-	case 'SeqMap4':
-		for m in [ 0.25, 0.35 ]:
-			SeqMapByMarkovian(pp.SelectedItems, epochs=5000, repeats=0, ppl=0.2,  saveTo=dstAtlas,
-				is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.5, glyphOpacity=0.5, augCfg=f'm|{m}')
+	case 'SeqMap4': 
+		aug_cfg = 'M|0.5|0.4'
+		#aug_cfg = 'm|0.35'
+		SeqMapByMarkovian(pp.SelectedItems, epochs=5000, repeats=0, ppl=0.2,  saveTo=dstAtlas,
+			is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.5, glyphOpacity=0.5, augCfg=aug_cfg)
 
 	case 'SeqInfo':
-		ShowSeqInfo(pp, showSeq=False, showTable=False, barView=False, markovTrans=True, useAApair=False)
+		ShowSeqInfo(pp, showSeq=True, showTable=False, barView=False, markovTrans=False, useAApair=False)
 
 	case 'ProteinMap':
 		CreateProteinMapByCounts(pList,  repeats=1)

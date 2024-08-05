@@ -1,7 +1,8 @@
 import numpy as np
 import math, random, time
 
-PROTEIN_TABLE = 'Protein Table'
+GENE_TABLE = 'Gene Features'
+PROTEIN_TABLE = 'Protein Table1'
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
 P = {ALPHABET[k]:k for k in range(len(ALPHABET))}
 
@@ -89,11 +90,11 @@ def GetProteinIds(ds, gId):
 	else:
 		return None
 
-def AddProteins(ds, pId, maxCount=20, minLength=400):
+def AddProteins(ds, gId, maxCount=20, minLength=400):
 	import urllib.request
 	getUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&rettype=fasta&retmode=text&id='
-	gSymbol = Id2Sym(ds, pId)
-	pList = GetProteinIds(ds, pId)
+	gSymbol = Id2Sym(ds, gId)
+	pList = GetProteinIds(ds, gId)
 	random.shuffle(pList)
 	OpenProteinTable()
 	P = {a:k for k,a in enumerate(ALPHABET)}
@@ -101,8 +102,8 @@ def AddProteins(ds, pId, maxCount=20, minLength=400):
 	cnt = 0
 	cntSmall = 0
 	cntDuplicate = 0
-	newSeq = set()
-	print(f'----- Fetching {len(pList)} proteins of gene: {pId}')	
+	newSeq = New.HashSet([])
+	print(f'----- Fetching {len(pList)} proteins of gene: {gId}')	
 	for id in pList:
 		try:
 			sFasta = urllib.request.urlopen(getUrl+id).read().decode('utf-8')
@@ -114,7 +115,7 @@ def AddProteins(ds, pId, maxCount=20, minLength=400):
 		if vv.GuiManager.StopFlag:
 			vv.Return()
 		idx = sFasta.index('\n')
-		desc = pId + ': ' + sFasta[1:idx]
+		desc = gId + ': ' + sFasta[1:idx]
 		pSeq = FilterSeq(sFasta[idx:], P)
 		pLen = len(pSeq)
 		if pLen < minLength:
@@ -125,20 +126,27 @@ def AddProteins(ds, pId, maxCount=20, minLength=400):
 					break
 			print('Skipped: len:', pLen)
 			continue
-		if pSeq in newSeq:
+		if newSeq.Contains(pSeq):
 			print('Skipped duplicate!')	
 			cntDuplicate += 1
 			if cntDuplicate > 30:
 				print('Skipped bc too many duplicates!')
 				break			
 			continue
-		newSeq.add(pSeq)
+		newSeq.Add(pSeq)
 		vv.Dataset.AddRow(id, gSymbol, typeIdx, [desc,gSymbol,pSeq,str(pLen)])
 		print('     ', id, gSymbol, pLen)
 		cnt += 1
 		if cnt >= maxCount:
 			break
 	vv.Dataset.CommitChanges()
+	print('Completed gene: ', gSymbol)
+
+'''
+ds = vv.Folder.ReadDataset(GENE_TABLE)
+for g in [b.Id for b in ds.BodyList]:
+	AddProteins(ds, g)
+'''
 
 def SetRandomSeq():
 	import random
@@ -417,6 +425,15 @@ def AugmentData(nt, augCfg='a|400|0.02|0.02'):
 			g = 1.0 - mom
 			for k in range(1, N):
 				nt[k, :] = mom*nt[k-1, :] + g*nt[k, :]
+			return nt
+		case 'M':
+			nt2 = np.copy(nt)
+			mom = float(fs[1])
+			g = 1.0 - mom
+			for k in range(1, N):
+				nt[k, :] = mom*nt[k-1, :] + g*nt[k, :]
+			mom = float(fs[2])
+			nt = mom*nt + (1-mom)*nt2			
 			return nt
 		case 'x':
 			return nt
