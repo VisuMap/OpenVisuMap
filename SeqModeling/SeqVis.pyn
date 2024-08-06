@@ -2,7 +2,7 @@ import numpy as np
 import math, random, time
 
 GENE_TABLE = 'Gene Features'
-PROTEIN_TABLE = 'Protein Table1'
+PROTEIN_TABLE = 'Protein Short'
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
 P = {ALPHABET[k]:k for k in range(len(ALPHABET))}
 
@@ -90,7 +90,7 @@ def GetProteinIds(ds, gId):
 	else:
 		return None
 
-def ParseXml(pList, maxCount=20, minLen=400):
+def ParseXml(pList, maxCount, minLen, maxLen):
 	import urllib.request
 	pList = pList[:100]
 	rqUrl='https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=protein&id=' + ','.join(pList)
@@ -103,14 +103,14 @@ def ParseXml(pList, maxCount=20, minLen=400):
 			pLen = int( s.split('>')[1][:-6] )
 		if s.find('"AccessionVersion"') > 0:
 			pName = s.split('>')[1][:-6]
-			if pLen>=minLen and pLen not in used:	
+			if (pLen>=minLen) and (pLen<maxLen) and (pLen not in used):
 				infoList.append( (pName, pLen) )
 				used.add(pLen)
 		if len(infoList) >= maxCount:
 			break
 	return infoList
 
-def AddProteins(ds, gId, maxCount=20, minLength=400):
+def AddProteins(ds, gId, maxCount=20, minLen=400, maxLen=1000_000):
 	import urllib.request
 	getUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&rettype=fasta&retmode=text&id='
 	gSymbol = Id2Sym(ds, gId)
@@ -118,13 +118,13 @@ def AddProteins(ds, gId, maxCount=20, minLength=400):
 	if len(pList) == 0 or pList[0] == "-":
 		return gSymbol, 0
 	random.shuffle(pList)
-	infoList = ParseXml(pList, maxCount, minLength)
+	infoList = ParseXml(pList, maxCount, minLen, maxLen)
 	if len(infoList) == 0:
 		return gSymbol, 0
 
 	OpenProteinTable()
-	typeIdx = max([b.Type for b in vv.Dataset.BodyList]) + 1
-	print(f'>>>>>>>>>>>>>>>>> Fetching {len(infoList)} proteins of gene: {gId}')	
+	typeIdx = max([b.Type for b in vv.Dataset.BodyList]) + 1 if vv.Dataset.BodyCount > 0 else 0
+	#print(f'>>>>>>>>>>>>>>>>> Fetching {len(infoList)} proteins of gene: {gId}')	
 	pIds = ','.join([ pId for (pId, _) in infoList ])
 	try:
 		sFastaList = urllib.request.urlopen(getUrl+pIds).read().decode('utf-8')
@@ -148,21 +148,22 @@ def AddProteins(ds, gId, maxCount=20, minLength=400):
 		pSeq = FilterSeq(sFasta[idx:], P)
 		pLen = len(pSeq)
 		vv.Dataset.AddRow(pId, gSymbol, typeIdx, [desc,gSymbol,pSeq,str(pLen)])
-		print('     ', pId, gSymbol, pLen)
+		#print('     ', pId, gSymbol, pLen)
 	vv.Dataset.CommitChanges()
 	return gSymbol, len(infoList)
 
+def LoadProteins(startIndex=0):
+	ds = vv.Folder.ReadDataset(GENE_TABLE)
+	pTotal = 0
+	for nr, g in enumerate( [b.Id for b in ds.BodyList] ):
+		if nr > startIndex:
+			gSymbol, cnt = AddProteins(ds, g, maxCount=20, minLen=50, maxLen=400)
+			pTotal += cnt
+			if cnt != 0:
+				print(f'{nr}: {gSymbol}, L:{cnt}, total: {pTotal}')
+
 '''
-ds = vv.Folder.ReadDataset(GENE_TABLE)
-#gId = 'ENSG00000188976'
-#gSymol, cnt = AddProteins(ds, gId)
-
-pTotal = 0
-for nr, g in enumerate( [b.Id for b in ds.BodyList] ):
-	gSymbol, cnt = AddProteins(ds, g)
-	pTotal += cnt
-	print(f'>>>>>>>>>>>>>>>>> {nr}: {gSymbol}, L:{cnt}, total: {pTotal}')
-
+LoadProteins()
 '''
 
 def SetRandomSeq():
