@@ -78,7 +78,7 @@ def Sym2Id(ds, gSymbol):
 def Id2Sym(ds, gId):
 	rowIdx = ds.IndexOfRow(gId)
 	if rowIdx >= 0:
-		return ds.GetDataAt(rowIdx, 5);
+		return ds.GetDataAt(rowIdx, 5)
 	else:
 		return None
 
@@ -90,62 +90,79 @@ def GetProteinIds(ds, gId):
 	else:
 		return None
 
+def ParseXml(pList, maxCount=20, minLen=400):
+	import urllib.request
+	pList = pList[:100]
+	rqUrl='https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=protein&id=' + ','.join(pList)
+	xmlDoc = urllib.request.urlopen(rqUrl).read().decode('utf-8')
+	infoList = []
+	used = set()
+	pLen, pName = 0, ''
+	for s in xmlDoc.splitlines():
+		if s.find('"Length"') > 0:
+			pLen = int( s.split('>')[1][:-6] )
+		if s.find('"AccessionVersion"') > 0:
+			pName = s.split('>')[1][:-6]
+			if pLen>=minLen and pLen not in used:	
+				infoList.append( (pName, pLen) )
+				used.add(pLen)
+		if len(infoList) >= maxCount:
+			break
+	return infoList
+
 def AddProteins(ds, gId, maxCount=20, minLength=400):
 	import urllib.request
 	getUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&rettype=fasta&retmode=text&id='
 	gSymbol = Id2Sym(ds, gId)
 	pList = GetProteinIds(ds, gId)
+	if len(pList) == 0 or pList[0] == "-":
+		return gSymbol, 0
 	random.shuffle(pList)
+	infoList = ParseXml(pList, maxCount, minLength)
+	if len(infoList) == 0:
+		return gSymbol, 0
+
 	OpenProteinTable()
-	P = {a:k for k,a in enumerate(ALPHABET)}
 	typeIdx = max([b.Type for b in vv.Dataset.BodyList]) + 1
-	cnt = 0
-	cntSmall = 0
-	cntDuplicate = 0
-	newSeq = New.HashSet([])
-	print(f'----- Fetching {len(pList)} proteins of gene: {gId}')	
-	for id in pList:
-		try:
-			sFasta = urllib.request.urlopen(getUrl+id).read().decode('utf-8')
-		except:
-			print('Exception: ', id)
-			time.sleep(2.0)
+	print(f'>>>>>>>>>>>>>>>>> Fetching {len(infoList)} proteins of gene: {gId}')	
+	pIds = ','.join([ pId for (pId, _) in infoList ])
+	try:
+		sFastaList = urllib.request.urlopen(getUrl+pIds).read().decode('utf-8')
+	except:
+		print('Exception: ', gId)
+		time.sleep(2.0)
+		return gSymbol, 0
+	fastaList = sFastaList.split('>')
+	vv.DoEvents()
+	if vv.GuiManager.StopFlag:
+		vv.Return()
+
+	for s in fastaList:
+		sFasta = s.strip()
+		if len(sFasta) == 0:
 			continue
-		vv.DoEvents()
-		if vv.GuiManager.StopFlag:
-			vv.Return()
 		idx = sFasta.index('\n')
-		desc = gId + ': ' + sFasta[1:idx]
+		desc = gId + ': ' + sFasta[0:idx]
+		idx2 = sFasta.index(' ')
+		pId = sFasta[:idx2]
 		pSeq = FilterSeq(sFasta[idx:], P)
 		pLen = len(pSeq)
-		if pLen < minLength:
-			if pLen < minLength*0.75:
-				cntSmall += 1
-				if cntSmall > 20:
-					print('Skipped short protein!')
-					break
-			print('Skipped: len:', pLen)
-			continue
-		if newSeq.Contains(pSeq):
-			print('Skipped duplicate!')	
-			cntDuplicate += 1
-			if cntDuplicate > 30:
-				print('Skipped bc too many duplicates!')
-				break			
-			continue
-		newSeq.Add(pSeq)
-		vv.Dataset.AddRow(id, gSymbol, typeIdx, [desc,gSymbol,pSeq,str(pLen)])
-		print('     ', id, gSymbol, pLen)
-		cnt += 1
-		if cnt >= maxCount:
-			break
+		vv.Dataset.AddRow(pId, gSymbol, typeIdx, [desc,gSymbol,pSeq,str(pLen)])
+		print('     ', pId, gSymbol, pLen)
 	vv.Dataset.CommitChanges()
-	print('Completed gene: ', gSymbol)
+	return gSymbol, len(infoList)
 
 '''
 ds = vv.Folder.ReadDataset(GENE_TABLE)
-for g in [b.Id for b in ds.BodyList]:
-	AddProteins(ds, g)
+#gId = 'ENSG00000188976'
+#gSymol, cnt = AddProteins(ds, gId)
+
+pTotal = 0
+for nr, g in enumerate( [b.Id for b in ds.BodyList] ):
+	gSymbol, cnt = AddProteins(ds, g)
+	pTotal += cnt
+	print(f'>>>>>>>>>>>>>>>>> {nr}: {gSymbol}, L:{cnt}, total: {pTotal}')
+
 '''
 
 def SetRandomSeq():
@@ -877,5 +894,36 @@ for k in range(20):
 
 
 nt.ShowAsBarBand()
+
+
+pList=['AFP36434.1', 'BAG51285.1', 'XP_047287751.1']
+
+rqUrl='https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=protein&id=' + pList
+
+sFasta = urllib.request.urlopen(rqUrl).read().decode('utf-8')
+
+print(sFasta)
+
+def ParseXml(pList, maxCount=20, minLen=400):
+	rqUrl='https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=protein&id=' + ','.join(pList)
+	xmlDoc = urllib.request.urlopen(rqUrl).read().decode('utf-8')
+	infoList = []
+	used = set()
+	for s in xmlDoc.splitlines():
+		if s.find('"Length"') > 0:
+			len = int( s.split('>')[1][:-6] )
+		if s.find('"AccessionVersion"') > 0:
+			sName = s.split('>')[1][:-6]
+			if (len>=minLen) and (len not in used):				
+				infoList.append( (sName, len) )
+		if len(infoList) > maxCount:
+			break
+	return infoList
+
+ifList = ParseXml(pList)
+
+for nm, len in ifList:
+	print(nm, len)
+
 
 '''
