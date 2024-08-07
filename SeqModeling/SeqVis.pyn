@@ -53,6 +53,13 @@ class MapInfo():
 			setattr(self, nm, None)
 		if initStr is not None:
 			self.ParseStr(initStr)
+	def Init(self, epochs, is3D, initExag, finalExag, ppl):
+		self.Epochs = epochs
+		self.Is3D = is3D
+		self.InitE = initExag
+		self.FinalE = finalExag
+		self.PP = ppl
+		return self		
 	def ToStr(self):
 		dic = self.__dict__
 		return ';'.join([f'{key}:{str(dic[key])}' for  key in dic if dic[key] is not None])
@@ -93,7 +100,7 @@ def GetProteinIds(ds, gId):
 def ParseXml(pList, maxCount, minLen, maxLen):
 	import urllib.request
 	pList = pList[:100]
-	rqUrl='https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=protein&id=' + ','.join(pList)
+	rqUrl='https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=protein&&api_key=f415a83f720db9a3ed1693cfd833cef27208&id=' + ','.join(pList)
 	xmlDoc = urllib.request.urlopen(rqUrl).read().decode('utf-8')
 	infoList = []
 	used = set()
@@ -112,7 +119,7 @@ def ParseXml(pList, maxCount, minLen, maxLen):
 
 def AddProteins(ds, gId, maxCount=20, minLen=400, maxLen=1000_000):
 	import urllib.request
-	getUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&rettype=fasta&retmode=text&id='
+	getUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&rettype=fasta&retmode=text&api_key=f415a83f720db9a3ed1693cfd833cef27208&id='
 	gSymbol = Id2Sym(ds, gId)
 	pList = GetProteinIds(ds, gId)
 	if len(pList) == 0 or pList[0] == "-":
@@ -124,14 +131,8 @@ def AddProteins(ds, gId, maxCount=20, minLen=400, maxLen=1000_000):
 
 	OpenProteinTable()
 	typeIdx = max([b.Type for b in vv.Dataset.BodyList]) + 1 if vv.Dataset.BodyCount > 0 else 0
-	#print(f'>>>>>>>>>>>>>>>>> Fetching {len(infoList)} proteins of gene: {gId}')	
 	pIds = ','.join([ pId for (pId, _) in infoList ])
-	try:
-		sFastaList = urllib.request.urlopen(getUrl+pIds).read().decode('utf-8')
-	except:
-		print('Exception: ', gId)
-		time.sleep(2.0)
-		return gSymbol, 0
+	sFastaList = urllib.request.urlopen(getUrl+pIds).read().decode('utf-8')
 	fastaList = sFastaList.split('>')
 	vv.DoEvents()
 	if vv.GuiManager.StopFlag:
@@ -148,7 +149,6 @@ def AddProteins(ds, gId, maxCount=20, minLen=400, maxLen=1000_000):
 		pSeq = FilterSeq(sFasta[idx:], P)
 		pLen = len(pSeq)
 		vv.Dataset.AddRow(pId, gSymbol, typeIdx, [desc,gSymbol,pSeq,str(pLen)])
-		#print('     ', pId, gSymbol, pLen)
 	vv.Dataset.CommitChanges()
 	return gSymbol, len(infoList)
 
@@ -156,11 +156,12 @@ def LoadProteins(startIndex=0):
 	ds = vv.Folder.ReadDataset(GENE_TABLE)
 	pTotal = 0
 	for nr, g in enumerate( [b.Id for b in ds.BodyList] ):
-		if nr > startIndex:
+		if nr >= startIndex:
 			gSymbol, cnt = AddProteins(ds, g, maxCount=20, minLen=50, maxLen=400)
 			pTotal += cnt
 			if cnt != 0:
-				print(f'{nr}: {gSymbol}, L:{cnt}, total: {pTotal}')
+				print(f'{nr}: {gSymbol:<12} {cnt:>4}  \t{pTotal}')
+	print('<<<<<<<<<<<<<<<    Done  >>>>>>>>>>>>>>>>>')
 
 '''
 LoadProteins()
@@ -193,7 +194,7 @@ def GroupByType(bList):
 		G[b.Type].append(b)
 	return G.values()
 
-def CreateProteinMapByCounts(idList, repeats=1):	
+def CreateProteinMapByCounts(idList, repeats=1, epochs=5000, initExag=3.0, finalExag=1.0, ppl=0.1, is3D=False):
 	from collections import Counter
 	pTable = GetProteinTable()
 	rows = len(idList)
@@ -212,14 +213,16 @@ def CreateProteinMapByCounts(idList, repeats=1):
 		R = nt.Matrix[row]
 		fct = 10000/len(pSeq)
 		for c, a in enumerate(ALPHABET):
-			R[c] =fct* pCnt[a]
+			R[c] =fct*pCnt[a]
 	for c, a in enumerate(ALPHABET):
 		nt.ColumnSpecList[c].Id = a
-	mds = NewMds(nt, epochs=5000, initExag=3.0, finalExag=1.0)
-	mds.PerplexityRatio = 0.1
+	mds = NewMds(nt, epochs=epochs, initExag=initExag, finalExag=finalExag, ppl=ppl, is3D=is3D)
 	mds.RefreshFreq = 50
-	mds.Repeats = repeats
-	mds.Reset().Start()
+	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
+	RunMds(mds, repeats, info=info)
+	if repeats>= 1:
+		mds.Close()
+
 
 def ProteinMapByPairs(idList):	
 	pTable = GetProteinTable()
@@ -263,21 +266,23 @@ def AddClusterLabel(pMap):
 
 
 def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0, 
-		finalExag=1.0, ppl=0.1, repeats=1, saveTo=None):
+		finalExag=1.0, ppl=0.1, repeats=1):
 	pTable = GetProteinTable()	
 	dt = cs.VectorizeProtein1(ALPHABET, 100, idList, pTable)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
-	RunMds(mds, repeats=repeats, glyphSize=0.75, glyphOpacity=0.5)
-	SaveToAtlas(saveTo)
-	mds.Close()
+	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
+	RunMds(mds, repeats=repeats, info=info)
+	if repeats>=1:
+		mds.Close()
 
 def CreateProteinMap2(idList, epochs=10000, is3D=False, initExag=6.0, ppList=None, finalExag=1.0, ppl=0.1, repeats=1):
 	pTable = GetProteinTable()
 	dt = cs.VectorizeProtein2(ppList, 50, idList, pTable)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
-	RunMds(mds, repeats=repeats, glyphSize=0.8, glyphOpacity=0.5)
+	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
+	RunMds(mds, repeats=repeats, info=info)
 	if repeats > 0:
 		mds.Close()
 
@@ -286,7 +291,8 @@ def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, 
 	#dt = cs.GetMarkovCoding1(pTable, pList)
 	dt = cs.GetMarkovCoding2(pTable, pList)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
-	RunMds(mds, repeats=repeats, glyphSize=0.8, glyphOpacity=0.5)
+	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
+	RunMds(mds, repeats=repeats, info=info)
 	if repeats > 0:
 		mds.Close()
 
@@ -491,7 +497,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
 	mds.GlyphSet = vv.Map.GlyphType
 	return mds
 
-def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.5):
+def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.5, info=None):
 	mds.Repeats = repeats
 	mds.Reset().Start()
 	if not mds.Completed: vv.Return(0)
@@ -499,9 +505,11 @@ def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.5):
 		mp = mds.ShowSnapshot()
 	if repeats >= 1:
 		mpName = vv.LastView.Name
+		mpDesc = info.ToStr() if info is not None else 'Map created by RunMds'
 		for mp in vv.FindFormList(mpName):
 			mp.GlyphOpacity = glyphOpacity
 			mp.GlyphSize = glyphSize
+			mp.Description  = mpDesc
 			mp.Redraw()
 	return mds
 

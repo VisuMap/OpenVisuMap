@@ -11,13 +11,11 @@ match vv.EventSource.Item:
 	case 'SeqMap2':
 		CreateMaps(pp.SelectedItems, epochs=10000, winSize=-1, repeats=1, ppl=0.15,  saveTo=dstAtlas,
 			is3D=False, initExag=3.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='x|0.001')
-
 	case 'SeqMap3':
 		for f in [ 0.42, 0.46 ]:
 			n, r, w = 1000, 0.05*f, 0.02*f
 			SeqMapByMarkovian(pp.SelectedItems, epochs=5000, repeats=1, ppl=0.2,  saveTo=dstAtlas,
 				is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.5, glyphOpacity=0.5, augCfg=f'a|{n}|{r}|{w}')
-
 	case 'SeqMap4': 
 		aug_cfg = 'M|0.5|0.4'
 		#aug_cfg = 'm|0.35'
@@ -28,14 +26,12 @@ match vv.EventSource.Item:
 		ShowSeqInfo(pp, showSeq=True, showTable=False, barView=False, markovTrans=False, useAApair=False)
 
 	case 'ProteinMap':
-		CreateProteinMapByCounts(pList,  repeats=1)
+		CreateProteinMapByCounts(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1, repeats=0)
 	case 'ProteinMap2':
-		CreateProteinMap(pList,  epochs=5000, is3D=False, repeats=1)
+		CreateProteinMap(pList, epochs=2000, is3D=False, initExag=4.0, ppl=0.1, repeats=0)
 	case 'ProteinMap3':
-		CreateProteinMap3(pList,  epochs=5000, 
-			is3D=False, repeats=1, initExag=6.0, ppl=0.15, finalExag=1.5)
+		CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=3.0, finalExag=1.5, ppl=0.15, repeats=0)
 	case 'ProteinMap4':
 		ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
-		CreateProteinMap2(pList,  epochs=5000, 
-			is3D=False, repeats=1, initExag=4.0, ppl=0.1, finalExag=1.25, ppList=ppList)
+		CreateProteinMap2(pList, ppList=ppList, epochs=1000, is3D=False, initExag=3.0, ppl=0.1, finalExag=1.25, repeats=2)
 
