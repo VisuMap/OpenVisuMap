@@ -48,7 +48,6 @@ namespace VisuMap
                 aaSize[k] = new int[M];
             for (int k = 0; k < M; k++)
                 weight[k] = 1.0 / (k + 0.1);
-            pList = new List<string>(pList);
             List<double[]> vList = new List<double[]>();
             foreach (string pId in pList) {
                 int rowIdx = pTable.IndexOfRow(pId);
@@ -89,7 +88,6 @@ namespace VisuMap
             double[] weight = new double[M];
             for (int k = 0; k < M; k++)
                 weight[k] = 1.0 / (k + 0.5);
-            pList = new List<string>(pList);
             List<double[]> vList = new List<double[]>();
             foreach (string pId in pList) {
                 int rowIdx = pTable.IndexOfRow(pId);
@@ -118,8 +116,12 @@ namespace VisuMap
             }
 
             var nt = New.NumberTable(vList.ToArray());
-            for (int col = 0; col < L; col++)
-                nt.ColumnSpecList[col].Id = ppList[col];
+            var P1 = Enumerable.Range(0, AB.Length).ToDictionary(k => AB[k], k => k);
+            for (int col = 0; col < L; col++) {
+                string id = ppList[col];
+                nt.ColumnSpecList[col].Id = id;
+                nt.ColumnSpecList[col].Type = (short)P1[id[0]];
+            }
             var bList = vv.Dataset.BodyListForId(pList);
             for (int row = 0; row < pList.Count; row++)
                 nt.RowSpecList[row].CopyFromBody(bList[row]);
@@ -127,7 +129,6 @@ namespace VisuMap
         }
 
         public INumberTable ToWaveTable(string pSeq, IList<string> ppList, int M) {
-            ppList = new List<string>(ppList);
             int L = ppList.Count;
             var P = new Dictionary<string, int>();
             double[][] aaSize = new double[L][];

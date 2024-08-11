@@ -2,7 +2,7 @@ import numpy as np
 import math, random, time
 
 GENE_TABLE = 'Gene Features'
-PROTEIN_TABLE = 'Protein Short'
+PROTEIN_TABLE = 'Protein Long'
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
 P = {ALPHABET[k]:k for k in range(len(ALPHABET))}
 
@@ -49,7 +49,7 @@ if 'cs' not in globals():
 # protein embedding map information
 class MapInfo():
 	def __init__(self, initStr = None):
-		for nm in 'pId,Gene,pLen,Epochs,InitE,FinalE,PP,WinSize,AugCfg,Is3D,Obo'.split(','):
+		for nm in 'pId,Gene,pLen,Epochs,InitE,FinalE,PP,WinSize,AugCfg,Is3D,Mtd'.split(','):
 			setattr(self, nm, None)
 		if initStr is not None:
 			self.ParseStr(initStr)
@@ -167,32 +167,18 @@ def LoadProteins(startIndex=0):
 LoadProteins()
 '''
 
-def SetRandomSeq():
+def NewRandomTable(N):
 	import random
-	OpenProteinTable()
-	'''
-	# aaList is string filled with AA distribution of all proteins.
 	aaDist = list(vv.AtlasManager.ReadValueList('TestMaps', 'i2'))
 	aaList = ''.join([x.Id*int(x.Value*10000) for x in aaDist])
-	'''
-	N, aaL, row, ds = 20, len(aaList)-1, 1, vv.Dataset
+	aaL, row, ds = len(aaList)-1, 1, vv.Dataset
 	for n in range(N):
 		L = random.randint(500, 5000)
 		s = ''.join([aaList[random.randint(0, aaL)] for k in range(L)])
-		ds.SetDataAt(row, 2, s)
-		ds.SetValueAt(row, 3, len(s))
-		row += 1
+		ds.AddRow("R"+str(n), '', 0, ['', '', s, str(len(s))])
 	ds.CommitChanges()
 
-#SetRandomSeq()
-
-def GroupByType(bList):
-	G = {}
-	for b in bList:
-		if b.Type not in G: 
-			G[b.Type] = []
-		G[b.Type].append(b)
-	return G.values()
+#NewRandomTable(10000)
 
 def CreateProteinMapByCounts(idList, repeats=1, epochs=5000, initExag=3.0, finalExag=1.0, ppl=0.1, is3D=False):
 	from collections import Counter
@@ -219,51 +205,10 @@ def CreateProteinMapByCounts(idList, repeats=1, epochs=5000, initExag=3.0, final
 	mds = NewMds(nt, epochs=epochs, initExag=initExag, finalExag=finalExag, ppl=ppl, is3D=is3D)
 	mds.RefreshFreq = 50
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
+	info.Mtd = 'PmCnt'
 	RunMds(mds, repeats, info=info)
 	if repeats>= 1:
 		mds.Close()
-
-
-def ProteinMapByPairs(idList):	
-	pTable = GetProteinTable()
-	rows, columns = len(idList), len(ALPHABET)
-	if rows == 0:
-		bsList = pTable.BodyListEnabled()
-		rows = bsList.Count
-		idList = [b.Id for b in bsList]
-	else:
-		bsList = pTable.BodyListForId(idList)
-	dt = np.zeros((rows, columns*columns), np.float32)
-	aaCnt = {}
-	for c1 in ALPHABET:
-		for c2 in ALPHABET:
-			aaCnt[c1+c2] = 0
-	for row in range(rows):
-		pSeq = GetProteinSeq(pTable, idList[row])
-		pLen = len(pSeq)
-		for pp in aaCnt:
-			aaCnt[pp] = 0
-		for k in range(0, pLen-1, 1):
-			aaCnt[pSeq[k:k+2]] += 1
-		ppCnt = list(aaCnt.values())
-		for col in range(dt.shape[1]):
-			dt[row, col] = float( ppCnt[col] ) 
-	nt = mm.ToTable(dt, bsList)
-	for k, key in enumerate(aaCnt.keys()):
-		nt.ColumnSpecList[k].Id = key
-	mds = NewMds(nt, epochs=5000, initExag=3.0, finalExag=1.0)
-	mds.PerplexityRatio = 0.1
-	mds.RefreshFreq = 50
-	mds.Repeats = 1
-	mds.Reset().Start()
-
-def AddClusterLabel(pMap):
-	for b in pMap.BodyList: 
-		b.ShowName = False
-	for B in GroupByType(pMap.BodyList):
-		cs.MeanPoint(B).ShowName = True
-	pMap.RedrawAll()
-
 
 def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0, 
 		finalExag=1.0, ppl=0.1, repeats=1):
@@ -273,16 +218,18 @@ def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0,
 		dt.RowSpecList[k].CopyFromBody(b)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
+	info.Mtd = 'PmAA'
 	RunMds(mds, repeats=repeats, info=info)
 	if repeats>=1:
 		mds.Close()
 
-def CreateProteinMap2(idList, epochs=10000, is3D=False, initExag=6.0, ppList=None, finalExag=1.0, ppl=0.1, repeats=1):
+def CreateProteinMap2(pList, epochs=10000, is3D=False, initExag=6.0, ppList=None, finalExag=1.0, ppl=0.1, repeats=1):
 	pTable = GetProteinTable()
-	dt = cs.VectorizeProtein2(ppList, 50, idList, pTable)
+	dt = cs.VectorizeProtein2(ppList, 50, pList, pTable)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	RunMds(mds, repeats=repeats, info=info)
+	info.Mtd = 'PmAA2'
+	RunMds(mds, repeats=repeats, info=info, glyphSize=0.25)
 	if repeats > 0:
 		mds.Close()
 
@@ -292,6 +239,7 @@ def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, 
 	dt = cs.GetMarkovCoding2(pTable, pList)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
+	info.Mtd = 'PmMkv'
 	RunMds(mds, repeats=repeats, info=info)
 	if repeats > 0:
 		mds.Close()
@@ -483,6 +431,7 @@ def NewDataset(S, winSize=0, decay=1.0, alphbetList=ALPHABET, augCfg='a|500|2.0|
 def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, repeats=1, metric='EuclideanMetric'):
 	mds = New.MdsCluster(nt)
 	mds.Show()
+	mds.MdsAlgorithm = 2
 	mds.MaxLoops = epochs
 	mds.RefreshFreq = 500
 	mds.InitialExaggeration = initExag
@@ -493,14 +442,18 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
 	mds.ReadOnly = True
 	mds.Is3D = is3D
 	mds.AutoNormalizing =True
+	mds.GlyphOpacity = 0.5
+	mds.GlyphSize = 0.5
 	#mds.GlyphSet = 'C12|||||||||||'
 	mds.GlyphSet = vv.Map.GlyphType
 	return mds
 
-def RunMds(mds, repeats=1, glyphSize=0.8, glyphOpacity=0.5, info=None):
+def RunMds(mds, repeats=1, glyphSize=0.5, glyphOpacity=0.5, info=None):
 	mds.Repeats = repeats
 	mds.Reset().Start()
-	if not mds.Completed: vv.Return(0)
+	if not mds.Completed: 
+		vv.Return(0)
+	info.DDM = mds.DataDim
 	if repeats == 1:
 		mp = mds.ShowSnapshot()
 	if repeats >= 1:
@@ -537,7 +490,7 @@ def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None
 	info.WinSize = winSize	
 	info.Is3D = is3D
 	info.AugCfg = augCfg
-	info.Obo = 'Frg'
+	info.Mtd = 'Frg'
 	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
 		if pSeq is None:
@@ -615,7 +568,7 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 	info.PP = mds.PerplexityRatio
 	info.Is3D = is3D
 	info.AugCfg = augCfg
-	info.Obo = 'Mkv'
+	info.Mtd = 'Mkv'
 
 	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
@@ -700,7 +653,15 @@ def ShowProteinSeq(pMap):
 
 #-----------------------------------------------------------------------
 
-def ConfigAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=False):
+'''
+atlas = pp
+mpWidth=1000; mpHeight=700; gSize=0.35; gOpacity=0.5; hiddenSize=7; reset=False
+itemList = pp.GetSelectedItems()
+it = itemList[0]
+'''
+
+def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=False):
+	itemList = atlas.GetSelectedItems()
 	for it in itemList:
 		mp = it.Open()
 		if reset:
@@ -724,7 +685,7 @@ def ReCreateMap(pMap, repeats=1):
 	info = MapInfo(pMap.Description)
 	pTable = GetProteinTable()
 	pSeq = GetProteinSeq(pTable, info.pId)
-	if info.Obo == 'Mkv':
+	if info.Mtd == 'Mkv':
 		tm = mm.ToNumpy(vv.AtlasManager.ReadNumberTable('TestMaps', 'MkvTrans'))
 		nt = NewDatasetMkv(tm, pSeq, augCfg=info.AugCfg)
 	else:
@@ -741,148 +702,6 @@ def ReCreateMap(pMap, repeats=1):
 ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
 PP = {aa:k for k, aa in enumerate(ppList)}
 pSeq = vv.Dataset.GetDataAt(0, 2)
-
-
-def ShowProteinPair(pSeq):
-	pLen = len(pSeq)
-	aaCnt = {}
-	for c1 in ALPHABET:
-		for c2 in ALPHABET:
-			aaCnt[c1+c2] = 0
-	for k in range(0, pLen-1, 1):
-		aaCnt[pSeq[k:k+2]] += 1
-	bv = New.BarView(len(aaCnt))
-	for k, pp in enumerate(aaCnt):
-		bv.ItemList[k].Id = pp
-		bv.ItemList[k].Value = float(aaCnt[pp])
-	bv.BaseLineType = 0
-	bv.AutoScaling = True
-	bv.Show()
-	return bv
-
-def GetPairTable(alphabet):
-	aaCnt = {}
-	for c1 in alphabet:
-		for c2 in alphabet:
-			aaCnt[c1+c2] = 0
-	for k in range(21, vv.Dataset.Rows):
-		pSeq = vv.Dataset.GetDataAt(k, 2)
-		pLen = len(pSeq)
-		for k in range(0, pLen-1, 1):
-			aaCnt[pSeq[k:k+2]] += 1
-	return aaCnt
-
-def ShowAA():
-	ds = vv.Dataset
-	cnt = 20*[0.0]
-	for k in range(21, ds.Rows):
-		for c in ds.GetDataAt(k, 2):
-			cnt[P[c]] += 1.0
-	bv = New.BarView(20)
-	for k, item in enumerate(bv.ItemList):
-		item.Id = ALPHABET[k]
-		item.Value = cnt[k]
-	bv.Show()
-
-def ShowStatistics():
-	aaCnt = GetPairTable(ALPHABET)
-	bv = New.BarView(len(aaCnt))
-	for k, pp in enumerate(aaCnt):
-		bv.ItemList[k].Id = pp
-		bv.ItemList[k].Value = float(aaCnt[pp])
-	bv.BaseLineType = 0
-	bv.AutoScaling = True
-	bv.BarLabelType=4
-	bv.NumberFormat = 'g8'
-	bv.Show()
-
-def ShowPairTable():
-	aaCnt = GetPairTable(ALPHABET)
-	nt = New.NumberTable(20, 20)
-	for k1, c1 in enumerate(ALPHABET):
-		R = nt.Matrix[k1]
-		for k2, c2 in enumerate(ALPHABET):
-			R[k2] = aaCnt[c1+c2]
-	for k, c in enumerate(ALPHABET):
-		nt.RowSpecList[k].Id = c
-		nt.ColumnSpecList[k].Id = c
-	M = nt.Matrix
-	for k in range(20):
-		for cl in range(0, k):
-			v = 0.5 * (M[k][cl] + M[cl][k])
-			if cl > 0:
-				vv.Echo2(' ')
-			vv.Echo2( f'{(100000.0/v):.8g}' )
-		vv.Echo('')
-	nt.ShowHeatMap()
-
-ShowPairTable()
-
-def ShowPP(pId):
-	pIdx = vv.Dataset.IndexOfRow(pId)
-	pSeq = vv.Dataset.GetDataAt(pIdx, 2)
-	bv = ShowProteinPair(pSeq)
-	bv.Title = f'{pId}: L:{len(pSeq)}'
-
-tb = cs.GetPairLinkage(True)
-tb.ShowHeatMap()
-
-M = tb.Matrix
-vList = []
-for row in range(1, 400):
-	for col in range(row):
-		vList.append(M[row][col])
-print( ' '.join([str(v) for v in vList]) )
-
-nt = cs.GetMarkovCoding2()
-nt.ShowHeatMap()
-
-
-ShowPP('XP_054199642.1')
-ShowPP('EAX11017.1')
-for pId in vv.SelectedItems:
-	ShowPP(pId)
-
-ShowProteinPair(pp.Text)
-
-ppList = []
-for c1 in ALPHABET:
-	for c2 in ALPHABET:
-		ppList.append(c1+c2)
-
-g1 = list(vv.GroupManager.GetGroupLabels('L20'))
-
-g2 = [g[::-1] for g in g1]
-vv.GroupManager.SetGroupLabels('L20r', g2)
-
-ppList = [ 'E'+c for c in ALPHABET ]
-vv.GroupManager.SetGroupLabels('E20', ppList)
-vv.GroupManager.SetGroupLabels('ALPHABET', list(ALPHABET))
-
-ret = vv.LoadLibrary('C:/temp/SeqModeling/bin/Release/SeqModeling.dll')
-cs = New.Instance('VisuMap.SeqModeling')
-cs.Init(vv, vv.New)
-values = New.NumberArray([1.1,2.2]).ToArray()
-print(tt.Sum(values))
-
-aaSum = sum([aaD[aa] for aa in aaD])
-for aa in aaD:	aaD[aa] = aaD[aa]/aaSum
-
-aaList = []
-for aa in aaD:
-	aaList.append( aa * int(10000*aaD[aa]) )
-
-aa = np.array([[1,2], [3, 4], [5, 6]])
-aaSum = aa.sum(axis=1, keepdims=True)
-bb = aa/aa.sum(axis=1, keepdims=True)
-
-
-aaList = ''.join(aaList)
-len(aaList)
-
-
-nt = cs.MarkovianMatrix1(vv.Dataset)
-nt.ShowHeatMap()
 
 nt = vv.AtlasManager.ReadNumberTable('TestMaps', 'MkvTrans')
 
@@ -901,38 +720,9 @@ for k in range(20):
 	nt.RowSpecList[k].Type = k
 	nt.ColumnSpecList[k].Type = k
 
-
 nt.ShowAsBarBand()
 
-
-pList=['AFP36434.1', 'BAG51285.1', 'XP_047287751.1']
-
-rqUrl='https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=protein&id=' + pList
-
-sFasta = urllib.request.urlopen(rqUrl).read().decode('utf-8')
-
-print(sFasta)
-
-def ParseXml(pList, maxCount=20, minLen=400):
-	rqUrl='https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=protein&id=' + ','.join(pList)
-	xmlDoc = urllib.request.urlopen(rqUrl).read().decode('utf-8')
-	infoList = []
-	used = set()
-	for s in xmlDoc.splitlines():
-		if s.find('"Length"') > 0:
-			len = int( s.split('>')[1][:-6] )
-		if s.find('"AccessionVersion"') > 0:
-			sName = s.split('>')[1][:-6]
-			if (len>=minLen) and (len not in used):				
-				infoList.append( (sName, len) )
-		if len(infoList) > maxCount:
-			break
-	return infoList
-
-ifList = ParseXml(pList)
-
-for nm, len in ifList:
-	print(nm, len)
-
-
+ppList = [ y+x for x in ALPHABET for y in ALPHABET if x <= y ]
+print(len(ppList))
+vv.GroupManager.SetGroupLabels('KeyPairs210r', ppList)
 '''
