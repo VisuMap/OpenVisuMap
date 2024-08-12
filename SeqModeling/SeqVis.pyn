@@ -29,6 +29,10 @@ def SaveToAtlas(atName, x0=50, y0=50):
 		vwName = vv.LastView.Name
 		vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0, vwName).Close()
 
+def Save2Atlas():
+	vwName = vv.LastView.Name
+	vv.AtlasManager.OpenAtlas().CaptureAllOpenViews(20, 20, vwName).Close()
+
 def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling'):
 	from shutil import copy
 	from os.path import exists
@@ -453,7 +457,8 @@ def RunMds(mds, repeats=1, glyphSize=0.5, glyphOpacity=0.5, info=None):
 	mds.Reset().Start()
 	if not mds.Completed: 
 		vv.Return(0)
-	info.DDM = mds.DataDim
+	if info is not None:
+		info.DDM = mds.DataDim
 	if repeats == 1:
 		mp = mds.ShowSnapshot()
 	if repeats >= 1:
@@ -482,13 +487,8 @@ def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None
 		vv.Return(0)
 	pTable = GetProteinTable()
 	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
-	info = MapInfo()
-	info.Epochs = epochs
-	info.InitE = initExag
-	info.FinalE = finalExag
-	info.PP = mds.PerplexityRatio
+	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.WinSize = winSize	
-	info.Is3D = is3D
 	info.AugCfg = augCfg
 	info.Mtd = 'Frg'
 	for k, pId in enumerate(pList):
@@ -499,7 +499,7 @@ def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None
 		nt = NewDataset(pSeq, winSize=winSize, decay=decay, augCfg=augCfg)
 		SeqLabeling(nt, pSeq)
 		mds.SetTrainingData(nt)
-		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
+		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity, info=info)
 		info.pId = pId
 		info.pLen = len(pSeq)
 		map = vv.LastView
@@ -561,12 +561,7 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 	mds.GlyphSize = glyphSize
 	mds.GlyphOpacity = glyphOpacity
 
-	info = MapInfo()
-	info.Epochs = epochs
-	info.InitE = initExag
-	info.FinalE = finalExag
-	info.PP = mds.PerplexityRatio
-	info.Is3D = is3D
+	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.AugCfg = augCfg
 	info.Mtd = 'Mkv'
 
@@ -578,7 +573,7 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 		nt = NewDatasetMkv(tm, pSeq, augCfg)
 		SeqLabeling(nt, pSeq)
 		mds.SetTrainingData(nt)
-		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
+		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity, info=info)
 		info.pId = pId
 		info.pLen = len(pSeq)
 		map = vv.LastView
@@ -624,6 +619,7 @@ def OnSeqSelected():
 	if tp.TheForm.IsDisposed: 
 		return
 	L = sorted( [int(id[1:]) for id in pp.SelectedItems] )
+	vv.Message(f'L: {len(L)}')
 	tb = tp.TextBox
 	tb.SelectAll()
 	tb.SelectionBackColor = tb.BackColor	
