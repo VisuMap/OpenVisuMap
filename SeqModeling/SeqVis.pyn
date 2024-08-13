@@ -594,9 +594,10 @@ def ShowTracingSeq(pMap):
 	info = MapInfo(pMap.Description)
 	tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
 	tp.Tag = pMap
-	pMap.Tag = tp
 	tp.OnSelection = '@OnSeqSelection()'
 	pMap.AddEventHandler('ItemsSelected', '@OnSeqSelected()')
+	bId2Idx = {pMap.BodyList[k].Id:k for k in range(pMap.BodyList.Count)}
+	pMap.Tag = (tp, bId2Idx)
 	tp.Show()
 
 def OnSeqSelection():
@@ -606,20 +607,20 @@ def OnSeqSelection():
 	tb = pp.TextBox
 	iBegin = tb.SelectionStart
 	iEnd = tb.SelectionStart + tb.SelectionLength
-	pMap.SelectedItems = [f'R{i}' for i in range(iBegin, iEnd)]
+	bsList = pMap.BodyList
+	pMap.SelectedItems = [bsList[k].Id for k in range(iBegin, iEnd)]
 
 def MarkSeq(tb, idxBegin, idxEnd):
 	if idxEnd<=idxBegin: 
 		return
 	tb.Select(idxBegin, idxEnd-idxBegin)
-	tb.SelectionBackColor = New.Color('Green')	
+	tb.SelectionBackColor = New.Color('Skyblue')	
 
 def OnSeqSelected():
-	tp = pp.Tag	
+	(tp, bId2Idx) = pp.Tag	
 	if tp.TheForm.IsDisposed: 
 		return
-	L = sorted( [int(id[1:]) for id in pp.SelectedItems] )
-	vv.Message(f'L: {len(L)}')
+	L = sorted( [bId2Idx[id] for id in pp.SelectedItems] )
 	tb = tp.TextBox
 	tb.SelectAll()
 	tb.SelectionBackColor = tb.BackColor	
