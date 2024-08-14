@@ -2,20 +2,16 @@ import numpy as np
 import math, random, time
 
 GENE_TABLE = 'Gene Features'
-PROTEIN_TABLE = 'Protein Long'
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
 P = {ALPHABET[k]:k for k in range(len(ALPHABET))}
 
+'''
 def FilterSeq(D, P):
 	return ''.join([ c for c in D.upper() if c in P ])
 
-def OpenProteinTable():
-	if vv.Dataset.Name != PROTEIN_TABLE:
-		vv.Folder.OpenDataset(PROTEIN_TABLE)
-
-def GetProteinTable():
-	if vv.Dataset.Name != PROTEIN_TABLE:
-		pTable = vv.Folder.ReadDataset(PROTEIN_TABLE)
+def GetProteinTable(dsName):
+	if vv.Dataset.Name != dsName:
+		pTable = vv.Folder.ReadDataset(dsName)
 	else:
 		pTable = vv.Dataset
 	return pTable
@@ -49,6 +45,7 @@ def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling
 
 if 'cs' not in globals():
 	cs = LoadSeqModeling()
+'''
 
 # protein embedding map information
 class MapInfo():
@@ -133,7 +130,6 @@ def AddProteins(ds, gId, maxCount=20, minLen=400, maxLen=1000_000):
 	if len(infoList) == 0:
 		return gSymbol, 0
 
-	OpenProteinTable()
 	typeIdx = max([b.Type for b in vv.Dataset.BodyList]) + 1 if vv.Dataset.BodyCount > 0 else 0
 	pIds = ','.join([ pId for (pId, _) in infoList ])
 	sFastaList = urllib.request.urlopen(getUrl+pIds).read().decode('utf-8')
@@ -186,7 +182,7 @@ def NewRandomTable(N):
 
 def CreateProteinMapByCounts(idList, repeats=1, epochs=5000, initExag=3.0, finalExag=1.0, ppl=0.1, is3D=False):
 	from collections import Counter
-	pTable = GetProteinTable()
+	pTable = vv.Dataset
 	rows = len(idList)
 	columns = len(ALPHABET)
 	if rows == 0:
@@ -216,7 +212,7 @@ def CreateProteinMapByCounts(idList, repeats=1, epochs=5000, initExag=3.0, final
 
 def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0, 
 		finalExag=1.0, ppl=0.1, repeats=1):
-	pTable = GetProteinTable()	
+	pTable = vv.Dataset	
 	dt = cs.VectorizeProtein1(ALPHABET, 100, idList, pTable)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
@@ -228,7 +224,7 @@ def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0,
 		mds.Close()
 
 def CreateProteinMap2(pList, epochs=10000, is3D=False, initExag=6.0, ppList=None, finalExag=1.0, ppl=0.1, repeats=1):
-	pTable = GetProteinTable()
+	pTable = vv.Dataset
 	dt = cs.VectorizeProtein2(ppList, 50, pList, pTable)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
@@ -238,7 +234,7 @@ def CreateProteinMap2(pList, epochs=10000, is3D=False, initExag=6.0, ppList=None
 		mds.Close()
 
 def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, ppl=0.1, finalExag=1.0):
-	pTable = GetProteinTable()
+	pTable = vv.Dataset
 	#dt = cs.GetMarkovCoding1(pTable, pList)
 	dt = cs.GetMarkovCoding2(pTable, pList)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
@@ -460,7 +456,7 @@ def RunMds(mds, repeats=1, glyphSize=0.5, glyphOpacity=0.5, info=None):
 	if info is not None:
 		info.DDM = mds.DataDim
 	if repeats == 1:
-		mp = mds.ShowSnapshot()
+		mds.ShowSnapshot()
 	if repeats >= 1:
 		mpName = vv.LastView.Name
 		mpDesc = info.ToStr() if info is not None else 'Map created by RunMds'
@@ -475,7 +471,7 @@ def RunMds(mds, repeats=1, glyphSize=0.5, glyphOpacity=0.5, info=None):
 
 def ShowMapData(pMap):
 	info = MapInfo(pMap.Description)
-	pTable = GetProteinTable()
+	pTable = GetProteinTable(info.DS)
 	pSeq = GetProteinSeq(pTable, info.pId)
 	nt = NewDataset(pSeq, winSize=int(info.WinSize), augCfg=info.AugCfg)
 	nt.ShowHeatMap().NormalizeView()
@@ -485,12 +481,13 @@ def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
 		vv.Return(0)
-	pTable = GetProteinTable()
+	pTable = vv.Dataset
 	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.WinSize = winSize	
 	info.AugCfg = augCfg
 	info.Mtd = 'Frg'
+	info.DS = vv.Dataset.Name
 	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
 		if pSeq is None:
@@ -508,7 +505,7 @@ def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None
 		if (k+1)%8 == 0:
 			SaveToAtlas(saveTo)
 	SaveToAtlas(saveTo)
-	if saveTo is not None:
+	if repeats > 0:
 		mds.Close()
 
 def Scanning(pMap, stepSize=20):
@@ -555,7 +552,7 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
 		vv.Return(0)
-	pTable = GetProteinTable()
+	pTable = vv.Dataset
 	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.GlyphSet = '36 Clusters'
 	mds.GlyphSize = glyphSize
@@ -576,6 +573,7 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity, info=info)
 		info.pId = pId
 		info.pLen = len(pSeq)
+		info.DS = pTable.Name
 		map = vv.LastView
 		map.Title = f'{k}: {pId}, N: {nt.Rows}'
 		map.Description = info.ToStr()
@@ -678,22 +676,26 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5,
 		it.Name = info.pId
 		mp.Close()
 
-def ReCreateMap(pMap, repeats=1):
+def ReCreateMap(pMap):
 	info = MapInfo(pMap.Description)
-	pTable = GetProteinTable()
+	pTable = GetProteinTable(info.DS)
 	pSeq = GetProteinSeq(pTable, info.pId)
 	if info.Mtd == 'Mkv':
 		tm = mm.ToNumpy(vv.AtlasManager.ReadNumberTable('TestMaps', 'MkvTrans'))
 		nt = NewDatasetMkv(tm, pSeq, augCfg=info.AugCfg)
 	else:
 		nt = NewDataset(pSeq, winSize=int(info.WinSize), augCfg=info.AugCfg)
+
+	for k, b in enumerate(pMap.BodyList):
+		nt.RowSpecList[k].CopyFromBody(b)
+
 	mds = NewMds(nt, epochs=int(info.Epochs), is3D=eval(info.Is3D), 
 		initExag=float(info.InitE), finalExag=float(info.FinalE), ppl=float(info.PP))
 	mds.GlyphSet = pMap.GlyphSet
 	mds.GlyphSize = pMap.GlyphSize
 	mds.GlyphOpacity = pMap.GlyphOpacity
-	RunMds(mds, repeats=repeats,)
-	vv.LastView.Description = info.ToStr()
+	RunMds(mds, info=info)
+	mds.Close()
 
 '''========================================================================================
 ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
