@@ -11,7 +11,7 @@ def HighlightItems():
 
 match vv.EventSource.Item:
 	case 'ConfigMaps':
-		ConfigAtlasMaps(pp, 1000, 700, gSize=0.25, gOpacity=0.5, hiddenSize=7, reset=False)
+		ConfigAtlasMaps(pp, 1000, 700, gSize=0.5, gOpacity=0.5, hiddenSize=7, reset=False)
 	case 'LinkSelection':
 		pp.OnItemsSelected = '@vv.SelectedItems = [x.Name for x in pp.GetSelectedItems()]'
 		pp.SetEventHandler('ItemsSelected', '@HighlightItems()')

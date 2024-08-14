@@ -5,7 +5,7 @@ GENE_TABLE = 'Gene Features'
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
 P = {ALPHABET[k]:k for k in range(len(ALPHABET))}
 
-'''
+
 def FilterSeq(D, P):
 	return ''.join([ c for c in D.upper() if c in P ])
 
@@ -45,7 +45,6 @@ def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling
 
 if 'cs' not in globals():
 	cs = LoadSeqModeling()
-'''
 
 # protein embedding map information
 class MapInfo():
@@ -458,9 +457,9 @@ def RunMds(mds, repeats=1, glyphSize=0.5, glyphOpacity=0.5, info=None):
 	if repeats == 1:
 		mds.ShowSnapshot()
 	if repeats >= 1:
-		mpName = vv.LastView.Name
 		mpDesc = info.ToStr() if info is not None else 'Map created by RunMds'
-		for mp in vv.FindFormList(mpName):
+		mpList = list(vv.FindFormList(vv.LastView.Name))
+		for mp in mpList[-repeats:]:
 			mp.GlyphOpacity = glyphOpacity
 			mp.GlyphSize = glyphSize
 			mp.Description  = mpDesc
@@ -570,13 +569,12 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 		nt = NewDatasetMkv(tm, pSeq, augCfg)
 		SeqLabeling(nt, pSeq)
 		mds.SetTrainingData(nt)
-		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity, info=info)
 		info.pId = pId
 		info.pLen = len(pSeq)
 		info.DS = pTable.Name
+		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity, info=info)
 		map = vv.LastView
 		map.Title = f'{k}: {pId}, N: {nt.Rows}'
-		map.Description = info.ToStr()
 		if (k+1)%8 == 0:
 			SaveToAtlas(saveTo)
 

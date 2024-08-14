@@ -11,20 +11,20 @@ def MainProc(menuKey):
 	dstAtlas = None
 	match menuKey:
 		case 'SeqMap':
-			CreateMaps(pp.SelectedItems, epochs=10000, winSize=0, repeats=1, ppl=0.15,  saveTo=dstAtlas, 
+			CreateMaps(pList, epochs=10000, winSize=0, repeats=1, ppl=0.15,  saveTo=dstAtlas, 
 				is3D=True, initExag=4.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='a|500|2.0|2.0')
 		case 'SeqMap2':
-			CreateMaps(pp.SelectedItems, epochs=10000, winSize=-1, repeats=1, ppl=0.15,  saveTo=dstAtlas,
+			CreateMaps(pList, epochs=10000, winSize=-1, repeats=1, ppl=0.15,  saveTo=dstAtlas,
 				is3D=False, initExag=3.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='x|0.001')
 		case 'SeqMap3':
 			for f in [ 0.5 ]:
 				n, r, w = 1000, 0.05*f, 0.02*f
-				SeqMapByMarkovian(pp.SelectedItems, epochs=5000, repeats=1, ppl=0.2,  saveTo=dstAtlas,
+				SeqMapByMarkovian(pList, epochs=5000, repeats=1, ppl=0.2,  saveTo=dstAtlas,
 					is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.5, glyphOpacity=0.5, augCfg=f'a|{n}|{r}|{w}')
 		case 'SeqMap4': 
 			aug_cfg = 'M|0.5|0.4'
 			#aug_cfg = 'm|0.35'
-			SeqMapByMarkovian(pp.SelectedItems, epochs=5000, repeats=1, ppl=0.2,  saveTo=dstAtlas,
+			SeqMapByMarkovian(pList, epochs=5000, repeats=1, ppl=0.2,  saveTo=dstAtlas,
 				is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.5, glyphOpacity=0.5, augCfg=aug_cfg)
 	
 		case 'SeqInfo':
