@@ -9,7 +9,7 @@ match vv.EventSource.Item:
 	case 'Scanning':
 		Scanning(pp)
 	case 'ShowSeq':
-		ShowTracingSeq(pp)
+		ShowAASeq(pp)
 	case 'ReCreateMap':
 		ReCreateMap(pp)
 

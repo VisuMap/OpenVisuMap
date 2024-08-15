@@ -483,9 +483,8 @@ def RunMds(mds, repeats=1, glyphSize=0.5, glyphOpacity=0.5, info=None):
 #-------------------------------------------------------------------
 
 def ShowMapData(pMap):
+	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	
 	info = MapInfo(pMap.Description)
-	pTable = GetProteinTable(info.DS)
-	pSeq = GetProteinSeq(pTable, info.pId)
 	winSize = int(info.WinSize) if info.WinSize != None else 0
 	nt = NewDataset(pSeq, winSize=winSize, augCfg=info.AugCfg)
 	nt.ShowHeatMap().NormalizeView()
@@ -600,8 +599,8 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 
 #-------------------------------------------------------------------
 
-def ShowTracingSeq(pMap):
-	pSeq = ''.join([b.Name for b in pMap.BodyList])
+def ShowAASeq(pMap):
+	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()
 	info = MapInfo(pMap.Description)
 	tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
 	tp.Tag = pMap
@@ -681,9 +680,8 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5,
 		mp.Close()
 
 def ReCreateMap(pMap):
+	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	
 	info = MapInfo(pMap.Description)
-	pTable = GetProteinTable(info.DS)
-	pSeq = GetProteinSeq(pTable, info.pId)
 	if info.Mtd == 'Mkv':
 		tm = mm.ToNumpy(vv.AtlasManager.ReadNumberTable('TestMaps', 'MkvTrans'))
 		nt = NewDatasetMkv(tm, pSeq, augCfg=info.AugCfg)

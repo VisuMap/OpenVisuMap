@@ -1,13 +1,15 @@
 #MenuLabels ShowData Scanning ShowSeq ReCreateMap
 
 vv.Import('SeqVis.pyn')
+AssertSeqMap(pp)
+
 match vv.EventSource.Item:
 	case 'ShowData':
 		ShowMapData(pp)
 	case 'Scanning':
 		Scanning(pp, stepSize=20)
 	case 'ShowSeq':
-		ShowTracingSeq(pp)
+		ShowAASeq(pp)
 	case 'ReCreateMap':
 		ReCreateMap(pp)
 
