@@ -22,6 +22,14 @@ def AssertProteinTable():
 		vv.Return()
 	return vv.Dataset
 
+def AssertSeqMap(pMap):
+	info = MapInfo(pMap.Description)
+	if info.pId != None:
+		return
+	else:
+		vv.Message('The view is not a protein seq map')
+		vv.Return()
+
 def GetProteinSeq(pTable, pId):
 	rowIdx = pTable.IndexOfRow(pId)
 	return pTable.GetDataAt(rowIdx, 2)
@@ -34,7 +42,6 @@ def SaveToAtlas(atName, x0=50, y0=50):
 def Save2Atlas():
 	vwName = vv.LastView.Name
 	vv.AtlasManager.OpenAtlas().CaptureAllOpenViews(20, 20, vwName).Close()
-
 
 def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling'):
 	from shutil import copy
@@ -479,7 +486,8 @@ def ShowMapData(pMap):
 	info = MapInfo(pMap.Description)
 	pTable = GetProteinTable(info.DS)
 	pSeq = GetProteinSeq(pTable, info.pId)
-	nt = NewDataset(pSeq, winSize=int(info.WinSize), augCfg=info.AugCfg)
+	winSize = int(info.WinSize) if info.WinSize != None else 0
+	nt = NewDataset(pSeq, winSize=winSize, augCfg=info.AugCfg)
 	nt.ShowHeatMap().NormalizeView()
 
 def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,

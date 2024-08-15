@@ -1,5 +1,8 @@
-#MenuLabels ShowData Scanning ShowSeq ReCreateMap ProteinMap4
+#MenuLabels ShowData Scanning ShowSeq ReCreateMap
 vv.Import('SeqVis.pyn')
+
+AssertSeqMap(pp)
+
 match vv.EventSource.Item:
 	case 'ShowData':
 		ShowMapData(pp)
@@ -9,7 +12,4 @@ match vv.EventSource.Item:
 		ShowTracingSeq(pp)
 	case 'ReCreateMap':
 		ReCreateMap(pp)
-	case 'ProteinMap4':
-		CreateProteinMap2(vv.AllItems,  epochs=5000, is3D=False, repeats=0, 
-			initExag=4.0, ppl=0.15, finalExag=1.0, ppList=pp.SelectedItems)
 
