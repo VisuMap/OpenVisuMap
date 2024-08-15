@@ -16,6 +16,12 @@ def GetProteinTable(dsName):
 		pTable = vv.Dataset
 	return pTable
 
+def AssertProteinTable():
+	if (vv.Dataset.Columns != 4) or ( vv.Dataset.ColumnSpecList[2].Id != 'ProteinSeq'):
+		vv.Message('The current dataset is not a protein table')
+		vv.Return()
+	return vv.Dataset
+
 def GetProteinSeq(pTable, pId):
 	rowIdx = pTable.IndexOfRow(pId)
 	return pTable.GetDataAt(rowIdx, 2)
@@ -28,6 +34,7 @@ def SaveToAtlas(atName, x0=50, y0=50):
 def Save2Atlas():
 	vwName = vv.LastView.Name
 	vv.AtlasManager.OpenAtlas().CaptureAllOpenViews(20, 20, vwName).Close()
+
 
 def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling'):
 	from shutil import copy
@@ -181,7 +188,7 @@ def NewRandomTable(N):
 
 def CreateProteinMapByCounts(idList, repeats=1, epochs=5000, initExag=3.0, finalExag=1.0, ppl=0.1, is3D=False):
 	from collections import Counter
-	pTable = vv.Dataset
+	pTable = AssertProteinTable()	
 	rows = len(idList)
 	columns = len(ALPHABET)
 	if rows == 0:
@@ -211,7 +218,7 @@ def CreateProteinMapByCounts(idList, repeats=1, epochs=5000, initExag=3.0, final
 
 def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0, 
 		finalExag=1.0, ppl=0.1, repeats=1):
-	pTable = vv.Dataset	
+	pTable = AssertProteinTable()	
 	dt = cs.VectorizeProtein1(ALPHABET, 100, idList, pTable)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
@@ -223,7 +230,7 @@ def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0,
 		mds.Close()
 
 def CreateProteinMap2(pList, epochs=10000, is3D=False, initExag=6.0, ppList=None, finalExag=1.0, ppl=0.1, repeats=1):
-	pTable = vv.Dataset
+	pTable = AssertProteinTable()	
 	dt = cs.VectorizeProtein2(ppList, 50, pList, pTable)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
@@ -233,7 +240,7 @@ def CreateProteinMap2(pList, epochs=10000, is3D=False, initExag=6.0, ppList=None
 		mds.Close()
 
 def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, ppl=0.1, finalExag=1.0):
-	pTable = vv.Dataset
+	pTable = AssertProteinTable()	
 	#dt = cs.GetMarkovCoding1(pTable, pList)
 	dt = cs.GetMarkovCoding2(pTable, pList)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
@@ -480,7 +487,7 @@ def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
 		vv.Return(0)
-	pTable = vv.Dataset
+	pTable = AssertProteinTable()
 	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.WinSize = winSize	
@@ -490,8 +497,8 @@ def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None
 	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
 		if pSeq is None:
-			vv.Message("Cannot get aa-seq of: " + pId)
-			continue
+			vv.Message("Cannot get protein seq of: " + pId)
+			vv.Return()
 		nt = NewDataset(pSeq, winSize=winSize, decay=decay, augCfg=augCfg)
 		SeqLabeling(nt, pSeq)
 		mds.SetTrainingData(nt)
@@ -644,15 +651,6 @@ def ShowProteinSeq(pMap):
 	tb = New.TextPanel(f'{pId}: {pSym}, {pLen}', pSeq)
 	tb.Show()
 
-#-----------------------------------------------------------------------
-
-'''
-atlas = pp
-mpWidth=1000; mpHeight=700; gSize=0.35; gOpacity=0.5; hiddenSize=7; reset=False
-itemList = pp.GetSelectedItems()
-it = itemList[0]
-'''
-
 def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=False):
 	itemList = atlas.GetSelectedItems()
 	for it in itemList:
@@ -722,4 +720,9 @@ nt.ShowAsBarBand()
 ppList = [ y+x for x in ALPHABET for y in ALPHABET if x <= y ]
 print(len(ppList))
 vv.GroupManager.SetGroupLabels('KeyPairs210r', ppList)
+
+pTest = 'FMKIFSESHKTVFVVDHCPYMAESCRQHVEFDMLIIPLAPISKSLWTCSVESSMEYCRIMYDIFPFKKLVNFIVSDSGAHVLNSWTQEDQNLQELMAALAAVGPPNPRADPECCSILHGLVAAVETLCKITEYQHEARTLLMNAERVGNRGRIICITNAKSDSHVRMLEDCVQETIHEHNKLAANSDHLMQIQKCELVLIHTYPVGEDSLVSDRSKKELSPVLTSEVHSVRAGRHLATKLNILVQQHFDLASTTITNIPMYDVELLHHKDAHVDFLETITLKWCTPRTNNIELHYCTGAYRISPVDVNSRPSSCLTNFLLNGRSVLLEQPSKVISHMLSSHGGEIFLHVLSSSRSILEDPPSISEGCGGRVTDYRITDFGEFMRENRLTPFLDPRYKIDGSLEVPLERAKDQLEKHTRYWPMIISQTTIFNMQAVVPLASVIVKESLTEEDVLNCQKTIYNLVDMERKNDPLPISPKRDEQYRIMWNELETLVRAHINNSEKHQRVLECLMACRSKP'
+print(pTest[::2])
+vv.GroupManager.SetGroupLabels('6sn1-sf', [pTest])
+
 '''
