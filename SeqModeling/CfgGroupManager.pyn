@@ -1,11 +1,17 @@
-#MenuLabels SeqMap1 ProteinMap4
+#MenuLabels SeqMap1 SeqMap3 ProteinMap4
 vv.Import('SeqVis.pyn')
 
 match vv.EventSource.Item:
 	case 'SeqMap1':
-		pList = pp.GetSelectedMembers()
-		CreateMaps(pList, epochs=10000, winSize=0, repeats=1, ppl=0.15,
+		CreateMaps(pp.GetSelectedMembers(), epochs=10000, winSize=0, repeats=1, ppl=0.15,
 			is3D=True, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo=None,  augCfg='a|500|2.0|2.0')
+
+	case 'SeqMap3':
+		f = 1.25
+		n, r, w = 2000, 0.05*f, 0.02*f
+		SeqMapByMarkovian(pp.GetSelectedMembers(), epochs=5000, repeats=1, ppl=0.2,  saveTo=None,
+			is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.5, glyphOpacity=0.5, augCfg=f'a|{n}|{r}|{w}')
+
 	case 'ProteinMap4':
 		ppList = pp.GetSelectedMembers()
 		if len(ppList[0]) != 2:

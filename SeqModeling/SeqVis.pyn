@@ -420,6 +420,17 @@ def AugmentData(nt, augCfg='a|400|0.02|0.02'):
 			mom = float(fs[2])
 			nt = mom*nt + (1-mom)*nt2			
 			return nt
+		case 's':
+			A = np.zeros((N, 2), np.float32 )
+			n0 = int(fs[1])   # number of points in the first ring.
+			R = float(fs[2])  # the radius of the first ring 
+			G = float(fs[3])  # the gape size relative to R
+			a, r = 0, R
+			for k in range(N):
+				A[k] = r*math.cos(a), r*math.sin(a)
+				n = n0*r/R
+				r += R*G/n
+				a += 2*math.pi/n					
 		case 'x':
 			return nt
 	return np.hstack((nt, A))
