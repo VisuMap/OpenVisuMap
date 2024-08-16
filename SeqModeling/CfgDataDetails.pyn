@@ -1,14 +1,8 @@
-#MenuLabels CreateMaps ProteinMap LoadSeq
+#MenuLabels SeqMaps ProteinMap
 vv.Import('SeqVis.pyn')
 match vv.EventSource.Item:
-	case 'CreateMaps':
-		CreateMaps(list(reversed(pp.SelectedItems)), epochs=10000, winSize=0, repeats=1, ppl=0.15,
+	case 'SeqMaps':
+		CreateSeqMaps(list(reversed(pp.SelectedItems)), epochs=10000, winSize=0, repeats=1, ppl=0.15,
 			is3D=True, initExag=5.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, saveTo=None,  augCfg='a|500|2.0|2.0')
 	case 'ProteinMap':
 		CreateProteinMap(pp.SelectedItems)
-	case 'LoadSeq':
-		txtTable = pp.GetSelectedRegion()
-		if txtTable.Rows * txtTable.Columns == 0:
-			vv.Message('No gene symbol selected')
-		else:
-			AddProteins(txtTable.Matrix[0][0], maxCount=20)

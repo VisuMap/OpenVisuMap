@@ -500,13 +500,14 @@ def ShowMapData(pMap):
 	nt = NewDataset(pSeq, winSize=winSize, augCfg=info.AugCfg)
 	nt.ShowHeatMap().NormalizeView()
 
-def CreateMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
+def CreateSeqMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
 		glyphOpacity=0.5, is3D=False, initExag=10.0, finalExag=1.0, augCfg='a|500|2.0|2.0'):
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
 		vv.Return(0)
 	pTable = AssertProteinTable()
 	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
+	mds.GlyphSet = '36 Clusters'
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.WinSize = winSize	
 	info.AugCfg = augCfg
