@@ -64,4 +64,11 @@ InitDatabase('rcsb seq', 'rcsb_pdb_sequence_40844449e01644e55b26d55d7e14c99d*.cs
 
 ImportPDBs(fs)
 
+from urllib import request
+
+request.urlretrieve('https://files.rcsb.org/download/101M.pdb', '101m.pdb')
+
+pdb = request.urlopen('https://files.rcsb.org/download/101M.pdb').read().decode('utf-8')
+print(pdb[:1000])
+
 '''

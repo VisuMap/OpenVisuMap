@@ -12,7 +12,7 @@ def MainProc(menuKey):
 	match menuKey:
 		case 'SeqMap':
 			CreateSeqMaps(pSelected, epochs=10000, winSize=0, repeats=1, ppl=0.15,  saveTo=dstAtlas, 
-				is3D=True, initExag=4.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='a|500|2.0|2.0')
+				is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='a|500|2.0|2.0')
 		case 'SeqMap2':
 			CreateSeqMaps(pSelected, epochs=10000, winSize=-1, repeats=1, ppl=0.15,  saveTo=dstAtlas,
 				is3D=False, initExag=3.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='b|1.0')
@@ -22,17 +22,20 @@ def MainProc(menuKey):
 				SeqMapByMarkovian(pSelected, epochs=5000, repeats=1, ppl=0.2,  saveTo=dstAtlas,
 					is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.5, glyphOpacity=0.5, augCfg=f'a|{n}|{r}|{w}')
 		case 'SeqMap4': 
-			#aug_cfg = 'M|0.5|0.4'
+			aug_cfg = 'M|0.5|0.4'
 			#aug_cfg = 'm|0.35'
-			aug_cfg = f's|200|0.004|3.0'
+			#aug_cfg = f's|200|0.004|3.0'
 			SeqMapByMarkovian(pSelected, epochs=5000, repeats=1, ppl=0.2,  saveTo=dstAtlas,
 				is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.5, glyphOpacity=0.5, augCfg=aug_cfg)
 		case 'SeqMap5':
 			CreateSeqMaps(pSelected, epochs=5000, winSize=-1, repeats=1, ppl=0.15,  saveTo=dstAtlas,
-				is3D=True, initExag=3.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg=f's|200|0.125|2.5')
+				is3D=False, initExag=3.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg=f's|40|0.04|2.5')
 
 		case 'SeqInfo':
-			ShowSeqInfo(pp, showSeq=True, showTable=True, barView=True, markovTrans=True, useAApair=True)
+			if pSelected.Count == 0:
+				vv.Message('No protein selected')
+				return
+			ShowSeqInfo(pSelected[0], webInfo=False, pdbInfo=False, chmX=True, showSeq=False, showTable=False, barView=False, markovTrans=False, useAApair=False)
 	
 		case 'ProteinMap':
 			CreateProteinMapByCounts(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1, repeats=0)
@@ -41,7 +44,6 @@ def MainProc(menuKey):
 		case 'ProteinMap3':
 			CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=3.0, finalExag=1.5, ppl=0.15, repeats=0)
 		case 'ProteinMap4':
-			'''
 			for kName in [ 'KeyPairs400' ]:
 				ppList = vv.GroupManager.GetGroupLabels(kName)
 				#dt = cs.VectorizeProtein2(ppList, 50, pList, GetProteinTable()).ShowHeatMap()
@@ -55,6 +57,10 @@ def MainProc(menuKey):
 					CreateProteinMap2(pList, ppList=ppList, epochs=2000, 
 						is3D=False, initExag=4.0, ppl=0.125, finalExag=1.25, repeats=1)
 			Save2Atlas()
+			'''
 
 MainProc(vv.EventSource.Item)
+
+
+
 

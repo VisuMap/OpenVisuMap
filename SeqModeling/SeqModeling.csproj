@@ -62,6 +62,7 @@
     <None Include="CfgMapSnapshot.pyn" />
     <None Include="Install.pyn" />
     <None Include="Package.bat" />
+    <None Include="PDBimport.pyn" />
     <None Include="SeqVis.pyn" />
     <None Include="UnInstall.pyn" />
   </ItemGroup>

@@ -17,7 +17,7 @@ def GetProteinTable(dsName):
 	return pTable
 
 def AssertProteinTable():
-	if (vv.Dataset.Columns != 4) or ( vv.Dataset.ColumnSpecList[2].Id != 'ProteinSeq'):
+	if (vv.Dataset.Columns < 4) or ( vv.Dataset.ColumnSpecList[2].Id != 'ProteinSeq'):
 		vv.Message('The current dataset is not a protein table')
 		vv.Return()
 	return vv.Dataset
@@ -259,11 +259,9 @@ def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, 
 
 #-----------------------------------------------------------------------------
 
-def ShowSeqInfo(pMap, showSeq=False, showTable=True, barView=True, useAApair=True, markovTrans=False):
-	if pMap.SelectedItems.Count == 0:
-		vv.Message('No protein selected')
-		return
-	pId = pMap.SelectedItems[0]
+def ShowSeqInfo(pId, webInfo=False, chmX=False, pdbInfo=False, showSeq=False, showTable=True, barView=True, useAApair=True, markovTrans=False):
+	from urllib import request
+	from urllib.request import urlretrieve
 	ds = vv.Dataset
 	rIdx = ds.IndexOfRow(pId)
 	pSeq = ds.GetDataAt(rIdx, 2)
@@ -318,6 +316,38 @@ def ShowSeqInfo(pMap, showSeq=False, showTable=True, barView=True, useAApair=Tru
 		bb.AttributeMode = False
 		bb.Title = sTitle
 		bb.Show()
+	if webInfo:
+		if vv.Dataset.Name.lower().startswith('rcsb'):
+			pId = pId.split('_')[0]
+			vv.StartProcess(f'https://rcsb.org/3d-view/{pId}')
+		else:
+			vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/protein/{pId}')
+	if pdbInfo:		
+		pdbName = pId.split('_')[0] + '.pdb'
+		urlPath = f'https://files.rcsb.org/download/{pdbName}'
+		k = 0
+		for line in request.urlopen(urlPath):
+		#for line in open("C:\\Users\\james\\OneDrive\\Desktop\\6sn1.pdb"):
+			line = line.decode('utf-8').strip('\n')
+			#line = line.strip('\n')
+			if not line.startswith('ATOM'): continue
+			if line[13:15] != 'CA': continue
+			rsName = line[17:20]
+			rsIdx = int(line[23:26])
+			chName = line[21:22]
+			rsX = float(line[30:38])
+			rsY = float(line[38:46])
+			rsZ = float(line[46:54])
+			tmpF = float(line[60:66])
+			print(f'{k}: Name:{rsName}, idx:{rsIdx}, {chName}, P:{rsX},{rsY},{rsZ}, TF:{tmpF}')
+			k+=1
+	if chmX:
+		pdbName = pId.split('_')[0] + '.pdb'
+		urlPath = f'https://files.rcsb.org/download/{pdbName}'
+		localPath = f'c:/temp/{pdbName}'
+		urlretrieve(urlPath, localPath)
+		vv.StartProcess("C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe", localPath)
+
 
 def UpdateBv(bv, pSeq, filterIdx, filterList):
 		bv.Tag = (pSeq, filterIdx, filterList)
@@ -574,6 +604,7 @@ def SeqLabeling(dt, pSeq):
 def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
 		glyphOpacity=0.5, is3D=False, initExag=10.0, finalExag=1.0, augCfg='a|500|2.0|2.0'):
 	tm = mm.ToNumpy(vv.AtlasManager.ReadNumberTable('TestMaps', 'MkvTrans'))
+
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
 		vv.Return(0)
@@ -742,5 +773,13 @@ vv.GroupManager.SetGroupLabels('KeyPairs210r', ppList)
 pTest = 'FMKIFSESHKTVFVVDHCPYMAESCRQHVEFDMLIIPLAPISKSLWTCSVESSMEYCRIMYDIFPFKKLVNFIVSDSGAHVLNSWTQEDQNLQELMAALAAVGPPNPRADPECCSILHGLVAAVETLCKITEYQHEARTLLMNAERVGNRGRIICITNAKSDSHVRMLEDCVQETIHEHNKLAANSDHLMQIQKCELVLIHTYPVGEDSLVSDRSKKELSPVLTSEVHSVRAGRHLATKLNILVQQHFDLASTTITNIPMYDVELLHHKDAHVDFLETITLKWCTPRTNNIELHYCTGAYRISPVDVNSRPSSCLTNFLLNGRSVLLEQPSKVISHMLSSHGGEIFLHVLSSSRSILEDPPSISEGCGGRVTDYRITDFGEFMRENRLTPFLDPRYKIDGSLEVPLERAKDQLEKHTRYWPMIISQTTIFNMQAVVPLASVIVKESLTEEDVLNCQKTIYNLVDMERKNDPLPISPKRDEQYRIMWNELETLVRAHINNSEKHQRVLECLMACRSKP'
 print(pTest[::2])
 vv.GroupManager.SetGroupLabels('6sn1-sf', [pTest])
+
+aaList = []
+for k in range(0, len(fs), 3):
+	aaList.append(f'{fs[k+2]}:{fs[k+1]}:{fs[k]}')
+print(aaList)
+vv.GroupManager.SetGroupLabels('AA-List', aaList)
+
+vv.StartProcess("C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe", "C:\\Users\\james\\OneDrive\\Desktop\\6sn1.pdb")
 
 '''
