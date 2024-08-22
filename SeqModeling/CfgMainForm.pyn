@@ -1,4 +1,4 @@
-#MenuLabels SeqMap SeqMap2 SeqMap3 SeqMap4 SeqMap5 SeqInfo - ProteinMap ProteinMap2 ProteinMap3 ProteinMap4
+#MenuLabels SeqMap SeqMap2 SeqMap3 SeqMap4 SeqMap5 P-ChmX P-Web P-PDB P-Seq P-Table P-Bar P-Bar2 P-Mkv - ProteinMap ProteinMap2 ProteinMap3 ProteinMap4
 
 vv.Import('SeqVis.pyn')
 
@@ -31,11 +31,20 @@ def MainProc(menuKey):
 			CreateSeqMaps(pSelected, epochs=5000, winSize=-1, repeats=1, ppl=0.15,  saveTo=dstAtlas,
 				is3D=False, initExag=3.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg=f's|40|0.04|2.5')
 
-		case 'SeqInfo':
+		case menuKey if menuKey.startswith('P-'):
 			if pSelected.Count == 0:
 				vv.Message('No protein selected')
 				return
-			ShowSeqInfo(pSelected[0], webInfo=False, pdbInfo=False, chmX=True, showSeq=False, showTable=False, barView=False, markovTrans=False, useAApair=False)
+			pId = pSelected[0]
+			match menuKey[2:]:
+				case 'ChmX': ShowSeqInfo(pId, chmX=True)
+				case 'Web':  ShowSeqInfo(pId, webInfo=True)
+				case 'Seq':  ShowSeqInfo(pId, showSeq=True)
+				case 'Table':ShowSeqInfo(pId, showTable=True, useAApair=False)
+				case 'Bar':  ShowSeqInfo(pId, barView=True, useAApair=False)
+				case 'Bar2': ShowSeqInfo(pId, showTable=True, barView=True, useAApair=True)
+				case 'Mkv':  ShowSeqInfo(pId, markovTrans=True)
+				case 'PDB':  ShowSeqInfo(pId, pdbInfo=True)
 	
 		case 'ProteinMap':
 			CreateProteinMapByCounts(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1, repeats=0)

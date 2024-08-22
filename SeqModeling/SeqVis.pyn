@@ -259,9 +259,10 @@ def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, 
 
 #-----------------------------------------------------------------------------
 
-def ShowSeqInfo(pId, webInfo=False, chmX=False, pdbInfo=False, showSeq=False, showTable=True, barView=True, useAApair=True, markovTrans=False):
+def ShowSeqInfo(pId, webInfo=False, chmX=False, pdbInfo=False, showSeq=False, showTable=False, barView=False, useAApair=True, markovTrans=False):
 	from urllib import request
 	from urllib.request import urlretrieve
+	from os.path import exists
 	ds = vv.Dataset
 	rIdx = ds.IndexOfRow(pId)
 	pSeq = ds.GetDataAt(rIdx, 2)
@@ -343,10 +344,12 @@ def ShowSeqInfo(pId, webInfo=False, chmX=False, pdbInfo=False, showSeq=False, sh
 			k+=1
 	if chmX:
 		pdbName = pId.split('_')[0] + '.pdb'
-		urlPath = f'https://files.rcsb.org/download/{pdbName}'
 		localPath = f'c:/temp/{pdbName}'
-		urlretrieve(urlPath, localPath)
-		vv.StartProcess("C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe", localPath)
+		if not exists(localPath):
+			urlPath = f'https://files.rcsb.org/download/{pdbName}'
+			urlretrieve(urlPath, localPath)
+		progPath = "C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe"
+		vv.StartProcess(progPath, localPath)
 
 
 def UpdateBv(bv, pSeq, filterIdx, filterList):
