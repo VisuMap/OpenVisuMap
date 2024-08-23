@@ -260,9 +260,9 @@ def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, 
 #-----------------------------------------------------------------------------
 
 def ShowSeqInfo(pId, webInfo=False, chmX=False, pdbInfo=False, showSeq=False, showTable=False, barView=False, useAApair=True, markovTrans=False):
-	from urllib import request
-	from urllib.request import urlretrieve
 	from os.path import exists
+	from urllib.request import urlretrieve
+
 	ds = vv.Dataset
 	rIdx = ds.IndexOfRow(pId)
 	pSeq = ds.GetDataAt(rIdx, 2)
@@ -324,24 +324,7 @@ def ShowSeqInfo(pId, webInfo=False, chmX=False, pdbInfo=False, showSeq=False, sh
 		else:
 			vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/protein/{pId}')
 	if pdbInfo:		
-		pdbName = pId.split('_')[0] + '.pdb'
-		urlPath = f'https://files.rcsb.org/download/{pdbName}'
-		k = 0
-		for line in request.urlopen(urlPath):
-		#for line in open("C:\\Users\\james\\OneDrive\\Desktop\\6sn1.pdb"):
-			line = line.decode('utf-8').strip('\n')
-			#line = line.strip('\n')
-			if not line.startswith('ATOM'): continue
-			if line[13:15] != 'CA': continue
-			rsName = line[17:20]
-			rsIdx = int(line[23:26])
-			chName = line[21:22]
-			rsX = float(line[30:38])
-			rsY = float(line[38:46])
-			rsZ = float(line[46:54])
-			tmpF = float(line[60:66])
-			print(f'{k}: Name:{rsName}, idx:{rsIdx}, {chName}, P:{rsX},{rsY},{rsZ}, TF:{tmpF}')
-			k+=1
+		DisplayPDB(pId, pSeq)
 	if chmX:
 		pdbName = pId.split('_')[0] + '.pdb'
 		localPath = f'c:/temp/{pdbName}'
@@ -351,6 +334,60 @@ def ShowSeqInfo(pId, webInfo=False, chmX=False, pdbInfo=False, showSeq=False, sh
 		progPath = "C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe"
 		vv.StartProcess(progPath, localPath)
 
+def DisplayPDB(pId, pSeq):
+	from os.path import exists
+	from urllib.request import urlretrieve
+
+	pdbName = pId.split('_')[0] + '.pdb'
+	localPath = f'c:/temp/{pdbName}'
+	if not exists(localPath):
+		urlPath = f'https://files.rcsb.org/download/{pdbName}'
+		urlretrieve(urlPath, localPath)
+
+	aaList = vv.GroupManager.GetGroupLabels('AA-List')
+	P3 = {fs[1]:fs[0] for fs in [aa.split(':') for aa in aaList]}
+	bsList = New.BodyList()
+	for k in range(len(pSeq)):
+		b = New.Body('R'+str(k))		
+		b.Type = 35
+		b.X = b.Y = b.Z = 0.0
+		b.Name = ''
+		bsList.Add(b)
+
+	try:
+		for L in open(localPath):
+			if L.startswith('TER'):
+				break			
+			if not L.startswith('ATOM'): 
+				continue
+			if L[13:15] != 'CA': 
+				continue
+			rsName = L[17:20]			
+			chName = L[21:22]
+			rsIdx = int(L[22:26]) - 1
+			if rsIdx < 0:
+				continue
+			rsX, rsY, rsZ = float(L[30:38]), float(L[38:46]), float(L[46:54])
+			tmpF = float(L[60:66])
+			if rsIdx < len(bsList):
+				b = bsList[rsIdx]
+				b.X, b.Y, b.Z = rsX, rsY, rsZ
+				p1 = P3[rsName] if rsName in P3 else 'X'
+				b.Name = p1 + '.' + rsName
+				if p1 in P:
+					b.Type = P[p1]
+	except Exception as err:
+		vv.Message('Last Line:\n' + L)
+
+	mp = New.Map3DView(bsList)
+	info = MapInfo()
+	info.pId = pId
+	info.pLen = len(pSeq)
+	mp.Description = info.ToStr()
+	mp.Title = f'{pId}: Len:{len(pSeq)}'
+	mp.GlyphSet = '36 Clusters'
+	mp.Show()
+	mp.NormalizeView()
 
 def UpdateBv(bv, pSeq, filterIdx, filterList):
 		bv.Tag = (pSeq, filterIdx, filterList)
@@ -775,12 +812,12 @@ vv.GroupManager.SetGroupLabels('KeyPairs210r', ppList)
 
 pTest = 'FMKIFSESHKTVFVVDHCPYMAESCRQHVEFDMLIIPLAPISKSLWTCSVESSMEYCRIMYDIFPFKKLVNFIVSDSGAHVLNSWTQEDQNLQELMAALAAVGPPNPRADPECCSILHGLVAAVETLCKITEYQHEARTLLMNAERVGNRGRIICITNAKSDSHVRMLEDCVQETIHEHNKLAANSDHLMQIQKCELVLIHTYPVGEDSLVSDRSKKELSPVLTSEVHSVRAGRHLATKLNILVQQHFDLASTTITNIPMYDVELLHHKDAHVDFLETITLKWCTPRTNNIELHYCTGAYRISPVDVNSRPSSCLTNFLLNGRSVLLEQPSKVISHMLSSHGGEIFLHVLSSSRSILEDPPSISEGCGGRVTDYRITDFGEFMRENRLTPFLDPRYKIDGSLEVPLERAKDQLEKHTRYWPMIISQTTIFNMQAVVPLASVIVKESLTEEDVLNCQKTIYNLVDMERKNDPLPISPKRDEQYRIMWNELETLVRAHINNSEKHQRVLECLMACRSKP'
 print(pTest[::2])
+
+
 vv.GroupManager.SetGroupLabels('6sn1-sf', [pTest])
 
-aaList = []
-for k in range(0, len(fs), 3):
-	aaList.append(f'{fs[k+2]}:{fs[k+1]}:{fs[k]}')
-print(aaList)
+
+
 vv.GroupManager.SetGroupLabels('AA-List', aaList)
 
 vv.StartProcess("C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe", "C:\\Users\\james\\OneDrive\\Desktop\\6sn1.pdb")
