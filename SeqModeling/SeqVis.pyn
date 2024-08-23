@@ -347,17 +347,10 @@ def DisplayPDB(pId, pSeq):
 	aaList = vv.GroupManager.GetGroupLabels('AA-List')
 	P3 = {fs[1]:fs[0] for fs in [aa.split(':') for aa in aaList]}
 	bsList = New.BodyList()
-	for k in range(len(pSeq)):
-		b = New.Body('R'+str(k))		
-		b.Type = 35
-		b.X = b.Y = b.Z = 0.0
-		b.Name = ''
-		bsList.Add(b)
 
 	try:
 		for L in open(localPath):
-			if L.startswith('TER'):
-				break			
+			#if L.startswith('TER'): break
 			if not L.startswith('ATOM'): 
 				continue
 			if L[13:15] != 'CA': 
@@ -369,25 +362,52 @@ def DisplayPDB(pId, pSeq):
 				continue
 			rsX, rsY, rsZ = float(L[30:38]), float(L[38:46]), float(L[46:54])
 			tmpF = float(L[60:66])
-			if rsIdx < len(bsList):
-				b = bsList[rsIdx]
-				b.X, b.Y, b.Z = rsX, rsY, rsZ
-				p1 = P3[rsName] if rsName in P3 else 'X'
-				b.Name = p1 + '.' + rsName
-				if p1 in P:
-					b.Type = P[p1]
+			b = New.Body(f'R{rsIdx}.{bsList.Count}')
+			b.X, b.Y, b.Z = rsX, rsY, rsZ
+			p1 = P3[rsName] if rsName in P3 else 'X'
+			b.Name = p1 + '.' + rsName + '.' + chName
+			b.Type = ord(chName[0]) - ord('A')
+			#if p1 in P:	b.Type = P[p1]
+			bsList.Add(b)
 	except Exception as err:
 		vv.Message('Last Line:\n' + L)
+
+	bsList = Interporlate(bsList, 5)
 
 	mp = New.Map3DView(bsList)
 	info = MapInfo()
 	info.pId = pId
 	info.pLen = len(pSeq)
 	mp.Description = info.ToStr()
-	mp.Title = f'{pId}: Len:{len(pSeq)}'
+	mp.Title = f'{pId}: Len:{bsList.Count}/{len(pSeq)}'
 	mp.GlyphSet = '36 Clusters'
+	mp.ReadOnly = True
+	mp.ShowPerformance = False
 	mp.Show()
 	mp.NormalizeView()
+
+def Interporlate(bsList, N):
+	bs = New.BodyList()
+	b0 = bsList[0]
+	ch0 = b0.Name.split('.')[2][0]
+	for k in range(1, bsList.Count):
+		b1 = bsList[k]
+		ch1 = b1.Name.split('.')[2][0]
+		if ch1 == ch0:
+			for n in range(1, N):			
+				b = New.Body('I'+str(bs.Count))
+				b.Name = b0.Name
+				b.Type = b0.Type
+				f = float(n)/N
+				g = 1.0 - f
+				b.X = f*b0.X + g*b1.X
+				b.Y = f*b0.Y + g*b1.Y
+				b.Z = f*b0.Z + g*b1.Z
+				bs.Add(b)
+		bs.Add(b1)
+		b0, ch0 = b1, ch1
+	return bs
+
 
 def UpdateBv(bv, pSeq, filterIdx, filterList):
 		bv.Tag = (pSeq, filterIdx, filterList)
