@@ -336,31 +336,17 @@ def ShowSeqInfo(pId, webInfo=False, chmX=False, pdbInfo=False, showSeq=False, sh
 
 def ParseAtom(L, isCif):
 	if isCif:
-		sz = len(L)
-		if sz == 89:
-			if L[15:17] != 'CA': 
+		fs = L.split()
+		if len(fs) == 21:
+			if fs[3] != 'CA':
 				return False, None, None, None, None, None, None
-			rsName = L[21:24]			
-			chName = L[25:27].strip(' ')
-			rsIdx = int(L[29:33]) - 1
-			rsX, rsY, rsZ = float(L[35:43]), float(L[43:50]), float(L[50:58])
-		elif sz == 106: 
-			if L[15:17] != 'CA': 
-				return False, None, None, None, None, None, None
-			rsName = L[23:26]
-			chName = L[27:29].strip(' ')
-			rsIdx = int(L[31:34]) - 1
-			rsX, rsY, rsZ = float(L[38:48]), float(L[48:58]), float(L[58:68])
-		elif sz == 94:
-			if L[16:18] != 'CA': 
-				return False, None, None, None, None, None, None
-			rsName = L[22:25]
-			chName = L[26:28].strip(' ')
-			rsIdx = int(L[31:36]) - 1
-			rsX, rsY, rsZ = float(L[38:46]), float(L[46:54]), float(L[54:62])
+			rsName = fs[5]
+			chName = fs[6]
+			rsIdx = int(fs[8]) - 1
+			rsX, rsY, rsZ = float(fs[10]), float(fs[11]), float(fs[12])			
 		else:
-			vv.Message(f'Invalid record: {len(L)}: |{L}|')
-			vv.Return()
+			vv.Message(f'Invalid record: {len(fs)}: |{L}|')
+			vv.Return()		
 	else:
 		# parsing the PDB record
 		if L[13:15] != 'CA': 
@@ -385,7 +371,7 @@ def DisplayPDB(pId):
 	from os.path import exists
 	from urllib.request import urlretrieve
 	
-	pdbName = pId.split('_')[0] + '.pdb'
+	pdbName = pId.split('_')[0] + '.cif'
 	localPath = f'c:/temp/{pdbName}'
 
 	if not exists(localPath):
@@ -417,15 +403,15 @@ def DisplayPDB(pId):
 	except Exception as err:
 		print(f'Last Line:\n|{L}|')
 
-
+	seqLen = bsList.Count
 	bsList = Interporlate(bsList, 5)
 
 	mp = New.Map3DView(bsList)
 	info = MapInfo()
 	info.pId = pId
-	info.pLen = bsList.Count
+	info.pLen = seqLen
 	mp.Description = info.ToStr()
-	mp.Title = f'{pId}: Len:{bsList.Count}'
+	mp.Title = f'{pId}: Len:{seqLen}'
 	mp.GlyphSet = '36 Clusters'
 	mp.ReadOnly = True
 	mp.ShowPerformance = False
