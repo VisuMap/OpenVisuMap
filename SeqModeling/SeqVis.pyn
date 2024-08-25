@@ -260,9 +260,6 @@ def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, 
 #-----------------------------------------------------------------------------
 
 def ShowSeqInfo(pId, webInfo=False, chmX=False, pdbInfo=False, showSeq=False, showTable=False, barView=False, useAApair=True, markovTrans=False):
-	from os.path import exists
-	from urllib.request import urlretrieve
-
 	ds = vv.Dataset
 	rIdx = ds.IndexOfRow(pId)
 	pSeq = ds.GetDataAt(rIdx, 2)
@@ -326,71 +323,50 @@ def ShowSeqInfo(pId, webInfo=False, chmX=False, pdbInfo=False, showSeq=False, sh
 	if pdbInfo:		
 		DisplayPDB(pId)
 	if chmX:
-		pdbName = pId.split('_')[0] + '.pdb'
-		localPath = f'c:/temp/{pdbName}'
-		if not exists(localPath):
-			urlPath = f'https://files.rcsb.org/download/{pdbName}'
-			urlretrieve(urlPath, localPath)
+		localPath = Download3DInfo(pId.split('_')[0])
 		progPath = "C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe"
 		vv.StartProcess(progPath, localPath)
 
-def ParseAtom(L, isCif):
-	if isCif:
-		fs = L.split()
-		if len(fs) == 21:
-			if fs[3] != 'CA':
-				return False, None, None, None, None, None, None
-			rsName = fs[5]
-			chName = fs[6]
-			rsIdx = int(fs[8]) - 1
-			rsX, rsY, rsZ = float(fs[10]), float(fs[11]), float(fs[12])			
-		else:
-			vv.Message(f'Invalid record: {len(fs)}: |{L}|')
-			vv.Return()		
-	else:
-		# parsing the PDB record
-		if L[13:15] != 'CA': 
-			return False, None, None, None, None, None, None	
-		rsName = L[17:20]			
-		chName = L[21:22].strip(' ')
-		rsIdx = int(L[22:26]) - 1
-		rsX, rsY, rsZ = float(L[30:38]), float(L[38:46]), float(L[46:54])
-	return True, rsName, chName, rsIdx, rsX, rsY, rsZ
-
-'''
-L = 'ATOM   1     N  N   . CYS A  1 28   ? 316.323 327.870 185.290 1.00 143.22 ? 28   CYS A N   1'
-pId = '6WG3_5'
-pId = '3KVN_1'
-pId = '6WG3_5'
-pId = '8EM4_1'
-DisplayPDB(pId)
-print(len(L))
-'''
-
-def DisplayPDB(pId):
+def Download3DInfo(pId):
 	from os.path import exists
 	from urllib.request import urlretrieve
-	
-	pdbName = pId.split('_')[0] + '.cif'
-	localPath = f'c:/temp/{pdbName}'
-
+	fileName = pId + '.cif'
+	localPath = 'c:/temp/' + fileName
 	if not exists(localPath):
-		urlPath = f'https://files.rcsb.org/download/{pdbName}'
-		urlretrieve(urlPath, localPath)
+		urlretrieve(f'https://files.rcsb.org/download/{fileName}', localPath)
+	return localPath
 
+def DisplayPDB(pId):
 	aaList = vv.GroupManager.GetGroupLabels('AA-List')
 	P3 = {fs[1]:fs[0] for fs in [aa.split(':') for aa in aaList]}
 	bsList = New.BodyList()
 	ch2idx = {}
-
-	isCif = pdbName.endswith('.cif')
-
+	localPath = Download3DInfo(pId.split('_')[0])
 	try:
 		for L in open(localPath):
 			if not L.startswith('ATOM'): 
 				continue
-			isOK, rsName, chName, rsIdx, rsX, rsY, rsZ = ParseAtom(L, isCif)
-			if not isOK: continue
+			'''
+			# for parsing PDB record
+			if L[13:15] != 'CA': 
+				continue
+			rsName = L[17:20]			
+			chName = L[21:22].strip(' ')
+			rsIdx = int(L[22:26]) - 1
+			rsX, rsY, rsZ = float(L[30:38]), float(L[38:46]), float(L[46:54])
+			'''
+
+			fs = L.split()
+			if len(fs) == 21:
+				if fs[3] != 'CA':
+					continue
+				rsName = fs[5]
+				chName = fs[6] + '_' + fs[20]
+				rsIdx = int(fs[8]) - 1
+				rsX, rsY, rsZ = float(fs[10]), float(fs[11]), float(fs[12])			
+			else:
+				vv.Message(f'Invalid record: {len(fs)}: |{L}|')
+				vv.Return()		
 
 			b = New.Body(f'R{rsIdx}.{bsList.Count}')
 			b.X, b.Y, b.Z = rsX, rsY, rsZ
@@ -404,7 +380,7 @@ def DisplayPDB(pId):
 		print(f'Last Line:\n|{L}|')
 
 	seqLen = bsList.Count
-	bsList = Interporlate(bsList, 5)
+	bsList = Interporlate(bsList, 10)
 
 	mp = New.Map3DView(bsList)
 	info = MapInfo()

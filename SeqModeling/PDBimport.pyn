@@ -52,23 +52,17 @@ def ImportPDBs(fileList):
 
 '''
 
-fs = [ "C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_40844449e01644e55b26d55d7e14c99d_00001-02500.csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_40844449e01644e55b26d55d7e14c99d_02501-05000.csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_40844449e01644e55b26d55d7e14c99d_05001-07500.csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_40844449e01644e55b26d55d7e14c99d_07501-10000.csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_40844449e01644e55b26d55d7e14c99d_10001-12500.csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_40844449e01644e55b26d55d7e14c99d_12501-15000.csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_40844449e01644e55b26d55d7e14c99d_15001-17500.csv" ]
+fileList = [
+	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_9302dcfd93e9921754d4ab77a1ce5671_07501-10000 (1).csv",
+	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_9302dcfd93e9921754d4ab77a1ce5671_00001-02500.csv",
+	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_9302dcfd93e9921754d4ab77a1ce5671_02501-05000.csv",
+	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_9302dcfd93e9921754d4ab77a1ce5671_05001-07500.csv"]
 
-InitDatabase('rcsb seq', 'rcsb_pdb_sequence_40844449e01644e55b26d55d7e14c99d*.csv')
-
-ImportPDBs(fs)
+InitDatabase('rcsb immune systems', 'rcsb_pdb_sequence_9302dcfd93e9921754d4ab77a1ce5671 0-10000')
+ImportPDBs(fileList)
 
 from urllib import request
-
 request.urlretrieve('https://files.rcsb.org/download/101M.pdb', '101m.pdb')
-
 pdb = request.urlopen('https://files.rcsb.org/download/101M.pdb').read().decode('utf-8')
-print(pdb[:1000])
 
 '''
