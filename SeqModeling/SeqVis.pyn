@@ -574,20 +574,15 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
 def RunMds(mds, repeats=1, glyphSize=0.5, glyphOpacity=0.5, info=None):
 	mds.Repeats = repeats
 	mds.Reset().Start()
+	mds.GlyphOpacity = glyphOpacity
+	mds.GlyphSize = glyphSize
+	mds.Description = info.ToStr() if info is not None else 'Map created by RunMds'
 	if not mds.Completed: 
 		vv.Return(0)
 	if info is not None:
 		info.DDM = mds.DataDim
 	if repeats == 1:
 		mds.ShowSnapshot()
-	if repeats >= 1:
-		mpDesc = info.ToStr() if info is not None else 'Map created by RunMds'
-		mpList = list(vv.FindFormList(vv.LastView.Name))
-		for mp in mpList[-repeats:]:
-			mp.GlyphOpacity = glyphOpacity
-			mp.GlyphSize = glyphSize
-			mp.Description  = mpDesc
-			mp.Redraw()
 	return mds
 
 #-------------------------------------------------------------------
