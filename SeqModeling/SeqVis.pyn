@@ -380,7 +380,7 @@ def DisplayPDB(pId):
 		print(f'Last Line:\n|{L}|')
 
 	seqLen = bsList.Count
-	bsList = Interporlate(bsList, 10)
+	bsList = Interporlate(bsList, 3)
 
 	mp = New.Map3DView(bsList)
 	info = MapInfo()
@@ -395,28 +395,52 @@ def DisplayPDB(pId):
 	mp.Show()
 	mp.NormalizeView()
 
-def Interporlate(bsList, N):
-	bs = New.BodyList()
-	b0 = bsList[0]
-	ch0 = b0.Name.split('.')[2][0]
-	for k in range(1, bsList.Count):
-		b1 = bsList[k]
-		ch1 = b1.Name.split('.')[2][0]
-		if ch1 == ch0:
-			for n in range(1, N):			
-				b = New.Body('I'+str(bs.Count))
-				b.Name = b0.Name
-				b.Type = b0.Type
-				f = float(n)/N
-				g = 1.0 - f
-				b.X = f*b0.X + g*b1.X
-				b.Y = f*b0.Y + g*b1.Y
-				b.Z = f*b0.Z + g*b1.Z
-				bs.Add(b)
-		bs.Add(b1)
-		b0, ch0 = b1, ch1
-	return bs
+# eps is a small positive number for the local convexity
+def DoInterpolate(D, rp=3, eps=0.125):
+	L = D.shape[0]
+	if L <= 2: 
+		return D
+	for n in range(rp):
+		K = 2*L - 1
+		P = np.ndarray([K, 3])
+		P[0] = D[0]
+		# initializing the new points with the median points
+		for k in range(1, L):
+			P[2*k-1] = 0.5*(D[k-1] + D[k])
+			P[2*k] = D[k]
+		# added the local convexity to the new points.
+		for k in range(3, K-2, 2):
+			P[k] += eps*(2*P[k] - P[k-3] - P[k+3])
+		if K > 4:
+			P[1] += eps*(P[1] - P[4])
+			P[K-2] += eps*(P[K-2] - P[K-5])
+		D = P
+	return D
 
+def Interporlate(bsList, rp):
+	bs = New.BodyList()
+	k0 = 0
+	t0 = bsList[k0].Type
+	for k in range(bsList.Count+1):
+		if (k == bsList.Count) or (bsList[k].Type != t0):
+			I = k - k0
+			D = np.ndarray((I, 3))
+			for i in range(I):
+				b = bsList[k0+i]
+				D[i] = b.X, b.Y, b.Z
+			D = DoInterpolate(D)
+			L = 2**rp
+			for n in range(D.shape[0]):
+				b0 = bsList[k0 + n//L]
+				id = b0.Id if n%L==0 else 'i'+str(bs.Count)
+				b = New.Body( id )
+				b.Name, b.Type = b0.Name, b0.Type
+				b.X, b.Y, b.Z = D[n]
+				bs.Add(b)
+			if k < bsList.Count:
+				k0 = k
+				t0 = bsList[k0].Type
+	return bs
 
 def UpdateBv(bv, pSeq, filterIdx, filterList):
 		bv.Tag = (pSeq, filterIdx, filterList)
