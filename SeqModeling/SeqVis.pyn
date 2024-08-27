@@ -397,10 +397,9 @@ def DisplayPDB(pId):
 
 # eps is a small positive number for the local convexity
 def DoInterpolate(D, rp=3, eps=0.125):
-	L = D.shape[0]
-	if L <= 2: 
-		return D
+	if D.shape[0] <= 2: return D
 	for n in range(rp):
+		L = D.shape[0]
 		K = 2*L - 1
 		P = np.ndarray([K, 3])
 		P[0] = D[0]
