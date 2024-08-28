@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ShowSeq ReCreateMap
+#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen
 
 vv.Import('SeqVis.pyn')
 
@@ -14,4 +14,6 @@ match vv.EventSource.Item:
 	case 'ReCreateMap':
 		AssertSeqMap(pp)
 		ReCreateMap(pp)
+	case 'Smoothen':
+		SmoothenCurve(pp)
 

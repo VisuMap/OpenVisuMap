@@ -336,7 +336,7 @@ def Download3DInfo(pId):
 		urlretrieve(f'https://files.rcsb.org/download/{fileName}', localPath)
 	return localPath
 
-def DisplayPDB(pId):
+def DisplayPDB(pId, rp=3, eps=0.1):
 	aaList = vv.GroupManager.GetGroupLabels('AA-List')
 	P3 = {fs[1]:fs[0] for fs in [aa.split(':') for aa in aaList]}
 	bsList = New.BodyList()
@@ -379,15 +379,14 @@ def DisplayPDB(pId):
 	except Exception as err:
 		print(f'Last Line:\n|{L}|')
 
-	seqLen = bsList.Count
-	bsList = Interporlate(bsList, 3)
+	bsList = Interporlate(bsList, rp, eps)
 
 	mp = New.Map3DView(bsList)
 	info = MapInfo()
 	info.pId = pId
-	info.pLen = seqLen
+	info.pLen = bsList.Count
 	mp.Description = info.ToStr()
-	mp.Title = f'{pId}: Len:{seqLen}'
+	mp.Title = f'{pId}: Len:{bsList.Count}'
 	mp.GlyphSet = '36 Clusters'
 	mp.ReadOnly = True
 	mp.ShowPerformance = False
@@ -396,7 +395,7 @@ def DisplayPDB(pId):
 	mp.NormalizeView()
 
 # eps is a small positive number for the local convexity
-def DoInterpolate(D, rp=3, eps=0.125):
+def DoInterpolate(D, rp, eps):
 	if D.shape[0] <= 2: return D
 	for n in range(rp):
 		L = D.shape[0]
@@ -416,7 +415,7 @@ def DoInterpolate(D, rp=3, eps=0.125):
 		D = P
 	return D
 
-def Interporlate(bsList, rp):
+def Interporlate(bsList, rp, eps):
 	bs = New.BodyList()
 	k0 = 0
 	t0 = bsList[k0].Type
@@ -427,7 +426,7 @@ def Interporlate(bsList, rp):
 			for i in range(I):
 				b = bsList[k0+i]
 				D[i] = b.X, b.Y, b.Z
-			D = DoInterpolate(D)
+			D = DoInterpolate(D, rp, eps)
 			L = 2**rp
 			for n in range(D.shape[0]):
 				b0 = bsList[k0 + n//L]
@@ -828,6 +827,28 @@ def ReCreateMap(pMap):
 	mds.GlyphOpacity = pMap.GlyphOpacity
 	RunMds(mds, info=info)
 	mds.Close()
+
+cs2 = New.CsObject('''
+public void SmoothenBodyList(IList<IBody> bs) {
+	var B = New.NumberTable(bs, 3).Matrix;
+	for(int k=1; k<(bs.Count-1); k++) {
+		var b = bs[k];
+		if ( (bs[k-1].Type == b.Type) && (b.Type == bs[k+1].Type) ){
+			var P = B[k-1];
+			var Q = B[k+1];
+			b.X = 0.5*(P[0] + Q[0]);
+			b.Y = 0.5*(P[1] + Q[1]);
+			b.Z = 0.5*(P[2] + Q[2]);
+		}
+	}
+}
+''')
+
+
+def SmoothenCurve(pMap, rp=10):
+	for n in range(rp):
+		cs2.SmoothenBodyList(pMap.BodyList)
+	pMap.RedrawAll()
 
 '''========================================================================================
 ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
