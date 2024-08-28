@@ -344,41 +344,39 @@ def DisplayPDB(pId, rp=3, eps=0.1):
 	localPath = Download3DInfo(pId.split('_')[0])
 	try:
 		for L in open(localPath):
-			if not L.startswith('ATOM'): 
-				continue
-			'''
-			# for parsing PDB record
-			if L[13:15] != 'CA': 
-				continue
-			rsName = L[17:20]			
-			chName = L[21:22].strip(' ')
-			rsIdx = int(L[22:26]) - 1
-			rsX, rsY, rsZ = float(L[30:38]), float(L[38:46]), float(L[46:54])
-			'''
-
-			fs = L.split()
-			if len(fs) == 21:
-				if fs[3] != 'CA':
-					continue
-				rsName = fs[5]
-				chName = fs[6] + '_' + fs[20]
-				rsIdx = int(fs[8]) - 1
-				rsX, rsY, rsZ = float(fs[10]), float(fs[11]), float(fs[12])			
+			if L.startswith('ATOM'):
+				fs = L.split()
+				if len(fs) == 21:
+					if fs[3] != 'CA':
+						continue
+					rsName = fs[5]
+					chName = fs[6] + '_' + fs[20]
+					rsIdx = int(fs[8]) - 1
+					rsX, rsY, rsZ = float(fs[10]), float(fs[11]), float(fs[12])			
+				else:
+					vv.Message(f'Invalid record: {len(fs)}: |{L}|')
+					vv.Return()		
+	
+				b = New.Body(f'R{rsIdx}.{bsList.Count}')
+				b.X, b.Y, b.Z = rsX, rsY, rsZ
+				p1 = P3[rsName] if rsName in P3 else 'X'
+				b.Name = p1 + '.' + rsName + '.' + chName
+				if chName not in ch2idx:
+					ch2idx[chName] = len(ch2idx)
+				b.Type = ch2idx[chName]
+				bsList.Add(b)
 			else:
-				vv.Message(f'Invalid record: {len(fs)}: |{L}|')
-				vv.Return()		
-
-			b = New.Body(f'R{rsIdx}.{bsList.Count}')
-			b.X, b.Y, b.Z = rsX, rsY, rsZ
-			p1 = P3[rsName] if rsName in P3 else 'X'
-			b.Name = p1 + '.' + rsName + '.' + chName
-			if chName not in ch2idx:
-				ch2idx[chName] = len(ch2idx)
-			b.Type = ch2idx[chName]
-			bsList.Add(b)
+				if bsList.Count == 0:
+					continue
+				else:
+					if L.startswith('#'):
+						break
+					else:
+						continue
 	except Exception as err:
-		print(f'Last Line:\n|{L}|')
+		print(f'Last Line:\n {bsList.Count}: |{L}|')
 
+	bsList[0].Id = pId
 	bsList = Interporlate(bsList, rp, eps)
 
 	mp = New.Map3DView(bsList)
