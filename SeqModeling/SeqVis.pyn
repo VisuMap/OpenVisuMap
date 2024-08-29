@@ -343,53 +343,54 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 	ch2idx = {}
 	localPath = Download3DInfo(pId.split('_')[0])
 	try:
-		skipLine = True
-		for L in open(localPath):
-			if L.startswith('ATOM'):
-				skipLine = False
-			if skipLine:
-				continue
+		with open(localPath) as inFile:
+			# skip to the atom site section
+			for L in inFile:
+				if L.startswith('_atom_site.group_PDB'):
+					break
+			for L in inFile:
+				if L[0] == '_':
+					continue
+				if L[0] == '#': # finished the _atom_site section
+					break 
 
-			fs = L.split()
-			if fs[0][0] == '#': # finished the ATOM section
-				break 
-			if len(fs) != 21:
-				vv.Message(f'Invalid record: {len(fs)}: |{L}|')
-				vv.Return()		
-
-			rsX, rsY, rsZ = float(fs[10]), float(fs[11]), float(fs[12])	
-			rsName = fs[5]
-			chName = fs[6] + '_' + fs[20]
-			
-			if fs[0] == 'ATOM' and fs[3] == 'CA':
-				rsIdx = int(fs[8]) - 1
-				bId = f'R{rsIdx}.{bsList.Count}'
-			elif fs[0] == 'HETATM':
-				bId = f'H.{fs[3]}.{bsList2.Count}'
-			else:
-				continue	
-
-			b = New.Body(bId)
-			b.X, b.Y, b.Z = rsX, rsY, rsZ
-			p1 = P3[rsName] if rsName in P3 else 'X'
-			b.Name = p1 + '.' + rsName + '.' + chName
-			if chName not in ch2idx:
-				ch2idx[chName] = len(ch2idx)
-			b.Type = ch2idx[chName]
-
-			if b.Id[0] == 'H':
-				b.Highlighted = True
-				bsList2.Add(b)
-			else:
-				bsList.Add(b)
-
+				fs = L.split()
+				if len(fs) != 21:
+					vv.Message(f'Invalid record: {len(fs)}: |{L}|')
+					vv.Return()		
+	
+				rsX, rsY, rsZ = float(fs[10]), float(fs[11]), float(fs[12])	
+				rsName = fs[5]
+				chName = fs[6] + '_' + fs[20]
+				
+				if fs[0] == 'ATOM' and fs[3] == 'CA':
+					rsIdx = int(fs[8]) - 1
+					bId = f'R{rsIdx}.{bsList.Count}'
+				elif fs[0] == 'HETATM':
+					bId = f'H.{fs[3]}.{bsList2.Count}'
+				else:
+					continue	
+	
+				b = New.Body(bId)
+				b.X, b.Y, b.Z = rsX, rsY, rsZ
+				p1 = P3[rsName] if rsName in P3 else 'X'
+				b.Name = p1 + '.' + rsName + '.' + chName
+				if chName not in ch2idx:
+					ch2idx[chName] = len(ch2idx)
+				b.Type = ch2idx[chName]
+	
+				if b.Id[0] == 'H':
+					# b.Highlighted = True
+					bsList2.Add(b)
+				else:
+					bsList.Add(b)
 	except Exception as err:
 		print(f'Last Line:\n {bsList.Count}: |{L}|')
 
+	bsList = Interporlate(bsList, rp, eps)
+
 	if includeHA:
 		bsList.AddRange(bsList2)
-
-	bsList = Interporlate(bsList, rp, eps)
 
 	mp = New.Map3DView(bsList)
 	info = MapInfo()
@@ -404,6 +405,15 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 	mp.Show()
 	mp.NormalizeView()
 	mp.AddContextMenu('SeqVis/Open PDB', f'@vv.StartProcess("vi", "{localPath}")')
+	mp.AddContextMenu('SeqVis/Hide IPO', f'@HideInterpolates()')
+
+def HideInterpolates():
+	for b in pp.BodyList:
+		if b.Id.startswith('i'):
+			b.Hidden = True
+	pp.RedrawAll()
+
+
 
 # eps is a small positive number for the local convexity
 def DoInterpolate(D, rp, eps):
