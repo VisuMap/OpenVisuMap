@@ -259,7 +259,8 @@ def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, 
 
 #-----------------------------------------------------------------------------
 
-def ShowSeqInfo(pId, webInfo=False, chmX=False, pdbInfo=False, showSeq=False, showTable=False, barView=False, useAApair=True, markovTrans=False):
+def ShowSeqInfo(pId, webInfo=False, chmX=False, showSeq=False, 
+		showTable=False, barView=False, useAApair=True, markovTrans=False):
 	ds = vv.Dataset
 	rIdx = ds.IndexOfRow(pId)
 	pSeq = ds.GetDataAt(rIdx, 2)
@@ -320,8 +321,6 @@ def ShowSeqInfo(pId, webInfo=False, chmX=False, pdbInfo=False, showSeq=False, sh
 			vv.StartProcess(f'https://rcsb.org/3d-view/{pId}')
 		else:
 			vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/protein/{pId}')
-	if pdbInfo:		
-		DisplayPDB(pId)
 	if chmX:
 		localPath = Download3DInfo(pId.split('_')[0])
 		progPath = "C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe"
@@ -336,7 +335,7 @@ def Download3DInfo(pId):
 		urlretrieve(f'https://files.rcsb.org/download/{fileName}', localPath)
 	return localPath
 
-def DisplayPDB(pId, rp=3, eps=0.1):
+def ShowPDB(pId, rp, eps, includeHA=True):
 	aaList = vv.GroupManager.GetGroupLabels('AA-List')
 	P3 = {fs[1]:fs[0] for fs in [aa.split(':') for aa in aaList]}
 	bsList = New.BodyList()
@@ -387,7 +386,8 @@ def DisplayPDB(pId, rp=3, eps=0.1):
 	except Exception as err:
 		print(f'Last Line:\n {bsList.Count}: |{L}|')
 
-	bsList.AddRange(bsList2)
+	if includeHA:
+		bsList.AddRange(bsList2)
 
 	bsList = Interporlate(bsList, rp, eps)
 
@@ -403,6 +403,7 @@ def DisplayPDB(pId, rp=3, eps=0.1):
 	mp.ShowBoundingBox = False
 	mp.Show()
 	mp.NormalizeView()
+	mp.AddContextMenu('SeqVis/Open PDB', f'@vv.StartProcess("vi", "{localPath}")')
 
 # eps is a small positive number for the local convexity
 def DoInterpolate(D, rp, eps):
@@ -440,8 +441,8 @@ def Interporlate(bsList, rp, eps):
 			L = 2**rp
 			for n in range(D.shape[0]):
 				b0 = bsList[k0 + n//L]
-				id = b0.Id if n%L==0 else 'i'+str(bs.Count)
-				b = New.Body( id )
+				b = New.Body()
+				b.Id = b0.Id if n%L==0 else 'i'+str(bs.Count)
 				b.CopyFrom(b0)
 				b.X, b.Y, b.Z = D[n]
 				bs.Add(b)
@@ -855,8 +856,8 @@ public void SmoothenBodyList(IList<IBody> bs) {
 ''')
 
 
-def SmoothenCurve(pMap, rp=10):
-	for n in range(rp):
+def SmoothenCurve(pMap, repeats):
+	for n in range(repeats):
 		cs2.SmoothenBodyList(pMap.BodyList)
 	pMap.RedrawAll()
 

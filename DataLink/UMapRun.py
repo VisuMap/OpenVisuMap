@@ -30,8 +30,8 @@ def ResetTest():
     epochs, nn = 1000, 1000
     lc  = 5
     #md, sp, ns = 0.1, 1.5, 30
-    md, sp, ns = 0.5, 1.0, 15
-    #md, sp, ns = 0.23, 1.12, 15
+    #md, sp, ns = 0.5, 1.0, 15
+    md, sp, ns = 0.23, 1.12, 15
 
 def DoTest():
     global ds, nr
@@ -66,8 +66,7 @@ def DoTest():
 try:
   cmd = vm.DataLinkCmd()  
   ResetTest()
-  md, sp, ns = 0.23, 1.12, 15
-  mapDim, A0, randomizeOrder = 3, A.s, False
+  mapDim, A0, randomizeOrder = 2, A.s, False
   for k in range(2):
     DoTest()
     #cmd.RunScript('vv.GuiManager.TileAllWindows()')
