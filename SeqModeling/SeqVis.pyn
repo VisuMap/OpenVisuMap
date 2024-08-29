@@ -340,43 +340,55 @@ def DisplayPDB(pId, rp=3, eps=0.1):
 	aaList = vv.GroupManager.GetGroupLabels('AA-List')
 	P3 = {fs[1]:fs[0] for fs in [aa.split(':') for aa in aaList]}
 	bsList = New.BodyList()
+	bsList2 = New.BodyList() # hetero atoms
 	ch2idx = {}
 	localPath = Download3DInfo(pId.split('_')[0])
 	try:
+		skipLine = True
 		for L in open(localPath):
 			if L.startswith('ATOM'):
-				fs = L.split()
-				if len(fs) == 21:
-					if fs[3] != 'CA':
-						continue
-					rsName = fs[5]
-					chName = fs[6] + '_' + fs[20]
-					rsIdx = int(fs[8]) - 1
-					rsX, rsY, rsZ = float(fs[10]), float(fs[11]), float(fs[12])			
-				else:
-					vv.Message(f'Invalid record: {len(fs)}: |{L}|')
-					vv.Return()		
-	
-				b = New.Body(f'R{rsIdx}.{bsList.Count}')
-				b.X, b.Y, b.Z = rsX, rsY, rsZ
-				p1 = P3[rsName] if rsName in P3 else 'X'
-				b.Name = p1 + '.' + rsName + '.' + chName
-				if chName not in ch2idx:
-					ch2idx[chName] = len(ch2idx)
-				b.Type = ch2idx[chName]
-				bsList.Add(b)
+				skipLine = False
+			if skipLine:
+				continue
+
+			fs = L.split()
+			if fs[0][0] == '#': # finished the ATOM section
+				break 
+			if len(fs) != 21:
+				vv.Message(f'Invalid record: {len(fs)}: |{L}|')
+				vv.Return()		
+
+			rsX, rsY, rsZ = float(fs[10]), float(fs[11]), float(fs[12])	
+			rsName = fs[5]
+			chName = fs[6] + '_' + fs[20]
+			
+			if fs[0] == 'ATOM' and fs[3] == 'CA':
+				rsIdx = int(fs[8]) - 1
+				bId = f'R{rsIdx}.{bsList.Count}'
+			elif fs[0] == 'HETATM':
+				bId = f'H.{fs[3]}.{bsList2.Count}'
 			else:
-				if bsList.Count == 0:
-					continue
-				else:
-					if L.startswith('#'):
-						break
-					else:
-						continue
+				continue	
+
+			b = New.Body(bId)
+			b.X, b.Y, b.Z = rsX, rsY, rsZ
+			p1 = P3[rsName] if rsName in P3 else 'X'
+			b.Name = p1 + '.' + rsName + '.' + chName
+			if chName not in ch2idx:
+				ch2idx[chName] = len(ch2idx)
+			b.Type = ch2idx[chName]
+
+			if b.Id[0] == 'H':
+				b.Highlighted = True
+				bsList2.Add(b)
+			else:
+				bsList.Add(b)
+
 	except Exception as err:
 		print(f'Last Line:\n {bsList.Count}: |{L}|')
 
-	bsList[0].Id = pId
+	bsList.AddRange(bsList2)
+
 	bsList = Interporlate(bsList, rp, eps)
 
 	mp = New.Map3DView(bsList)
@@ -430,7 +442,7 @@ def Interporlate(bsList, rp, eps):
 				b0 = bsList[k0 + n//L]
 				id = b0.Id if n%L==0 else 'i'+str(bs.Count)
 				b = New.Body( id )
-				b.Name, b.Type = b0.Name, b0.Type
+				b.CopyFrom(b0)
 				b.X, b.Y, b.Z = D[n]
 				bs.Add(b)
 			if k < bsList.Count:
