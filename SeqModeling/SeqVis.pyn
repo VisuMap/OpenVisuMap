@@ -271,7 +271,7 @@ def ShowSeqInfo(pId, webInfo=False, chmX=False, showSeq=False,
 	pSeq = ds.GetDataAt(rIdx, 2)
 	pGene = ds.BodyList[rIdx].Name			
 	pLen = int(ds.GetDataAt(rIdx, 3))
-	ppList = vv.GroupManager.GetGroupLabels("KeyPairs400") if useAApair else list(ALPHABET)
+	ppList = [a+b for a in ALPHABET for b in ALPHABET] if useAApair else list(ALPHABET)
 	sTitle = f'Protein: {pGene}, {pId}, L:{pLen}'
 	if showSeq:
 		tp = New.TextPanel(sTitle, pSeq)
