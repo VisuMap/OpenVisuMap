@@ -66,7 +66,7 @@ def DoTest():
 try:
   cmd = vm.DataLinkCmd()  
   ResetTest()
-  mapDim, A0, randomizeOrder = 2, A.s, False
+  mapDim = 2
   for k in range(2):
     DoTest()
     #cmd.RunScript('vv.GuiManager.TileAllWindows()')

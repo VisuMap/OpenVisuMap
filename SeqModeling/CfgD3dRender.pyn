@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen
+#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen To2D
 
 vv.Import('SeqVis.pyn')
 
@@ -15,5 +15,8 @@ match vv.EventSource.Item:
 		AssertSeqMap(pp)
 		ReCreateMap(pp)
 	case 'Smoothen':
-		SmoothenCurve(pp, repeats=1)
+		SmoothenCurve(pp, repeats=10)
+	case 'To2D':
+		RunMds(NewMds(New.NumberTable(pp.BodyList,3), epochs=2000, is3D=False, glyphSet=pp.GlyphSet)).Close()
+
 

@@ -340,7 +340,7 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 	P3 = {fs[1]:fs[0] for fs in [aa.split(':') for aa in aaList]}
 	bsList = New.BodyList()
 	bsList2 = New.BodyList() # hetero atoms
-	ch2idx = {}
+	ch2idx = {'HOH':39, 'NAG':47}
 	localPath = Download3DInfo(pId.split('_')[0])
 	try:
 		with open(localPath) as inFile:
@@ -380,7 +380,7 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 				b.Type = ch2idx[chName]
 	
 				if b.Id[0] == 'H':
-					# b.Highlighted = True
+					b.Type = ch2idx[rsName] if rsName in ch2idx else 61
 					bsList2.Add(b)
 				else:
 					bsList.Add(b)
@@ -398,7 +398,7 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 	info.pLen = bsList.Count
 	mp.Description = info.ToStr()
 	mp.Title = f'{pId}: Len:{bsList.Count}'
-	mp.GlyphSet = '36 Clusters'
+	mp.GlyphSet = '36 Clusters|Colored Balls'
 	mp.ReadOnly = True
 	mp.ShowPerformance = False
 	mp.ShowBoundingBox = False
@@ -411,6 +411,7 @@ def HideInterpolates():
 	for b in pp.BodyList:
 		if b.Id.startswith('i'):
 			b.Hidden = True
+	pp.TheForm.HiddenBodySize = 4
 	pp.RedrawAll()
 
 
@@ -594,7 +595,8 @@ def NewDataset(S, winSize=0, decay=1.0, alphbetList=ALPHABET, augCfg='a|500|2.0|
 
 #-----------------------------------------------------------------------------
 
-def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, repeats=1, metric='EuclideanMetric'):
+def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
+		repeats=1, metric='EuclideanMetric', glyphSet=None):
 	mds = New.MdsCluster(nt)
 	mds.Show()
 	mds.MdsAlgorithm = 2
@@ -611,7 +613,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
 	mds.GlyphOpacity = 0.5
 	mds.GlyphSize = 0.5
 	#mds.GlyphSet = 'C12|||||||||||'
-	mds.GlyphSet = vv.Map.GlyphType
+	mds.GlyphSet = vv.Map.GlyphType if glyphSet==None else glyphSet
 	return mds
 
 def RunMds(mds, repeats=1, glyphSize=0.5, glyphOpacity=0.5, info=None):

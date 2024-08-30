@@ -10,8 +10,9 @@ def IsOK(pSeq):
 	return True
 
 def InitDatabase(dsName, description):
-	vv.Folder.NewDataset(dsName, description)
+	dsName = vv.Folder.NewDataset(dsName, description).Name
 	vv.Folder.OpenDataset(dsName)
+	vv.Map.GlyphSet = 'Ordered 64'
 	ds = vv.Dataset
 	ds.AddColumn('PID', 0, '', 0)
 	ds.AddColumn('Accession', 0, '', 1)
@@ -42,7 +43,8 @@ def ImportPDBs(fileList):
 			if accession in imported:
 				continue
 			if IsOK(pSeq):
-				vv.Dataset.AddRow(pId, accession, 0, [pId, accession, pSeq, pLen, R[9]])
+				vList = New.StringArray([pId, str(accession), str(pSeq), str(pLen), str(R[9])])
+				vv.Dataset.AddRow(pId, str(accession), 0, vList )
 				cnt += 1
 			else:
 				errs += 1
@@ -50,19 +52,18 @@ def ImportPDBs(fileList):
 	vv.Dataset.CommitChanges()
 	print('Completed! ', cnt, errs)
 
+
 '''
 
 fileList = [
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_9302dcfd93e9921754d4ab77a1ce5671_07501-10000 (1).csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_9302dcfd93e9921754d4ab77a1ce5671_00001-02500.csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_9302dcfd93e9921754d4ab77a1ce5671_02501-05000.csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_9302dcfd93e9921754d4ab77a1ce5671_05001-07500.csv"]
+"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_02501-05000.csv",
+"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_07501-10000.csv",
+"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_00001-02500.csv",
+"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_05001-07500.csv"
+]
 
-InitDatabase('rcsb immune systems', 'rcsb_pdb_sequence_9302dcfd93e9921754d4ab77a1ce5671 0-10000')
+fileList = [ "C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_20240830135113.csv" ]
+InitDatabase('rcsb Few Secondary', 'rcsb_pdb_sequence_20240830135113.csv')
 ImportPDBs(fileList)
-
-from urllib import request
-request.urlretrieve('https://files.rcsb.org/download/101M.pdb', '101m.pdb')
-pdb = request.urlopen('https://files.rcsb.org/download/101M.pdb').read().decode('utf-8')
 
 '''
