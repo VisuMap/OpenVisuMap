@@ -52,20 +52,9 @@ def MainProc(menuKey):
 		case 'ProteinMap3':
 			CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=3.0, finalExag=1.5, ppl=0.15, repeats=0)
 		case 'ProteinMap4':
-			for kName in [ 'KeyPairs400' ]:
-				ppList = vv.GroupManager.GetGroupLabels(kName)
-				#dt = cs.VectorizeProtein2(ppList, 50, pList, GetProteinTable()).ShowHeatMap()
-				CreateProteinMap2(pList, ppList=ppList, epochs=5000, is3D=False, initExag=6.0, ppl=0.125, finalExag=1.25, repeats=0)
-			'''
-			L = len(ALPHABET)
-			for c in 'AELSV':
-				for bw in range(0, 20):
-					p0 = L + P[c]
-					ppList = [x+y for x in P for y in P if (p0 + P[x] - P[y]) % L == bw]
-					CreateProteinMap2(pList, ppList=ppList, epochs=2000, 
-						is3D=False, initExag=4.0, ppl=0.125, finalExag=1.25, repeats=1)
-			Save2Atlas()
-			'''
+			ppList = vv.GroupManager.GetGroupLabels('KeyPairs400')
+			CreateProteinMap2(pList, ppList=ppList, epochs=5000, is3D=False, initExag=6.0, 
+				ppl=0.125, finalExag=1.25, repeats=0)
 
 MainProc(vv.EventSource.Item)
 

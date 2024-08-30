@@ -56,14 +56,17 @@ def ImportPDBs(fileList):
 '''
 
 fileList = [
-"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_02501-05000.csv",
-"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_07501-10000.csv",
-"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_00001-02500.csv",
-"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_05001-07500.csv"
-]
+	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_17501-20000.csv",
+	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_00001-02500.csv",
+	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_02501-05000.csv",
+	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_05001-07500.csv",
+	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_07501-10000.csv",
+	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_12501-15000.csv",
+	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_15001-17500.csv"
+	]
 
-fileList = [ "C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_20240830135113.csv" ]
-InitDatabase('rcsb Few Secondary', 'rcsb_pdb_sequence_20240830135113.csv')
+InitDatabase('rcsb main alpha', 'rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202 1-20000.csv')
+
 ImportPDBs(fileList)
 
 '''

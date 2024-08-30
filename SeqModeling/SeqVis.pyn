@@ -4,6 +4,10 @@ import math, random, time
 GENE_TABLE = 'Gene Features'
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
 P = {ALPHABET[k]:k for k in range(len(ALPHABET))}
+P3 = {'ALA':'A', 'ARG':'R', 'ASN':'N', 'ASP':'D', 'CYS':'C',
+      'GLU':'E', 'GLN':'Q', 'GLY':'G', 'HIS':'H', 'ILE':'I',
+		'LEU':'L', 'LYS':'K', 'MET':'M', 'PHE':'F', 'PRO':'P',
+		'SER':'S', 'THR':'T', 'TRP':'W', 'TYR':'Y', 'VAL':'V'}
 
 
 def FilterSeq(D, P):
@@ -259,6 +263,7 @@ def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, 
 
 #-----------------------------------------------------------------------------
 
+
 def ShowSeqInfo(pId, webInfo=False, chmX=False, showSeq=False, 
 		showTable=False, barView=False, useAApair=True, markovTrans=False):
 	ds = vv.Dataset
@@ -336,8 +341,6 @@ def Download3DInfo(pId):
 	return localPath
 
 def ShowPDB(pId, rp, eps, includeHA=True):
-	aaList = vv.GroupManager.GetGroupLabels('AA-List')
-	P3 = {fs[1]:fs[0] for fs in [aa.split(':') for aa in aaList]}
 	bsList = New.BodyList()
 	bsList2 = New.BodyList() # hetero atoms
 	ch2idx = {'HOH':39, 'NAG':47}
