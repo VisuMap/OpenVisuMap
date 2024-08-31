@@ -77,6 +77,13 @@ class MapInfo():
 		self.InitE = initExag
 		self.FinalE = finalExag
 		self.PP = ppl
+		return self
+	def SetMds(self, mds):
+		self.Epochs = mds.MaxLoops
+		self.InitE = mds.InitialExaggeration
+		self.FinalE = mds.ExaggerationFinal
+		self.PP = mds.PerplexityRatio
+		self.Is3D = mds.Is3D
 		return self		
 	def ToStr(self):
 		dic = self.__dict__
@@ -409,6 +416,7 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 	mp.NormalizeView()
 	mp.AddContextMenu('SeqVis/Open PDB', f'@vv.StartProcess("vi", "{localPath}")')
 	mp.AddContextMenu('SeqVis/Hide IPO', f'@HideInterpolates()')
+	mp.AddContextMenu('SeqVis/Show Helix', f'@ShowHelix("{localPath}")')
 
 def HideInterpolates():
 	for b in pp.BodyList:
@@ -417,7 +425,33 @@ def HideInterpolates():
 	pp.TheForm.HiddenBodySize = 4
 	pp.RedrawAll()
 
-
+def ShowHelix(pdbFile):
+	idxSet = set()
+	with open(pdbFile) as f:
+		for L in f:
+			if L.startswith('_struct_conf.pdbx_PDB_helix_length'): break
+		for L in f:
+			if not L.startswith('HELX_P'): break
+			fs = L.split()
+			idx0 = int(fs[5])
+			idx1 = int(fs[9]) + 1
+			for i in range(idx0, idx1):
+				idxSet.add(i)
+	selected = []
+	atHelix = False
+	for b in pp.BodyList:
+		if b.Id[0] == 'R':
+			idx1 = b.Id.index('.')
+			rsIdx = int(b.Id[1:idx1])
+			if rsIdx in idxSet:
+				selected.append(b.Id)
+				atHelix = True
+			else:
+				atHelix = False
+		elif b.Id[0] == 'i':
+			if atHelix:
+				selected.append(b.Id)			
+	pp.SelectedItems = selected
 
 # eps is a small positive number for the local convexity
 def DoInterpolate(D, rp, eps):

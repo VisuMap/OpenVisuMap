@@ -17,6 +17,11 @@ match vv.EventSource.Item:
 	case 'Smoothen':
 		SmoothenCurve(pp, repeats=10)
 	case 'To2D':
-		RunMds(NewMds(New.NumberTable(pp.BodyList,3), epochs=2000, is3D=False, glyphSet=pp.GlyphSet)).Close()
+		mds = NewMds(New.NumberTable(pp.BodyList,3), epochs=1000, glyphSet=pp.GlyphSet, 
+			initExag=10.0, finalExag=1.0, ppl=0.15)
+		RunMds(mds)
+		vv.LastView.Title = pp.Title
+		vv.LastView.Description = MapInfo(pp.Description).SetMds(mds).ToStr()
+		mds.Close()
 
 
