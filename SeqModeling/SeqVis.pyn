@@ -271,7 +271,7 @@ def ShowSeqInfo(pId, webInfo=False, chmX=False, showSeq=False,
 	pSeq = ds.GetDataAt(rIdx, 2)
 	pGene = ds.BodyList[rIdx].Name			
 	pLen = int(ds.GetDataAt(rIdx, 3))
-	ppList = [a+b for a in ALPHABET for b in ALPHABET] if useAApair else list(ALPHABET)
+	ppList = [a+b for a in P for b in P] if useAApair else list(ALPHABET)
 	sTitle = f'Protein: {pGene}, {pId}, L:{pLen}'
 	if showSeq:
 		tp = New.TextPanel(sTitle, pSeq)
@@ -877,43 +877,8 @@ def SmoothenCurve(pMap, repeats):
 	pMap.RedrawAll()
 
 '''========================================================================================
-ppList = vv.GroupManager.GetGroupLabels("KeyPairs400")
-PP = {aa:k for k, aa in enumerate(ppList)}
-pSeq = vv.Dataset.GetDataAt(0, 2)
-
-nt = vv.AtlasManager.ReadNumberTable('TestMaps', 'MkvTrans')
-
-nt = cs.MarkovianMatrix1(vv.Dataset, False)
-nt.ShowAsTable()
-nt.ShowHeatMap()
-nt.Transpose()
-
-for row in range(20):
-	R = nt.Matrix[row]
-	rs = vv.Math.Sum(R)
-	if rs > 0:
-		for col in range(20):
-			R[col] /= rs
-for k in range(20):
-	nt.RowSpecList[k].Type = k
-	nt.ColumnSpecList[k].Type = k
-
-nt.ShowAsBarBand()
-
-ppList = [ y+x for x in ALPHABET for y in ALPHABET if x <= y ]
-print(len(ppList))
-vv.GroupManager.SetGroupLabels('KeyPairs210r', ppList)
 
 pTest = 'FMKIFSESHKTVFVVDHCPYMAESCRQHVEFDMLIIPLAPISKSLWTCSVESSMEYCRIMYDIFPFKKLVNFIVSDSGAHVLNSWTQEDQNLQELMAALAAVGPPNPRADPECCSILHGLVAAVETLCKITEYQHEARTLLMNAERVGNRGRIICITNAKSDSHVRMLEDCVQETIHEHNKLAANSDHLMQIQKCELVLIHTYPVGEDSLVSDRSKKELSPVLTSEVHSVRAGRHLATKLNILVQQHFDLASTTITNIPMYDVELLHHKDAHVDFLETITLKWCTPRTNNIELHYCTGAYRISPVDVNSRPSSCLTNFLLNGRSVLLEQPSKVISHMLSSHGGEIFLHVLSSSRSILEDPPSISEGCGGRVTDYRITDFGEFMRENRLTPFLDPRYKIDGSLEVPLERAKDQLEKHTRYWPMIISQTTIFNMQAVVPLASVIVKESLTEEDVLNCQKTIYNLVDMERKNDPLPISPKRDEQYRIMWNELETLVRAHINNSEKHQRVLECLMACRSKP'
 print(pTest[::2])
-
-
-vv.GroupManager.SetGroupLabels('6sn1-sf', [pTest])
-
-
-
-vv.GroupManager.SetGroupLabels('AA-List', aaList)
-
-vv.StartProcess("C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe", "C:\\Users\\james\\OneDrive\\Desktop\\6sn1.pdb")
 
 '''

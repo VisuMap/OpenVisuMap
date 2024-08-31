@@ -56,16 +56,25 @@ def ImportPDBs(fileList):
 '''
 
 fileList = [
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_17501-20000.csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_00001-02500.csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_02501-05000.csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_05001-07500.csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_07501-10000.csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_12501-15000.csv",
-	"C:\\Users\\james\\OneDrive\\Desktop\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_15001-17500.csv"
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_20001-22500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_17501-20000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_15001-17500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_12501-15000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_10001-12500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_17501-20000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_15001-17500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_12501-15000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_07501-10000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_05001-07500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_02501-05000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_00001-02500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_40001-41497.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_30001-32500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_25001-27500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_22501-25000.csv"
 	]
 
-InitDatabase('rcsb main alpha', 'rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202 1-20000.csv')
+InitDatabase('rcsb mainly beta', 'rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97')
 
 ImportPDBs(fileList)
 

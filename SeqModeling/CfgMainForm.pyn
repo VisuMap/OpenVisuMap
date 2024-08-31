@@ -52,7 +52,7 @@ def MainProc(menuKey):
 		case 'ProteinMap3':
 			CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=3.0, finalExag=1.5, ppl=0.15, repeats=0)
 		case 'ProteinMap4':
-			ppList = vv.GroupManager.GetGroupLabels('KeyPairs400')
+			ppList = [a+b for a in P for b in P]
 			CreateProteinMap2(pList, ppList=ppList, epochs=5000, is3D=False, initExag=6.0, 
 				ppl=0.125, finalExag=1.25, repeats=0)
 
