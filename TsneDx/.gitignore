@@ -4,4 +4,6 @@ bin
 obj
 *_map.csv
 *.npy
+TsneDx/
+*.cif
 TsneDx.csproj.user

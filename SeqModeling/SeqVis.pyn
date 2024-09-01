@@ -354,16 +354,13 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 	localPath = Download3DInfo(pId.split('_')[0])
 	try:
 		with open(localPath) as inFile:
-
 			helixSet = LoadHelix(inFile)
 
 			# skip to the atom site section
 			for L in inFile:
-				if L.startswith('_atom_site.group_PDB'):
+				if L.startswith('_atom_site.pdbx_PDB_model_num'):
 					break
 			for L in inFile:
-				if L[0] == '_':
-					continue
 				if L[0] == '#': # finished the _atom_site section
 					break 
 
@@ -445,7 +442,7 @@ def LoadHelix(fPDB):
 	return helixSet
 
 def ShowHelix():
-	pp.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.h')]
+	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.h')]
 
 # eps is a small positive number for the local convexity
 def DoInterpolate(D, rp, eps):

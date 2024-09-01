@@ -56,25 +56,37 @@ def ImportPDBs(fileList):
 '''
 
 fileList = [
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_20001-22500.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_17501-20000.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_15001-17500.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_12501-15000.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_10001-12500.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_17501-20000.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_15001-17500.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_12501-15000.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_07501-10000.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_05001-07500.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_02501-05000.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_327f68e08f21ff145e1f9279a7b3a202_00001-02500.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_40001-41497.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_30001-32500.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_25001-27500.csv",
-	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97_22501-25000.csv"
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_65001-67500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_60001-62500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_55001-57500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_62501-65000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_57501-60000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_50001-52500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_52501-55000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_45001-47500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_37501-40000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_42501-45000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_47501-50000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_32501-35000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_40001-42500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_20001-22500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_30001-32500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_35001-37500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_25001-27500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_15001-17500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_22501-25000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_27501-30000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_17501-20000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_12501-15000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_10001-12500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_02501-05000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_05001-07500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_00001-02500.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_07501-10000.csv",
+	"C:\\Users\\james\\Downloads\\rcsb_pdb_sequence_e75d659a7a47f988bd1cb7d5df4f2d8d_67501-68454.csv"
 	]
 
-InitDatabase('rcsb mainly beta', 'rcsb_pdb_sequence_626230c12ae977d77a70e51a01ff9c97')
+InitDatabase('rcsb developmental', 'developmental process (GO:0032502)')
 
 ImportPDBs(fileList)
 
