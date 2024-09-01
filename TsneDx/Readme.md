@@ -7,9 +7,9 @@ This GPU based implementation gives a 10x to 40x speedup comparing to CPU implem
 
 ### Usage:
   
-  TsneDx &lt;input-file&gt;.csv [perplexity-ratio]  [learning-epochs]  [out-dim] [init-exaggeration]
+  TsneDx &lt;input-file&gt;.csv [perplexity-ratio]  [learning-epochs]  [out-dim] [init-exaggeration] [final-exaggeration]
   
-  where [perplexity-ratio] is the perpelxity-ratio; [learning-epochs] is the learning epochs; [out-dim] is the output dimension; [init-exaggeration] is the initial exaggeration. Example:
+  where [perplexity-ratio] is the perpelxity-ratio; [learning-epochs] is the learning epochs; [out-dim] is the output dimension; [init-exaggeration] and [final-exaggeration] are the initial and final exaggeration. Example:
   
   C:&gt;TsneDx.exe SP500.csv 0.05 500 2 10.0
 

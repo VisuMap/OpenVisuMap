@@ -66,9 +66,9 @@ def ConvexInterpolate(chainIdx, posTable, repeats, convexcity):
     chainIdx = np.array([ len(ch) for ch in posChain ])
     return chainIdx, posTable
 
-def CallTsne(X, perplexityRatio=0.05, epochs=1000, mapDim=2, initExaggeration=4.0):
+def CallTsne(X, perplexityRatio=0.05, epochs=1000, mapDim=2, initExaggeration=4.0, finalExaggeration=1.0):
     np.savetxt('TsneData.csv', X)
-    os.system(f'TsneDx.exe TsneData.csv {perplexityRatio} {epochs} {mapDim} {initExaggeration}')
+    os.system(f'TsneDx.exe TsneData.csv {perplexityRatio} {epochs} {mapDim} {initExaggeration} {finalExaggeration}')
     return np.genfromtxt('TsneData_map.csv', delimiter=',')
 
 if __name__ == '__main__':
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     chainSize, posTable = ConvexInterpolate(chainIdx, posTable, repeats=3, convexcity=0.1)
 
     print('Fitting table ', posTable.shape)
-    Y = CallTsne(posTable, perplexityRatio=0.15, epochs=1000, mapDim=2, initExaggeration=10.0)
+    Y = CallTsne(posTable, perplexityRatio=0.15, epochs=1000, mapDim=2, initExaggeration=10.0, finalExaggeration=1.0)
     Y[:,0] = -Y[:,0]
     k0 = 0
     for k, sz in enumerate(chainSize):

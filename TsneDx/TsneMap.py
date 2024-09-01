@@ -11,9 +11,9 @@ import sys
 import os, time
 import numpy as np
 
-def CallTsne(X, perplexityRatio=0.05, epochs=1000, mapDim=2, initExaggeration=4.0):
+def CallTsne(X, perplexityRatio=0.05, epochs=1000, mapDim=2, initExaggeration=4.0, finalExaggeration=1.0):
     np.savetxt('TsneData.csv', X)
-    os.system(f'TsneDx.exe TsneData.csv {perplexityRatio} {epochs} {mapDim} {initExaggeration}')
+    os.system(f'TsneDx.exe TsneData.csv {perplexityRatio} {epochs} {mapDim} {initExaggeration} {finalExaggeration}')
     return np.genfromtxt('TsneData_map.csv', delimiter=',')
 
 if len(sys.argv) < 2:
@@ -26,7 +26,7 @@ print('Loaded table ', X.shape)
 
 print('Fitting table ', X.shape)
 t0 = time.time()
-Y = CallTsne(X, perplexityRatio=0.05, epochs=1000, mapDim=2, initExaggeration=4.0)
+Y = CallTsne(X, perplexityRatio=0.05, epochs=1000, mapDim=2, initExaggeration=4.0, finalExaggeration=1.0)
 print('Fitting finished in %.2f seconds'%(time.time()-t0))
 
 # display the result

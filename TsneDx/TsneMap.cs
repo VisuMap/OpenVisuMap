@@ -59,7 +59,6 @@ namespace TsneDx {
             double PerplexityRatio = 0.05, 
             int MaxEpochs = 500, 
             int OutDim=2,
-            double ExaggerationRatio = 0.7,
             int CacheLimit = 23000,
             double ExaggerationInit = 10.0,
             int MetricType = 0
@@ -96,7 +95,6 @@ namespace TsneDx {
 
         public bool AutoNormalize { get; set; } = true;
 
-        public bool StagedTraining { get; set; } = false;
         #endregion        
 
         #region FitNumpy
@@ -585,22 +583,10 @@ namespace TsneDx {
             ComputeShader csOneStep = gpu.LoadShader(sdNames[cachingMode]);
             ComputeShader csSumUp = gpu.LoadShader("TsneDx.OneStepSumUp.cso");
             int stepCounter = 0;
-            List<double> stages = StagedTraining ? new List<double>() { 0.5, 0.75, 0.9 } : new List<double>();
 
             while (true) {
                 double t = (double)stepCounter / (MaxEpochs - 1);
                 cc.c.PFactor = (float)((1-t)*ExaggerationInit + t * ExaggerationFinal );
-
-                if (stages.Count > 0) {
-                    double r = stages[0];
-                    if (stepCounter == (int)(r * MaxEpochs)) {
-                        double newPP = PerplexityRatio * N * (1 - r);
-                        if (newPP > 20) {
-                            ReInitializeP(newPP);
-                            stages.RemoveAt(0);
-                        }
-                    }
-                }
 
                 gpu.SetShader(csOneStep);
 
