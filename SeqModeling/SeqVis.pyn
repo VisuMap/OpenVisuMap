@@ -354,6 +354,9 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 	localPath = Download3DInfo(pId.split('_')[0])
 	try:
 		with open(localPath) as inFile:
+
+			helixSet = LoadHelix(inFile)
+
 			# skip to the atom site section
 			for L in inFile:
 				if L.startswith('_atom_site.group_PDB'):
@@ -369,13 +372,16 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 					vv.Message(f'Invalid record: {len(fs)}: |{L}|')
 					vv.Return()		
 	
-				rsX, rsY, rsZ = float(fs[10]), float(fs[11]), float(fs[12])	
+				rsX, rsY, rsZ = float(fs[10]), float(fs[11]), -float(fs[12])	
 				rsName = fs[5]
 				chName = fs[6] + '_' + fs[20]
-				
+				secType = 'x'				
+
 				if fs[0] == 'ATOM' and fs[3] == 'CA':
 					rsIdx = int(fs[8]) - 1
-					bId = f'R{rsIdx}.{bsList.Count}'
+					bId = f'A{rsIdx}.{bsList.Count}'
+					if rsIdx in helixSet:
+						secType = 'h'
 				elif fs[0] == 'HETATM':
 					bId = f'H.{fs[3]}.{bsList2.Count}'
 				else:
@@ -384,7 +390,7 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 				b = New.Body(bId)
 				b.X, b.Y, b.Z = rsX, rsY, rsZ
 				p1 = P3[rsName] if rsName in P3 else 'X'
-				b.Name = p1 + '.' + rsName + '.' + chName
+				b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType
 				if chName not in ch2idx:
 					ch2idx[chName] = len(ch2idx)
 				b.Type = ch2idx[chName]
@@ -416,7 +422,7 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 	mp.NormalizeView()
 	mp.AddContextMenu('SeqVis/Open PDB', f'@vv.StartProcess("vi", "{localPath}")')
 	mp.AddContextMenu('SeqVis/Hide IPO', f'@HideInterpolates()')
-	mp.AddContextMenu('SeqVis/Show Helix', f'@ShowHelix("{localPath}")')
+	mp.AddContextMenu('SeqVis/Mark Helix', f'@ShowHelix()')
 
 def HideInterpolates():
 	for b in pp.BodyList:
@@ -425,33 +431,21 @@ def HideInterpolates():
 	pp.TheForm.HiddenBodySize = 4
 	pp.RedrawAll()
 
-def ShowHelix(pdbFile):
-	idxSet = set()
-	with open(pdbFile) as f:
-		for L in f:
-			if L.startswith('_struct_conf.pdbx_PDB_helix_length'): break
-		for L in f:
-			if not L.startswith('HELX_P'): break
-			fs = L.split()
-			idx0 = int(fs[5])
-			idx1 = int(fs[9]) + 1
-			for i in range(idx0, idx1):
-				idxSet.add(i)
-	selected = []
-	atHelix = False
-	for b in pp.BodyList:
-		if b.Id[0] == 'R':
-			idx1 = b.Id.index('.')
-			rsIdx = int(b.Id[1:idx1])
-			if rsIdx in idxSet:
-				selected.append(b.Id)
-				atHelix = True
-			else:
-				atHelix = False
-		elif b.Id[0] == 'i':
-			if atHelix:
-				selected.append(b.Id)			
-	pp.SelectedItems = selected
+def LoadHelix(fPDB):
+	helixSet = set()
+	for L in fPDB:
+		if L.startswith('_struct_conf.pdbx_PDB_helix_length'): break
+	for L in fPDB:
+		if not L.startswith('HELX_P'): break
+		fs = L.split()
+		idx0 = int(fs[5])
+		idx1 = int(fs[9]) + 1
+		for i in range(idx0, idx1):
+			helixSet.add(i)
+	return helixSet
+
+def ShowHelix():
+	pp.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.h')]
 
 # eps is a small positive number for the local convexity
 def DoInterpolate(D, rp, eps):
