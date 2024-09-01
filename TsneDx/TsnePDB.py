@@ -63,10 +63,7 @@ def ConvexInterpolate(chainIdx, posTable, repeats, convexcity):
             if k < N:
                 k0, t0 = k, chainIdx[k]
     posTable = np.vstack(posChain)
-    chainIdx = []
-    for k, ch in enumerate(posChain):
-        chainIdx.extend( len(ch) * [k] )
-    chainIdx = np.array(chainIdx)
+    chainIdx = np.array([ len(ch) for ch in posChain ])
     return chainIdx, posTable
 
 def CallTsne(X, perplexityRatio=0.05, epochs=1000, mapDim=2, initExaggeration=4.0):
@@ -80,11 +77,16 @@ if __name__ == '__main__':
         quit()
 
     chainIdx, posTable = LoadPdb(sys.argv[1])
-    chainIdx, posTable = ConvexInterpolate(chainIdx, posTable, repeats=3, convexcity=0.1)
+    chainSize, posTable = ConvexInterpolate(chainIdx, posTable, repeats=3, convexcity=0.1)
 
     print('Fitting table ', posTable.shape)
     Y = CallTsne(posTable, perplexityRatio=0.15, epochs=1000, mapDim=2, initExaggeration=10.0)
-    plt.scatter(Y[:,0], Y[:,1], 1)
+    Y[:,0] = -Y[:,0]
+    k0 = 0
+    for k, sz in enumerate(chainSize):
+        k1 = k0 + sz
+        plt.scatter(Y[k0:k1,0], Y[k0:k1,1], k+1)
+        k0 = k1
     plt.xlabel('tSNE-1')
     plt.ylabel('tSNE-2')
     plt.show()
