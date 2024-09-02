@@ -1,6 +1,5 @@
 import sys, os
 import numpy as np
-import matplotlib.pyplot as plt
 
 def LoadPdb(pdbFile):
     chainIdx = []
@@ -66,16 +65,13 @@ def ConvexInterpolate(chainIdx, posTable, repeats, convexcity):
     chainIdx = np.array([ len(ch) for ch in posChain ])
     return chainIdx, posTable
 
-def CallTsne(X, perplexityRatio=0.05, epochs=1000, mapDim=2, initExaggeration=4.0, finalExaggeration=1.0):
-    np.savetxt('TsneData.csv', X)
-    os.system(f'TsneDx.exe TsneData.csv {perplexityRatio} {epochs} {mapDim} {initExaggeration} {finalExaggeration}')
-    return np.genfromtxt('TsneData_map.csv', delimiter=',')
-
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    from TsneMap import CallTsne 
+
     if len(sys.argv) != 2 or not sys.argv[1].endswith('.cif'):
         print('Usage: TsnePDB <PDB-cif-File>')
         quit()
-
     chainIdx, posTable = LoadPdb(sys.argv[1])
     chainSize, posTable = ConvexInterpolate(chainIdx, posTable, repeats=3, convexcity=0.1)
 
@@ -87,6 +83,4 @@ if __name__ == '__main__':
         k1 = k0 + sz
         plt.scatter(Y[k0:k1,0], Y[k0:k1,1], k+1)
         k0 = k1
-    plt.xlabel('tSNE-1')
-    plt.ylabel('tSNE-2')
     plt.show()

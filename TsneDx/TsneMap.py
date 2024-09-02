@@ -7,8 +7,7 @@
 #
 # where <file-name> is a csv or npy file.
 #
-import sys
-import os, time
+import sys, os, time
 import numpy as np
 
 def CallTsne(X, perplexityRatio=0.05, epochs=1000, mapDim=2, initExaggeration=4.0, finalExaggeration=1.0):
@@ -16,23 +15,21 @@ def CallTsne(X, perplexityRatio=0.05, epochs=1000, mapDim=2, initExaggeration=4.
     os.system(f'TsneDx.exe TsneData.csv {perplexityRatio} {epochs} {mapDim} {initExaggeration} {finalExaggeration}')
     return np.genfromtxt('TsneData_map.csv', delimiter=',')
 
-if len(sys.argv) < 2:
-    print('Usage TsneMap.py <csv-data-file>')
-    quit()
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print('Usage TsneMap.py <csv-data-file>')
+        quit()
 
-inFile = sys.argv[1]
-X = np.genfromtxt(inFile) if inFile.endswith('.csv') else np.load(inFile)
-print('Loaded table ', X.shape)
+    inFile = sys.argv[1]
+    X = np.genfromtxt(inFile) if inFile.endswith('.csv') else np.load(inFile)
+    print('Loaded table ', X.shape)
 
-print('Fitting table ', X.shape)
-t0 = time.time()
-Y = CallTsne(X, perplexityRatio=0.05, epochs=1000, mapDim=2, initExaggeration=4.0, finalExaggeration=1.0)
-print('Fitting finished in %.2f seconds'%(time.time()-t0))
+    print('Fitting table ', X.shape)
+    t0 = time.time()
+    Y = CallTsne(X, perplexityRatio=0.05, epochs=1000, mapDim=2, initExaggeration=4.0, finalExaggeration=1.0)
+    print('Fitting finished in %.2f seconds'%(time.time()-t0))
 
-# display the result
-import matplotlib.pyplot as plt
-plt.scatter(Y[:,0], Y[:,1], 1)
-plt.xlabel('tSNE-1')
-plt.ylabel('tSNE-2')
-plt.show()
+    import matplotlib.pyplot as plt
+    plt.scatter(Y[:,0], Y[:,1], 1)
+    plt.show()
 
