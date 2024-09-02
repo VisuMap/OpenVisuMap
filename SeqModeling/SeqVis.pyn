@@ -347,11 +347,28 @@ def Download3DInfo(pId):
 		urlretrieve(f'https://files.rcsb.org/download/{fileName}', localPath)
 	return localPath
 
+class ChainIndex():
+	def __init__(self):
+		self.chain2Index = {'HOH':39, 'NAG':47}
+		self.headIndex = 0
+	def Lookup(self, chName):
+		if chName not in self.chain2Index:
+			for k in range(self.headIndex, 200, 1):
+				if k not in self.chain2Index.values():
+					self.chain2Index[chName] = k
+					self.headIndex = k+1
+					break
+				if chName not in self.chain2Index:
+					self.chain2Index[chName] = len(self.chain2Index)
+		return self.chain2Index[chName]
+	def Contains(self, chName):
+		return chName in self.chain2Index
+
 def ShowPDB(pId, rp, eps, includeHA=True):
 	bsList = New.BodyList()
 	bsList2 = New.BodyList() # hetero atoms
-	ch2idx = {'HOH':39, 'NAG':47}
 	localPath = Download3DInfo(pId.split('_')[0])
+	ch2idx = ChainIndex()
 	try:
 		with open(localPath) as inFile:
 			helixSet = LoadHelix(inFile)
@@ -368,7 +385,7 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 				if len(fs) != 21:
 					vv.Message(f'Invalid record: {len(fs)}: |{L}|')
 					vv.Return()		
-	
+
 				rsX, rsY, rsZ = float(fs[10]), float(fs[11]), -float(fs[12])	
 				rsName = fs[5]
 				chName = fs[6] + '_' + fs[20]
@@ -388,12 +405,13 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 				b.X, b.Y, b.Z = rsX, rsY, rsZ
 				p1 = P3[rsName] if rsName in P3 else 'X'
 				b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType
-				if chName not in ch2idx:
-					ch2idx[chName] = len(ch2idx)
-				b.Type = ch2idx[chName]
+				b.Type = ch2idx.Lookup(chName)
 	
 				if b.Id[0] == 'H':
-					b.Type = ch2idx[rsName] if rsName in ch2idx else 61
+					if ch2idx.Contains(rsName):
+						b.Type = ch2idx.Lookup(rsName)
+					else:
+						b.Type = 61
 					bsList2.Add(b)
 				else:
 					bsList.Add(b)
