@@ -6,11 +6,12 @@
 # Installation: The module 'pythonnet' need to be installed; and this directory
 # need to be added to the PYTHONPATH environment variable.
 #
-import sys
+import sys, clr, os, time
 sys.path.append('C:\\work\\OpenVisuMap\\TsneDx\\bin\\Release')
-import clr, os, TsneDx, time
 import DataLinkCmd as vm
 import numpy as np
+clr.AddReference('TsneDx')
+import TsneDx
 
 #=================================
 def DoTsneMap(X, perplexityRatio=0.05, maxEpochs=1000, outDim=2, metricType=0):
@@ -34,6 +35,7 @@ def ReduceByPca(X, pcaNumber=50):
     X = X.astype(np.float32)
     X1 = pca.DoPcaBuffer(X.__array_interface__['data'][0], X.shape[0], X.shape[1], pcaNumber)
     return np.fromiter(X1, float).reshape(X.shape[0], -1)
+
 #=================================
 
 
