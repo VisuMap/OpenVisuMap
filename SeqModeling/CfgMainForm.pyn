@@ -36,8 +36,8 @@ def MainProc(menuKey):
 			CreateSeqMaps(pSelected, epochs=5000, winSize=-1, repeats=1, ppl=0.15,  saveTo=dstAtlas,
 				is3D=False, initExag=3.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg=f's|40|0.04|2.5')
 
-		case 'P-ChmX': ShowSeqInfo(pId, chmX=True)
-		case 'P-Web':  ShowSeqInfo(pId, webInfo=True)
+		case 'P-ChmX': ShowChimeraX(pId)
+		case 'P-Web':  ShowWeb(pId)
 		case 'P-Seq':  ShowSeqInfo(pId, showSeq=True)
 		case 'P-Table':ShowSeqInfo(pId, showTable=True, useAApair=True)
 		case 'P-Bar':  ShowSeqInfo(pId, barView=True, useAApair=True)
@@ -59,8 +59,9 @@ def MainProc(menuKey):
 MainProc(vv.EventSource.Item)
 
 '''
-ShowPDB('2LV8', rp=5, eps=0.1, includeHA=False) 
-ShowSeqInfo('2LV8', chmX=True)
+ShowPDB('1YDE', rp=3, eps=0.1, includeHA=False) 
+ShowChimeraX('1YDE')
+ShowWeb('1YDE')
 '''
 
 

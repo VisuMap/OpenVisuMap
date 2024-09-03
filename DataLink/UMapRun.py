@@ -67,7 +67,6 @@ try:
   cmd = vm.DataLinkCmd()  
   ResetTest()
   mapDim = 2
-  A0 = A.r
   for k in range(2):
     DoTest()
     #cmd.RunScript('vv.GuiManager.TileAllWindows()')

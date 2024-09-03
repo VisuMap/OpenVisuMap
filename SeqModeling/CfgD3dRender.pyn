@@ -19,9 +19,7 @@ match vv.EventSource.Item:
 	case 'To2D':
 		mds = NewMds(New.NumberTable(pp.BodyListEnabled(),3), is3D=False, epochs=1000, 
 			glyphSet=pp.GlyphSet, initExag=10.0, finalExag=1.0, ppl=0.1)
-		RunMds(mds)
+		RunMds(mds, repeats=1, glyphSize=0.25)
 		vv.LastView.Title = pp.Title
 		vv.LastView.Description = MapInfo(pp.Description).SetMds(mds).ToStr()
 		mds.Close()
-
-

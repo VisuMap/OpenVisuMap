@@ -271,8 +271,7 @@ def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, 
 #-----------------------------------------------------------------------------
 
 
-def ShowSeqInfo(pId, webInfo=False, chmX=False, showSeq=False, 
-		showTable=False, barView=False, useAApair=True, markovTrans=False):
+def ShowSeqInfo(pId, showSeq=False, showTable=False, barView=False, useAApair=True, markovTrans=False):
 	ds = vv.Dataset
 	rIdx = ds.IndexOfRow(pId)
 	pSeq = ds.GetDataAt(rIdx, 2)
@@ -327,16 +326,18 @@ def ShowSeqInfo(pId, webInfo=False, chmX=False, showSeq=False,
 		bb.AttributeMode = False
 		bb.Title = sTitle
 		bb.Show()
-	if webInfo:
-		if vv.Dataset.Name.lower().startswith('rcsb'):
-			pId = pId.split('_')[0]
-			vv.StartProcess(f'https://rcsb.org/3d-view/{pId}')
-		else:
-			vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/protein/{pId}')
-	if chmX:
-		localPath = Download3DInfo(pId.split('_')[0])
-		progPath = "C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe"
-		vv.StartProcess(progPath, localPath)
+
+def ShowWeb(pId):
+	if vv.Dataset.Name.lower().startswith('rcsb'):
+		pId = pId.split('_')[0]
+		vv.StartProcess(f'https://rcsb.org/3d-view/{pId}')
+	else:
+		vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/protein/{pId}')
+
+def ShowChimeraX(pId):
+	localPath = Download3DInfo(pId.split('_')[0])
+	progPath = "C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe"
+	vv.StartProcess(progPath, localPath)
 
 def Download3DInfo(pId):
 	from os.path import exists
@@ -718,13 +719,12 @@ def CreateSeqMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=N
 	if repeats > 0:
 		mds.Close()
 
-def Scanning(pMap, stepSize=20):
+def Scanning(pMap, stride=100, stepSize=20):
 	bsList = [b.Id for b in pMap.BodyList]
-	inc = max(1, int(stepSize/2))
-	for pause in [50, 150]:
-		for k in range(0, len(bsList), inc):
-			vv.SelectedItems = bsList[k:k+stepSize]
-			vv.Sleep(pause)
+	for rp in [0,1]:
+		for k in range(0, len(bsList), stepSize):
+			pp.SelectedItems = bsList[k:k+stride]
+			vv.Sleep(20)
 			if pMap.SelectedItems.Count == 0: return
 		vv.Sleep(1000)
 
