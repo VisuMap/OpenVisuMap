@@ -58,10 +58,4 @@ def MainProc(menuKey):
 
 MainProc(vv.EventSource.Item)
 
-'''
-ShowPDB('1YDE', rp=3, eps=0.1, includeHA=False) 
-ShowChimeraX('1YDE')
-ShowWeb('1YDE')
-'''
-
 

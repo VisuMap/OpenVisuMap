@@ -58,7 +58,7 @@ def ImportPDBs():
 
 '''
 
-InitDatabase('rcsb ECODE topology', ' alpha complex topology')
+InitDatabase('rcsb beta sandwiches', 'beta sandwiches - [ 31,721 Structures ]')
 ImportPDBs()
 
 '''

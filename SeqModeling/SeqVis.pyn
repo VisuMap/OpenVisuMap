@@ -350,7 +350,7 @@ def Download3DInfo(pId):
 
 class ChainIndex():
 	def __init__(self):
-		self.chain2Index = {'HOH':39, 'NAG':47}
+		self.chain2Index = {'HOH':(72+3), 'NAG':(72+11)}
 		self.headIndex = 0
 	def Lookup(self, chName):
 		if chName not in self.chain2Index:
@@ -365,13 +365,19 @@ class ChainIndex():
 	def Contains(self, chName):
 		return chName in self.chain2Index
 
-def ShowPDB(pId, rp, eps, includeHA=True):
+def LoadCifData(prName):
 	bsList = New.BodyList()
-	bsList2 = New.BodyList() # hetero atoms
-	localPath = Download3DInfo(pId.split('_')[0])
+	bsList2 = New.BodyList() # for hetero atoms
+	localPath = Download3DInfo(prName)
 	ch2idx = ChainIndex()
 	try:
 		with open(localPath) as inFile:
+
+			L = inFile.readline()
+			if not L.startswith('data_'):
+				vv.Message('Invalid header-line: ' + L)
+				vv.Return()
+
 			helixSet = LoadHelix(inFile)
 
 			# skip to the atom site section
@@ -408,16 +414,26 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 				b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType
 				b.Type = ch2idx.Lookup(chName)
 	
-				if b.Id[0] == 'H':
+				if b.Id[0] == 'H':  # for heter-atoms
 					if ch2idx.Contains(rsName):
 						b.Type = ch2idx.Lookup(rsName)
 					else:
-						b.Type = 61
+						b.Type = 72+25
 					bsList2.Add(b)
 				else:
 					bsList.Add(b)
 	except Exception as err:
 		print(f'Last Line:\n {bsList.Count}: |{L}|')
+
+	if bsList.Count == 0:
+		vv.Message('No amino-acids found!')
+		vv.Return()
+
+	return localPath, bsList, bsList2
+
+
+def ShowPDB(pId, rp, eps, includeHA=True):
+	localPath, bsList, bsList2 = LoadCifData(pId.split('_')[0])
 
 	bsList = Interporlate(bsList, rp, eps)
 
@@ -430,7 +446,7 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 	info.pLen = bsList.Count
 	mp.Description = info.ToStr()
 	mp.Title = f'{pId}: Len:{bsList.Count}'
-	mp.GlyphSet = '36 Clusters|Colored Balls'
+	mp.GlyphSet = '36 Clusters||Colored Balls'
 	mp.ReadOnly = True
 	mp.ShowPerformance = False
 	mp.ShowBoundingBox = False
@@ -915,13 +931,13 @@ public void SmoothenBodyList(IList<IBody> bs) {
 
 
 def SmoothenCurve(pMap, repeats):
+	bsList = pMap.BodyListEnabled()
+	bsList = New.BodyList([b for b in bsList if b.Id[0] != 'H'])
 	for n in range(repeats):
-		cs2.SmoothenBodyList(pMap.BodyList)
+		cs2.SmoothenBodyList(bsList)
 	pMap.RedrawAll()
 
 '''========================================================================================
 
-pTest = 'FMKIFSESHKTVFVVDHCPYMAESCRQHVEFDMLIIPLAPISKSLWTCSVESSMEYCRIMYDIFPFKKLVNFIVSDSGAHVLNSWTQEDQNLQELMAALAAVGPPNPRADPECCSILHGLVAAVETLCKITEYQHEARTLLMNAERVGNRGRIICITNAKSDSHVRMLEDCVQETIHEHNKLAANSDHLMQIQKCELVLIHTYPVGEDSLVSDRSKKELSPVLTSEVHSVRAGRHLATKLNILVQQHFDLASTTITNIPMYDVELLHHKDAHVDFLETITLKWCTPRTNNIELHYCTGAYRISPVDVNSRPSSCLTNFLLNGRSVLLEQPSKVISHMLSSHGGEIFLHVLSSSRSILEDPPSISEGCGGRVTDYRITDFGEFMRENRLTPFLDPRYKIDGSLEVPLERAKDQLEKHTRYWPMIISQTTIFNMQAVVPLASVIVKESLTEEDVLNCQKTIYNLVDMERKNDPLPISPKRDEQYRIMWNELETLVRAHINNSEKHQRVLECLMACRSKP'
-print(pTest[::2])
 
 '''
