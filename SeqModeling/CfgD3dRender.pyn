@@ -15,11 +15,6 @@ match vv.EventSource.Item:
 		AssertSeqMap(pp)
 		ReCreateMap(pp)
 	case 'Smoothen':
-		SmoothenCurve(pp, repeats=10)
+		SmoothenCurve(pp, repeats=1)
 	case 'To2D':
-		mds = NewMds(New.NumberTable(pp.BodyListEnabled(),3), is3D=False, glyphSet=pp.GlyphSet, initExag=10.0,
-			epochs=1000, finalExag=1.0, ppl=0.1)
-		RunMds(mds, repeats=1, glyphSize=0.25)
-		vv.LastView.Title = pp.Title
-		vv.LastView.Description = MapInfo(pp.Description).SetMds(mds).ToStr()
-		mds.Close()
+		To2DMap(pp, repeats=1, ppl=0.15, typeExpand=0)

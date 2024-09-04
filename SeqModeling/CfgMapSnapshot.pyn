@@ -15,5 +15,5 @@ match vv.EventSource.Item:
 		AssertSeqMap(pp)
 		ReCreateMap(pp)
 	case 'Smoothen':
-		SmoothenCurve(pp)
+		SmoothenCurve(pp, 150)
 

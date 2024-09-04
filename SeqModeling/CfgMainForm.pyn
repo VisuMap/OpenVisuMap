@@ -58,4 +58,10 @@ def MainProc(menuKey):
 
 MainProc(vv.EventSource.Item)
 
+'''
+ret = vv.GuiManager.PromptString('Hello', 'New name please:')
+ret = vv.GuiManager.SelectFileForWrite('*.CVS|*.csv')
 
+pId = vv.GuiManager.GetClipboard()
+ShowPDB(pId, rp=3, eps=0.1, includeHA=False) 
+'''

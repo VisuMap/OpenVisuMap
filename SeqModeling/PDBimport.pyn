@@ -58,7 +58,7 @@ def ImportPDBs():
 
 '''
 
-InitDatabase('rcsb beta sandwiches', 'beta sandwiches - [ 31,721 Structures ]')
+InitDatabase('rcsb local symmetry', '')
 ImportPDBs()
 
 '''

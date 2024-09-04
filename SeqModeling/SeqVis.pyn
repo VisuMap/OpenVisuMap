@@ -432,8 +432,9 @@ def LoadCifData(prName):
 	return localPath, bsList, bsList2
 
 
+
 def ShowPDB(pId, rp, eps, includeHA=True):
-	localPath, bsList, bsList2 = LoadCifData(pId.split('_')[0])
+	localPath, bsList, bsList2 = LoadCifData(pId[:4])
 
 	bsList = Interporlate(bsList, rp, eps)
 
@@ -450,6 +451,8 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 	mp.ReadOnly = True
 	mp.ShowPerformance = False
 	mp.ShowBoundingBox = False
+	mp.GlyphSize = 0.75
+	mp.GlyphOpacity = 0.5
 	mp.Show()
 	mp.NormalizeView()
 	mp.AddContextMenu('SeqVis/Open PDB', f'@vv.StartProcess("vi", "{localPath}")')
@@ -810,6 +813,28 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 	if repeats > 0:
 		mds.Close()
 
+def AugmentType(nt, typeExpand):
+	type2idx = {}
+	for rs in nt.RowSpecList:
+		if rs.Type not in type2idx:
+			type2idx[rs.Type] = len(type2idx)
+	N = len(type2idx)
+	nt.AddColumns(N)
+	M = nt.Matrix	
+	for row, rs in enumerate(nt.RowSpecList):
+		M[row][3+rs.Type] = typeExpand
+	return nt
+
+def To2DMap(pMap, ppl=0.1, repeats=1, typeExpand=0):
+	nt = New.NumberTable(pMap.BodyListEnabled(),3)
+	if typeExpand != 0:
+		AugmentType(nt, typeExpand)
+	mds = NewMds(nt, is3D=False, glyphSet=pMap.GlyphSet, initExag=10.0,
+		epochs=1000, finalExag=1.0, ppl=ppl)
+	RunMds(mds, repeats=repeats, glyphSize=0.5)
+	vv.LastView.Title = pp.Title
+	vv.LastView.Description = MapInfo(pMap.Description).SetMds(mds).ToStr()
+	mds.Close()
 
 #-------------------------------------------------------------------
 
@@ -929,10 +954,8 @@ public void SmoothenBodyList(IList<IBody> bs) {
 }
 ''')
 
-
 def SmoothenCurve(pMap, repeats):
-	bsList = pMap.BodyListEnabled()
-	bsList = New.BodyList([b for b in bsList if b.Id[0] != 'H'])
+	bsList = [b for b in pMap.BodyListEnabled() if b.Id[0] != 'H']
 	for n in range(repeats):
 		cs2.SmoothenBodyList(bsList)
 	pMap.RedrawAll()
