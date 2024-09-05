@@ -43,7 +43,9 @@ def ImportPDBs():
 			pLen = R[7]
 			pId = R[0]
 			accession = R[5]
-			if accession in imported:
+			if int(pLen) < 50:
+				continue
+			if pSeq in imported:
 				continue
 			if IsOK(pSeq):
 				vList = New.StringArray([pId, str(accession), str(pSeq), str(pLen), str(R[9])])
@@ -51,14 +53,14 @@ def ImportPDBs():
 				cnt += 1
 			else:
 				errs += 1
-			imported.add(accession)
+			imported.add(pSeq)
 	vv.Dataset.CommitChanges()
 	print('Completed! ', cnt, errs)
 
 
 '''
 
-InitDatabase('rcsb local symmetry', '')
+InitDatabase('rcsb local virus', '')
 ImportPDBs()
 
 '''

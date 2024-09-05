@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen To2D
+#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen UnFold
 
 vv.Import('SeqVis.pyn')
 
@@ -16,5 +16,5 @@ match vv.EventSource.Item:
 		ReCreateMap(pp)
 	case 'Smoothen':
 		SmoothenCurve(pp, repeats=10)
-	case 'To2D':
-		To2DMap(pp, epochs=1000, repeats=2, ppl=0.1, typeExpand=0.0)
+	case 'UnFold':
+		UnFoldMap(pp, epochs=2000, repeats=1, is3D=False, ppl=0.10, typeExpand=0.00025)

@@ -359,8 +359,8 @@ class ChainIndex():
 					self.chain2Index[chName] = k
 					self.headIndex = k+1
 					break
-				if chName not in self.chain2Index:
-					self.chain2Index[chName] = len(self.chain2Index)
+			if chName not in self.chain2Index:
+				self.chain2Index[chName] = 200
 		return self.chain2Index[chName]
 	def Contains(self, chName):
 		return chName in self.chain2Index
@@ -379,11 +379,14 @@ def LoadCifData(prName):
 				vv.Return()
 
 			helixSet = LoadHelix(inFile)
+			if len(helixSet) == 0:
+				inFile.seek(0)
 
 			# skip to the atom site section
 			for L in inFile:
 				if L.startswith('_atom_site.pdbx_PDB_model_num'):
 					break
+
 			for L in inFile:
 				if L[0] == '#': # finished the _atom_site section
 					break 
@@ -396,9 +399,10 @@ def LoadCifData(prName):
 				rsX, rsY, rsZ = float(fs[10]), float(fs[11]), -float(fs[12])	
 				rsName = fs[5]
 				chName = fs[6] + '_' + fs[20]
-				secType = 'x'				
+				secType = 'x'
+				atName = fs[3]	
 
-				if fs[0] == 'ATOM' and fs[3] == 'CA':
+				if fs[0] == 'ATOM' and ( (atName=='CA') or (atName=='C2')):
 					rsIdx = int(fs[8]) - 1
 					bId = f'A{rsIdx}.{bsList.Count}'
 					if rsIdx in helixSet:
@@ -407,7 +411,7 @@ def LoadCifData(prName):
 					bId = f'H.{fs[3]}.{bsList2.Count}'
 				else:
 					continue	
-	
+
 				b = New.Body(bId)
 				b.X, b.Y, b.Z = rsX, rsY, rsZ
 				p1 = P3[rsName] if rsName in P3 else 'X'
@@ -423,7 +427,7 @@ def LoadCifData(prName):
 				else:
 					bsList.Add(b)
 	except Exception as err:
-		print(f'Last Line:\n {bsList.Count}: |{L}|')
+		print(err, f'Last Line:\n {bsList.Count}: |{L}|')
 
 	if bsList.Count == 0:
 		vv.Message('No amino-acids found!')
@@ -839,11 +843,11 @@ def AugmentType0(nt, typeExpand):
 		M[row][3] += row * typeExpand
 	return nt
 
-def To2DMap(pMap, epochs=1000, ppl=0.1, repeats=1, typeExpand=0):
+def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, typeExpand=0, is3D=False):
 	nt = New.NumberTable(pMap.BodyListEnabled(),3)
 	if typeExpand != 0:
 		AugmentType0(nt, typeExpand)
-	mds = NewMds(nt, is3D=False, glyphSet=pMap.GlyphSet, initExag=10.0,
+	mds = NewMds(nt, is3D=is3D, glyphSet=pMap.GlyphSet, initExag=10.0,
 		epochs=epochs, finalExag=1.0, ppl=ppl)
 	RunMds(mds, repeats=repeats, glyphSize=0.5)
 	vv.LastView.Title = pp.Title
