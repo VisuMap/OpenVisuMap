@@ -337,5 +337,20 @@ namespace VisuMap
             }
             return M;
         }
+
+        public void SmoothenBodyList(IList<IBody> bs) {
+            var B = New.NumberTable(bs, 3).Matrix;
+            for (int k = 1; k < (bs.Count - 1); k++) {
+                var b = bs[k];
+                if ((bs[k - 1].Type == b.Type) && (b.Type == bs[k + 1].Type)) {
+                    var T = B[k];
+                    var P = B[k - 1];
+                    var Q = B[k + 1];
+                    b.X = 0.5 * T[0] + 0.25 * (P[0] + Q[0]);
+                    b.Y = 0.5 * T[1] + 0.25 * (P[1] + Q[1]);
+                    b.Z = 0.5 * T[2] + 0.25 * (P[2] + Q[2]);
+                }
+            }
+        }
     }
 }

@@ -329,13 +329,13 @@ def ShowSeqInfo(pId, showSeq=False, showTable=False, barView=False, useAApair=Tr
 
 def ShowWeb(pId):
 	if vv.Dataset.Name.lower().startswith('rcsb'):
-		pId = pId.split('_')[0]
+		pId = pId[:4]
 		vv.StartProcess(f'https://rcsb.org/3d-view/{pId}')
 	else:
 		vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/protein/{pId}')
 
 def ShowChimeraX(pId):
-	localPath = Download3DInfo(pId.split('_')[0])
+	localPath = Download3DInfo(pId[:4])
 	progPath = "C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe"
 	vv.StartProcess(progPath, localPath)
 
@@ -813,7 +813,7 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 	if repeats > 0:
 		mds.Close()
 
-def AugmentType(nt, typeExpand):
+def AugmentType2(nt, typeExpand):
 	type2idx = {}
 	for rs in nt.RowSpecList:
 		if rs.Type not in type2idx:
@@ -825,12 +825,26 @@ def AugmentType(nt, typeExpand):
 		M[row][3+rs.Type] = typeExpand
 	return nt
 
-def To2DMap(pMap, ppl=0.1, repeats=1, typeExpand=0):
+def AugmentType1(nt, typeExpand):
+	nt.AddColumns(1)
+	M = nt.Matrix	
+	for row, rs in enumerate(nt.RowSpecList):
+		M[row][3] = rs.Type * typeExpand
+	return nt
+
+def AugmentType0(nt, typeExpand):
+	nt.AddColumns(1)
+	M = nt.Matrix	
+	for row, rs in enumerate(nt.RowSpecList):
+		M[row][3] += row * typeExpand
+	return nt
+
+def To2DMap(pMap, epochs=1000, ppl=0.1, repeats=1, typeExpand=0):
 	nt = New.NumberTable(pMap.BodyListEnabled(),3)
 	if typeExpand != 0:
-		AugmentType(nt, typeExpand)
+		AugmentType0(nt, typeExpand)
 	mds = NewMds(nt, is3D=False, glyphSet=pMap.GlyphSet, initExag=10.0,
-		epochs=1000, finalExag=1.0, ppl=ppl)
+		epochs=epochs, finalExag=1.0, ppl=ppl)
 	RunMds(mds, repeats=repeats, glyphSize=0.5)
 	vv.LastView.Title = pp.Title
 	vv.LastView.Description = MapInfo(pMap.Description).SetMds(mds).ToStr()
@@ -938,26 +952,11 @@ def ReCreateMap(pMap):
 	RunMds(mds, info=info)
 	mds.Close()
 
-cs2 = New.CsObject('''
-public void SmoothenBodyList(IList<IBody> bs) {
-	var B = New.NumberTable(bs, 3).Matrix;
-	for(int k=1; k<(bs.Count-1); k++) {
-		var b = bs[k];
-		if ( (bs[k-1].Type == b.Type) && (b.Type == bs[k+1].Type) ){
-			var P = B[k-1];
-			var Q = B[k+1];
-			b.X = 0.5*(P[0] + Q[0]);
-			b.Y = 0.5*(P[1] + Q[1]);
-			b.Z = 0.5*(P[2] + Q[2]);
-		}
-	}
-}
-''')
 
 def SmoothenCurve(pMap, repeats):
 	bsList = [b for b in pMap.BodyListEnabled() if b.Id[0] != 'H']
 	for n in range(repeats):
-		cs2.SmoothenBodyList(bsList)
+		cs.SmoothenBodyList(bsList)
 	pMap.RedrawAll()
 
 '''========================================================================================

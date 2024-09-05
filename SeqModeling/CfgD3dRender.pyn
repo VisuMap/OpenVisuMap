@@ -15,6 +15,6 @@ match vv.EventSource.Item:
 		AssertSeqMap(pp)
 		ReCreateMap(pp)
 	case 'Smoothen':
-		SmoothenCurve(pp, repeats=1)
+		SmoothenCurve(pp, repeats=10)
 	case 'To2D':
-		To2DMap(pp, repeats=1, ppl=0.15, typeExpand=0)
+		To2DMap(pp, epochs=1000, repeats=2, ppl=0.1, typeExpand=0.0)

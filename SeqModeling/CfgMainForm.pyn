@@ -6,9 +6,12 @@ def MainProc(menuKey):
 	pSelected = pp.SelectedItems
 	if menuKey.startswith('P-'):
 		if pSelected.Count == 0:
-			vv.Message('No protein selected')
-			return
-		pId = pSelected[0]
+			pId = vv.GuiManager.GetClipboard()
+			if len(pId) != 4:
+				vv.Message('No protein selected')
+				return
+		else:
+			pId = pSelected[0]
 	else:
 		pAll = [b.Id for b in pp.Dataset.BodyListEnabled()]
 		pList = pSelected if pSelected.Count > 1 else pAll
