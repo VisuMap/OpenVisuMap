@@ -7,7 +7,7 @@ match vv.EventSource.Item:
 		AssertSeqMap(pp)
 		ShowMapData(pp)
 	case 'Scanning':
-		Scanning(pp, stride=200, stepSize=10)
+		Scanning(pp, stride=2000, stepSize=5)
 	case 'ShowSeq':
 		AssertSeqMap(pp)
 		ShowAASeq(pp)

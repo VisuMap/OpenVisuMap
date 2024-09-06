@@ -379,8 +379,7 @@ def LoadCifData(prName):
 				vv.Return()
 
 			helixSet = LoadHelix(inFile)
-			if len(helixSet) == 0:
-				inFile.seek(0)
+			betaSheet = LoadBetaSheet(inFile)
 
 			# skip to the atom site section
 			for L in inFile:
@@ -407,6 +406,8 @@ def LoadCifData(prName):
 					bId = f'A{rsIdx}.{bsList.Count}'
 					if rsIdx in helixSet:
 						secType = 'h'
+					elif rsIdx in betaSheet:
+						secType = 'b'
 				elif fs[0] == 'HETATM':
 					bId = f'H.{fs[3]}.{bsList2.Count}'
 				else:
@@ -462,6 +463,7 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 	mp.AddContextMenu('SeqVis/Open PDB', f'@vv.StartProcess("vi", "{localPath}")')
 	mp.AddContextMenu('SeqVis/Hide IPO', f'@HideInterpolates()')
 	mp.AddContextMenu('SeqVis/Mark Helix', f'@ShowHelix()')
+	mp.AddContextMenu('SeqVis/Mark Beta Sheet', f'@ShowBetaSheet()')
 
 def HideInterpolates():
 	for b in pp.BodyList:
@@ -469,6 +471,21 @@ def HideInterpolates():
 			b.Hidden = True
 	pp.TheForm.HiddenBodySize = 4
 	pp.RedrawAll()
+
+def LoadBetaSheet(fPDB):
+	betaSheet = set()
+	for L in fPDB:
+		if L.startswith('_struct_sheet_range.end_auth_seq_id'): break
+	for L in fPDB:
+		if L[0] == '#': break
+		fs = L.split()
+		idx0 = int(fs[4]) - 1
+		idx1 = int(fs[8]) + 1
+		for i in range(idx0, idx1):
+			betaSheet.add(i)
+	if len(betaSheet) == 0:
+		fPDB.seek(0)
+	return betaSheet		
 
 def LoadHelix(fPDB):
 	helixSet = set()
@@ -481,10 +498,15 @@ def LoadHelix(fPDB):
 		idx1 = int(fs[9]) + 1
 		for i in range(idx0, idx1):
 			helixSet.add(i)
+	if len(helixSet) == 0:
+		fPDB.seek(0)
 	return helixSet
 
 def ShowHelix():
 	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.h')]
+
+def ShowBetaSheet():
+	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.b')]
 
 # eps is a small positive number for the local convexity
 def DoInterpolate(D, rp, eps):
@@ -817,7 +839,7 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 	if repeats > 0:
 		mds.Close()
 
-def AugmentType2(nt, typeExpand):
+def AugmentType2(nt, stretch):
 	type2idx = {}
 	for rs in nt.RowSpecList:
 		if rs.Type not in type2idx:
@@ -826,29 +848,29 @@ def AugmentType2(nt, typeExpand):
 	nt.AddColumns(N)
 	M = nt.Matrix	
 	for row, rs in enumerate(nt.RowSpecList):
-		M[row][3+rs.Type] = typeExpand
+		M[row][3+rs.Type] = stretch
 	return nt
 
-def AugmentType1(nt, typeExpand):
+def AugmentType1(nt, stretch):
 	nt.AddColumns(1)
 	M = nt.Matrix	
 	for row, rs in enumerate(nt.RowSpecList):
-		M[row][3] = rs.Type * typeExpand
+		M[row][3] = rs.Type * stretch
 	return nt
 
-def AugmentType0(nt, typeExpand):
+def AugmentType0(nt, stretch):
 	nt.AddColumns(1)
 	M = nt.Matrix	
 	for row, rs in enumerate(nt.RowSpecList):
-		M[row][3] += row * typeExpand
+		M[row][3] += row * stretch
 	return nt
 
-def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, typeExpand=0, is3D=False):
+def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, finalExag=1.0, is3D=False):
 	nt = New.NumberTable(pMap.BodyListEnabled(),3)
-	if typeExpand != 0:
-		AugmentType0(nt, typeExpand)
-	mds = NewMds(nt, is3D=is3D, glyphSet=pMap.GlyphSet, initExag=10.0,
-		epochs=epochs, finalExag=1.0, ppl=ppl)
+	if stretch != 0:
+		AugmentType0(nt, stretch)
+	mds = NewMds(nt, is3D=is3D, glyphSet=pMap.GlyphSet, initExag=10.0, finalExag=finalExag,
+		epochs=epochs, ppl=ppl)
 	RunMds(mds, repeats=repeats, glyphSize=0.5)
 	vv.LastView.Title = pp.Title
 	vv.LastView.Description = MapInfo(pMap.Description).SetMds(mds).ToStr()

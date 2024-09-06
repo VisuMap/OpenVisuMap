@@ -7,7 +7,7 @@ match vv.EventSource.Item:
 		AssertSeqMap(pp)
 		ShowMapData(pp)
 	case 'Scanning':		
-		Scanning(pp, stepSize=20)
+		Scanning(pp, stepSize=1)
 	case 'ShowSeq':
 		AssertSeqMap(pp)
 		ShowAASeq(pp)
@@ -17,4 +17,4 @@ match vv.EventSource.Item:
 	case 'Smoothen':
 		SmoothenCurve(pp, repeats=10)
 	case 'UnFold':
-		UnFoldMap(pp, epochs=2000, repeats=1, is3D=False, ppl=0.10, typeExpand=0.00025)
+		UnFoldMap(pp, epochs=2000, repeats=1, is3D=False, finalExag=1.0, ppl=0.15, stretch=0.002)
