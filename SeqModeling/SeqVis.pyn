@@ -512,8 +512,11 @@ def RunMds(mds, repeats=1, glyphSize=0.5, glyphOpacity=0.5, info=None):
 def ShowMapData(pMap):
 	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	
 	info = MapInfo(pMap.Description)
-	winSize = int(info.WinSize) if info.WinSize != None else 0
-	nt = NewDataset(pSeq, winSize=winSize, augCfg=info.AugCfg)
+	if info.Mtd == 'PDB':
+		nt = New.NumberTable(pp.BodyListEnabled(), 3)
+	else:
+		winSize = int(info.WinSize) if info.WinSize != None else 0
+		nt = NewDataset(pSeq, winSize=winSize, augCfg=info.AugCfg)
 	nt.ShowHeatMap().NormalizeView()
 
 def CreateSeqMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
