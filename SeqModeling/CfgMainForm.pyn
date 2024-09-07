@@ -1,6 +1,7 @@
 #MenuLabels SeqMap SeqMap2 SeqMap3 SeqMap4 SeqMap5 P-ChmX P-Web P-PDB P-Seq P-Table P-Bar P-Bar2 P-Mkv - ProteinMap ProteinMap2 ProteinMap3 ProteinMap4
 
 vv.Import('SeqVis.pyn')
+vv.Import('PdbLoad.pyn')
 
 def MainProc(menuKey):
 	pSelected = pp.SelectedItems

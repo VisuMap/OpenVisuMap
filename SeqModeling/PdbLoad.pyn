@@ -1,0 +1,237 @@
+def ShowPDB(pId, rp, eps, includeHA=True):
+	localPath, bsList, bsList2 = LoadCifData(pId[:4])
+	bsList = Interporlate(bsList, rp, eps)
+	if includeHA:
+		bsList.AddRange(bsList2)
+
+	mp = New.Map3DView(bsList)
+	info = MapInfo()
+	info.pId = pId
+	info.pLen = bsList.Count
+	mp.Description = info.ToStr()
+	mp.Title = f'{pId}: Len:{bsList.Count}'
+	mp.GlyphSet = '36 Clusters||Colored Balls'
+	mp.ReadOnly = True
+	mp.ShowPerformance = False
+	mp.ShowBoundingBox = False
+	mp.GlyphSize = 0.75
+	mp.GlyphOpacity = 0.5
+	mp.Show()
+	mp.NormalizeView()
+	mp.AddContextMenu('SeqVis/Open PDB', f'@vv.StartProcess("vi", "{localPath}")')
+	mp.AddContextMenu('SeqVis/Hide IPO', f'@HideInterpolates()')
+	mp.AddContextMenu('SeqVis/Mark Helix', f'@ShowHelix()')
+	mp.AddContextMenu('SeqVis/Mark Beta Sheet', f'@ShowBetaSheet()')
+
+def LoadCifData(prName):
+	localPath = Download3DInfo(prName)
+	try:
+		with open(localPath) as fPDB:
+			L = fPDB.readline()
+			if not L.startswith('data_'):
+				vv.Message('Invalid header-line: ' + L)
+				vv.Return()
+			for L in fPDB:
+				if L.startswith('_struct_sheet_range.end_auth_seq_id'):
+					betaSet = LoadBetaSheet(fPDB)
+				elif L.startswith('_struct_conf.pdbx_PDB_helix_length'):
+					helixSet = LoadHelix(fPDB)
+				elif L.startswith('_atom_site.pdbx_PDB_model_num'):
+					bsList, bsList2 = LoadAtoms(fPDB, helixSet, betaSet)			
+	except Exception as err:
+		print(err, f'Last Line:\n {bsList.Count}: |{L}|')
+
+	if bsList.Count == 0:
+		vv.Message('No amino-acids found!')
+		vv.Return()
+	return localPath, bsList, bsList2
+
+def AugmentType2(nt, stretch):
+	type2idx = {}
+	for rs in nt.RowSpecList:
+		if rs.Type not in type2idx:
+			type2idx[rs.Type] = len(type2idx)
+	N = len(type2idx)
+	nt.AddColumns(N)
+	M = nt.Matrix	
+	for row, rs in enumerate(nt.RowSpecList):
+		M[row][3+rs.Type] = stretch
+	return nt
+
+def AugmentType1(nt, stretch):
+	nt.AddColumns(1)
+	M = nt.Matrix	
+	for row, rs in enumerate(nt.RowSpecList):
+		M[row][3] = rs.Type * stretch
+	return nt
+
+def AugmentType0(nt, stretch):
+	nt.AddColumns(1)
+	M = nt.Matrix	
+	for row, rs in enumerate(nt.RowSpecList):
+		M[row][3] += row * stretch
+	return nt
+
+def Download3DInfo(pId):
+	from os.path import exists
+	from urllib.request import urlretrieve
+	fileName = pId + '.cif'
+	localPath = 'c:/temp/' + fileName
+	if not exists(localPath):
+		urlretrieve(f'https://files.rcsb.org/download/{fileName}', localPath)
+	return localPath
+
+class ChainIndex():
+	def __init__(self):
+		self.chain2Index = {'HOH':(72+3), 'NAG':(72+11)}
+		self.headIndex = 0
+	def Lookup(self, chName):
+		if chName not in self.chain2Index:
+			for k in range(self.headIndex, 200, 1):
+				if k not in self.chain2Index.values():
+					self.chain2Index[chName] = k
+					self.headIndex = k+1
+					break
+			if chName not in self.chain2Index:
+				self.chain2Index[chName] = 200
+		return self.chain2Index[chName]
+	def Contains(self, chName):
+		return chName in self.chain2Index
+
+def HideInterpolates():
+	for b in pp.BodyList:
+		if b.Id.startswith('i'):
+			b.Hidden = True
+	pp.TheForm.HiddenBodySize = 4
+	pp.RedrawAll()
+
+def LoadBetaSheet(fPDB):
+	betaSet = set()
+	for L in fPDB:
+		if L[0] == '#': break
+		fs = L.split()
+		idx0 = int(fs[4]) - 1
+		idx1 = int(fs[8]) + 1
+		for i in range(idx0, idx1):
+			betaSet.add(i)
+	return betaSet		
+
+def LoadHelix(fPDB):
+	helixSet = set()
+	for L in fPDB:
+		if not L.startswith('HELX_P'): break
+		fs = L.split()
+		idx0 = int(fs[5])
+		idx1 = int(fs[9]) + 1
+		for i in range(idx0, idx1):
+			helixSet.add(i)
+	return helixSet
+
+def LoadAtoms(fPDB, helixSet, betaSet):
+	bsList = New.BodyList()
+	bsList2 = New.BodyList() # for hetero atoms
+	ch2idx = ChainIndex()
+	for L in fPDB:
+		if L[0] == '#':
+			break
+		fs = L.split()
+		if len(fs) != 21:
+			vv.Message(f'Invalid record: {len(fs)}: |{L}|')
+			vv.Return()		
+		
+		rsX, rsY, rsZ = float(fs[10]), float(fs[11]), -float(fs[12])	
+		rsName = fs[5]
+		chName = fs[6] + '_' + fs[20]
+		secType = 'x'
+		atName = fs[3]	
+		
+		if fs[0] == 'ATOM' and ( (atName=='CA') or (atName=='C2')):
+			rsIdx = int(fs[8]) - 1
+			bId = f'A{rsIdx}.{bsList.Count}'
+			if rsIdx in helixSet:
+				secType = 'h'
+			elif rsIdx in betaSet:
+				secType = 'b'
+		elif fs[0] == 'HETATM':
+			bId = f'H.{fs[3]}.{bsList2.Count}'
+		else:
+			continue	
+		
+		b = New.Body(bId)
+		b.X, b.Y, b.Z = rsX, rsY, rsZ
+		p1 = P3[rsName] if rsName in P3 else 'X'
+		b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType
+		b.Type = ch2idx.Lookup(chName)
+		
+		if b.Id[0] == 'H':  # for heter-atoms
+			if ch2idx.Contains(rsName):
+				b.Type = ch2idx.Lookup(rsName)
+			else:
+				b.Type = 72+25
+			bsList2.Add(b)
+		else:
+			bsList.Add(b)	
+	return bsList, bsList2
+
+def ShowHelix():
+	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.h')]
+
+def ShowBetaSheet():
+	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.b')]
+
+# eps is a small positive number for the local convexity
+def DoInterpolate(D, rp, eps):
+	if D.shape[0] <= 2: return D
+	for n in range(rp):
+		L = D.shape[0]
+		K = 2*L - 1
+		P = np.ndarray([K, 3])
+		P[0] = D[0]
+		# initializing the new points with the median points
+		for k in range(1, L):
+			P[2*k-1] = 0.5*(D[k-1] + D[k])
+			P[2*k] = D[k]
+		# added the local convexity to the new points.
+		for k in range(3, K-2, 2):
+			P[k] += eps*(2*P[k] - P[k-3] - P[k+3])
+		if K > 4:
+			P[1] += eps*(P[1] - P[4])
+			P[K-2] += eps*(P[K-2] - P[K-5])
+		D = P
+	return D
+
+def Interporlate(bsList, rp, eps):
+	bs = New.BodyList()
+	k0 = 0
+	t0 = bsList[k0].Type
+	for k in range(bsList.Count+1):
+		if (k == bsList.Count) or (bsList[k].Type != t0):
+			I = k - k0
+			D = np.ndarray((I, 3))
+			for i in range(I):
+				b = bsList[k0+i]
+				D[i] = b.X, b.Y, b.Z
+			D = DoInterpolate(D, rp, eps)
+			L = 2**rp
+			for n in range(D.shape[0]):
+				b0 = bsList[k0 + n//L]
+				b = New.Body()
+				b.Id = b0.Id if n%L==0 else 'i'+str(bs.Count)
+				b.CopyFrom(b0)
+				b.X, b.Y, b.Z = D[n]
+				bs.Add(b)
+			if k < bsList.Count:
+				k0 = k
+				t0 = bsList[k0].Type
+	return bs
+
+def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, finalExag=1.0, is3D=False):
+	nt = New.NumberTable(pMap.BodyListEnabled(),3)
+	if stretch != 0:
+		AugmentType0(nt, stretch)
+	mds = NewMds(nt, is3D=is3D, glyphSet=pMap.GlyphSet, initExag=10.0, finalExag=finalExag,
+		epochs=epochs, ppl=ppl)
+	RunMds(mds, repeats=repeats, glyphSize=0.5)
+	vv.LastView.Title = pp.Title
+	vv.LastView.Description = MapInfo(pMap.Description).SetMds(mds).ToStr()
+	mds.Close()

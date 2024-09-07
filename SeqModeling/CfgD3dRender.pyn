@@ -1,6 +1,7 @@
 #MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen UnFold
 
 vv.Import('SeqVis.pyn')
+vv.Import('PdbLoad.pyn')
 
 match vv.EventSource.Item:
 	case 'ShowData':
@@ -17,4 +18,4 @@ match vv.EventSource.Item:
 	case 'Smoothen':
 		SmoothenCurve(pp, repeats=10)
 	case 'UnFold':
-		UnFoldMap(pp, epochs=2000, repeats=1, is3D=False, finalExag=1.0, ppl=0.1, stretch=0.005)
+		UnFoldMap(pp, epochs=2000, repeats=1, is3D=False, finalExag=1.0, ppl=0.1, stretch=0.001)
