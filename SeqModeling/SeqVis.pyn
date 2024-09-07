@@ -366,83 +366,31 @@ class ChainIndex():
 		return chName in self.chain2Index
 
 def LoadCifData(prName):
-	bsList = New.BodyList()
-	bsList2 = New.BodyList() # for hetero atoms
 	localPath = Download3DInfo(prName)
-	ch2idx = ChainIndex()
 	try:
-		with open(localPath) as inFile:
-
-			L = inFile.readline()
+		with open(localPath) as fPDB:
+			L = fPDB.readline()
 			if not L.startswith('data_'):
 				vv.Message('Invalid header-line: ' + L)
 				vv.Return()
-
-			helixSet = LoadHelix(inFile)
-			betaSheet = LoadBetaSheet(inFile)
-
-			# skip to the atom site section
-			for L in inFile:
-				if L.startswith('_atom_site.pdbx_PDB_model_num'):
-					break
-
-			for L in inFile:
-				if L[0] == '#': # finished the _atom_site section
-					break 
-
-				fs = L.split()
-				if len(fs) != 21:
-					vv.Message(f'Invalid record: {len(fs)}: |{L}|')
-					vv.Return()		
-
-				rsX, rsY, rsZ = float(fs[10]), float(fs[11]), -float(fs[12])	
-				rsName = fs[5]
-				chName = fs[6] + '_' + fs[20]
-				secType = 'x'
-				atName = fs[3]	
-
-				if fs[0] == 'ATOM' and ( (atName=='CA') or (atName=='C2')):
-					rsIdx = int(fs[8]) - 1
-					bId = f'A{rsIdx}.{bsList.Count}'
-					if rsIdx in helixSet:
-						secType = 'h'
-					elif rsIdx in betaSheet:
-						secType = 'b'
-				elif fs[0] == 'HETATM':
-					bId = f'H.{fs[3]}.{bsList2.Count}'
-				else:
-					continue	
-
-				b = New.Body(bId)
-				b.X, b.Y, b.Z = rsX, rsY, rsZ
-				p1 = P3[rsName] if rsName in P3 else 'X'
-				b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType
-				b.Type = ch2idx.Lookup(chName)
-	
-				if b.Id[0] == 'H':  # for heter-atoms
-					if ch2idx.Contains(rsName):
-						b.Type = ch2idx.Lookup(rsName)
-					else:
-						b.Type = 72+25
-					bsList2.Add(b)
-				else:
-					bsList.Add(b)
+			for L in fPDB:
+				if L.startswith('_struct_sheet_range.end_auth_seq_id'):
+					betaSet = LoadBetaSheet(fPDB)
+				elif L.startswith('_struct_conf.pdbx_PDB_helix_length'):
+					helixSet = LoadHelix(fPDB)
+				elif L.startswith('_atom_site.pdbx_PDB_model_num'):
+					bsList, bsList2 = LoadAtoms(fPDB, helixSet, betaSet)			
 	except Exception as err:
 		print(err, f'Last Line:\n {bsList.Count}: |{L}|')
 
 	if bsList.Count == 0:
 		vv.Message('No amino-acids found!')
 		vv.Return()
-
 	return localPath, bsList, bsList2
-
-
 
 def ShowPDB(pId, rp, eps, includeHA=True):
 	localPath, bsList, bsList2 = LoadCifData(pId[:4])
-
 	bsList = Interporlate(bsList, rp, eps)
-
 	if includeHA:
 		bsList.AddRange(bsList2)
 
@@ -473,24 +421,18 @@ def HideInterpolates():
 	pp.RedrawAll()
 
 def LoadBetaSheet(fPDB):
-	betaSheet = set()
-	for L in fPDB:
-		if L.startswith('_struct_sheet_range.end_auth_seq_id'): break
+	betaSet = set()
 	for L in fPDB:
 		if L[0] == '#': break
 		fs = L.split()
 		idx0 = int(fs[4]) - 1
 		idx1 = int(fs[8]) + 1
 		for i in range(idx0, idx1):
-			betaSheet.add(i)
-	if len(betaSheet) == 0:
-		fPDB.seek(0)
-	return betaSheet		
+			betaSet.add(i)
+	return betaSet		
 
 def LoadHelix(fPDB):
 	helixSet = set()
-	for L in fPDB:
-		if L.startswith('_struct_conf.pdbx_PDB_helix_length'): break
 	for L in fPDB:
 		if not L.startswith('HELX_P'): break
 		fs = L.split()
@@ -498,9 +440,53 @@ def LoadHelix(fPDB):
 		idx1 = int(fs[9]) + 1
 		for i in range(idx0, idx1):
 			helixSet.add(i)
-	if len(helixSet) == 0:
-		fPDB.seek(0)
 	return helixSet
+
+def LoadAtoms(fPDB, helixSet, betaSet):
+	bsList = New.BodyList()
+	bsList2 = New.BodyList() # for hetero atoms
+	ch2idx = ChainIndex()
+	for L in fPDB:
+		if L[0] == '#':
+			break
+		fs = L.split()
+		if len(fs) != 21:
+			vv.Message(f'Invalid record: {len(fs)}: |{L}|')
+			vv.Return()		
+		
+		rsX, rsY, rsZ = float(fs[10]), float(fs[11]), -float(fs[12])	
+		rsName = fs[5]
+		chName = fs[6] + '_' + fs[20]
+		secType = 'x'
+		atName = fs[3]	
+		
+		if fs[0] == 'ATOM' and ( (atName=='CA') or (atName=='C2')):
+			rsIdx = int(fs[8]) - 1
+			bId = f'A{rsIdx}.{bsList.Count}'
+			if rsIdx in helixSet:
+				secType = 'h'
+			elif rsIdx in betaSet:
+				secType = 'b'
+		elif fs[0] == 'HETATM':
+			bId = f'H.{fs[3]}.{bsList2.Count}'
+		else:
+			continue	
+		
+		b = New.Body(bId)
+		b.X, b.Y, b.Z = rsX, rsY, rsZ
+		p1 = P3[rsName] if rsName in P3 else 'X'
+		b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType
+		b.Type = ch2idx.Lookup(chName)
+		
+		if b.Id[0] == 'H':  # for heter-atoms
+			if ch2idx.Contains(rsName):
+				b.Type = ch2idx.Lookup(rsName)
+			else:
+				b.Type = 72+25
+			bsList2.Add(b)
+		else:
+			bsList.Add(b)	
+	return bsList, bsList2
 
 def ShowHelix():
 	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.h')]

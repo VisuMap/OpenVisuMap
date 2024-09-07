@@ -17,4 +17,4 @@ match vv.EventSource.Item:
 	case 'Smoothen':
 		SmoothenCurve(pp, repeats=10)
 	case 'UnFold':
-		UnFoldMap(pp, epochs=2000, repeats=1, is3D=False, finalExag=1.0, ppl=0.15, stretch=0.002)
+		UnFoldMap(pp, epochs=2000, repeats=1, is3D=False, finalExag=1.0, ppl=0.1, stretch=0.005)

@@ -60,7 +60,7 @@ def ImportPDBs():
 
 '''
 
-InitDatabase('rcsb local virus', '')
+InitDatabase('rcsb beta barrels', '')
 ImportPDBs()
 
 '''
