@@ -1,3 +1,5 @@
+#import traceback 
+
 def ShowPDB(pId, rp, eps, includeHA=True):
 	localPath, bsList, bsList2 = LoadCifData(pId[:4])
 	bsList = Interporlate(bsList, rp, eps)
@@ -8,6 +10,7 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 	info = MapInfo()
 	info.pId = pId
 	info.pLen = bsList.Count
+	info.Mtd = 'PDB'
 	mp.Description = info.ToStr()
 	mp.Title = f'{pId}: Len:{bsList.Count}'
 	mp.GlyphSet = '36 Clusters||Colored Balls'
@@ -19,13 +22,12 @@ def ShowPDB(pId, rp, eps, includeHA=True):
 	mp.Show()
 	mp.NormalizeView()
 	mp.AddContextMenu('SeqVis/Open PDB', f'@vv.StartProcess("vi", "{localPath}")')
-	mp.AddContextMenu('SeqVis/Hide IPO', f'@HideInterpolates()')
-	mp.AddContextMenu('SeqVis/Mark Helix', f'@ShowHelix()')
-	mp.AddContextMenu('SeqVis/Mark Beta Sheet', f'@ShowBetaSheet()')
 
 def LoadCifData(prName):
 	localPath = Download3DInfo(prName)
 	try:
+		bsList, bsList2 = New.BodyList(), New.BodyList()
+		betaSet, helixSet = set(), set()
 		with open(localPath) as fPDB:
 			L = fPDB.readline()
 			if not L.startswith('data_'):
@@ -37,7 +39,8 @@ def LoadCifData(prName):
 				elif L.startswith('_struct_conf.pdbx_PDB_helix_length'):
 					helixSet = LoadHelix(fPDB)
 				elif L.startswith('_atom_site.pdbx_PDB_model_num'):
-					bsList, bsList2 = LoadAtoms(fPDB, helixSet, betaSet)			
+					bsList, bsList2 = LoadAtoms(fPDB, helixSet, betaSet)
+					break	
 	except Exception as err:
 		print(err, f'Last Line:\n {bsList.Count}: |{L}|')
 
@@ -46,30 +49,15 @@ def LoadCifData(prName):
 		vv.Return()
 	return localPath, bsList, bsList2
 
-def AugmentType2(nt, stretch):
-	type2idx = {}
-	for rs in nt.RowSpecList:
-		if rs.Type not in type2idx:
-			type2idx[rs.Type] = len(type2idx)
-	N = len(type2idx)
-	nt.AddColumns(N)
-	M = nt.Matrix	
-	for row, rs in enumerate(nt.RowSpecList):
-		M[row][3+rs.Type] = stretch
-	return nt
 
-def AugmentType1(nt, stretch):
+def AugmentByIndex(nt, stretch):
+	sig = np.std(mm.ToNumpy(nt))
 	nt.AddColumns(1)
 	M = nt.Matrix	
+	#dx = stretch   # the static stretching method.
+	dx = stretch/(sig * nt.Rows)
 	for row, rs in enumerate(nt.RowSpecList):
-		M[row][3] = rs.Type * stretch
-	return nt
-
-def AugmentType0(nt, stretch):
-	nt.AddColumns(1)
-	M = nt.Matrix	
-	for row, rs in enumerate(nt.RowSpecList):
-		M[row][3] += row * stretch
+		M[row][3] += row * dx
 	return nt
 
 def Download3DInfo(pId):
@@ -98,12 +86,27 @@ class ChainIndex():
 	def Contains(self, chName):
 		return chName in self.chain2Index
 
+def CheckForPDB(pMap):
+	info = MapInfo(pMap.Description)
+	if info.Mtd != 'PDB':
+		vv.Message('The parent map is not created from PDB file')
+		vv.Return()
+
 def HideInterpolates():
+	CheckForPDB(pp)
 	for b in pp.BodyList:
 		if b.Id.startswith('i'):
 			b.Hidden = True
 	pp.TheForm.HiddenBodySize = 4
 	pp.RedrawAll()
+
+def ShowHelix():
+	CheckForPDB(pp)
+	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.h')]
+
+def ShowBetaSheet():
+	CheckForPDB(pp)
+	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.b')]
 
 def LoadBetaSheet(fPDB):
 	betaSet = set()
@@ -173,11 +176,6 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 			bsList.Add(b)	
 	return bsList, bsList2
 
-def ShowHelix():
-	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.h')]
-
-def ShowBetaSheet():
-	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.b')]
 
 # eps is a small positive number for the local convexity
 def DoInterpolate(D, rp, eps):
@@ -228,10 +226,11 @@ def Interporlate(bsList, rp, eps):
 def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, finalExag=1.0, is3D=False):
 	nt = New.NumberTable(pMap.BodyListEnabled(),3)
 	if stretch != 0:
-		AugmentType0(nt, stretch)
+		AugmentByIndex(nt, stretch)
 	mds = NewMds(nt, is3D=is3D, glyphSet=pMap.GlyphSet, initExag=10.0, finalExag=finalExag,
 		epochs=epochs, ppl=ppl)
-	RunMds(mds, repeats=repeats, glyphSize=0.5)
+	info = MapInfo(pMap.Description).SetMds(mds)
+	info.SF = stretch
+	RunMds(mds, repeats=repeats, glyphSize=0.5, info=info)
 	vv.LastView.Title = pp.Title
-	vv.LastView.Description = MapInfo(pMap.Description).SetMds(mds).ToStr()
 	mds.Close()

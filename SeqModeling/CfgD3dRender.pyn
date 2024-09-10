@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen UnFold
+#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen UnFold, HideIPO MarkHelix MarkBeta
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -18,4 +18,10 @@ match vv.EventSource.Item:
 	case 'Smoothen':
 		SmoothenCurve(pp, repeats=10)
 	case 'UnFold':
-		UnFoldMap(pp, epochs=2000, repeats=1, is3D=False, finalExag=1.0, ppl=0.1, stretch=0.001)
+		UnFoldMap(pp, epochs=1000, repeats=1, is3D=False, finalExag=1.0, ppl=0.1, stretch=100.0)
+	case 'HideIPO':
+		HideInterpolates()
+	case 'MarkHelix':
+		ShowHelix()
+	case 'MarkBeta':
+		ShowBetaSheet()

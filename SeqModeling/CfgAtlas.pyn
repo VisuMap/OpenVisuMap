@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps LinkSelection
+#MenuLabels ConfigMaps LinkSelection UnFoldMaps
 
 vv.Import('SeqVis.pyn')
 
@@ -15,3 +15,7 @@ match vv.EventSource.Item:
 	case 'LinkSelection':
 		pp.OnItemsSelected = '@vv.SelectedItems = [x.Name for x in pp.GetSelectedItems()]'
 		pp.SetEventHandler('ItemsSelected', '@HighlightItems()')
+	case 'UnFoldMaps':
+		atName = None
+		itemList = pp.GetSelectedItems()
+		UnfoldAtlasMaps(itemList, atName, stretch=100.0)

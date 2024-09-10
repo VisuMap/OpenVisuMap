@@ -9,7 +9,6 @@ P3 = {'ALA':'A', 'ARG':'R', 'ASN':'N', 'ASP':'D', 'CYS':'C',
 		'LEU':'L', 'LYS':'K', 'MET':'M', 'PHE':'F', 'PRO':'P',
 		'SER':'S', 'THR':'T', 'TRP':'W', 'TYR':'Y', 'VAL':'V'}
 
-
 def FilterSeq(D, P):
 	return ''.join([ c for c in D.upper() if c in P ])
 
@@ -67,7 +66,7 @@ if 'cs' not in globals():
 # protein embedding map information
 class MapInfo():
 	def __init__(self, initStr = None):
-		for nm in 'pId,Gene,pLen,Epochs,InitE,FinalE,PP,WinSize,AugCfg,Is3D,Mtd'.split(','):
+		for nm in 'pId,Gene,pLen,Epochs,InitE,FinalE,PP,WinSize,AugCfg,Is3D,Mtd,SF'.split(','):
 			setattr(self, nm, None)
 		if initStr is not None:
 			self.ParseStr(initStr)
@@ -630,15 +629,25 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 #-------------------------------------------------------------------
 
 def ShowAASeq(pMap):
-	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()
 	info = MapInfo(pMap.Description)
-	tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
-	tp.Tag = pMap
-	tp.OnSelection = '@OnSeqSelection()'
-	pMap.AddEventHandler('ItemsSelected', '@OnSeqSelected()')
-	bId2Idx = {pMap.BodyList[k].Id:k for k in range(pMap.BodyList.Count)}
-	pMap.Tag = (tp, bId2Idx)
-	tp.Show()
+	if info.Mtd == 'PDB':
+		pSeq = []
+		for b in pMap.BodyList:
+			if (b.Id[0] == 'A') and (b.Name[0] in P):
+				if b.Name.split('.')[2] == 'A_1':
+					pSeq.append(b.Name[0])		
+		pSeq = ''.join(pSeq)
+		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
+		tp.Show()
+	else:
+		pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()
+		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
+		tp.Tag = pMap
+		tp.OnSelection = '@OnSeqSelection()'
+		pMap.AddEventHandler('ItemsSelected', '@OnSeqSelected()')
+		bId2Idx = {pMap.BodyList[k].Id:k for k in range(pMap.BodyList.Count)}
+		pMap.Tag = (tp, bId2Idx)
+		tp.Show()
 
 def OnSeqSelection():
 	pMap = pp.Tag
@@ -736,7 +745,33 @@ def SmoothenCurve(pMap, repeats):
 		cs.SmoothenBodyList(bsList)
 	pMap.RedrawAll()
 
+def UnfoldAtlasMaps(mapItems, atName=None, stretch=5.0):
+	for k, m in enumerate(mapItems):
+		mp = m.Open()
+		UnFoldMap(mp, epochs=1000, repeats=1, is3D=False, finalExag=1.0, ppl=0.1, stretch=stretch)
+		mp.Close()
+		if atName is not None:
+			if (k+1) % 20 == 0:
+				SaveToAtlas(atName)
+	if atName is not None:
+		if (k+1) % 20 != 0:
+			SaveToAtlas(atName)
+
 '''========================================================================================
 
+import os
+fs = [f[:4] for f in os.listdir('c:\\temp') if f.endswith('.cif') ]
+for k, pId in enumerate(fs):
+	try:
+		ShowPDB(pId, rp=3, eps=0.1, includeHA=True)
+	except Exception as err:
+		print(f'Failed to load {pId}: {err}')
+		continue
+	if (k+1) % 10 == 0: 
+		atName = 'Loaded-Proteins1' if k < 120 else 'Loaded-Proteins2'
+		SaveToAtlas(atName)
+SaveToAtlas(atName)
+
+pp.SelectedItems = [b.Id for b in pp.BodyList if b.Name[0]=='S']  #A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V
 
 '''
