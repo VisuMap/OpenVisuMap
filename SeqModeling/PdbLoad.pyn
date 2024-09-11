@@ -51,13 +51,17 @@ def LoadCifData(prName):
 
 
 def AugmentByIndex(nt, stretch):
-	var = np.var(mm.ToNumpy(nt))
 	nt.AddColumns(1)
-	M = nt.Matrix	
-	#dx = stretch   # the static stretching method.
-	dx = stretch/(var * 5000.0)
-	for row, rs in enumerate(nt.RowSpecList):
-		M[row][3] += row * dx
+	M = nt.Matrix
+	rsList = nt.RowSpecList
+	# get the number of interpolation points which is normally 8
+	for ipp in range(1, 128):  
+		if rsList[ipp].Id[0] == 'A':
+			break
+	dx = 0.01*stretch/ipp
+	for row, rs in enumerate(rsList):
+		if rs.Id[0] != 'H':  # hetero atoms don't participate in the unfold stretching
+			M[row][3] += row * dx
 	return nt
 
 def Download3DInfo(pId):

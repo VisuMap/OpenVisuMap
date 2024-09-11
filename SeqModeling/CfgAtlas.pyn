@@ -19,4 +19,4 @@ match vv.EventSource.Item:
 	case 'UnFold Maps':
 		atName = pp.AtlasName + ' 2D'
 		itemList = pp.GetSelectedItems()
-		UnfoldAtlasMaps(pp, itemList, atName, stretch=100.0)
+		UnfoldAtlasMaps(pp, itemList, atName, stretch=0.25)
