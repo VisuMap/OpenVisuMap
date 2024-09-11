@@ -47,7 +47,12 @@ def MainProc(menuKey):
 		case 'P-Bar':  ShowSeqInfo(pId, barView=True, useAApair=True)
 		case 'P-Bar2': ShowSeqInfo(pId, showTable=True, barView=True, useAApair=True)
 		case 'P-Mkv':  ShowSeqInfo(pId, markovTrans=True)
-		case 'P-PDB':  ShowPDB(pId, rp=3, eps=0.1, includeHA=False) 
+		case 'P-PDB':  
+			if vv.ModifierKeys.ControlPressed:
+				for pId in pSelected:				
+					ShowPDB(pId, rp=3, eps=0.1, includeHA=False) 
+			else:
+				ShowPDB(pId, rp=3, eps=0.1, includeHA=False) 
 
 		case 'ProteinMap':
 			CreateProteinMapByCounts(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1, repeats=0)

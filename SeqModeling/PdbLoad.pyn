@@ -51,11 +51,11 @@ def LoadCifData(prName):
 
 
 def AugmentByIndex(nt, stretch):
-	sig = np.std(mm.ToNumpy(nt))
+	var = np.var(mm.ToNumpy(nt))
 	nt.AddColumns(1)
 	M = nt.Matrix	
 	#dx = stretch   # the static stretching method.
-	dx = stretch/(sig * nt.Rows)
+	dx = stretch/(var * 5000.0)
 	for row, rs in enumerate(nt.RowSpecList):
 		M[row][3] += row * dx
 	return nt
@@ -232,5 +232,5 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, finalExag=1.0, i
 	info = MapInfo(pMap.Description).SetMds(mds)
 	info.SF = stretch
 	RunMds(mds, repeats=repeats, glyphSize=0.5, info=info)
-	vv.LastView.Title = pp.Title
+	vv.LastView.Title = pMap.Title
 	mds.Close()

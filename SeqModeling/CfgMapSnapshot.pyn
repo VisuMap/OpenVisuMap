@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen
+#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen, HideIPO MarkHelix MarkBeta
 vv.Import('SeqVis.pyn')
 
 
@@ -16,4 +16,11 @@ match vv.EventSource.Item:
 		ReCreateMap(pp)
 	case 'Smoothen':
 		SmoothenCurve(pp, 10)
+	case 'HideIPO':
+		HideInterpolates()
+	case 'MarkHelix':
+		ShowHelix()
+	case 'MarkBeta':
+		ShowBetaSheet()
+
 

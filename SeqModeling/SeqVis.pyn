@@ -477,7 +477,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1,
 	mds.Show()
 	mds.MdsAlgorithm = 2
 	mds.MaxLoops = epochs
-	mds.RefreshFreq = 500
+	mds.RefreshFreq = 50
 	mds.InitialExaggeration = initExag
 	mds.FinalExaggeration = finalExag
 	mds.PerplexityRatio = ppl
@@ -497,11 +497,11 @@ def RunMds(mds, repeats=1, glyphSize=0.5, glyphOpacity=0.5, info=None):
 	mds.Reset().Start()
 	mds.GlyphOpacity = glyphOpacity
 	mds.GlyphSize = glyphSize
+	if info is not None:
+		info.DDM = mds.DataDim
 	mds.Description = info.ToStr() if info is not None else 'Map created by RunMds'
 	if not mds.Completed: 
 		vv.Return(0)
-	if info is not None:
-		info.DDM = mds.DataDim
 	if repeats == 1:
 		mds.ShowSnapshot()
 	return mds
@@ -745,10 +745,14 @@ def SmoothenCurve(pMap, repeats):
 		cs.SmoothenBodyList(bsList)
 	pMap.RedrawAll()
 
-def UnfoldAtlasMaps(mapItems, atName=None, stretch=5.0):
+def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=5.0):
 	for k, m in enumerate(mapItems):
 		mp = m.Open()
+		itemList = New.AtlasItemArray()
+		itemList.Add(m)
+		atlas.SetSelectedItems(itemList)
 		UnFoldMap(mp, epochs=1000, repeats=1, is3D=False, finalExag=1.0, ppl=0.1, stretch=stretch)
+
 		mp.Close()
 		if atName is not None:
 			if (k+1) % 20 == 0:
