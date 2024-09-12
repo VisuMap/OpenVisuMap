@@ -37,10 +37,12 @@ def GetProteinSeq(pTable, pId):
 	rowIdx = pTable.IndexOfRow(pId)
 	return pTable.GetDataAt(rowIdx, 2)
 
-def SaveToAtlas(atName, x0=50, y0=50):	
+def SaveToAtlas(atName, x0=50, y0=50, closeAtlas=True):	
 	if atName is not None:
 		vwName = vv.LastView.Name
-		vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0, vwName).Close()
+		atlas = vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0, vwName)
+		if closeAtlas:
+			atlas.Close()
 
 def Save2Atlas():
 	vwName = vv.LastView.Name
@@ -745,7 +747,7 @@ def SmoothenCurve(pMap, repeats):
 		cs.SmoothenBodyList(bsList)
 	pMap.RedrawAll()
 
-def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=5.0):
+def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0):
 	for k, m in enumerate(mapItems):
 		mp = m.Open()
 		atlas.SetSelectedItems([m])
@@ -758,6 +760,30 @@ def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=5.0):
 	if atName is not None:
 		if (k+1) % 20 != 0:
 			SaveToAtlas(atName)
+
+def ScanningForAA(pMap, pAA, stride=0):
+	aaList = [b.Id for b in pp.BodyList if b.Name[0] in pAA]
+	L = len(aaList)
+	if stride < 0:
+		stride = 1 + int(L/1000)
+	pMap.Title = f'Amino Acide: {pAA}: {L}'
+	if stride == 0:
+		pMap.SelectedItems = aaList
+	else:
+		for n in range(1, L, stride):
+			pMap.SelectedItems = aaList[:n]
+
+'''
+All: A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V
+Necleophilic: S|T|C|STC
+Hydrophobic: V|L|I|M|P|VLIMP
+Aromatic: F|Y|W|FYW
+Acidic: D|E|DE
+Amide: N|Q|NQ
+Basic: H|K|R|HKR
+
+ScanningForAA(pp, 'HKR', 0)  #H|K|R|HKR
+'''
 
 '''========================================================================================
 
@@ -774,6 +800,6 @@ for k, pId in enumerate(fs):
 		SaveToAtlas(atName)
 SaveToAtlas(atName)
 
-pp.SelectedItems = [b.Id for b in pp.BodyList if b.Name[0]=='S']  #A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V
+
 
 '''

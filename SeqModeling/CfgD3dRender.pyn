@@ -16,9 +16,9 @@ match vv.EventSource.Item:
 		AssertSeqMap(pp)
 		ReCreateMap(pp)
 	case 'Smoothen':
-		SmoothenCurve(pp, repeats=10)
+		SmoothenCurve(pp, repeats=50)
 	case 'UnFold':
-		UnFoldMap(pp, epochs=1000, repeats=1, is3D=False, finalExag=1.0, ppl=0.1, stretch=0.25)
+		UnFoldMap(pp, epochs=1000, repeats=1, is3D=False, finalExag=1.0, ppl=0.05, stretch=1.50)
 	case 'HideIPO':
 		HideInterpolates()
 	case 'MarkHelix':

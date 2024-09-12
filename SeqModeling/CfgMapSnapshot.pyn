@@ -1,13 +1,13 @@
-#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen, HideIPO MarkHelix MarkBeta
+#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen P-Web P-PDB HideIPO MarkHelix MarkBeta
 vv.Import('SeqVis.pyn')
-
+vv.Import('PdbLoad.pyn')
 
 match vv.EventSource.Item:
 	case 'ShowData':
 		AssertSeqMap(pp)
 		ShowMapData(pp)
 	case 'Scanning':
-		Scanning(pp, stride=2000, stepSize=100)
+		Scanning(pp, stride=500, stepSize=10)
 	case 'ShowSeq':
 		AssertSeqMap(pp)
 		ShowAASeq(pp)
@@ -16,6 +16,12 @@ match vv.EventSource.Item:
 		ReCreateMap(pp)
 	case 'Smoothen':
 		SmoothenCurve(pp, 10)
+	case 'P-Web':
+		pId = MapInfo(pp.Description).pId
+		ShowWeb(pId)
+	case 'P-PDB':
+		pId = MapInfo(pp.Description).pId
+		ShowPDB(pId, rp=3, eps=0.1, includeHA=False) 
 	case 'HideIPO':
 		HideInterpolates()
 	case 'MarkHelix':

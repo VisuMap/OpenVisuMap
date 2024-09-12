@@ -230,7 +230,7 @@ def Interporlate(bsList, rp, eps):
 def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, finalExag=1.0, is3D=False):
 	nt = New.NumberTable(pMap.BodyListEnabled(),3)
 	if stretch != 0:
-		AugmentByIndex(nt, stretch)
+		AugmentByIndex(nt, stretch=stretch)
 	mds = NewMds(nt, is3D=is3D, glyphSet=pMap.GlyphSet, initExag=10.0, finalExag=finalExag,
 		epochs=epochs, ppl=ppl)
 	info = MapInfo(pMap.Description).SetMds(mds)
