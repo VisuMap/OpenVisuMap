@@ -156,9 +156,16 @@ namespace VisuMap
         }
 
         const string AB = "ARNDCEQGHILKMFPSTWYV"; // "WCMYHFNIDQTRVKGPAESL";
+        List<string> GetAAPairs() {
+            List<string> aaPairList = new List<string>();
+            foreach (char a in AB)
+                foreach (char b in AB)
+                    aaPairList.Add(new string(new char[] { a, b }));
+            return aaPairList;
+        }
 
         public INumberTable GetPairLinkage(bool toDistances = true, bool normalizing=true) {
-            var ppList = vv.GroupManager.GetGroupLabels("KeyPairs400");
+            var ppList = GetAAPairs();
             var PP = new Dictionary<string, int>();
             int L = ppList.Count;
             for (int k = 0; k < L; k++)
@@ -249,7 +256,7 @@ namespace VisuMap
         }
 
         public INumberTable GetMarkovCoding2(Script.IDataset ds, List<string> pList) {
-            var ppList = vv.GroupManager.GetGroupLabels("KeyPairs400");
+            var ppList = GetAAPairs();
             int L = ppList.Count;
             var PP = Enumerable.Range(0, L).ToDictionary(k => ppList[k], k => k);
             var T = New.NumberTable(pList.Count, L);

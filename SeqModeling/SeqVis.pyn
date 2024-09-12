@@ -260,7 +260,6 @@ def CreateProteinMap2(pList, epochs=10000, is3D=False, initExag=6.0, ppList=None
 
 def CreateProteinMap3(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, ppl=0.1, finalExag=1.0):
 	pTable = AssertProteinTable()	
-	#dt = cs.GetMarkovCoding1(pTable, pList)
 	dt = cs.GetMarkovCoding2(pTable, pList)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
@@ -782,7 +781,13 @@ Acidic: D|E|DE
 Amide: N|Q|NQ
 Basic: H|K|R|HKR
 
-ScanningForAA(pp, 'HKR', 0)  #H|K|R|HKR
+ScanningForAA(pp, 'C')  #S|T|C|STC
+ScanningForAA(pp, 'M')  #V|L|I|M|P|VLIMP
+ScanningForAA(pp, 'H')  #F|Y|W|FYW
+ScanningForAA(pp, 'H')  #D|E|DE
+ScanningForAA(pp, 'H')  #N|Q|NQ
+ScanningForAA(pp, 'H')  #H|K|R|HKR
+
 '''
 
 '''========================================================================================
