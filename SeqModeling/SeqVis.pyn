@@ -765,7 +765,7 @@ def ScanningForAA(pMap, pAA, stride=0):
 	L = len(aaList)
 	if stride < 0:
 		stride = 1 + int(L/1000)
-	pMap.Title = f'Amino Acide: {pAA}: {L}'
+	pMap.Title = f'Amino Acide: {pAA}: {int(L/8)}'
 	if stride == 0:
 		pMap.SelectedItems = aaList
 	else:
@@ -773,20 +773,15 @@ def ScanningForAA(pMap, pAA, stride=0):
 			pMap.SelectedItems = aaList[:n]
 
 '''
-All: A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V
-Necleophilic: S|T|C|STC
-Hydrophobic: V|L|I|M|P|VLIMP
-Aromatic: F|Y|W|FYW
-Acidic: D|E|DE
-Amide: N|Q|NQ
-Basic: H|K|R|HKR
 
-ScanningForAA(pp, 'C')  #S|T|C|STC
-ScanningForAA(pp, 'M')  #V|L|I|M|P|VLIMP
-ScanningForAA(pp, 'H')  #F|Y|W|FYW
-ScanningForAA(pp, 'H')  #D|E|DE
-ScanningForAA(pp, 'H')  #N|Q|NQ
-ScanningForAA(pp, 'H')  #H|K|R|HKR
+ScanningForAA(pp, 'STC')  #S|T|C|STC			# Necleophilic
+ScanningForAA(pp, 'P')  #V|L|I|M|P|VLIMP		# Hydrophobic
+ScanningForAA(pp, 'W')  #F|Y|W|FYW	  # Aromatic
+ScanningForAA(pp, 'DE')  #D|E|DE       # Acidic
+ScanningForAA(pp, 'N')  #N|Q|NQ       # Amide
+ScanningForAA(pp, 'HKR')  #H|K|R|HKR    # Basic
+ScanningForAA(pp, 'GA', 5)  #G|A|GA    # Small AA
+ScanningForAA(pp, 'T')  #A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V     # all AA.
 
 '''
 

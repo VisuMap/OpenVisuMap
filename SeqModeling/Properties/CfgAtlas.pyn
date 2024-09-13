@@ -1,0 +1,22 @@
+#MenuLabels ConfigMaps LinkSelection "UnFold Maps"
+
+vv.Import('SeqVis.pyn')
+vv.Import('PdbLoad.pyn')
+
+def HighlightItems():
+	srcClassName = vv.EventSource.Item.ToString()
+	#Only continues if the event is not triggered by vv.SelectedItems call in HighlightBodies().
+	if not srcClassName.endswith('.VisuMapImp'):
+		sIds = set(vv.SelectedItems)
+		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])
+
+match vv.EventSource.Item:
+	case 'ConfigMaps':
+		ConfigAtlasMaps(pp, 1000, 700, gSize=0.75, gOpacity=0.5, hiddenSize=7, reset=False)
+	case 'LinkSelection':
+		pp.OnItemsSelected = '@vv.SelectedItems = [x.Name for x in pp.GetSelectedItems()]'
+		pp.SetEventHandler('ItemsSelected', '@HighlightItems()')
+	case 'UnFold Maps':
+		atName = pp.AtlasName + ' 2D-B'
+		itemList = pp.GetSelectedItems()
+		UnfoldAtlasMaps(pp, itemList, atName, stretch=1.0)

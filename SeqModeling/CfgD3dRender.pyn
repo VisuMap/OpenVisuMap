@@ -18,7 +18,7 @@ match vv.EventSource.Item:
 	case 'Smoothen':
 		SmoothenCurve(pp, repeats=50)
 	case 'UnFold':
-		UnFoldMap(pp, epochs=1000, repeats=1, is3D=False, finalExag=1.0, ppl=0.05, stretch=0.50)
+		UnFoldMap(pp, epochs=1000, repeats=1, is3D=False, finalExag=1.0, ppl=0.1, stretch=0.5)
 	case 'HideIPO':
 		HideInterpolates()
 	case 'MarkHelix':

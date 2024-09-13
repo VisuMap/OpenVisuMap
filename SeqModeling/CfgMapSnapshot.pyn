@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen P-Web P-PDB HideIPO MarkHelix MarkBeta
+#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen P-Web P-3D HideIPO MarkHelix MarkBeta
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -19,7 +19,7 @@ match vv.EventSource.Item:
 	case 'P-Web':
 		pId = MapInfo(pp.Description).pId
 		ShowWeb(pId)
-	case 'P-PDB':
+	case 'P-3D':
 		pId = MapInfo(pp.Description).pId
 		ShowPDB(pId, rp=3, eps=0.1, includeHA=False) 
 	case 'HideIPO':

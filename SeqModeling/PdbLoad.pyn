@@ -1,6 +1,6 @@
 #import traceback 
 
-def ShowPDB(pId, rp, eps, includeHA=True):
+def ShowPDB(pId, rp=3, eps=0.1, includeHA=True):
 	localPath, bsList, bsList2 = LoadCifData(pId[:4])
 	bsList = Interporlate(bsList, rp, eps)
 	if includeHA:
