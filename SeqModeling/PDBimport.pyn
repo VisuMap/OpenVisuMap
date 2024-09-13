@@ -60,7 +60,7 @@ def ImportPDBs():
 
 '''
 
-InitDatabase('rcsb trans regulation', '')
+InitDatabase('rcsb Proteasome', '')
 ImportPDBs()
 
 '''

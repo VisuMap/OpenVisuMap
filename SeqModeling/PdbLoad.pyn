@@ -141,8 +141,10 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 	for L in fPDB:
 		if L[0] == '#':
 			break
+		if L[0] == '_':
+			continue
 		fs = L.split()
-		if len(fs) != 21:
+		if len(fs) < 21:
 			vv.Message(f'Invalid record: {len(fs)}: |{L}|')
 			vv.Return()		
 		

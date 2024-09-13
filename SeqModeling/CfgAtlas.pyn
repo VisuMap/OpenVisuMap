@@ -17,6 +17,6 @@ match vv.EventSource.Item:
 		pp.OnItemsSelected = '@vv.SelectedItems = [x.Name for x in pp.GetSelectedItems()]'
 		pp.SetEventHandler('ItemsSelected', '@HighlightItems()')
 	case 'UnFold Maps':
-		atName = pp.AtlasName + ' 2D-B'
+		atName = pp.AtlasName + ' 2D'
 		itemList = pp.GetSelectedItems()
 		UnfoldAtlasMaps(pp, itemList, atName, stretch=1.0)

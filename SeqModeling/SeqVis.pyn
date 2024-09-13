@@ -37,16 +37,10 @@ def GetProteinSeq(pTable, pId):
 	rowIdx = pTable.IndexOfRow(pId)
 	return pTable.GetDataAt(rowIdx, 2)
 
-def SaveToAtlas(atName, x0=50, y0=50, closeAtlas=True):	
+def SaveToAtlas(atName, x0=50, y0=50):	
 	if atName is not None:
 		vwName = vv.LastView.Name
 		atlas = vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0, vwName)
-		if closeAtlas:
-			atlas.Close()
-
-def Save2Atlas():
-	vwName = vv.LastView.Name
-	vv.AtlasManager.OpenAtlas().CaptureAllOpenViews(20, 20, vwName).Close()
 
 def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling'):
 	from shutil import copy
@@ -64,6 +58,7 @@ def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling
 
 if 'cs' not in globals():
 	cs = LoadSeqModeling()
+
 
 # protein embedding map information
 class MapInfo():
@@ -96,6 +91,21 @@ class MapInfo():
 				fs = f.split(':')
 				if len(fs) == 2:
 					dic[fs[0]] = fs[1]
+
+class AtlasMapStore():	
+	def __init__(self, atName, viewName):
+		self.atlas = vv.AtlasManager.OpenAtlas(atName)
+		self.viewName = viewName
+		self.x0 = 20
+		self.y0 = 20
+		self.atlas.TheForm.Activate()
+		self.atlas.TheForm.SendToBack()
+	def AddMaps(self):
+		self.atlas.CaptureAllOpenViews(self.x0, self.y0, self.viewName)
+		self.x0 += 5
+		self.y0 += 5
+	def Close(self):
+		self.atlas.Close()
 
 #-----------------------------------------------------------
 # Code to maintain the protein table.
@@ -747,21 +757,21 @@ def SmoothenCurve(pMap, repeats):
 	pMap.RedrawAll()
 
 def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0):
+	atStore = AtlasMapStore(atName, 'MapSnapshot') if atName is not None else None
 	for k, m in enumerate(mapItems):
 		mp = m.Open()
 		atlas.SetSelectedItems([m])
 		UnFoldMap(mp, epochs=1000, repeats=1, is3D=False, finalExag=1.0, ppl=0.1, stretch=stretch)
-
 		mp.Close()
-		if atName is not None:
-			if (k+1) % 20 == 0:
-				SaveToAtlas(atName)
-	if atName is not None:
-		if (k+1) % 20 != 0:
-			SaveToAtlas(atName)
+		if atStore is not None:
+			atStore.AddMaps()
+	if atStore is not None:
+		atStore.Close()
 
 def ScanningForAA(pMap, pAA, stride=0):
-	aaList = [b.Id for b in pp.BodyList if b.Name[0] in pAA]
+	if pMap.Name == 'MainForm':
+		pMap = vv.FindFormList('MapSnapshot')[0]
+	aaList = [b.Id for b in pMap.BodyList if b.Name[0] in pAA]
 	L = len(aaList)
 	if stride < 0:
 		stride = 1 + int(L/1000)
@@ -775,14 +785,14 @@ def ScanningForAA(pMap, pAA, stride=0):
 '''
 
 ScanningForAA(pp, 'STC')  #S|T|C|STC			# Necleophilic
-ScanningForAA(pp, 'P')  #V|L|I|M|P|VLIMP		# Hydrophobic
-ScanningForAA(pp, 'W')  #F|Y|W|FYW	  # Aromatic
-ScanningForAA(pp, 'DE')  #D|E|DE       # Acidic
+ScanningForAA(pp, 'VLIMP')  #V|L|I|M|P|VLIMP		# Hydrophobic
+ScanningForAA(pp, 'FYW')  #F|Y|W|FYW	  # Aromatic
+ScanningForAA(pp, 'D')  #D|E|DE       # Acidic
 ScanningForAA(pp, 'N')  #N|Q|NQ       # Amide
-ScanningForAA(pp, 'HKR')  #H|K|R|HKR    # Basic
-ScanningForAA(pp, 'GA', 5)  #G|A|GA    # Small AA
-ScanningForAA(pp, 'T')  #A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V     # all AA.
-
+ScanningForAA(pp, 'H')  #H|K|R|HKR    # Basic
+ScanningForAA(pp, 'A', 1)  #G|A|GA    # Small AA
+ScanningForAA(pp, 'A')  #A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V     # all AA.
+ScanningForAA(pp, 'W') #H|W|HW		# 2 forms 'bound' 1EK9
 '''
 
 '''========================================================================================
