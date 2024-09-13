@@ -51,11 +51,11 @@ def MainProc(menuKey):
 			#atStore = AtlasMapStore('Proteasome B', 'D3dRender')
 			for k, pId in enumerate(pSelected):
 				ShowPDB(pId, includeHA=False)
-            '''
-				atStore.AddMaps()
+			'''
+			atStore.AddMaps()
 			atStore.atlas.ArrangeItems()
 			atStore.Close()
-            '''
+			'''
 
 		case 'ProteinMap':
 			CreateProteinMapByCounts(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1, repeats=0)

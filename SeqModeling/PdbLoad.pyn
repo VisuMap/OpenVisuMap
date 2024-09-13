@@ -21,7 +21,6 @@ def ShowPDB(pId, rp=3, eps=0.1, includeHA=True):
 	mp.GlyphOpacity = 0.5
 	mp.Show()
 	mp.NormalizeView()
-	mp.AddContextMenu('SeqVis/Open PDB', f'@vv.StartProcess("vi", "{localPath}")')
 
 def LoadCifData(prName):
 	localPath = Download3DInfo(prName)
@@ -49,6 +48,10 @@ def LoadCifData(prName):
 		vv.Return()
 	return localPath, bsList, bsList2
 
+def OpenPDBFile(pMap):
+	info = MapInfo(pMap.Description)
+	pdbPath = f'C:/temp/{info.pId}.cif'
+	vv.StartProcess("vi", f'C:/temp/{info.pId}.cif')
 
 def AugmentByIndex(nt, stretch):
 	nt.AddColumns(1)
