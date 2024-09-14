@@ -96,7 +96,18 @@ class AtlasMapStore():
 		self.atlas.TheForm.Activate()
 		self.atlas.TheForm.SendToBack()
 	def AddMaps(self):
+		pList = []
+		for fm in vv.FindFormList(self.viewName):
+			info = MapInfo(fm.Description)
+			pList.append(info.pId)
+
 		self.atlas.CaptureAllOpenViews(self.x0, self.y0, self.viewName)
+
+		newItems = self.atlas.GetSelectedItems()
+		if len(newItems) == len(pList):
+			for k in range(len(pList)):
+				newItems[k].Name = pList[k]
+
 		self.x0 += 5
 		self.y0 += 5
 	def Close(self):
