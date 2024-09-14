@@ -48,14 +48,13 @@ def MainProc(menuKey):
 		case 'P-Bar2': ShowSeqInfo(pId, showTable=True, barView=True, useAApair=True)
 		case 'P-Mkv':  ShowSeqInfo(pId, markovTrans=True)
 		case 'P-3D':
-			#atStore = AtlasMapStore('Proteasome B', 'D3dRender')
+			mapStore = None # NewMapStore('memberan', True)
 			for k, pId in enumerate(pSelected):
 				ShowPDB(pId, includeHA=False)
-			'''
-			atStore.AddMaps()
-			atStore.atlas.ArrangeItems()
-			atStore.Close()
-			'''
+			if mapStore != None:		
+				mapStore.AddMaps()
+				mapStore.atlas.ArrangeItems()
+				mapStore.Close()
 
 		case 'ProteinMap':
 			CreateProteinMapByCounts(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1, repeats=0)

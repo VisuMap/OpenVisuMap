@@ -37,11 +37,6 @@ def GetProteinSeq(pTable, pId):
 	rowIdx = pTable.IndexOfRow(pId)
 	return pTable.GetDataAt(rowIdx, 2)
 
-def SaveToAtlas(atName, x0=50, y0=50):	
-	if atName is not None:
-		vwName = vv.LastView.Name
-		atlas = vv.AtlasManager.OpenAtlas(atName).CaptureAllOpenViews(x0, y0, vwName)
-
 def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling'):
 	from shutil import copy
 	from os.path import exists
@@ -106,6 +101,12 @@ class AtlasMapStore():
 		self.y0 += 5
 	def Close(self):
 		self.atlas.Close()
+
+def NewMapStore(atName, is3D=True):
+	if atName is None:
+		return None
+	mpType = 'D3dRender' if is3D else 'MapSnapshot'
+	return AtlasMapStore(atName, mpType)
 
 #-----------------------------------------------------------
 # Code to maintain the protein table.
@@ -542,6 +543,7 @@ def CreateSeqMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=N
 	info.AugCfg = augCfg
 	info.Mtd = 'Frg'
 	info.DS = vv.Dataset.Name
+	mapSore = NewMapStore(saveTo, is3D)
 	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
 		if pSeq is None:
@@ -556,11 +558,12 @@ def CreateSeqMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=N
 		map = vv.LastView
 		map.Title = f'{k}: {pId}, N: {nt.Rows}'
 		map.Description = info.ToStr()
-		if (k+1)%8 == 0:
-			SaveToAtlas(saveTo)
-	SaveToAtlas(saveTo)
+		if mapStore is not None:
+			mapStore.AddMaps()
 	if repeats > 0:
 		mds.Close()
+	if mapStore != None: 
+		mapStore.Close()
 
 def Scanning(pMap, stride=100, stepSize=20):
 	bsList = [b.Id for b in pMap.BodyList]
@@ -615,7 +618,7 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.AugCfg = augCfg
 	info.Mtd = 'Mkv'
-
+	mapStore = NewMapStore(saveTo, is3D)
 	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
 		if pSeq is None:
@@ -630,10 +633,8 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity, info=info)
 		map = vv.LastView
 		map.Title = f'{k}: {pId}, N: {nt.Rows}'
-		if (k+1)%8 == 0:
-			SaveToAtlas(saveTo)
-
-	SaveToAtlas(saveTo)
+		if mapStore != None: mapStore.AddMaps()
+	if mapStore != None: mapStore.Close()
 	if repeats > 0:
 		mds.Close()
 
@@ -799,16 +800,14 @@ ScanningForAA(pp, 'W') #H|W|HW		# 2 forms 'bound' 1EK9
 
 import os
 fs = [f[:4] for f in os.listdir('c:\\temp') if f.endswith('.cif') ]
+mapStore = NewMapStore('All Proteins', True)
 for k, pId in enumerate(fs):
 	try:
 		ShowPDB(pId, rp=3, eps=0.1, includeHA=True)
 	except Exception as err:
 		print(f'Failed to load {pId}: {err}')
 		continue
-	if (k+1) % 10 == 0: 
-		atName = 'Loaded-Proteins1' if k < 120 else 'Loaded-Proteins2'
-		SaveToAtlas(atName)
-SaveToAtlas(atName)
+	mapStore.AddMaps()
 
 
 

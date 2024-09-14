@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen UnFold, HideIPO MarkHelix MarkBeta 'Open PDB'
+#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen UnFold P-Web HideIPO MarkHelix MarkBeta 'Open PDB'
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -27,4 +27,8 @@ match vv.EventSource.Item:
 		ShowBetaSheet()
 	case 'Open PDB':
 		OpenPDBFile(pp)
+	case 'P-Web':
+		pId = MapInfo(pp.Description).pId
+		ShowWeb(pId)
+
 
