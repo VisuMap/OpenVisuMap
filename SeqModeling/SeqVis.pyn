@@ -88,26 +88,21 @@ class MapInfo():
 					dic[fs[0]] = fs[1]
 
 class AtlasMapStore():	
-	def __init__(self, atName, viewName):
+	def __init__(self, atName, is3D):
+		if atName == None:
+			self = None
+			return
 		self.atlas = vv.AtlasManager.OpenAtlas(atName)
-		self.viewName = viewName
+		self.viewName = 'D3dRender' if is3D else 'MapSnapshot'
 		self.x0 = 20
 		self.y0 = 20
 		self.atlas.TheForm.Activate()
 		self.atlas.TheForm.SendToBack()
 	def AddMaps(self):
-		pList = []
-		for fm in vv.FindFormList(self.viewName):
-			info = MapInfo(fm.Description)
-			pList.append(info.pId)
-
+		pList = [MapInfo(fm.Description).pId for fm in vv.FindFormList(self.viewName)]
 		self.atlas.CaptureAllOpenViews(self.x0, self.y0, self.viewName)
-
-		newItems = self.atlas.GetSelectedItems()
-		if len(newItems) == len(pList):
-			for k in range(len(pList)):
-				newItems[k].Name = pList[k]
-
+		for k, newItem in enumerate( self.atlas.GetSelectedItems() ):
+			newItem.Name = pList[k]
 		self.x0 += 5
 		self.y0 += 5
 	def Close(self):
@@ -116,8 +111,7 @@ class AtlasMapStore():
 def NewMapStore(atName, is3D=True):
 	if atName is None:
 		return None
-	mpType = 'D3dRender' if is3D else 'MapSnapshot'
-	return AtlasMapStore(atName, mpType)
+	return AtlasMapStore(atName, is3D)
 
 #-----------------------------------------------------------
 # Code to maintain the protein table.

@@ -48,7 +48,7 @@ def MainProc(menuKey):
 		case 'P-Bar2': ShowSeqInfo(pId, showTable=True, barView=True, useAApair=True)
 		case 'P-Mkv':  ShowSeqInfo(pId, markovTrans=True)
 		case 'P-3D':
-			mapStore = None   # NewMapStore('xxx', True)
+			mapStore = NewMapStore(None, True)
 
 			for k, pId in enumerate(pSelected):
 				ShowPDB(pId, includeHA=False)

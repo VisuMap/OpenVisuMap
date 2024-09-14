@@ -100,7 +100,6 @@ def CheckForPDB(pMap):
 		vv.Return()
 
 def HideInterpolates():
-	CheckForPDB(pp)
 	for b in pp.BodyList:
 		if b.Id.startswith('i'):
 			b.Hidden = True
@@ -108,11 +107,9 @@ def HideInterpolates():
 	pp.RedrawAll()
 
 def ShowHelix():
-	CheckForPDB(pp)
 	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.h')]
 
 def ShowBetaSheet():
-	CheckForPDB(pp)
 	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.b')]
 
 def LoadBetaSheet(fPDB):
