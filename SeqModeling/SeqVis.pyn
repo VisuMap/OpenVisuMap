@@ -89,28 +89,13 @@ class MapInfo():
 
 class AtlasMapStore():	
 	def __init__(self, atName, is3D):
-		if atName == None:
-			self = None
-			return
 		self.atlas = vv.AtlasManager.OpenAtlas(atName)
 		self.viewName = 'D3dRender' if is3D else 'MapSnapshot'
-		'''
-		self.x0 = 20
-		self.y0 = 20
-		'''
 		self.atlas.TheForm.Hide()
 	def AddMaps(self):
-		'''
-		pList = [MapInfo(fm.Description).pId for fm in vv.FindFormList(self.viewName)]
-		self.atlas.CaptureAllOpenViews(self.x0, self.y0, self.viewName)
-		for k, newItem in enumerate( self.atlas.GetSelectedItems() ):
-			newItem.Name = pList[k]
-		self.x0 += 5
-		self.y0 += 5
-		'''
 		for fm in vv.FindFormList(self.viewName):
-			newItem = self.atlas.CaptureItem(fm)
-			newItem.Name = MapInfo(fm.Description).pId
+			item = self.atlas.CaptureItem(fm)
+			item.Name = MapInfo(fm.Description).pId
 			fm.Close()
 	def Close(self):
 		self.atlas.Close()
@@ -773,8 +758,10 @@ def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0):
 	mapStore = NewMapStore(atName, False)
 	for k, m in enumerate(mapItems):
 		mp = m.Open()
+		mp.TheForm.Hide()
 		atlas.SetSelectedItems([m])
-		UnFoldMap(mp, epochs=1000, repeats=1, is3D=False, finalExag=1.0, ppl=0.1, stretch=stretch)
+		UnFoldMap(mp, epochs=1000, repeats=1, is3D=False,
+			finalExag=1.0, ppl=0.1, stretch=stretch)
 		mp.Close()
 		if mapStore != None:
 			mapStore.AddMaps()

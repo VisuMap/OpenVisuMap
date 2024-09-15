@@ -48,16 +48,16 @@ def MainProc(menuKey):
 		case 'P-Bar2': ShowSeqInfo(pId, showTable=True, barView=True, useAApair=True)
 		case 'P-Mkv':  ShowSeqInfo(pId, markovTrans=True)
 		case 'P-3D':
-			mapStore = None  # NewMapStore('TTT', True)
+			mapStore = None  # NewMapStore('Artifacts', True)
 
 			for k, pId in enumerate(pSelected):
 				ShowPDB(pId, includeHA=False)
 				if mapStore != None:	
 					mapStore.AddMaps()
 
-			if mapStore != None:		
+			if mapStore != None:
 				mapStore.atlas.ArrangeItems()
-				mapStore.Close()
+				mapStore.atlas.TheForm.Show()
 
 		case 'ProteinMap':
 			CreateProteinMapByCounts(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1, repeats=0)
