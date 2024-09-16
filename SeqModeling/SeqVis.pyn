@@ -641,9 +641,12 @@ def ShowAASeq(pMap):
 	info = MapInfo(pMap.Description)
 	if info.Mtd == 'PDB':
 		pSeq = []
+		chName = None
 		for b in pMap.BodyList:
 			if (b.Id[0] == 'A') and (b.Name[0] in P):
-				if b.Name.split('.')[2] == 'A_1':
+				if chName == None:
+					chName = b.Name.split('.')[2]
+				if b.Name.split('.')[2] == chName:
 					pSeq.append(b.Name[0])		
 		pSeq = ''.join(pSeq)
 		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)

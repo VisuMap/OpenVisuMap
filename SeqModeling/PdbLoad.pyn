@@ -62,9 +62,12 @@ def AugmentByIndex(nt, stretch):
 		if rsList[ipp].Id[0] == 'A':
 			break
 	dx = 0.01*stretch/ipp
+	offset = 0
 	for row, rs in enumerate(rsList):
-		if rs.Id[0] != 'H':  # hetero atoms don't participate in the unfold stretching
-			M[row][3] += row * dx
+		if rs.Id[0] == 'H':  # hetero atoms don't participate in the unfold stretching
+			continue
+		M[row][3] += offset
+		offset += dx
 	return nt
 
 def Download3DInfo(pId):
@@ -229,14 +232,15 @@ def Interporlate(bsList, rp, eps):
 				t0 = bsList[k0].Type
 	return bs
 
-def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, finalExag=1.0, is3D=False):
+def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, initExag=10.0, finalExag=1.0, is3D=False):
 	nt = New.NumberTable(pMap.BodyListEnabled(),3)
 	if stretch != 0:
 		AugmentByIndex(nt, stretch=stretch)
-	mds = NewMds(nt, is3D=is3D, glyphSet=pMap.GlyphSet, initExag=10.0, finalExag=finalExag,
+	mds = NewMds(nt, is3D=is3D, glyphSet=pMap.GlyphSet, initExag=initExag, finalExag=finalExag,
 		epochs=epochs, ppl=ppl)
 	info = MapInfo(pMap.Description).SetMds(mds)
 	info.SF = stretch
+	winTitle = pMap.Title
 	RunMds(mds, repeats=repeats, glyphSize=0.5, info=info)
-	vv.LastView.Title = pMap.Title
+	vv.LastView.Title = winTitle
 	mds.Close()

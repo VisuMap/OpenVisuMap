@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps LinkSelection "UnFold Maps"
+#MenuLabels ConfigMaps LinkSelection "UnFold Maps" P-Web
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -20,3 +20,10 @@ match vv.EventSource.Item:
 		atName = pp.AtlasName + ' 2D'
 		itemList = pp.GetSelectedItems()
 		UnfoldAtlasMaps(pp, itemList, atName, stretch=1.0)
+	case 'P-Web':
+		selected = pp.GetSelectedItems()
+		if len(selected) >= 1:
+			ShowWeb(selected[0].Name)
+		else:
+			vv.Message('No protein selected')
+

@@ -60,7 +60,7 @@ def ImportPDBs():
 
 '''
 
-InitDatabase('rcsb Unstrucuted', '')
+InitDatabase('rcsb ribosome', '')
 ImportPDBs()
 
 '''

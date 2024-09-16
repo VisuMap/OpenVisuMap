@@ -24,10 +24,11 @@ ds = vm.LoadFromVisuMap(M.e)
 
 def ResetTest():
     global epochs, randomizeOrder, centralizing, stateSeed
-    global mapDim, mtr, A0, nn, md, lc, ns, sp
+    global mapDim, mtr, A0, nn, md, lc, ns, sp, denMap
     randomizeOrder, centralizing, stateSeed = True, False, None
     mapDim, mtr, A0 = 2, M.e, A.s
     epochs, nn = 1000, 1000
+    denMap = False
     lc  = 5
     #md, sp, ns = 0.1, 1.5, 30
     md, sp, ns = 0.5, 1.0, 15
@@ -46,7 +47,7 @@ def DoTest():
         perm = np.arange(ds.shape[0])[np.argsort(perm)]
 
     t0 = time.time()
-    um = umap.UMAP(n_neighbors=nn, min_dist=md, local_connectivity=lc,
+    um = umap.UMAP(n_neighbors=nn, min_dist=md, local_connectivity=lc, densmap=denMap,
         n_components=mapDim, metric=mtr, negative_sample_rate=ns, random_state=stateSeed,
         n_epochs=epochs, init=A0, learning_rate=1, verbose=True, spread=sp)
     map = um.fit_transform(ds)
