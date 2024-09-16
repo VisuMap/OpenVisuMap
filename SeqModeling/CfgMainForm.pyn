@@ -11,6 +11,7 @@ def MainProc(menuKey):
 			if len(pId) != 4:
 				vv.Message('No protein selected')
 				return
+			pSelected = [ pId ]
 		else:
 			pId = pSelected[0]
 	else:

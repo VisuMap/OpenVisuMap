@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps LinkSelection "UnFold Maps" P-Web
+#MenuLabels ConfigMaps LinkSelection "UnFold Maps" P-Web P-ChmX 
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -10,20 +10,31 @@ def HighlightItems():
 		sIds = set(vv.SelectedItems)
 		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])
 
-match vv.EventSource.Item:
-	case 'ConfigMaps':
-		ConfigAtlasMaps(pp, 1000, 700, gSize=0.75, gOpacity=0.5, hiddenSize=7, reset=False)
-	case 'LinkSelection':
-		pp.OnItemsSelected = '@vv.SelectedItems = [x.Name for x in pp.GetSelectedItems()]'
-		pp.SetEventHandler('ItemsSelected', '@HighlightItems()')
-	case 'UnFold Maps':
-		atName = pp.AtlasName + ' 2D'
-		itemList = pp.GetSelectedItems()
-		UnfoldAtlasMaps(pp, itemList, atName, stretch=1.0)
-	case 'P-Web':
-		selected = pp.GetSelectedItems()
-		if len(selected) >= 1:
-			ShowWeb(selected[0].Name)
-		else:
+def MainProc(menuKey):
+
+	if menuKey.startswith('P-'):
+		pSelected = pp.GetSelectedItems()
+		if pSelected.Count == 0:
 			vv.Message('No protein selected')
+			return
+		else:
+			pId = pSelected[0].Name
+			
+	match vv.EventSource.Item:
+		case 'ConfigMaps':
+			ConfigAtlasMaps(pp, 1000, 700, gSize=0.75, gOpacity=0.5, hiddenSize=7, reset=False)
+		case 'LinkSelection':
+			pp.OnItemsSelected = '@vv.SelectedItems = [x.Name for x in pp.GetSelectedItems()]'
+			pp.SetEventHandler('ItemsSelected', '@HighlightItems()')
+		case 'UnFold Maps':
+			atName = pp.AtlasName + ' 2D'
+			itemList = pp.GetSelectedItems()
+			UnfoldAtlasMaps(pp, itemList, atName, stretch=1.0)
+		case 'P-Web':
+			ShowWeb(pId)
+		case 'P-ChmX':
+			ShowChimeraX(pId)
+
+MainProc(vv.EventSource.Item)
+
 

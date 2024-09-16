@@ -771,34 +771,39 @@ def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0):
 	if mapStore != None:
 		mapStore.Close()
 
-def ScanningForAA(pMap, pAA, stride=0):
-	if pMap.Name == 'MainForm':
-		pMap = vv.FindFormList('MapSnapshot')[0]
-	aaList = [b.Id for b in pMap.BodyList if b.Name[0] in pAA]
-	L = len(aaList)
-	if stride < 0:
-		stride = 1 + int(L/1000)
+cs2 = New.CsObject('''
+public IList<string> SelectByAA(IList<IBody> bList, string pAA) {
+	return bList.Where(b=>pAA.Contains(b.Name[0])).Select(b=>b.Id).ToList();
+}
+''')
+
+def ScanningForAA(pMap, pAA, progressive=False):
+	aaList = cs2.SelectByAA(pMap.BodyList, pAA)
+	L = aaList.Count
 	pMap.Title = f'Amino Acide: {pAA}: {int(L/8)}'
-	if stride == 0:
-		pMap.SelectedItems = aaList
-	else:
+	if progressive:
+		stride = 1 + int(L/500)
 		for n in range(1, L, stride):
-			pMap.SelectedItems = aaList[:n]
+			pMap.SelectedItems = aaList.GetRange(0, n)
+	else:
+		pMap.SelectedItems = aaList
+
 
 '''
 
-ScanningForAA(pp, 'STC')  #S|T|C|STC			# Necleophilic
+pp.GlyphOpacity = 0.125
+
+ScanningForAA(pp, 'S')  #S|T|C|STC			# Necleophilic
 ScanningForAA(pp, 'VLIMP')  #V|L|I|M|P|VLIMP		# Hydrophobic
 ScanningForAA(pp, 'FYW')  #F|Y|W|FYW	  # Aromatic
-ScanningForAA(pp, 'D')  #D|E|DE       # Acidic
-ScanningForAA(pp, 'N')  #N|Q|NQ       # Amide
-ScanningForAA(pp, 'H')  #H|K|R|HKR    # Basic
-ScanningForAA(pp, 'A', 1)  #G|A|GA    # Small AA
-ScanningForAA(pp, 'A')  #A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V     # all AA.
+ScanningForAA(pp, 'DE')  #D|E|DE       # Acidic
+ScanningForAA(pp, 'NQ')  #N|Q|NQ       # Amide
+ScanningForAA(pp, 'HKR')  #H|K|R|HKR    # Basic
+ScanningForAA(pp, 'GA', True)  #G|A|GA    # Small AA
+ScanningForAA(pp, 'S')  #A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V
 ScanningForAA(pp, 'W') #H|W|HW		# 2 forms 'bound' 1EK9
-'''
 
-'''========================================================================================
+
 
 import os
 fs = [f[:4] for f in os.listdir('c:\\temp') if f.endswith('.cif') ]
