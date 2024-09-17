@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using VisuMap.Script;
 using VisuMap.LinearAlgebra;
+using Vector3 = SharpDX.Vector3;
 
 namespace VisuMap
 {
@@ -36,6 +37,51 @@ namespace VisuMap
                 }
             }
             return mBody;
+        }
+
+        public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0) {
+            if (bList.Count <= 1)
+                return bList;
+            Vector3[] D = new Vector3[bList.Count];
+            for (int k = 0; k < D.Length; k++) {
+                D[k].X = (float) bList[k].X;
+                D[k].Y = (float) bList[k].Y;
+                D[k].Z = (float) bList[k].Z;
+            }
+            float eps = (float) convexcity;
+            for(int n=0; n<repeats; n++) {
+                int L = D.Length;
+                int K = 2 * L - 1;
+                Vector3[] P = new Vector3[K];
+                P[0] = D[0];
+                for(int k=1; k<L; k++) {
+                    P[2 * k - 1] = 0.5f * (D[k - 1] + D[k]);
+                    P[2 * k] = D[k];
+                }
+                for (int k = 3; k < (K - 2); k += 2)
+                    P[k] += eps * (2 * P[k] - P[k - 3] - P[k + 3]);
+                if ( K > 4 ) {
+                    P[1] += eps * (P[1] - P[4]);
+                    P[K - 2] += eps * (P[K - 2] - P[K - 5]);
+                }
+                D = P;
+            }
+            int secL = 1 << repeats;
+            List<IBody> bs = new List<IBody>();
+            for(int k=0; k<D.Length; k++) {
+                Body b0 = bList[k / secL] as Body;
+                if (k % secL == 0) {
+                    bs.Add(b0);
+                } else {
+                    Body b = new Body("i" + (bIdx0 + k));
+                    b.Name = b0.Name;
+                    b.Type = b0.Type;
+                    b.Flags = b0.Flags;
+                    b.SetXYZ(D[k].X, D[k].Y, D[k].Z);
+                    bs.Add(b);
+                }
+            }
+            return bs;
         }
 
         public INumberTable VectorizeProtein1(string alphabet, int M, IList<string> pList, VisuMap.Script.IDataset pTable) {
