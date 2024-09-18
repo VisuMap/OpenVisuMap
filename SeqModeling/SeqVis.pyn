@@ -502,13 +502,13 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1,
 	return mds
 
 def RunMds(mds, repeats=1, glyphSize=0.5, glyphOpacity=0.5, info=None):
+	if info is not None:
+		info.DDM = mds.DataDim
+	mds.Description = info.ToStr() if info is not None else 'Map created by RunMds'
 	mds.Repeats = repeats
 	mds.Reset().Start()
 	mds.GlyphOpacity = glyphOpacity
 	mds.GlyphSize = glyphSize
-	if info is not None:
-		info.DDM = mds.DataDim
-	mds.Description = info.ToStr() if info is not None else 'Map created by RunMds'
 	if not mds.Completed: 
 		vv.Return(0)
 	if repeats == 1:
@@ -793,14 +793,14 @@ def ScanningForAA(pMap, pAA, progressive=False):
 
 pp.GlyphOpacity = 0.125
 
-ScanningForAA(pp, 'S')  #S|T|C|STC			# Necleophilic
-ScanningForAA(pp, 'VLIMP')  #V|L|I|M|P|VLIMP		# Hydrophobic
-ScanningForAA(pp, 'FYW')  #F|Y|W|FYW	  # Aromatic
+ScanningForAA(pp, 'C')  #S|T|C|STC			# Necleophilic
+ScanningForAA(pp, 'P')  #V|L|I|M|P|VLIMP		# Hydrophobic
+ScanningForAA(pp, 'Y')  #F|Y|W|FYW	  # Aromatic
 ScanningForAA(pp, 'DE')  #D|E|DE       # Acidic
 ScanningForAA(pp, 'NQ')  #N|Q|NQ       # Amide
 ScanningForAA(pp, 'HKR')  #H|K|R|HKR    # Basic
 ScanningForAA(pp, 'GA', True)  #G|A|GA    # Small AA
-ScanningForAA(pp, 'S')  #A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V
+ScanningForAA(pp, 'T')  #A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V
 ScanningForAA(pp, 'W') #H|W|HW		# 2 forms 'bound' 1EK9
 
 

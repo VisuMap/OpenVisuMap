@@ -40,8 +40,9 @@ namespace VisuMap
         }
 
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0) {
-            if (bList.Count <= 1)
+            if( (bList.Count <= 1) || (repeats==0) )
                 return bList;
+
             Vector3[] D = new Vector3[bList.Count];
             for (int k = 0; k < D.Length; k++) {
                 D[k].X = (float) bList[k].X;
@@ -66,19 +67,25 @@ namespace VisuMap
                 }
                 D = P;
             }
+
+            // Insert the interpolating data points.
             int secL = 1 << repeats;
+            int L2 = secL / 2;
+            Body b0 = null;
             List<IBody> bs = new List<IBody>();
-            for(int k=0; k<D.Length; k++) {
-                Body b0 = bList[k / secL] as Body;
-                if (k % secL == 0) {
-                    bs.Add(b0);
-                } else {
-                    Body b = new Body("i" + (bIdx0 + k));
-                    b.Name = b0.Name;
-                    b.Type = b0.Type;
-                    b.Flags = b0.Flags;
-                    b.SetXYZ(D[k].X, D[k].Y, D[k].Z);
-                    bs.Add(b);
+            for (int k=0; k<D.Length; k+=secL) {                
+                b0 = bList[k/secL] as Body;
+                for (int i=k-L2; i<k+L2; i++) {
+                    if ( i == k) {
+                        bs.Add(b0);
+                    } else if ( (i>=0) && (i<D.Length) ) {
+                        Body b = new Body("i" + (bIdx0 + bs.Count));
+                        b.Name = b0.Name;
+                        b.Type = b0.Type;
+                        b.Flags = b0.Flags;
+                        b.SetXYZ(D[i].X, D[i].Y, D[i].Z);
+                        bs.Add(b);
+                    }
                 }
             }
             return bs;
