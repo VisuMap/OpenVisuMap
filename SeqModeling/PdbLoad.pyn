@@ -1,15 +1,15 @@
 
 def ShowPDB(pId, rp=3, eps=0.1, includeHA=True):
-	localPath, bsList, bsList2 = LoadCifData(pId[:4])
+	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId[:4])
 	bsList = Interporlate(bsList, rp, eps)
 	if includeHA:
 		bsList.AddRange(bsList2)
-
 	mp = New.Map3DView(bsList)
 	info = MapInfo()
 	info.pId = pId
 	info.pLen = bsList.Count
 	info.Mtd = 'PDB'
+	info.PT = pdbTitle
 	mp.Description = info.ToStr()
 	mp.Title = f'{pId}: Len:{bsList.Count}'
 	mp.GlyphSet = '36 Clusters||Colored Balls'
@@ -21,11 +21,27 @@ def ShowPDB(pId, rp=3, eps=0.1, includeHA=True):
 	mp.Show()
 	mp.NormalizeView()
 
+def GetString(L, fPDB):
+	idx = L.find('\'')
+	if idx < 0:
+		L = fPDB.readline()
+		if L[0] == ';':
+			return L[1:].strip()
+		elif L[0] == '\'':
+			return L.strip().strip('\'')
+		else:
+			return ''
+	s = L[idx:].strip().strip('\'')
+	s = s.replace(':', '..')
+	s = s.replace(';', '.,')
+	return s
+
 def LoadCifData(prName):
 	localPath = Download3DInfo(prName)
 	try:
 		bsList, bsList2 = New.BodyList(), New.BodyList()
 		betaSet, helixSet = set(), set()
+		pdbTitle = ''
 		with open(localPath) as fPDB:
 			L = fPDB.readline()
 			if not L.startswith('data_'):
@@ -36,6 +52,8 @@ def LoadCifData(prName):
 					betaSet = LoadBetaSheet(fPDB)
 				elif L.startswith('_struct_conf.pdbx_PDB_helix_length'):
 					helixSet = LoadHelix(fPDB)
+				elif L.startswith('_struct.title'):
+					pdbTitle = GetString(L, fPDB)					
 				elif L.startswith('_atom_site.pdbx_PDB_model_num'):
 					bsList, bsList2 = LoadAtoms(fPDB, helixSet, betaSet)
 					break	
@@ -45,7 +63,8 @@ def LoadCifData(prName):
 	if bsList.Count == 0:
 		vv.Message('No amino-acids found!')
 		vv.Return()
-	return localPath, bsList, bsList2
+	return localPath, bsList, bsList2, pdbTitle
+
 
 def OpenPDBFile(pMap):
 	info = MapInfo(pMap.Description)
@@ -61,10 +80,10 @@ def AugmentByIndex(nt, stretch):
 		if rsList[ipp].Id[0] == 'A':
 			break
 	dx = 0.01*stretch/ipp
-	offset = 0
+	offset = 0	
 	for row, rs in enumerate(rsList):
-		if rs.Id[0] == 'H':  # hetero atoms don't participate in the unfold stretching
-			continue
+		# hetero atoms don't participate in the unfold stretching
+		if rs.Id[0] == 'H': continue
 		M[row][3] += offset
 		offset += dx
 	return nt
@@ -210,3 +229,17 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, initExag=10.0, f
 	RunMds(mds, repeats=repeats, glyphSize=0.5, info=info)
 	vv.LastView.Title = winTitle
 	mds.Close()
+
+def UnFoldMap2(pMap, epochs=1000, ppl=0.1, initExag=10.0, finalExag=1.0):
+	nt = New.NumberTable(pMap.BodyListEnabled(),3)
+	mds = NewMds(nt, glyphSet=pMap.GlyphSet, initExag=initExag, finalExag=finalExag,
+		epochs=epochs, ppl=ppl)
+	info = MapInfo(pMap.Description).SetMds(mds)
+	RunMds(mds, info=info)
+	nt2 = New.NumberTable(mds.BodyList, 2)
+	mds.MaxLoops = epochs
+	mds.SetTrainingData(nt.AppendColumns(nt2))
+	RunMds(mds, info=info)
+	mds.Close()
+
+

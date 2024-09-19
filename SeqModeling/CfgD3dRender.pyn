@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen UnFold P-Web HideIPO MarkHelix MarkBeta 'Open PDB'
+#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen UnFold UnFold2 P-Web HideIPO MarkHelix MarkBeta 'Open PDB'
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -18,7 +18,10 @@ match vv.EventSource.Item:
 	case 'Smoothen':
 		SmoothenCurve(pp, repeats=50)
 	case 'UnFold':
-		UnFoldMap(pp, epochs=1000, repeats=1, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, stretch=0.5)
+			UnFoldMap(pp, epochs=1000, repeats=1, is3D=False, initExag=10.0, finalExag=1.0, 
+				ppl=0.1, stretch=1.0)
+	case 'UnFold2':
+			UnFoldMap2(pp, epochs=1000, initExag=10.0, finalExag=1.0, ppl=0.1)
 	case 'HideIPO':
 		HideInterpolates()
 	case 'MarkHelix':

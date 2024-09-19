@@ -3,6 +3,16 @@
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
+def ShowProteinList(pList, atName):
+	mapStore = NewMapStore(atName, is3D=True)
+	for k, pId in enumerate(pList):
+		ShowPDB(pId, includeHA=False)
+		if mapStore != None:	
+			mapStore.AddMaps()
+	if mapStore != None:
+		mapStore.atlas.ArrangeItems()
+		mapStore.atlas.TheForm.Show()
+
 def MainProc(menuKey):
 	pSelected = pp.SelectedItems
 	if menuKey.startswith('P-'):
@@ -48,18 +58,7 @@ def MainProc(menuKey):
 		case 'P-Bar':  ShowSeqInfo(pId, barView=True, useAApair=True)
 		case 'P-Bar2': ShowSeqInfo(pId, showTable=True, barView=True, useAApair=True)
 		case 'P-Mkv':  ShowSeqInfo(pId, markovTrans=True)
-		case 'P-3D':
-			atName = 'Ribosome B'
-			mapStore = NewMapStore(None, True)
-
-			for k, pId in enumerate(pSelected):
-				ShowPDB(pId, includeHA=False)
-				if mapStore != None:	
-					mapStore.AddMaps()
-
-			if mapStore != None:
-				mapStore.atlas.ArrangeItems()
-				mapStore.atlas.TheForm.Show()
+		case 'P-3D': 	ShowProteinList(pSelected, atName='Tst')
 
 		case 'ProteinMap':
 			CreateProteinMapByCounts(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1, repeats=0)

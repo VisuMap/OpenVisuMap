@@ -58,7 +58,7 @@ if 'cs' not in globals():
 # protein embedding map information
 class MapInfo():
 	def __init__(self, initStr = None):
-		for nm in 'pId,Gene,pLen,Epochs,InitE,FinalE,PP,WinSize,AugCfg,Is3D,Mtd,SF'.split(','):
+		for nm in 'pId,Gene,pLen,Epochs,InitE,FinalE,PP,WinSize,AugCfg,Is3D,Mtd,SF,PT'.split(','):
 			setattr(self, nm, None)
 		if initStr is not None:
 			self.ParseStr(initStr)
@@ -793,15 +793,15 @@ def ScanningForAA(pMap, pAA, progressive=False):
 
 pp.GlyphOpacity = 0.125
 
-ScanningForAA(pp, 'C')  #S|T|C|STC			# Necleophilic
-ScanningForAA(pp, 'P')  #V|L|I|M|P|VLIMP		# Hydrophobic
+ScanningForAA(pp, 'STC')  #S|T|C|STC			# Necleophilic
+ScanningForAA(pp, 'L')  #V|L|I|M|P|VLIMP		# Hydrophobic
 ScanningForAA(pp, 'Y')  #F|Y|W|FYW	  # Aromatic
 ScanningForAA(pp, 'DE')  #D|E|DE       # Acidic
 ScanningForAA(pp, 'NQ')  #N|Q|NQ       # Amide
 ScanningForAA(pp, 'HKR')  #H|K|R|HKR    # Basic
 ScanningForAA(pp, 'GA', True)  #G|A|GA    # Small AA
-ScanningForAA(pp, 'T')  #A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V
-ScanningForAA(pp, 'W') #H|W|HW		# 2 forms 'bound' 1EK9
+ScanningForAA(pp, 'M')  #A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V
+ScanningForAA(pp, 'H') #H|W|HW		# 2 forms 'bound' 1EK9
 
 
 
