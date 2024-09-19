@@ -29,7 +29,7 @@ def MainProc(menuKey):
 		case 'UnFold Maps':
 			atName = pp.AtlasName + ' 2D'
 			itemList = pp.GetSelectedItems()
-			UnfoldAtlasMaps(pp, itemList, atName, stretch=1.0)
+			UnfoldAtlasMaps(pp, itemList, atName, stretch=0.5)
 		case 'P-Web':
 			ShowWeb(pId)
 		case 'P-ChmX':

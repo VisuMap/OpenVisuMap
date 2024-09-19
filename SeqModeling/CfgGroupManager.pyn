@@ -1,4 +1,5 @@
-#MenuLabels SeqMap1 SeqMap3 ProteinMap4
+#MenuLabels SeqMap1 SeqMap3
+
 vv.Import('SeqVis.pyn')
 
 match vv.EventSource.Item:
@@ -11,11 +12,3 @@ match vv.EventSource.Item:
 		n, r, w = 2000, 0.05*f, 0.02*f
 		SeqMapByMarkovian(pp.GetSelectedMembers(), epochs=5000, repeats=1, ppl=0.2,  saveTo=None,
 			is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.5, glyphOpacity=0.5, augCfg=f'a|{n}|{r}|{w}')
-
-	case 'ProteinMap4':
-		ppList = pp.GetSelectedMembers()
-		if len(ppList[0]) != 2:
-			vv.Message('Some selected items are not amino-acid pairs')
-			vv.Return()
-		CreateProteinMap2(vv.AllItems,  epochs=5000, is3D=False, repeats=1, 
-			initExag=6.0, ppl=0.15, finalExag=1.0, ppList=ppList)
