@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps LinkSelection "UnFold Maps" P-Web P-ChmX 
+#MenuLabels ConfigMaps LinkSelection "UnFold Maps" P-3D P-Web P-ChmX 
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -29,7 +29,9 @@ def MainProc(menuKey):
 		case 'UnFold Maps':
 			atName = pp.AtlasName + ' 2D'
 			itemList = pp.GetSelectedItems()
-			UnfoldAtlasMaps(pp, itemList, atName, stretch=0.5)
+			UnfoldAtlasMaps(pp, itemList, atName, stretch=0.5, contractFactor=1.0)
+		case 'P-3D':
+			ShowPDB(pId, rp=3, eps=0.1, includeHA=False) 
 		case 'P-Web':
 			ShowWeb(pId)
 		case 'P-ChmX':

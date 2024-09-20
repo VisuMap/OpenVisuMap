@@ -39,6 +39,33 @@ namespace VisuMap
             return mBody;
         }
 
+        public List<IBody> ClusterContract(List<IBody> bList, double factor) {
+            Dictionary<short, double[]> centers = new Dictionary<short, double[]>();
+            foreach (var b in bList) {
+                if (!centers.ContainsKey(b.Type)) 
+                    centers[b.Type] = new double[4];
+                double[] v = centers[b.Type];
+                v[0] += b.X;
+                v[1] += b.Y;
+                v[2] += b.Z;
+                v[3] += 1.0;
+            }
+
+            foreach (var c in centers.Values) {
+                c[0] /= c[3];
+                c[1] /= c[3];
+                c[2] /= c[3];
+            }
+
+            foreach (var b in bList) {
+                double[] c = centers[b.Type];
+                b.X = c[0] + factor * (b.X - c[0]);
+                b.Y = c[1] + factor * (b.Y - c[1]);
+                b.Z = c[2] + factor * (b.Z - c[2]);
+            }
+            return bList;
+        }
+
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0) {
             if( (bList.Count <= 1) || (repeats==0) )
                 return bList;

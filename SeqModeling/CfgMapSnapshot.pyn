@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen P-Web P-3D HideIPO MarkHelix MarkBeta 'Open PDB'
+#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen P-Web P-3D HideIPO MarkHelix MarkBeta MainChain 'Open PDB'
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -16,6 +16,8 @@ match vv.EventSource.Item:
 		ReCreateMap(pp)
 	case 'Smoothen':
 		SmoothenCurve(pp, 10)
+	case 'MainChain':
+		ShowMainChain(pp)
 	case 'P-Web':
 		pId = MapInfo(pp.Description).pId
 		ShowWeb(pId)

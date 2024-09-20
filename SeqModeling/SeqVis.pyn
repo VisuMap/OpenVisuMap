@@ -58,7 +58,7 @@ if 'cs' not in globals():
 # protein embedding map information
 class MapInfo():
 	def __init__(self, initStr = None):
-		for nm in 'pId,Gene,pLen,Epochs,InitE,FinalE,PP,WinSize,AugCfg,Is3D,Mtd,SF,PT'.split(','):
+		for nm in 'pId,Gene,pLen,Epochs,InitE,FinalE,PP,WinSize,AugCfg,Is3D,Mtd,SF,CF,PT'.split(','):
 			setattr(self, nm, None)
 		if initStr is not None:
 			self.ParseStr(initStr)
@@ -268,7 +268,8 @@ def CreateProteinMap2(pList, epochs=10000, is3D=False, initExag=6.0, ppList=None
 
 def CreateProteinMapMkv(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, ppl=0.1, finalExag=1.0):
 	pTable = AssertProteinTable()	
-	dt = cs.GetMarkovCoding2(pTable, pList)
+	#dt = cs.GetMarkovCoding2(pTable, pList)
+	dt = cs.GetMarkovCoding1(pTable, pList)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'PmMkv'
@@ -341,6 +342,11 @@ def ShowWeb(pId):
 		vv.StartProcess(f'https://rcsb.org/3d-view/{pId}')
 	else:
 		vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/protein/{pId}')
+
+def ShowMainChain(pMap):
+	bList = pMap.BodyList
+	mchName = bList[0].Name.split('.')[2]
+	pMap.SelectedItems = [b.Id for b in bList if b.Name.split('.')[2] == mchName]
 
 def ShowChimeraX(pId):
 	localPath = Download3DInfo(pId[:4])
@@ -757,14 +763,14 @@ def SmoothenCurve(pMap, repeats):
 		cs.SmoothenBodyList(bsList)
 	pMap.RedrawAll()
 
-def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0):
+def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0, contractFactor=1.0):
 	mapStore = NewMapStore(atName, False)
 	for k, m in enumerate(mapItems):
 		mp = m.Open()
 		mp.TheForm.Hide()
 		atlas.SetSelectedItems([m])
 		UnFoldMap(mp, epochs=1000, repeats=1, is3D=False,
-			finalExag=1.0, ppl=0.1, stretch=stretch)
+			finalExag=1.0, ppl=0.1, stretch=stretch, contractFactor=contractFactor)
 		mp.Close()
 		if mapStore != None:
 			mapStore.AddMaps()
