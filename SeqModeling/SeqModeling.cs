@@ -89,8 +89,8 @@ namespace VisuMap
                 for (int k = 3; k < (K - 2); k += 2)
                     P[k] += eps * (2 * P[k] - P[k - 3] - P[k + 3]);
                 if ( K > 4 ) {
-                    P[1] += eps * (P[1] - P[4]);
-                    P[K - 2] += eps * (P[K - 2] - P[K - 5]);
+                    P[1] += 0.35f * eps * (P[1] - P[4]);
+                    P[K-2] += 0.35f * eps * (P[K - 2] - P[K - 5]);
                 }
                 D = P;
             }
