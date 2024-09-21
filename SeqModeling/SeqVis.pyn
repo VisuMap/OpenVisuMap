@@ -347,6 +347,8 @@ def ShowMainChain(pMap):
 	bList = pMap.BodyList
 	mchName = bList[0].Name.split('.')[2]
 	pMap.SelectedItems = [b.Id for b in bList if b.Name.split('.')[2] == mchName]
+	pp.ClickMenu('3D Animation View...')
+	vv.LastView.NormalizeView()
 
 def ShowChimeraX(pId):
 	localPath = Download3DInfo(pId[:4])
@@ -809,7 +811,14 @@ ScanningForAA(pp, 'GA', True)  #G|A|GA    # Small AA
 ScanningForAA(pp, 'M')  #A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V
 ScanningForAA(pp, 'H') #H|W|HW		# 2 forms 'bound' 1EK9
 
+ScanningForAA(pp, 'L')  #A|V|I|L|M|F|Y|W|AVILMFYW		# Hydrophobic
+ScanningForAA(pp, 'STNQ')  #S|T|N|Q|STNQ		# Polar Uncharged
+ScanningForAA(pp, 'P')  #C|G|P|CGP         # Special Cases
+ScanningForAA(pp, 'DE')    #R|H|K|RHK|D|E|DE  # Positive (3) and Negative (2) changed.
 
+for aa in 3*['AVILMFYW', 'STNQ', 'CGP', 'RHK', 'DE']:
+	ScanningForAA(pp, aa)
+	vv.Sleep(1000)
 
 import os
 fs = [f[:4] for f in os.listdir('c:\\temp') if f.endswith('.cif') ]

@@ -173,7 +173,7 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 		rsName = fs[5]
 		chName = fs[6] + '_' + fs[20]
 		secType = 'x'
-		atName = fs[3]	
+		atName = fs[3].strip('\"')[:2]
 		
 		if fs[0] == 'ATOM' and ( (atName=='CA') or (atName=='C2')):
 			rsIdx = int(fs[8]) - 1
@@ -189,7 +189,16 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 		
 		b = New.Body(bId)
 		b.X, b.Y, b.Z = rsX, rsY, rsZ
-		p1 = P3[rsName] if rsName in P3 else 'X'
+
+		if rsName in P3:
+			p1 = P3[rsName]  # amino acid polymers.
+		elif rsName in 'AUGC':
+			p1 = 'r'   # RNA polymers
+		elif rsName in ['DA', 'DT', 'DG', 'DC']:
+			p1 = 'd'   # DNA fragments
+		else:
+			p1 = 'X'   # Unknown polymers.
+
 		b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType
 		b.Type = ch2idx.Lookup(chName)
 		
@@ -229,7 +238,7 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, contractFactor=1
 		epochs=epochs, ppl=ppl)
 	info = MapInfo(pMap.Description).SetMds(mds)
 	info.SF = stretch
-	info.CF = contract
+	info.CF = contractFactor
 	winTitle = pMap.Title
 	RunMds(mds, repeats=repeats, glyphSize=0.5, info=info)
 	vv.LastView.Title = winTitle

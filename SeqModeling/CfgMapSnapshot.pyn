@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen P-Web P-3D HideIPO MarkHelix MarkBeta MainChain 'Open PDB'
+#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen P-Web P-3D HideIPO MarkHelix MarkBeta MainChain RnaChain 'Open PDB'
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -18,6 +18,8 @@ match vv.EventSource.Item:
 		SmoothenCurve(pp, 10)
 	case 'MainChain':
 		ShowMainChain(pp)
+	case 'RnaChain':
+		pp.SelectedItems = [b.Id for b in pp.BodyList if b.Name[0] == 'r']
 	case 'P-Web':
 		pId = MapInfo(pp.Description).pId
 		ShowWeb(pId)
