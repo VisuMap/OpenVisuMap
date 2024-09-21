@@ -1,5 +1,4 @@
-#MenuLabels SeqMap SeqMap2 SeqMap3 SeqMap4 SeqMap5 P-ChmX P-Web P-3D P-Seq P-Table P-Bar P-Bar2 P-Mkv - ProteinMapCnt ProteinMapMkv ProteinMap1 ProteinMap2
-
+#MenuLabels SeqMap SeqMap2 SeqMap3 SeqMap4 SeqMap5 P-ChmX P-Web P-3D P-Seq P-Table P-Bar P-Bar2 - ProteinMapCnt ProteinMap1
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -57,19 +56,12 @@ def MainProc(menuKey):
 		case 'P-Table':ShowSeqInfo(pId, showTable=True, useAApair=True)
 		case 'P-Bar':  ShowSeqInfo(pId, barView=True, useAApair=True)
 		case 'P-Bar2': ShowSeqInfo(pId, showTable=True, barView=True, useAApair=True)
-		case 'P-Mkv':  ShowSeqInfo(pId, markovTrans=True)
-		case 'P-3D': 	ShowProteinList(pSelected, atName=None)
+		case 'P-3D': 	ShowProteinList(pSelected, atName='Golgi A')
 
 		case 'ProteinMapCnt':
 			CreateProteinMapByCounts(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1, repeats=0)
-		case 'ProteinMapMkv':
-			CreateProteinMapMkv(pList, epochs=2000, is3D=False, initExag=3.0, finalExag=1.5, ppl=0.15, repeats=0)
 		case 'ProteinMap1':
 			CreateProteinMap1(pList, epochs=2000, is3D=False, initExag=4.0, ppl=0.1, repeats=0)
-		case 'ProteinMap2':
-			ppList = [a+b for a in P for b in P]
-			CreateProteinMap2(pList, ppList=ppList, epochs=5000, is3D=False, initExag=6.0, 
-				ppl=0.125, finalExag=1.25, repeats=0)
 
 MainProc(vv.EventSource.Item)
 

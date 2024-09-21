@@ -196,10 +196,6 @@ def LoadProteins(startIndex=0):
 				print(f'{nr}: {gSymbol:<12} {cnt:>4}  \t{pTotal}')
 	print('<<<<<<<<<<<<<<<    Done  >>>>>>>>>>>>>>>>>')
 
-'''
-LoadProteins()
-'''
-
 def NewRandomTable(N):
 	import random
 	aaDist = list(vv.AtlasManager.ReadValueList('TestMaps', 'i2'))
@@ -254,27 +250,6 @@ def CreateProteinMap1(idList, epochs=5000, is3D=False, initExag=10.0,
 	info.Mtd = 'PmAA'
 	RunMds(mds, repeats=repeats, info=info)
 	if repeats>=1:
-		mds.Close()
-
-def CreateProteinMap2(pList, epochs=10000, is3D=False, initExag=6.0, ppList=None, finalExag=1.0, ppl=0.1, repeats=1):
-	pTable = AssertProteinTable()	
-	dt = cs.VectorizeProtein2(ppList, 50, pList, pTable)
-	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
-	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	info.Mtd = 'PmAA2'
-	RunMds(mds, repeats=repeats, info=info, glyphSize=0.25)
-	if repeats > 0:
-		mds.Close()
-
-def CreateProteinMapMkv(pList,  epochs=5000, is3D=False, repeats=1, initExag=4.0, ppl=0.1, finalExag=1.0):
-	pTable = AssertProteinTable()	
-	#dt = cs.GetMarkovCoding2(pTable, pList)
-	dt = cs.GetMarkovCoding1(pTable, pList)
-	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
-	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	info.Mtd = 'PmMkv'
-	RunMds(mds, repeats=repeats, info=info)
-	if repeats > 0:
 		mds.Close()
 
 #-----------------------------------------------------------------------------
