@@ -176,28 +176,28 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 		atName = fs[3].strip('\"')
 		rsName = fs[5]
 		chName = fs[6] + '_' + fs[20]
+		secType = 'x'  # default secondary type
 
 		if fs[0] == 'ATOM':
+			rsIdx = int(fs[8]) - 1
+			# Set p1 which is either a capital for an AA type; or 'r' for RNA peptide; 
+			# or 'd' for DNA peptide; or 'x' for unknow elements.
 			if (rsName in P3) and ( (atName=='CA') or (atName=='C2') ):
 				p1 = P3[rsName]  # amino acid polymers.
+				if rsIdx in helixSet:
+					secType = 'h'
+				elif rsIdx in betaSet:
+					secType = 'b'
 			elif (rsName in 'AUGC') and (atName=='P'):
 				p1 = 'r'   # RNA polymers
 			elif (rsName in ['DA', 'DT', 'DG', 'DC'] ) and (atName=='P'):
 				p1 = 'd'   # DNA fragments
 			else:
 				continue
-			rsIdx = int(fs[8]) - 1
-			bId = f'A{rsIdx}.{bsList.Count}'			
-			if rsIdx in helixSet:
-				secType = 'h'
-			elif rsIdx in betaSet:
-				secType = 'b'
-			else:
-				secType = 'a'
+			bId = f'A{rsIdx}.{bsList.Count}'
 		elif fs[0] == 'HETATM':
 			bId = f'H.{fs[3]}.{bsList2.Count}'
 			p1 = 'x'
-			secType = 'x'
 		else:
 			continue	
 
