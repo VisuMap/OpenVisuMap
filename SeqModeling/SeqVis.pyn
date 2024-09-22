@@ -312,7 +312,7 @@ def ShowSeqInfo(pId, showSeq=False, showTable=False, barView=False, useAApair=Tr
 		bb.Show()
 
 def ShowWeb(pId):
-	if vv.Dataset.Name.lower().startswith('rcsb'):
+	if vv.Dataset.ColumnSpecList[0].Id == 'PID':
 		pId = pId[:4]
 		vv.StartProcess(f'https://rcsb.org/3d-view/{pId}')
 	else:

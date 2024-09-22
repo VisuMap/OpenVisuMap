@@ -68,8 +68,11 @@ def LoadCifData(prName):
 
 def OpenPDBFile(pMap):
 	info = MapInfo(pMap.Description)
-	pdbPath = f'C:/temp/{info.pId}.cif'
-	vv.StartProcess("vi", f'C:/temp/{info.pId}.cif')
+	OpenCifFile(info.pId)
+
+def OpenCifFile(pId):
+	pdbPath = f'C:/temp/{pId}.cif'
+	vv.StartProcess("vi", f'C:/temp/{pId}.cif')
 
 def AugmentByIndex(nt, stretch):
 	nt.AddColumns(1)
@@ -170,34 +173,36 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 			vv.Return()		
 		
 		rsX, rsY, rsZ = float(fs[10]), float(fs[11]), -float(fs[12])	
+		atName = fs[3].strip('\"')
 		rsName = fs[5]
 		chName = fs[6] + '_' + fs[20]
-		secType = 'x'
-		atName = fs[3].strip('\"')[:2]
-		
-		if fs[0] == 'ATOM' and ( (atName=='CA') or (atName=='C2')):
+
+		if fs[0] == 'ATOM':
+			if (rsName in P3) and ( (atName=='CA') or (atName=='C2') ):
+				p1 = P3[rsName]  # amino acid polymers.
+			elif (rsName in 'AUGC') and (atName=='P'):
+				p1 = 'r'   # RNA polymers
+			elif (rsName in ['DA', 'DT', 'DG', 'DC'] ) and (atName=='P'):
+				p1 = 'd'   # DNA fragments
+			else:
+				continue
 			rsIdx = int(fs[8]) - 1
-			bId = f'A{rsIdx}.{bsList.Count}'
+			bId = f'A{rsIdx}.{bsList.Count}'			
 			if rsIdx in helixSet:
 				secType = 'h'
 			elif rsIdx in betaSet:
 				secType = 'b'
+			else:
+				secType = 'a'
 		elif fs[0] == 'HETATM':
 			bId = f'H.{fs[3]}.{bsList2.Count}'
+			p1 = 'x'
+			secType = 'x'
 		else:
 			continue	
-		
+
 		b = New.Body(bId)
 		b.X, b.Y, b.Z = rsX, rsY, rsZ
-
-		if rsName in P3:
-			p1 = P3[rsName]  # amino acid polymers.
-		elif rsName in 'AUGC':
-			p1 = 'r'   # RNA polymers
-		elif rsName in ['DA', 'DT', 'DG', 'DC']:
-			p1 = 'd'   # DNA fragments
-		else:
-			p1 = 'X'   # Unknown polymers.
 
 		b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType
 		b.Type = ch2idx.Lookup(chName)
