@@ -22,7 +22,7 @@ def MainProc(menuKey):
 			
 	match vv.EventSource.Item:
 		case 'ConfigMaps':
-			ConfigAtlasMaps(pp, 1000, 700, gSize=0.75, gOpacity=0.5, hiddenSize=7, reset=False)
+			ConfigAtlasMaps(pp, 1000, 700, gSize=0.75, gOpacity=0.5, hiddenSize=4, reset=False)
 		case 'LinkSelection':
 			pp.OnItemsSelected = '@vv.SelectedItems = [x.Name for x in pp.GetSelectedItems()]'
 			pp.SetEventHandler('ItemsSelected', '@HighlightItems()')

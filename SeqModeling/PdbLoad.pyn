@@ -71,6 +71,7 @@ def OpenPDBFile(pMap):
 	OpenCifFile(info.pId)
 
 def OpenCifFile(pId):
+	pId = pId[:4]
 	pdbPath = f'C:/temp/{pId}.cif'
 	vv.StartProcess("vi", f'C:/temp/{pId}.cif')
 
@@ -197,7 +198,7 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 			bId = f'A{rsIdx}.{bsList.Count}'
 		elif fs[0] == 'HETATM':
 			bId = f'H.{fs[3]}.{bsList2.Count}'
-			p1 = 'x'
+			p1 = fs[3]
 		else:
 			continue	
 
@@ -214,6 +215,8 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 				b.Type = 72+25
 			bsList2.Add(b)
 		else:
+			if b.Name[0] in ['r', 'd']:
+				b.Hidden = True
 			bsList.Add(b)	
 	return bsList, bsList2
 

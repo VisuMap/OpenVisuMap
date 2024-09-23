@@ -752,7 +752,10 @@ def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0, contractFactor=1.0)
 		if mapStore != None:
 			mapStore.AddMaps()
 	if mapStore != None:
-		mapStore.Close()
+		ma = mapStore.atlas
+		ma.Width = atlas.Width
+		ma.ArrangeItems()
+		ma.TheForm.Show()
 
 cs2 = New.CsObject('''
 public IList<string> SelectByAA(IList<IBody> bList, string pAA) {
