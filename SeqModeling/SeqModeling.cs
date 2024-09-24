@@ -158,7 +158,69 @@ namespace VisuMap
 
 
         public INumberTable VectorizeProtein2(IList<string> pList, VisuMap.Script.IDataset pTable) {
-            return VectorizeProtein1("ARNDCEQGHILKMFPSTWYV", 100, pList, pTable);
+            int L = 5;
+            Dictionary<char, int> P = new Dictionary<char, int> {
+                {'A', 0}, {'V', 0}, {'I', 0}, {'L', 0}, {'M', 0}, {'F', 0}, {'Y', 0}, {'W', 0 },    // Hydrophobic
+                {'S', 1}, {'T', 1}, {'N', 1}, {'Q', 1},  // Polar Unchanged
+                { 'C', 2 }, {'G', 2}, {'P', 2},   // Special Cases
+                {'R', 3}, {'H', 3}, {'K', 3},     // Positive changed
+                {'D', 4}, {'E', 4}                // Negatively changed.
+            };
+
+            int M = 100; // maximal gape Length
+            int S = 200;  //section size
+            int nS = 10;
+            int[][] aaSize = new int[L][];
+            int[] aaPos = new int[L];
+            double[] weight = new double[M];
+            for (int k = 0; k < L; k++)
+                aaSize[k] = new int[M];
+            for (int k = 0; k < M; k++)
+                weight[k] = 1.0 / (k + 0.1);
+
+            List<double[]> vList = new List<double[]>();
+            foreach (string pId in pList) {
+                int rowIdx = pTable.IndexOfRow(pId);
+                if (rowIdx < 0)
+                    continue;
+                string pSeq = pTable.GetDataAt(rowIdx, 2);
+
+                List<double[]> vSec = new List<double[]>();
+                for (int s = 0; s < pSeq.Length; s += S) {
+                    for (int k = 0; k < L; k++) {
+                        aaPos[k] = -1;
+                        for (int i = 0; i < M; i++)
+                            aaSize[k][i] = 0;
+                    }
+
+                    int secEnd = Math.Min(s + S, pSeq.Length);
+                    if (vSec.Count == (nS - 1))  // The last section will include all the rest.
+                        secEnd = pSeq.Length;
+
+                    for (int k = s; k < secEnd; k++) {
+                        if (P.ContainsKey(pSeq[k])) {
+                            int aaIdx = P[pSeq[k]];
+                            int sz = Math.Min(M, k - aaPos[aaIdx]);
+                            aaSize[aaIdx][sz - 1] += 1;
+                            aaPos[aaIdx] = k;
+                        }
+                    }
+                    double[] pV = new double[L];
+                    for (int k = 0; k < L; k++)
+                        for (int i = 0; i < M; i++)
+                            pV[k] += aaSize[k][i] * weight[i];
+                    vSec.Add(pV);
+
+                    if (vSec.Count == nS)
+                        break;
+                }
+
+                double[] pRow = new double[nS * L];
+                for(int k=0; k<vSec.Count; k++) 
+                    Array.Copy(vSec[k], 0, pRow, k * L, L);
+                vList.Add(pRow);
+            }
+            return New.NumberTable(vList.ToArray());
         }
 
         public INumberTable ToWaveTable(string pSeq, IList<string> ppList, int M) {
