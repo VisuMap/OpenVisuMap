@@ -189,9 +189,9 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 					secType = 'h'
 				elif rsIdx in betaSet:
 					secType = 'b'
-			elif (rsName in 'AUGC') and (atName=='P'):
+			elif (rsName in 'AUGC') and (atName=="C1'"):
 				p1 = 'r'   # RNA polymers
-			elif (rsName in ['DA', 'DT', 'DG', 'DC'] ) and (atName=='P'):
+			elif (rsName in ['DA', 'DT', 'DG', 'DC'] ) and (atName=="C1'"):
 				p1 = 'd'   # DNA fragments
 			else:
 				continue

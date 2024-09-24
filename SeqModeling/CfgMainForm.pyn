@@ -1,4 +1,4 @@
-#MenuLabels SeqMap SeqMap2 SeqMap3 SeqMap4 SeqMap5 P-ChmX P-Web P-3D P-Seq P-Table P-Bar P-Bar2 P-Open - ProteinMapCnt ProteinMap1
+#MenuLabels SeqMap SeqMap2 SeqMap3 SeqMap4 SeqMap5 P-ChmX P-Web P-3D P-Seq P-Table P-Bar P-Bar2 P-Open - PM-Cnt PM-1 PM-2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -62,10 +62,12 @@ def MainProc(menuKey):
 			ShowProteinList(pSelected, includeHA=False, atName=atlasName)
 		case 'P-Open':  OpenCifFile(pId)
 
-		case 'ProteinMapCnt':
+		case 'PM-Cnt':
 			CreateProteinMapByCounts(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1, repeats=0)
-		case 'ProteinMap1':
+		case 'PM-1':
 			CreateProteinMap1(pList, epochs=2000, is3D=False, initExag=4.0, ppl=0.1, repeats=0)
+		case 'PM-2':
+			CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=4.0, ppl=0.1, repeats=0)
 
 MainProc(vv.EventSource.Item)
 

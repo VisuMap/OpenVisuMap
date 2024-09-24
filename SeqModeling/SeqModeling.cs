@@ -156,6 +156,11 @@ namespace VisuMap
             return New.NumberTable(vList.ToArray());
         }
 
+
+        public INumberTable VectorizeProtein2(IList<string> pList, VisuMap.Script.IDataset pTable) {
+            return VectorizeProtein1("ARNDCEQGHILKMFPSTWYV", 100, pList, pTable);
+        }
+
         public INumberTable ToWaveTable(string pSeq, IList<string> ppList, int M) {
             int L = ppList.Count;
             var P = new Dictionary<string, int>();

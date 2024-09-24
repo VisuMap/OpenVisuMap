@@ -44,8 +44,8 @@ def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling
 	dllFile = vv.CurrentScriptDirectory + '/' + seqdll
 	srcFile = vv.CurrentScriptDirectory + '/' + 'SeqModeling.cs'
 	if not exists(dllFile) or stat(dllFile).st_mtime < stat(srcFile).st_mtime:
-		msbuild = '"C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/MSBuild.exe"'
-		vv.StartProcess(msbuild, 'SeqModeling.csproj /p:Configuration=Release', False).WaitForExit(1000)
+		#msbuild = '"C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/MSBuild.exe"'
+		#vv.StartProcess(msbuild, 'SeqModeling.csproj /p:Configuration=Release', False).WaitForExit(1000)
 		copy(vv.CurrentScriptDirectory + '/bin/Release/' + seqdll, vv.CurrentScriptDirectory)
 	#dllFile = vv.CurrentScriptDirectory + '/bin/Debug/SeqModeling.dll'
 	vv.LoadLibrary(dllFile)
@@ -207,7 +207,6 @@ def NewRandomTable(N):
 		ds.AddRow("R"+str(n), '', 0, ['', '', s, str(len(s))])
 	ds.CommitChanges()
 
-#NewRandomTable(10000)
 
 def CreateProteinMapByCounts(idList, repeats=1, epochs=5000, initExag=3.0, finalExag=1.0, ppl=0.1, is3D=False):
 	from collections import Counter
@@ -248,6 +247,19 @@ def CreateProteinMap1(idList, epochs=5000, is3D=False, initExag=10.0,
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'PmAA'
+	RunMds(mds, repeats=repeats, info=info)
+	if repeats>=1:
+		mds.Close()
+
+def CreateProteinMap2(idList, epochs=5000, is3D=False, initExag=10.0, 
+		finalExag=1.0, ppl=0.1, repeats=1):
+	pTable = AssertProteinTable()	
+	dt = cs.VectorizeProtein2(idList, pTable)
+	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
+		dt.RowSpecList[k].CopyFromBody(b)
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
+	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
+	info.Mtd = 'Pm2'
 	RunMds(mds, repeats=repeats, info=info)
 	if repeats>=1:
 		mds.Close()
@@ -622,20 +634,25 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 
 def ShowAASeq(pMap):
 	info = MapInfo(pMap.Description)
+	pSelected = pMap.SelectedBodies
+	if pSelected.Count == 0:
+		pSelected = pMap.BodyListEnabled()
 	if info.Mtd == 'PDB':
 		pSeq = []
-		chName = None
-		for b in pMap.BodyList:
-			if (b.Id[0] == 'A') and (b.Name[0] in P):
-				if chName == None:
-					chName = b.Name.split('.')[2]
-				if b.Name.split('.')[2] == chName:
-					pSeq.append(b.Name[0])		
+		for b in pSelected:
+			if (b.Id[0] == 'A'):
+				nm = b.Name
+				if nm[0] == 'r': 
+					pSeq.append(nm[2])
+				elif nm[0] == 'd':
+					pSeq.append(nm[3])
+				else:
+					pSeq.append(nm[0])
 		pSeq = ''.join(pSeq)
 		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
 		tp.Show()
 	else:
-		pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()
+		pSeq = ''.join([b.Name[0] for b in pSelected]).upper()
 		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
 		tp.Tag = pMap
 		tp.OnSelection = '@OnSeqSelection()'
