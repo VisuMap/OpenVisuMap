@@ -156,17 +156,57 @@ namespace VisuMap
             return New.NumberTable(vList.ToArray());
         }
 
+        static double[] ToVector(string pSeq, Dictionary<char, int> P, int[] aaPos, int[][] aaSize, 
+                double[] clusterWeight, double[] waveWeight, int S, int nS) {
+            int clusters = aaPos.Length;
+            int wLen = waveWeight.Length;
+            List<double[]> vSec = new List<double[]>();
+            for (int s = 0; s < pSeq.Length; s += S) {
+                for (int k = 0; k < clusters; k++) {
+                    aaPos[k] = -1;
+                    for (int i = 0; i < wLen; i++)
+                        aaSize[k][i] = 0;
+                }
+
+                int secEnd = Math.Min(s + S, pSeq.Length);
+                if (vSec.Count == (nS - 1))  // The last section will include all the rest.
+                    secEnd = pSeq.Length;
+
+                for (int k = s; k < secEnd; k++) {
+                    if (P.ContainsKey(pSeq[k])) {
+                        int aaIdx = P[pSeq[k]];
+                        int sz = Math.Min(wLen, k - aaPos[aaIdx]);
+                        aaSize[aaIdx][sz - 1] += 1;
+                        aaPos[aaIdx] = k;
+                    }
+                }
+                double[] pV = new double[clusters];
+                for (int k = 0; k < clusters; k++) {
+                    double cw = clusterWeight[k];
+                    for (int i = 0; i < wLen; i++)
+                        pV[k] += cw * aaSize[k][i] * waveWeight[i];
+                }
+                vSec.Add(pV);
+
+                if (vSec.Count == nS)
+                    break;
+            }
+
+            double[] pRow = new double[nS * clusters];
+            for (int k = 0; k < vSec.Count; k++)
+                Array.Copy(vSec[k], 0, pRow, k * clusters, clusters);
+            return pRow;
+        }
+
 
         public INumberTable VectorizeProtein2(IList<string> pList, VisuMap.Script.IDataset pTable) {
-            string[] clusterList = { "AVILMFYW", "STNQ", "CGP", "RHK", "DE" };
+            string[] cList = { "AVILMFYW", "STNQ", "CGP", "RHK", "DE" };
             Dictionary<char, int> P = new Dictionary<char, int>();
-            for (int cIdx=0; cIdx<clusterList.Length; cIdx++)
-                foreach (char c in clusterList[cIdx])
+            for (int cIdx=0; cIdx<cList.Length; cIdx++)
+                foreach (char c in cList[cIdx])
                     P[c] = cIdx;
-            int clusters = clusterList.Length;
+            int clusters = cList.Length;
             int wLen = 50; // maximal gape or wave length
-            int S = 100;   // section size in aa peptide
-            int nS = 20;   // number of sections
             int[][] aaSize = new int[clusters][];
             int[] aaPos = new int[clusters];
             double[] waveWeight = new double[wLen];   // weight for different wave-length (gape size).
@@ -184,41 +224,9 @@ namespace VisuMap
                     continue;
                 string pSeq = pTable.GetDataAt(rowIdx, 2);
 
-                List<double[]> vSec = new List<double[]>();
-                for (int s = 0; s < pSeq.Length; s += S) {
-                    for (int k = 0; k < clusters; k++) {
-                        aaPos[k] = -1;
-                        for (int i = 0; i < wLen; i++)
-                            aaSize[k][i] = 0;
-                    }
-
-                    int secEnd = Math.Min(s + S, pSeq.Length);
-                    if (vSec.Count == (nS - 1))  // The last section will include all the rest.
-                        secEnd = pSeq.Length;
-
-                    for (int k = s; k < secEnd; k++) {
-                        if (P.ContainsKey(pSeq[k])) {
-                            int aaIdx = P[pSeq[k]];
-                            int sz = Math.Min(wLen, k - aaPos[aaIdx]);
-                            aaSize[aaIdx][sz - 1] += 1;
-                            aaPos[aaIdx] = k;
-                        }
-                    }
-                    double[] pV = new double[clusters];
-                    for (int k = 0; k < clusters; k++) {
-                        double cw = clusterWeight[k];
-                        for (int i = 0; i < wLen; i++)
-                            pV[k] += cw*aaSize[k][i] * waveWeight[i];
-                    }
-                    vSec.Add(pV);
-
-                    if (vSec.Count == nS)
-                        break;
-                }
-
-                double[] pRow = new double[nS * clusters];
-                for(int k=0; k<vSec.Count; k++) 
-                    Array.Copy(vSec[k], 0, pRow, k * clusters, clusters);
+                const int S = 50;    // section size in aa peptides; should larger than wLen.
+                const int nS = 20;   // number of sections
+                double[] pRow = ToVector(pSeq, P, aaPos, aaSize, clusterWeight, waveWeight, S, nS);
                 vList.Add(pRow);
             }
             return New.NumberTable(vList.ToArray());

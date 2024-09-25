@@ -1,7 +1,9 @@
 
-def ShowPDB(pId, rp=3, eps=0.1, includeHA=True):
+def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True):
 	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId[:4])
 	bsList = Interporlate(bsList, rp, eps)
+	if mainChain:
+		bsList = New.BodyList([b for b in bsList if b.Type == 0])
 	if includeHA:
 		bsList.AddRange(bsList2)
 	mp = New.Map3DView(bsList)
