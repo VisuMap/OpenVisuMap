@@ -267,61 +267,14 @@ def CreateProteinMap2(idList, epochs=5000, is3D=False, initExag=10.0,
 #-----------------------------------------------------------------------------
 
 
-def ShowSeqInfo(pId, showSeq=False, showTable=False, barView=False, useAApair=True, markovTrans=False):
+def ShowSeqInfo(pId):
 	ds = vv.Dataset
 	rIdx = ds.IndexOfRow(pId)
 	pSeq = ds.GetDataAt(rIdx, 2)
 	pGene = ds.BodyList[rIdx].Name			
 	pLen = int(ds.GetDataAt(rIdx, 3))
-	ppList = [a+b for a in P for b in P] if useAApair else list(ALPHABET)
 	sTitle = f'Protein: {pGene}, {pId}, L:{pLen}'
-	if showSeq:
-		tp = New.TextPanel(sTitle, pSeq)
-		tp.Show()
-	if showTable:
-		maxWaveLen = 1000 if useAApair else 100
-		nt = cs.ToWaveTable(pSeq, ppList, maxWaveLen)
-		for rs in nt.RowSpecList:
-			rs.Type = P[rs.Id[0]]
-		hm = nt.ShowHeatMap()
-		hm.Title = sTitle
-		hm.SpectrumType = 4
-		hm.ColorPaletteName = 'rP8'
-		hm.ScrollingSteps = 1
-		hm.BaseLineType = 0
-		hm.SpectrumType = 4
-		hm.ReadOnly = True
-		hm.Redraw()
-	if barView:
-		bv = New.BarView(pLen)
-		for k, item in enumerate(bv.ItemList):
-			item.Group = P[pSeq[k]]
-			item.Value = 1.0
-		bv.Horizontal = False
-		bv.BarLabelType = 0
-		bv.HighlightColor = New.Color('White')
-		bv.Show()
-		bv.Tag = (pSeq, 0, ppList)
-		bv.SetMouseWheelHandler('@FilterSq2(vv.EventSource.Form)')
-		bv.AutoScaling = True
-		bv.ReadOnly = True
-		if showTable:
-			hm.Tag = bv
-			hm.AddEventHandler('ItemsSelected', '@SetFilterIdx()')
-		bv.Title = sTitle
-	if markovTrans:
-		nt = New.NumberTable(cs.MarkovianMatrix0(pSeq))
-		for k, rs in enumerate(nt.RowSpecList):
-			rs.Id = ALPHABET[k]
-			rs.Type = k
-			nt.ColumnSpecList[k].Type = k
-			nt.ColumnSpecList[k].Id = rs.Id
-		bb = New.BarBand(nt)
-		bb.UsingColorPalette = True
-		bb.AutoScaling = True
-		bb.AttributeMode = False
-		bb.Title = sTitle
-		bb.Show()
+	New.TextPanel(sTitle, pSeq).Show()
 
 def ShowWeb(pId):
 	if vv.Dataset.ColumnSpecList[0].Id == 'PID':

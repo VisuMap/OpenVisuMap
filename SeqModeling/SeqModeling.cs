@@ -158,14 +158,12 @@ namespace VisuMap
 
 
         public INumberTable VectorizeProtein2(IList<string> pList, VisuMap.Script.IDataset pTable) {
-            Dictionary<char, int> P = new Dictionary<char, int> {
-                {'A', 0}, {'V', 0}, {'I', 0}, {'L', 0}, {'M', 0}, {'F', 0}, {'Y', 0}, {'W', 0 },    // Hydrophobic
-                {'S', 1}, {'T', 1}, {'N', 1}, {'Q', 1},  // Polar Unchanged
-                { 'C', 2 }, {'G', 2}, {'P', 2},   // Special Cases
-                {'R', 3}, {'H', 3}, {'K', 3},     // Positive changed
-                {'D', 4}, {'E', 4}                // Negatively changed.
-            };
-            int clusters = P.Values.Max() + 1;   // number of amino acid clusters
+            string[] clusterList = { "AVILMFYW", "STNQ", "CGP", "RHK", "DE" };
+            Dictionary<char, int> P = new Dictionary<char, int>();
+            for (int cIdx=0; cIdx<clusterList.Length; cIdx++)
+                foreach (char c in clusterList[cIdx])
+                    P[c] = cIdx;
+            int clusters = clusterList.Length;
             int wLen = 50; // maximal gape or wave length
             int S = 100;   // section size in aa peptide
             int nS = 20;   // number of sections
@@ -177,7 +175,7 @@ namespace VisuMap
             for (int k = 0; k < wLen; k++)
                 waveWeight[k] = 1.0 / (k + 0.1);
             List<int> cSize = Enumerable.Range(0, 5).Select(cIdx => P.Count(aa => aa.Value == cIdx)).ToList();
-            double[] clusterWeight = cSize.Select(sz => 1.0 / (sz*sz) ).ToArray();
+            double[] clusterWeight = cSize.Select(sz => 1.0 / sz ).ToArray();
 
             List<double[]> vList = new List<double[]>();
             foreach (string pId in pList) {
@@ -224,33 +222,6 @@ namespace VisuMap
                 vList.Add(pRow);
             }
             return New.NumberTable(vList.ToArray());
-        }
-
-        public INumberTable ToWaveTable(string pSeq, IList<string> ppList, int M) {
-            int L = ppList.Count;
-            var P = new Dictionary<string, int>();
-            double[][] aaSize = new double[L][];
-            int[] aaPos = new int[L];
-            int kSize = ppList[0].Length;
-            for (int k = 0; k < L; k++) {
-                P[ppList[k]] = k;
-                aaSize[k] = new double[M];
-                aaPos[k] = -1;
-            }
-            int kEnd = pSeq.Length - kSize + 1;
-            for (int k = 0; k < kEnd; k += 1) {
-                string aaPair = pSeq.Substring(k, kSize);
-                if (P.ContainsKey(aaPair)) {
-                    int aaIdx = P[aaPair];
-                    int sz = Math.Min(M, k - aaPos[aaIdx]);
-                    aaSize[aaIdx][sz - 1] += 1.0;
-                    aaPos[aaIdx] = k;
-                }
-            }
-            var nt = New.NumberTable(aaSize);
-            for (int row = 0; row < L; row++)
-                nt.RowSpecList[row].Id = ppList[row];
-            return nt;
         }
 
         public void SmoothenBodyList(IList<IBody> bs) {

@@ -1,4 +1,4 @@
-#MenuLabels SeqMap SeqMap2 SeqMap3 SeqMap4 SeqMap5 P-ChmX P-Web P-3D P-Seq P-Table P-Bar P-Bar2 P-Open - PM-Cnt PM-1 PM-2
+#MenuLabels SeqMap SeqMap2 SeqMap3 SeqMap4 SeqMap5 P-ChmX P-Web P-3D P-Seq P-Open - PM-Cnt PM-1 PM-2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -52,10 +52,7 @@ def MainProc(menuKey):
 
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
-		case 'P-Seq':  ShowSeqInfo(pId, showSeq=True)
-		case 'P-Table':ShowSeqInfo(pId, showTable=True, useAApair=True)
-		case 'P-Bar':  ShowSeqInfo(pId, barView=True, useAApair=True)
-		case 'P-Bar2': ShowSeqInfo(pId, showTable=True, barView=True, useAApair=True)
+		case 'P-Seq':  ShowSeqInfo(pId)
 		case 'P-3D':
 			atlasName = None
 			atlasName = vv.Dataset.Name
