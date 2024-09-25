@@ -211,26 +211,10 @@ def NewRandomTable(N):
 def CreateProteinMapByCounts(idList, repeats=1, epochs=5000, initExag=3.0, finalExag=1.0, ppl=0.1, is3D=False):
 	from collections import Counter
 	pTable = AssertProteinTable()	
-	rows = len(idList)
-	columns = len(ALPHABET)
-	if rows == 0:
-		bsList = pTable.BodyListEnabled()
-		rows = bsList.Count
-		idList = [b.Id for b in bsList]
-		print(bsList.Count, rows, len(idList))
-	else:
-		bsList = pTable.BodyListForId(idList)
-	nt = New.NumberTable(bsList, columns)
-	for row in range(rows):
-		pSeq = GetProteinSeq(pTable, idList[row])
-		pCnt = Counter(pSeq)
-		R = nt.Matrix[row]
-		fct = 10000/len(pSeq)
-		for c, a in enumerate(ALPHABET):
-			R[c] =fct*pCnt[a]
-	for c, a in enumerate(ALPHABET):
-		nt.ColumnSpecList[c].Id = a
-	mds = NewMds(nt, epochs=epochs, initExag=initExag, finalExag=finalExag, ppl=ppl, is3D=is3D)
+	dt = cs.VectorizeProteinCnt(idList, pTable)
+	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
+		dt.RowSpecList[k].CopyFromBody(b)
+	mds = NewMds(dt, epochs=epochs, initExag=initExag, finalExag=finalExag, ppl=ppl, is3D=is3D)
 	mds.RefreshFreq = 50
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'PmCnt'
@@ -238,20 +222,7 @@ def CreateProteinMapByCounts(idList, repeats=1, epochs=5000, initExag=3.0, final
 	if repeats>= 1:
 		mds.Close()
 
-def CreateProteinMap1(idList, epochs=5000, is3D=False, initExag=10.0, 
-		finalExag=1.0, ppl=0.1, repeats=1):
-	pTable = AssertProteinTable()	
-	dt = cs.VectorizeProtein1(ALPHABET, 100, idList, pTable)
-	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
-		dt.RowSpecList[k].CopyFromBody(b)
-	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
-	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	info.Mtd = 'PmAA'
-	RunMds(mds, repeats=repeats, info=info)
-	if repeats>=1:
-		mds.Close()
-
-def CreateProteinMap2(idList, epochs=5000, is3D=False, initExag=10.0, 
+def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0, 
 		finalExag=1.0, ppl=0.1, repeats=1):
 	pTable = AssertProteinTable()	
 	dt = cs.VectorizeProtein2(idList, pTable)

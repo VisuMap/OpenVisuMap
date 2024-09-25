@@ -117,45 +117,7 @@ namespace VisuMap
             }
             return bs;
         }
-
-        public INumberTable VectorizeProtein1(string alphabet, int M, IList<string> pList, VisuMap.Script.IDataset pTable) {
-            int L = alphabet.Length;
-            Dictionary<char, int> P = Enumerable.Range(0, alphabet.Length).ToDictionary(k => alphabet[k], k => k);
-            int[][] aaSize = new int[L][];
-            int[] aaPos = new int[L];
-            double[] weight = new double[M];
-            for (int k = 0; k < L; k++)
-                aaSize[k] = new int[M];
-            for (int k = 0; k < M; k++)
-                weight[k] = 1.0 / (k + 0.1);
-            List<double[]> vList = new List<double[]>();
-            foreach (string pId in pList) {
-                int rowIdx = pTable.IndexOfRow(pId);
-                if (rowIdx < 0)
-                    continue;
-                string pSeq = pTable.GetDataAt(rowIdx, 2);
-                for (int k = 0; k < L; k++) {
-                    aaPos[k] = -1;
-                    for (int i = 0; i < M; i++)
-                        aaSize[k][i] = 0;
-                }
-                for (int k = 0; k < pSeq.Length; k++) {
-                    if (P.ContainsKey(pSeq[k])) {
-                        int aaIdx = P[pSeq[k]];
-                        int sz = Math.Min(M, k - aaPos[aaIdx]);
-                        aaSize[aaIdx][sz - 1] += 1;
-                        aaPos[aaIdx] = k;
-                    }
-                }
-                double[] pV = new double[L];
-                for (int k = 0; k < L; k++)
-                    for (int i = 0; i < M; i++)
-                        pV[k] += aaSize[k][i] * weight[i];
-                vList.Add(pV);
-            }
-            return New.NumberTable(vList.ToArray());
-        }
-
+        
         static double[] ToVector(string pSeq, Dictionary<char, int> P, int[] aaPos, int[][] aaSize, 
                 double[] clusterWeight, double[] waveWeight, int S, int nS) {
             int clusters = aaPos.Length;
@@ -199,7 +161,7 @@ namespace VisuMap
         }
 
 
-        public INumberTable VectorizeProtein2(IList<string> pList, VisuMap.Script.IDataset pTable) {
+        public INumberTable VectorizeProtein(IList<string> pList, VisuMap.Script.IDataset pTable) {
             string[] cList = 
                 //"AVILMFYW|STNQ|CGP|RHK|DE"
                 //"A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E"
@@ -233,6 +195,57 @@ namespace VisuMap
                 const int S = 50;    // section size in aa peptides; should larger than wLen.
                 const int nS = 20;   // number of sections
                 double[] pRow = ToVector(pSeq, P, aaPos, aaSize, clusterWeight, waveWeight, S, nS);
+                vList.Add(pRow);
+            }
+            return New.NumberTable(vList.ToArray());
+        }
+
+        public INumberTable VectorizeProteinCnt(IList<string> pList, VisuMap.Script.IDataset pTable) {
+            string[] cList =
+                //"AVILMFYW|STNQ|CGP|RHK|DE"
+                "A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E"
+                //"AVILMFYW|STNQCGPRHKDE"
+                //"AVILMFYW|STNQ|C|G|P|RHK|DE"
+                //"GAVMLIP|FY|STNQCW|DE|HKR"
+                .Split('|');
+            Dictionary<char, int> P = new Dictionary<char, int>();
+            for (int cIdx = 0; cIdx < cList.Length; cIdx++)
+                foreach (char c in cList[cIdx])
+                    P[c] = cIdx;
+            int clusters = cList.Length;
+            int[] aaCnt = new int[clusters];
+            const int S = 100;    // section size in aa peptides; should larger than wLen.
+            const int nS = 20;   // number of sections
+
+            List<double[]> vList = new List<double[]>();
+            foreach (string pId in pList) {
+                int rowIdx = pTable.IndexOfRow(pId);
+                if (rowIdx < 0)
+                    continue;
+                string pSeq = pTable.GetDataAt(rowIdx, 2);
+
+                List<double[]> vSec = new List<double[]>();
+                for (int s = 0; s < pSeq.Length; s += S) {
+                    int secEnd = Math.Min(s + S, pSeq.Length);
+                    if (vSec.Count == (nS - 1))  // The last section will include all the rest.
+                        secEnd = pSeq.Length;
+                    Array.Clear(aaCnt, 0, aaCnt.Length);
+
+                    for (int k = s; k < secEnd; k++)
+                        if (P.ContainsKey(pSeq[k]))
+                            aaCnt[P[pSeq[k]]]++;
+
+                    double[] pV = new double[clusters];
+                    for (int k = 0; k < clusters; k++)
+                        pV[k] = 0.01*aaCnt[k];
+                    vSec.Add(pV);
+                    if (vSec.Count == nS)
+                        break;
+                }
+
+                double[] pRow = new double[nS * clusters];
+                for (int k = 0; k < vSec.Count; k++)
+                    Array.Copy(vSec[k], 0, pRow, k * clusters, clusters);
                 vList.Add(pRow);
             }
             return New.NumberTable(vList.ToArray());
