@@ -200,7 +200,13 @@ namespace VisuMap
 
 
         public INumberTable VectorizeProtein2(IList<string> pList, VisuMap.Script.IDataset pTable) {
-            string[] cList = { "AVILMFYW", "STNQ", "CGP", "RHK", "DE" };
+            string[] cList = 
+                //"AVILMFYW|STNQ|CGP|RHK|DE"
+                //"A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E"
+                //"AVILMFYW|STNQCGPRHKDE"
+                //"AVILMFYW|STNQ|C|G|P|RHK|DE"
+                "GAVMLIP|FY|STNQCW|DE|HKR"
+                .Split('|');
             Dictionary<char, int> P = new Dictionary<char, int>();
             for (int cIdx=0; cIdx<cList.Length; cIdx++)
                 foreach (char c in cList[cIdx])
@@ -214,7 +220,7 @@ namespace VisuMap
                 aaSize[k] = new int[wLen];
             for (int k = 0; k < wLen; k++)
                 waveWeight[k] = 1.0 / (k + 0.1);
-            List<int> cSize = Enumerable.Range(0, 5).Select(cIdx => P.Count(aa => aa.Value == cIdx)).ToList();
+            List<int> cSize = Enumerable.Range(0, clusters).Select(cIdx => P.Count(aa => aa.Value == cIdx)).ToList();
             double[] clusterWeight = cSize.Select(sz => 1.0 / sz ).ToArray();
 
             List<double[]> vList = new List<double[]>();
