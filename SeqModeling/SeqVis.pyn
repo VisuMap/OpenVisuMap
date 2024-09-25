@@ -334,7 +334,7 @@ def ShowMainChain(pMap):
 	bList = pMap.BodyList
 	mchName = bList[0].Name.split('.')[2]
 	pMap.SelectedItems = [b.Id for b in bList if b.Name.split('.')[2] == mchName]
-	pp.ClickMenu('3D Animation View...')
+	pMap.ClickMenu('3D Animation View...')
 	vv.LastView.NormalizeView()
 
 def ShowChimeraX(pId):

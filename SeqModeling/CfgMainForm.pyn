@@ -58,7 +58,8 @@ def MainProc(menuKey):
 		case 'P-Bar2': ShowSeqInfo(pId, showTable=True, barView=True, useAApair=True)
 		case 'P-3D':
 			atlasName = None
-			#atlasName = vv.Dataset.Name
+			atlasName = vv.Dataset.Name
+			atlasName = 'Test V2'
 			ShowProteinList(pSelected, includeHA=False, atName=atlasName)
 		case 'P-Open':  OpenCifFile(pId)
 
