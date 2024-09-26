@@ -2,16 +2,6 @@
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
-def ShowProteinList(pList, mainChain, includeHA, atName):
-	mapStore = NewMapStore(atName, is3D=True)
-	for k, pId in enumerate(pList):
-		ShowPDB(pId, mainChain=mainChain, includeHA=includeHA)
-		if mapStore != None:	
-			mapStore.AddMaps()
-	if mapStore != None:
-		mapStore.atlas.ArrangeItems()
-		mapStore.atlas.TheForm.Show()
-
 def MainProc(menuKey):
 	pSelected = pp.SelectedItems
 	if menuKey.startswith('P-'):
@@ -55,8 +45,8 @@ def MainProc(menuKey):
 		case 'P-Seq':  ShowSeqInfo(pId)
 		case 'P-3D':
 			atlasName = None
-			#atlasName = vv.Dataset.Name
-			atlasName = 'Test V2'
+			atlasName = vv.Dataset.Name
+			#atlasName = 'Test V2'
 			ShowProteinList(pSelected, mainChain=True, includeHA=False, atName=atlasName)
 		case 'P-Open':  OpenCifFile(pId)
 

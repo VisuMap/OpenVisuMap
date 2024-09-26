@@ -225,7 +225,7 @@ def CreateProteinMapByCounts(idList, repeats=1, epochs=5000, initExag=3.0, final
 def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0, 
 		finalExag=1.0, ppl=0.1, repeats=1):
 	pTable = AssertProteinTable()	
-	dt = cs.VectorizeProtein2(idList, pTable)
+	dt = cs.VectorizeProtein(idList, pTable)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
@@ -654,6 +654,31 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5,
 		it.Name = info.pId
 		mp.Close()
 
+def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=30):
+	pAtlas.BackgroundColor = New.Color(255, 0, 0, 64)	
+	pAtlas.SelectorColor = New.Color('DimGray')
+	info = MapInfo(pAtlas.Description)
+	if (info.DS != None) and (info.DS != vv.Dataset.Name):
+		vv.Folder.OpenDataset(info.DS)		
+	scale = (pAtlas.Height-50)/vv.Map.Height
+	for item in pAtlas.Items:
+		b = vv.Dataset.BodyForId(item.Name)
+		if b != None:
+			item.Left = int(scale*b.X)
+			item.Top = int(scale*b.Y)
+		item.IconHeight = iconHeight
+		item.IconWidth = iconWidth
+		item.LabelStyle = 0
+		item.Transparent = False
+		item.Opacity = 1.0
+		item.ShowBorder = True
+		item.BorderColor = New.Color(255, 40, 40, 40)
+		mp = item.Open()
+		mp.GlyphSize = 1.0
+		mp.GlyphOpacity = 1.0
+		mp.Close()
+
+
 def ReCreateMap(pMap):
 	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	
 	info = MapInfo(pMap.Description)
@@ -683,6 +708,8 @@ def SmoothenCurve(pMap, repeats):
 
 def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0, contractFactor=1.0):
 	mapStore = NewMapStore(atName, False)
+	mapStore.atlas.Description = atlas.Description
+	mapStore.atlas.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 	for k, m in enumerate(mapItems):
 		mp = m.Open()
 		mp.TheForm.Hide()

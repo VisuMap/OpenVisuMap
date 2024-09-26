@@ -23,6 +23,19 @@ def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True):
 	mp.Show()
 	mp.NormalizeView()
 
+def ShowProteinList(pList, mainChain, includeHA, atName):
+	mapStore = NewMapStore(atName, is3D=True)
+	mapStore.atlas.Clear()
+	mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
+	mapStore.atlas.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
+	for k, pId in enumerate(pList):
+		ShowPDB(pId, mainChain=mainChain, includeHA=includeHA)
+		if mapStore != None:	
+			mapStore.AddMaps()
+	if mapStore != None:
+		mapStore.atlas.ArrangeItems()
+		mapStore.atlas.TheForm.Show()
+
 def GetString(L, fPDB):
 	idx = L.find('\'')
 	if idx < 0:

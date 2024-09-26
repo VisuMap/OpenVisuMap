@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps LinkSelection "UnFold Maps" P-3D P-Web P-ChmX MainChain
+#MenuLabels ConfigMaps LinkSelection "UnFold Maps" P-3D P-Web P-ChmX MainChain MatchMap
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -41,6 +41,8 @@ def MainProc(menuKey):
 				mp = atItem.Open()
 				ShowMainChain(mp)
 				mp.Close()
+		case 'MatchMap':
+			MatchProteinMap(pp, 35, 35)
 
 MainProc(vv.EventSource.Item)
 
