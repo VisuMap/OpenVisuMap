@@ -28,8 +28,7 @@ def MainProc(menuKey):
 			pp.SetEventHandler('ItemsSelected', '@HighlightItems()')
 		case 'UnFold Maps':
 			atName = pp.AtlasName + ' 2D'
-			itemList = pp.GetSelectedItems()
-			UnfoldAtlasMaps(pp, itemList, atName, stretch=0.25, contractFactor=0.9)
+			UnfoldAtlasMaps(pp, pp.GetSelectedItems(), atName, stretch=0.25, contractFactor=0.9)
 		case 'P-3D':
 			ShowPDB(pId, rp=3, eps=0.1, includeHA=False) 
 		case 'P-Web':
@@ -42,7 +41,8 @@ def MainProc(menuKey):
 				ShowMainChain(mp)
 				mp.Close()
 		case 'MatchMap':
-			MatchProteinMap(pp, 35, 35)
+			justResize = vv.ModifierKeys.ControlPressed
+			MatchProteinMap(pp, 60, 0, justResize)
 
 MainProc(vv.EventSource.Item)
 

@@ -654,7 +654,7 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5,
 		it.Name = info.pId
 		mp.Close()
 
-def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=30):
+def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0, justResize=False):
 	pAtlas.BackgroundColor = New.Color(255, 0, 0, 64)	
 	pAtlas.SelectorColor = New.Color('DimGray')
 	info = MapInfo(pAtlas.Description)
@@ -673,10 +673,13 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=30):
 		item.Opacity = 1.0
 		item.ShowBorder = True
 		item.BorderColor = New.Color(255, 40, 40, 40)
-		mp = item.Open()
-		mp.GlyphSize = 1.0
-		mp.GlyphOpacity = 1.0
-		mp.Close()
+		if not justResize:
+			mp = item.Open()
+			mp.GlyphSize = 1.0
+			mp.GlyphOpacity = 1.0
+			mp.Close()
+	if justResize:
+		pAtlas.Redraw()
 
 
 def ReCreateMap(pMap):
@@ -722,7 +725,6 @@ def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0, contractFactor=1.0)
 	if mapStore != None:
 		ma = mapStore.atlas
 		ma.Width = atlas.Width
-		ma.ArrangeItems()
 		ma.TheForm.Show()
 
 cs2 = New.CsObject('''
