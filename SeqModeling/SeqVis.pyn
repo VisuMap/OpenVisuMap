@@ -58,7 +58,7 @@ if 'cs' not in globals():
 # protein embedding map information
 class MapInfo():
 	def __init__(self, initStr = None):
-		for nm in 'pId,Gene,pLen,Epochs,InitE,FinalE,PP,WinSize,AugCfg,Is3D,Mtd,SF,CF,PT'.split(','):
+		for nm in 'pId,Gene,pLen,DS,Epochs,InitE,FinalE,PP,WinSize,AugCfg,Is3D,Mtd,SF,CF,PT'.split(','):
 			setattr(self, nm, None)
 		if initStr is not None:
 			self.ParseStr(initStr)
@@ -100,10 +100,13 @@ class AtlasMapStore():
 	def Close(self):
 		self.atlas.Close()
 
-def NewMapStore(atName, is3D=True):
+def NewMapStore(atName, is3D=True, clearStore=False):
 	if atName is None:
 		return None
-	return AtlasMapStore(atName, is3D)
+	store = AtlasMapStore(atName, is3D)
+	if clearStore:
+		store.atlas.Clear()
+	return store
 
 #-----------------------------------------------------------
 # Code to maintain the protein table.

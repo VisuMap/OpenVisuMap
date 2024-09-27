@@ -22,18 +22,56 @@ def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True):
 	mp.GlyphOpacity = 0.5
 	mp.Show()
 	mp.NormalizeView()
+	
 
 def ShowProteinList(pList, mainChain, includeHA, atName):
-	mapStore = NewMapStore(atName, is3D=True)
-	mapStore.atlas.Clear()
-	mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
-	mapStore.atlas.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
+	mapStore = NewMapStore(atName, is3D=True, clearStore=True)
+	if mapStore != None:
+		mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
+		mapStore.atlas.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 	for k, pId in enumerate(pList):
 		ShowPDB(pId, mainChain=mainChain, includeHA=includeHA)
 		if mapStore != None:	
 			mapStore.AddMaps()
 	if mapStore != None:
 		mapStore.atlas.ArrangeItems()
+		mapStore.atlas.TheForm.Show()
+
+def UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False, atName=None, stretch=0, contractFactor=1.0):
+	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
+	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
+		repeats=1, metric='EuclideanMetric', glyphSet='36 Clusters||Colored Balls')
+	for k, pId in enumerate(pList):
+		localPath, bList, bList2, pdbTitle = LoadCifData(pId[:4])
+		bList = Interporlate(bList, rp=3, eps=0.1)
+		if mainChain:
+			bList = New.BodyList([b for b in bList if b.Type == 0])
+		if includeHA:
+			bList.AddRange(bList2)
+		if contractFactor != 1.0:
+			bList = New.BodyListClone(bList)
+			bList = cs.ClusterContract(bList, contractFactor)
+		nt = New.NumberTable(bList,3)
+		if stretch != 0:
+			AugmentByIndex(nt, stretch=stretch)
+		
+		info = MapInfo()
+		info.SF = stretch
+		info.CF = contractFactor
+		info.pId = pId
+		info.pLen = bList.Count
+		info.Mtd = 'PDB'
+		info.PT = pdbTitle
+		info.DS = f'DS:{vv.Dataset.Name}'
+		mds.SetTrainingData(nt)
+		vv.Title = f'Unfolding {k+1}-th of {len(pList)}'
+		RunMds(mds, info=info)
+		if mapStore != None:	
+			mapStore.AddMaps()
+			MatchProteinMap(mapStore.atlas, 50, 0, justResize=False)
+	mds.Close()
+	if mapStore != None:
+		mapStore.atlas.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 		mapStore.atlas.TheForm.Show()
 
 def GetString(L, fPDB):
@@ -265,18 +303,6 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, contractFactor=1
 	winTitle = pMap.Title
 	RunMds(mds, repeats=repeats, glyphSize=0.5, info=info)
 	vv.LastView.Title = winTitle
-	mds.Close()
-
-def UnFoldMap2(pMap, epochs=1000, ppl=0.1, initExag=10.0, finalExag=1.0):
-	nt = New.NumberTable(pMap.BodyListEnabled(),3)
-	mds = NewMds(nt, glyphSet=pMap.GlyphSet, initExag=initExag, finalExag=finalExag,
-		epochs=epochs, ppl=ppl)
-	info = MapInfo(pMap.Description).SetMds(mds)
-	RunMds(mds, info=info)
-	nt2 = New.NumberTable(mds.BodyList, 2)
-	mds.MaxLoops = epochs
-	mds.SetTrainingData(nt.AppendColumns(nt2))
-	RunMds(mds, info=info)
 	mds.Close()
 
 
