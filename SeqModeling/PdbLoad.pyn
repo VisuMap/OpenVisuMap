@@ -68,11 +68,12 @@ def UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False, atNa
 		RunMds(mds, info=info)
 		if mapStore != None:	
 			mapStore.AddMaps()
-			MatchProteinMap(mapStore.atlas, 50, 0, justResize=False)
 	mds.Close()
 	if mapStore != None:
-		mapStore.atlas.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
-		mapStore.atlas.TheForm.Show()
+        ma = mapStore.atlas
+		MatchProteinMap(ma, 50, 0, justResize=False)
+		ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
+		ma.TheForm.Show()
 
 def GetString(L, fPDB):
 	idx = L.find('\'')
