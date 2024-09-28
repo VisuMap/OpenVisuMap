@@ -1,9 +1,8 @@
-
 def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True):
-	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId[:4])
+	localPath, bsList, bsList2, pdbTitle, acc2chain = LoadCifData(pId[:4])
 	bsList = Interporlate(bsList, rp, eps)
 	if mainChain:
-		bsList = New.BodyList([b for b in bsList if b.Type == 0])
+		bsList = SelectChain(pId, bsList, acc2chain)
 	if includeHA:
 		bsList.AddRange(bsList2)
 	mp = New.Map3DView(bsList)
@@ -22,7 +21,25 @@ def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True):
 	mp.GlyphOpacity = 0.5
 	mp.Show()
 	mp.NormalizeView()
-	
+
+def SelectChain(pId, bsList, acc2chain):
+	b = vv.Dataset.BodyForId(pId)
+	if b == None:
+		vv.Message(f'Cannot find {pId} protein in current dataset')
+		vv.Return()
+	if len(acc2chain) == 0:
+		tgtChain = 'A'
+	elif b.Name in acc2chain:	
+		tgtChain = acc2chain[b.Name]
+	else:
+		tgtChain = list(acc2chain.values())[0]
+	tgtChain += '_1'    # A chain may have multiple copies; we just return the first copy.
+	bsList2 = New.BodyList()
+	for b2 in bsList:
+		chName = b2.Name.split('.')[2]
+		if chName == tgtChain:
+			bsList2.Add(b2)
+	return bsList2 if bsList2.Count > 0 else bsList
 
 def ShowProteinList(pList, mainChain, includeHA, atName):
 	mapStore = NewMapStore(atName, is3D=True, clearStore=True)
@@ -42,10 +59,10 @@ def UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False, atNa
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
 		repeats=1, metric='EuclideanMetric', glyphSet='36 Clusters||Colored Balls')
 	for k, pId in enumerate(pList):
-		localPath, bList, bList2, pdbTitle = LoadCifData(pId[:4])
+		localPath, bList, bList2, pdbTitle, acc2chain = LoadCifData(pId[:4])
 		bList = Interporlate(bList, rp=3, eps=0.1)
 		if mainChain:
-			bList = New.BodyList([b for b in bList if b.Type == 0])
+			bList = SelectChain(pId, bList, acc2chain)
 		if includeHA:
 			bList.AddRange(bList2)
 		if contractFactor != 1.0:
@@ -64,13 +81,13 @@ def UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False, atNa
 		info.PT = pdbTitle
 		info.DS = f'DS:{vv.Dataset.Name}'
 		mds.SetTrainingData(nt)
-		vv.Title = f'Unfolding {k+1}-th of {len(pList)}'
+		vv.Title = f'Unfolding {pId}: {k+1}-th of {len(pList)}'
 		RunMds(mds, info=info)
 		if mapStore != None:	
 			mapStore.AddMaps()
 	mds.Close()
 	if mapStore != None:
-        ma = mapStore.atlas
+		ma = mapStore.atlas
 		MatchProteinMap(ma, 50, 0, justResize=False)
 		ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 		ma.TheForm.Show()
@@ -90,12 +107,24 @@ def GetString(L, fPDB):
 	s = s.replace(';', '.,')
 	return s
 
+def GetAcc2Chain(fPDB):
+	dict = {}
+	for L in fPDB:
+		if L[0] == '#': break
+		if L[0] == '_': continue
+		fs = L.split()
+		if fs[8] not in dict:
+			dict[fs[8]] = fs[3]
+	return dict		
+	
+
 def LoadCifData(prName):
 	localPath = Download3DInfo(prName)
 	try:
 		bsList, bsList2 = New.BodyList(), New.BodyList()
 		betaSet, helixSet = set(), set()
 		pdbTitle = ''
+		acc2chain = {}
 		with open(localPath) as fPDB:
 			L = fPDB.readline()
 			if not L.startswith('data_'):
@@ -107,7 +136,9 @@ def LoadCifData(prName):
 				elif L.startswith('_struct_conf.pdbx_PDB_helix_length'):
 					helixSet = LoadHelix(fPDB)
 				elif L.startswith('_struct.title'):
-					pdbTitle = GetString(L, fPDB)					
+					pdbTitle = GetString(L, fPDB)
+				elif L.startswith('_struct_ref_seq.align_id'):
+					acc2chain = GetAcc2Chain(fPDB)
 				elif L.startswith('_atom_site.pdbx_PDB_model_num'):
 					bsList, bsList2 = LoadAtoms(fPDB, helixSet, betaSet)
 					break	
@@ -117,7 +148,7 @@ def LoadCifData(prName):
 	if bsList.Count == 0:
 		vv.Message('No amino-acids found!')
 		vv.Return()
-	return localPath, bsList, bsList2, pdbTitle
+	return localPath, bsList, bsList2, pdbTitle, acc2chain
 
 
 def OpenPDBFile(pMap):
@@ -230,7 +261,7 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 		rsX, rsY, rsZ = float(fs[10]), float(fs[11]), -float(fs[12])	
 		atName = fs[3].strip('\"')
 		rsName = fs[5]
-		chName = fs[6] + '_' + fs[20]
+		chName = fs[18] + '_' + fs[20]
 		secType = 'x'  # default secondary type
 
 		if fs[0] == 'ATOM':
@@ -305,5 +336,3 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, contractFactor=1
 	RunMds(mds, repeats=repeats, glyphSize=0.5, info=info)
 	vv.LastView.Title = winTitle
 	mds.Close()
-
-

@@ -62,6 +62,8 @@ class MapInfo():
 			setattr(self, nm, None)
 		if initStr is not None:
 			self.ParseStr(initStr)
+	def Set(self, name, value):
+		setattr(self, name, value)
 	def Init(self, epochs, is3D, initExag, finalExag, ppl):
 		self.Epochs = epochs
 		self.Is3D = is3D

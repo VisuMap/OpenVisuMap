@@ -58,9 +58,31 @@ def ImportPDBs():
 	print('Completed! ', cnt, errs)
 
 
-'''
+def MergeDatasets(dstDatasetName, dsList):
+	InitDatabase(dstDatasetName, '')
+	included = set()
+	rows = 0
+	for dsName in dsList:
+		print(f'Importing: {dsName}')
+		ds = vv.Folder.ReadDataset(dsName)
+		for k in range(ds.Rows):
+			rows += 1
+			b = ds.BodyList[k]
+			if b.Id in included:
+				continue
+			sLen = ds.ValueAtAsString(k, 3)
+			if sLen == '0':
+				continue
+			vList = New.StringArray([b.Id, b.Name, ds.ValueAtAsString(k,2), sLen, ds.ValueAtAsString(k, 4)])
+			vv.Dataset.AddRow(b.Id, b.Name, 0, vList)
+			included.add(b.Id)
+	vv.Dataset.CommitChanges()
+	print(f'Merged: {rows} into {vv.Dataset.Rows}')
 
+
+'''
 InitDatabase('Ribosome', '')
 ImportPDBs()
 
+MergeDatasets('Dataset-18', list(vv.Folder.DatasetNameList)[3:21])
 '''
