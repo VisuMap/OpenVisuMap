@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps LinkSelection "UnFold Maps" P-3D P-Web P-ChmX MainChain MatchMap
+#MenuLabels ConfigMaps LinkSelection "UnFold Maps" P-3D P-Web P-ChmX P-Open MainChain MatchMap
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -35,6 +35,8 @@ def MainProc(menuKey):
 			ShowWeb(pId)
 		case 'P-ChmX':
 			ShowChimeraX(pId)
+		case 'P-Open':  
+			OpenCifFile(pId)
 		case 'MainChain':
 			for atItem in pp.GetSelectedItems():
 				mp = atItem.Open()

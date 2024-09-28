@@ -1,8 +1,6 @@
 def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True):
-	localPath, bsList, bsList2, pdbTitle, acc2chain = LoadCifData(pId[:4])
+	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
 	bsList = Interporlate(bsList, rp, eps)
-	if mainChain:
-		bsList = SelectChain(pId, bsList, acc2chain)
 	if includeHA:
 		bsList.AddRange(bsList2)
 	mp = New.Map3DView(bsList)
@@ -59,10 +57,8 @@ def UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False, atNa
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
 		repeats=1, metric='EuclideanMetric', glyphSet='36 Clusters||Colored Balls')
 	for k, pId in enumerate(pList):
-		localPath, bList, bList2, pdbTitle, acc2chain = LoadCifData(pId[:4])
+		localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
 		bList = Interporlate(bList, rp=3, eps=0.1)
-		if mainChain:
-			bList = SelectChain(pId, bList, acc2chain)
 		if includeHA:
 			bList.AddRange(bList2)
 		if contractFactor != 1.0:
@@ -118,8 +114,8 @@ def GetAcc2Chain(fPDB):
 	return dict		
 	
 
-def LoadCifData(prName):
-	localPath = Download3DInfo(prName)
+def LoadCifData(pId, mainChain=False):
+	localPath = Download3DInfo(pId[:4])
 	try:
 		bsList, bsList2 = New.BodyList(), New.BodyList()
 		betaSet, helixSet = set(), set()
@@ -148,7 +144,11 @@ def LoadCifData(prName):
 	if bsList.Count == 0:
 		vv.Message('No amino-acids found!')
 		vv.Return()
-	return localPath, bsList, bsList2, pdbTitle, acc2chain
+
+	if mainChain:
+		bsList = SelectChain(pId, bsList, acc2chain)
+
+	return localPath, bsList, bsList2, pdbTitle
 
 
 def OpenPDBFile(pMap):

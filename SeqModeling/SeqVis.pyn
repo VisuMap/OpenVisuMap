@@ -665,7 +665,7 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0, justResize=False):
 	info = MapInfo(pAtlas.Description)
 	if (info.DS != None) and (info.DS != vv.Dataset.Name):
 		vv.Folder.OpenDataset(info.DS)		
-	scale = (pAtlas.Height-50)/vv.Map.Height
+	scale = (pAtlas.Height-20)/vv.Map.Height
 	for item in pAtlas.Items:
 		b = vv.Dataset.BodyForId(item.Name)
 		if b != None:
@@ -674,10 +674,9 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0, justResize=False):
 		item.IconHeight = iconHeight
 		item.IconWidth = iconWidth
 		item.LabelStyle = 0
-		item.Transparent = False
+		item.Transparent = True
 		item.Opacity = 1.0
-		item.ShowBorder = True
-		item.BorderColor = New.Color(255, 40, 40, 40)
+		item.ShowBorder = False
 		if not justResize:
 			mp = item.Open()
 			mp.GlyphSize = 1.0
@@ -730,6 +729,7 @@ def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0, contractFactor=1.0)
 	if mapStore != None:
 		ma = mapStore.atlas
 		ma.Width = atlas.Width
+		ma.ArrangeItems()
 		ma.TheForm.Show()
 
 cs2 = New.CsObject('''

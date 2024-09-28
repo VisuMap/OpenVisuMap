@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ShowSeq ReCreateMap Smoothen P-Web P-3D HideIPO MarkHelix MarkBeta MainChain RnaChain 'Open PDB'
+#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-3D HideIPO MarkHelix MarkBeta MainChain RnaChain 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -8,7 +8,7 @@ match vv.EventSource.Item:
 		ShowMapData(pp)
 	case 'Scanning':
 		Scanning(pp, stride=500, stepSize=10)
-	case 'ShowSeq':
+	case 'P-Seq':
 		AssertSeqMap(pp)
 		ShowAASeq(pp)
 	case 'ReCreateMap':
@@ -32,7 +32,7 @@ match vv.EventSource.Item:
 		ShowHelix()
 	case 'MarkBeta':
 		ShowBetaSheet()
-	case 'Open PDB':
+	case 'P-Open':
 		OpenPDBFile(pp)
 
 
