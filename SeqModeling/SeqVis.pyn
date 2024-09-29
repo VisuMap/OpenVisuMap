@@ -228,9 +228,9 @@ def CreateProteinMapByCounts(idList, repeats=1, epochs=5000, initExag=3.0, final
 		mds.Close()
 
 def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0, 
-		finalExag=1.0, ppl=0.1, repeats=1):
+		finalExag=1.0, ppl=0.1, repeats=1, aaGroups='A', secCount=20, secLen=50):
 	pTable = AssertProteinTable()	
-	dt = cs.VectorizeProtein(idList, pTable)
+	dt = cs.VectorizeProtein(idList, pTable, aaGroups, secCount, secLen)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
@@ -687,7 +687,7 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0, justResize=False):
 			mp.Height = int(fct * mp.Height)
 			mp.Close()
 	if justResize:
-		pAtlas.Redraw()
+		pAtlas.RedrawResizedItems(pAtlas.Items, False)
 
 
 def ReCreateMap(pMap):

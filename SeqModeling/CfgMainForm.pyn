@@ -51,8 +51,8 @@ def MainProc(menuKey):
 
 		case 'P-2D':
 			atlasName = None
-			#atlasName = vv.Dataset.Name + '-2D'
-			atlasName = 'Test-2D'
+			atlasName = vv.Dataset.Name + '-2D'
+			#atlasName = 'Test-2D'
 			UnFoldProteinList(pSelected, epochs=1000, mainChain=True, includeHA=False, atName=atlasName)
 	
 		case 'P-Open':  OpenCifFile(pId)
@@ -60,7 +60,9 @@ def MainProc(menuKey):
 		case 'ProteinMapCnt':
 			CreateProteinMapByCounts(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1, repeats=0)
 		case 'ProteinMap':
-			CreateProteinMap(pList, epochs=2000, is3D=False, initExag=4.0, ppl=0.1, repeats=0)
+			secCount, secLen, aaGroups = 20, 50, "RHK|DE"
+			CreateProteinMap(pList, epochs=2000, is3D=False, initExag=4.0, ppl=0.1, repeats=0, 
+				aaGroups=aaGroups, secCount=secCount, secLen=secLen)
 
 MainProc(vv.EventSource.Item)
 
@@ -70,4 +72,11 @@ ret = vv.GuiManager.SelectFileForWrite('*.CVS|*.csv')
 
 pId = vv.GuiManager.GetClipboard()
 ShowPDB('1H88', rp=3, eps=0.1, includeHA=True) 
+
+"AVILMFYW|STNQ|CGP|RHK|DE"
+"A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E"
+"AVILMFYW|STNQCGPRHKDE"
+"AVILMFYW|STNQ|C|G|P|RHK|DE"
+"GAVMLIP|FY|STNQCW|DE|HKR"
+
 '''

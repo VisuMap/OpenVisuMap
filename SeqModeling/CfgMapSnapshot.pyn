@@ -25,7 +25,7 @@ match vv.EventSource.Item:
 		ShowWeb(pId)
 	case 'P-3D':
 		pId = MapInfo(pp.Description).pId
-		ShowPDB(pId, rp=3, eps=0.1, includeHA=False) 
+		ShowPDB(pId, rp=3, eps=0.1, includeHA=True) 
 	case 'HideIPO':
 		HideInterpolates()
 	case 'MarkHelix':
