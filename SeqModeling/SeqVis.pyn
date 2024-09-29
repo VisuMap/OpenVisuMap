@@ -677,10 +677,14 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0, justResize=False):
 		item.Transparent = True
 		item.Opacity = 1.0
 		item.ShowBorder = False
+		item.CacheImage = True
 		if not justResize:
 			mp = item.Open()
 			mp.GlyphSize = 1.0
 			mp.GlyphOpacity = 1.0
+			fct = 1400/(mp.Width+mp.Height)
+			mp.Width = int(fct * mp.Width)
+			mp.Height = int(fct * mp.Height)
 			mp.Close()
 	if justResize:
 		pAtlas.Redraw()
