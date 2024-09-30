@@ -98,6 +98,7 @@ class AtlasMapStore():
 		for fm in vv.FindFormList(self.viewName):
 			item = self.atlas.CaptureItem(fm)
 			item.Name = MapInfo(fm.Description).pId
+			item.CacheImage = True
 			fm.Close()
 	def Close(self):
 		self.atlas.Close()
@@ -236,6 +237,9 @@ def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0,
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'Pm2'
+	info.Set('aaG', aaGroups)
+	info.Set('aaN', secCount)
+	info.Set('aaL', secLen)
 	RunMds(mds, repeats=repeats, info=info)
 	if repeats>=1:
 		mds.Close()
@@ -677,7 +681,6 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0, justResize=False):
 		item.Transparent = True
 		item.Opacity = 1.0
 		item.ShowBorder = False
-		item.CacheImage = True
 		if not justResize:
 			mp = item.Open()
 			mp.GlyphSize = 1.0
@@ -718,7 +721,7 @@ def SmoothenCurve(pMap, repeats):
 	pMap.RedrawAll()
 
 def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0, contractFactor=1.0):
-	mapStore = NewMapStore(atName, False)
+	mapStore = NewMapStore(atName, is3D=False, clearStore=True)
 	mapStore.atlas.Description = atlas.Description
 	mapStore.atlas.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 	for k, m in enumerate(mapItems):
