@@ -90,12 +90,19 @@ class MapInfo():
 					dic[fs[0]] = fs[1]
 
 class AtlasMapStore():	
-	def __init__(self, atName, is3D):
+	def __init__(self, atName, is3D, normalizeMap):
 		self.atlas = vv.AtlasManager.OpenAtlas(atName)
 		self.viewName = 'D3dRender' if is3D else 'MapSnapshot'
 		self.atlas.TheForm.Hide()
+		self.normalizeMap = normalizeMap
 	def AddMaps(self):
 		for fm in vv.FindFormList(self.viewName):
+			if self.normalizeMap:
+				fm.GlyphSize = 1.0
+				fm.GlyphOpacity = 1.0
+				fct = 1400/(fm.Width+fm.Height)
+				fm.Width = int(fct * fm.Width)
+				fm.Height = int(fct * fm.Height)
 			item = self.atlas.CaptureItem(fm)
 			item.Name = MapInfo(fm.Description).pId
 			item.CacheImage = True
@@ -103,10 +110,10 @@ class AtlasMapStore():
 	def Close(self):
 		self.atlas.Close()
 
-def NewMapStore(atName, is3D=True, clearStore=False):
+def NewMapStore(atName, is3D=True, clearStore=False, normalizeMap=False):
 	if atName is None:
 		return None
-	store = AtlasMapStore(atName, is3D)
+	store = AtlasMapStore(atName, is3D, normalizeMap)
 	if clearStore:
 		store.atlas.Clear()
 	return store
@@ -663,34 +670,38 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5,
 		it.Name = info.pId
 		mp.Close()
 
-def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0, justResize=False):
+# arrange the map items to match the positions in the main map
+def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0):
 	pAtlas.BackgroundColor = New.Color(255, 0, 0, 64)	
 	pAtlas.SelectorColor = New.Color('DimGray')
 	info = MapInfo(pAtlas.Description)
 	if (info.DS != None) and (info.DS != vv.Dataset.Name):
-		vv.Folder.OpenDataset(info.DS)		
-	scale = (pAtlas.Height-20)/vv.Map.Height
+		vv.Folder.OpenDataset(info.DS)
+
+	margin = 30
+	minX, minY, maxX, maxY = 10000, 10000, 0, 0
 	for item in pAtlas.Items:
 		b = vv.Dataset.BodyForId(item.Name)
 		if b != None:
-			item.Left = int(scale*b.X)
-			item.Top = int(scale*b.Y)
+			minX, minY = min(minX, b.X), min(minY, b.Y)
+			maxX, maxY = max(maxX, b.X), max(maxY, b.Y)
+	scaleX = (pAtlas.Width - 2*margin)/(maxX-minX)
+	scaleY = (pAtlas.Height - 2*margin)/(maxY-minY)	
+	scale = min(scaleX, scaleY)
+
+	for item in pAtlas.Items:
+		b = vv.Dataset.BodyForId(item.Name)
+		if b != None:
+			item.Left = int( scale*(b.X - minX) ) + 20
+			item.Top = int( scale*(b.Y - minY) ) + 20
 		item.IconHeight = iconHeight
 		item.IconWidth = iconWidth
 		item.LabelStyle = 0
 		item.Transparent = True
 		item.Opacity = 1.0
 		item.ShowBorder = False
-		if not justResize:
-			mp = item.Open()
-			mp.GlyphSize = 1.0
-			mp.GlyphOpacity = 1.0
-			fct = 1400/(mp.Width+mp.Height)
-			mp.Width = int(fct * mp.Width)
-			mp.Height = int(fct * mp.Height)
-			mp.Close()
-	if justResize:
-		pAtlas.RedrawResizedItems(pAtlas.Items, False)
+	pAtlas.RedrawResizedItems(pAtlas.Items, False)
+
 
 
 def ReCreateMap(pMap):

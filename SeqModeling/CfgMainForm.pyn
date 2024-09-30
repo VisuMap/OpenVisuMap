@@ -51,9 +51,9 @@ def MainProc(menuKey):
 
 		case 'P-2D':
 			atlasName = None
-			#atlasName = vv.Dataset.Name + '-2D'
 			atlasName = 'Test-2D'
-			UnFoldProteinList(pSelected, epochs=1000, mainChain=True, includeHA=False, atName=atlasName)
+			atlasName = vv.Dataset.Name + '-2D'
+			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName)
 	
 		case 'P-Open':  OpenCifFile(pId)
 
@@ -64,8 +64,9 @@ def MainProc(menuKey):
 			aaGroups = 'A|V'
 			aaGroups = 'RHK|DE'
 			aaGroups = 'A|V|L'
+			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 			CreateProteinMap(pList, epochs=2000, is3D=False, initExag=4.0, ppl=0.1, repeats=0, 
-				aaGroups=aaGroups, secCount=20, secLen=100)
+				aaGroups=aaGroups, secCount=20, secLen=50)
 
 MainProc(vv.EventSource.Item)
 

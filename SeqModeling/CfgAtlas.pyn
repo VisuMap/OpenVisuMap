@@ -44,8 +44,7 @@ def MainProc(menuKey):
 				ShowMainChain(mp)
 				mp.Close()
 		case 'MatchMap':
-			justResize = vv.ModifierKeys.ControlPressed
-			MatchProteinMap(pp, 50, 0, justResize)
+			MatchProteinMap(pp, 50, 0)
 
 MainProc(vv.EventSource.Item)
 
