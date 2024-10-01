@@ -107,6 +107,7 @@ class AtlasMapStore():
 				fct = 1400/(fm.Width+fm.Height)
 				fm.Width = int(fct * fm.Width)
 				fm.Height = int(fct * fm.Height)
+				fm.NormalizeView()
 			item = self.atlas.CaptureItem(fm)
 			item.Name = MapInfo(fm.Description).pId
 			item.CacheImage = True
@@ -446,12 +447,12 @@ def RunMds(mds, repeats=1, glyphSize=0.5, glyphOpacity=0.5, info=None):
 	if info is not None:
 		info.DDM = mds.DataDim
 	mds.Description = info.ToStr() if info is not None else 'Map created by RunMds'
-	mds.Repeats = repeats
-	mds.Reset().Start()
 	mds.GlyphOpacity = glyphOpacity
 	mds.GlyphSize = glyphSize
+	mds.Repeats = repeats
+	mds.Reset().Start()
 	if not mds.Completed: 
-		vv.Return(0)
+		raise Exception("MDS aborted")
 	if repeats == 1:
 		mds.ShowSnapshot()
 	return mds
