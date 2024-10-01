@@ -221,22 +221,26 @@ def NewRandomTable(N):
 	ds.CommitChanges()
 
 
-def CreateProteinMapByCounts(idList, repeats=1, epochs=5000, initExag=3.0, finalExag=1.0, ppl=0.1, is3D=False):
+def CreateProteinMapByCounts(idList, repeats=0, epochs=5000, initExag=3.0, finalExag=1.0, ppl=0.1, is3D=False,
+		aaGroups='A', secCount=20, secLen=50):
 	from collections import Counter
 	pTable = AssertProteinTable()	
-	dt = cs.VectorizeProteinCnt(idList, pTable)
+	dt = cs.VectorizeProteinCnt(idList, pTable, aaGroups, secCount, secLen)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 	mds = NewMds(dt, epochs=epochs, initExag=initExag, finalExag=finalExag, ppl=ppl, is3D=is3D)
 	mds.RefreshFreq = 50
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'PmCnt'
+	info.Set('aaG', aaGroups)
+	info.Set('aaN', secCount)
+	info.Set('aaL', secLen)
 	RunMds(mds, repeats, info=info)
 	if repeats>= 1:
 		mds.Close()
 
 def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0, 
-		finalExag=1.0, ppl=0.1, repeats=1, aaGroups='A', secCount=20, secLen=50):
+		finalExag=1.0, ppl=0.1, repeats=0, aaGroups='A', secCount=20, secLen=50):
 	pTable = AssertProteinTable()	
 	dt = cs.VectorizeProtein(idList, pTable, aaGroups, secCount, secLen)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
@@ -677,23 +681,19 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0):
 	info = MapInfo(pAtlas.Description)
 	if (info.DS != None) and (info.DS != vv.Dataset.Name):
 		vv.Folder.OpenDataset(info.DS)
-
-	margin = 30
 	minX, minY, maxX, maxY = 10000, 10000, 0, 0
 	for item in pAtlas.Items:
 		b = vv.Dataset.BodyForId(item.Name)
-		if b != None:
-			minX, minY = min(minX, b.X), min(minY, b.Y)
-			maxX, maxY = max(maxX, b.X), max(maxY, b.Y)
-	scaleX = (pAtlas.Width - 2*margin)/(maxX-minX)
-	scaleY = (pAtlas.Height - 2*margin)/(maxY-minY)	
+		minX, minY = min(minX, b.X), min(minY, b.Y)
+		maxX, maxY = max(maxX, b.X), max(maxY, b.Y)
+	scaleX = (pAtlas.Width - 80)/(maxX-minX)
+	scaleY = (pAtlas.Height - 80)/(maxY-minY)	
 	scale = min(scaleX, scaleY)
 
 	for item in pAtlas.Items:
 		b = vv.Dataset.BodyForId(item.Name)
-		if b != None:
-			item.Left = int( scale*(b.X - minX) ) + 20
-			item.Top = int( scale*(b.Y - minY) ) + 20
+		item.Left = int(scale*(b.X - minX)) + 20
+		item.Top = int(scale*(b.Y - minY)) + 20
 		item.IconHeight = iconHeight
 		item.IconWidth = iconWidth
 		item.LabelStyle = 0
@@ -701,8 +701,6 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0):
 		item.Opacity = 1.0
 		item.ShowBorder = False
 	pAtlas.RedrawResizedItems(pAtlas.Items, False)
-
-
 
 def ReCreateMap(pMap):
 	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	

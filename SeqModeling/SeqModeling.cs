@@ -192,22 +192,14 @@ namespace VisuMap
             return New.NumberTable(vList.ToArray());
         }
 
-        public INumberTable VectorizeProteinCnt(IList<string> pList, VisuMap.Script.IDataset pTable) {
-            string[] cList =
-                //"AVILMFYW|STNQ|CGP|RHK|DE"
-                "A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E"
-                //"AVILMFYW|STNQCGPRHKDE"
-                //"AVILMFYW|STNQ|C|G|P|RHK|DE"
-                //"GAVMLIP|FY|STNQCW|DE|HKR"
-                .Split('|');
+        public INumberTable VectorizeProteinCnt(IList<string> pList, VisuMap.Script.IDataset pTable, string aaGroups, int secCount, int secLen) {
+            string[] cList = aaGroups.Split('|');
             Dictionary<char, int> P = new Dictionary<char, int>();
             for (int cIdx = 0; cIdx < cList.Length; cIdx++)
                 foreach (char c in cList[cIdx])
                     P[c] = cIdx;
             int clusters = cList.Length;
             int[] aaCnt = new int[clusters];
-            const int S = 100;    // section size in aa peptides; should larger than wLen.
-            const int nS = 20;   // number of sections
 
             List<double[]> vList = new List<double[]>();
             foreach (string pId in pList) {
@@ -217,9 +209,9 @@ namespace VisuMap
                 string pSeq = pTable.GetDataAt(rowIdx, 2);
 
                 List<double[]> vSec = new List<double[]>();
-                for (int s = 0; s < pSeq.Length; s += S) {
-                    int secEnd = Math.Min(s + S, pSeq.Length);
-                    if (vSec.Count == (nS - 1))  // The last section will include all the rest.
+                for (int s = 0; s < pSeq.Length; s += secLen) {
+                    int secEnd = Math.Min(s + secLen, pSeq.Length);
+                    if (vSec.Count == (secCount - 1))  // The last section will include all the rest.
                         secEnd = pSeq.Length;
                     Array.Clear(aaCnt, 0, aaCnt.Length);
 
@@ -231,11 +223,11 @@ namespace VisuMap
                     for (int k = 0; k < clusters; k++)
                         pV[k] = 0.01*aaCnt[k];
                     vSec.Add(pV);
-                    if (vSec.Count == nS)
+                    if (vSec.Count == secCount)
                         break;
                 }
 
-                double[] pRow = new double[nS * clusters];
+                double[] pRow = new double[secCount * clusters];
                 for (int k = 0; k < vSec.Count; k++)
                     Array.Copy(vSec[k], 0, pRow, k * clusters, clusters);
                 vList.Add(pRow);
