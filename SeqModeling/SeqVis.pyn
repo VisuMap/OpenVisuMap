@@ -89,9 +89,13 @@ class MapInfo():
 				if len(fs) == 2:
 					dic[fs[0]] = fs[1]
 
+
 class AtlasMapStore():	
-	def __init__(self, atName, is3D, normalizeMap):
-		self.atlas = vv.AtlasManager.OpenAtlas(atName)
+	def __init__(self, atName, is3D, normalizeMap, clearAtlas):
+		self.atlas = New.Atlas(atName)
+		if clearAtlas:
+			self.atlas.Clear()
+		self.atlas.Show()
 		self.viewName = 'D3dRender' if is3D else 'MapSnapshot'
 		self.atlas.TheForm.Hide()
 		self.normalizeMap = normalizeMap
@@ -113,9 +117,7 @@ class AtlasMapStore():
 def NewMapStore(atName, is3D=True, clearStore=False, normalizeMap=False):
 	if atName is None:
 		return None
-	store = AtlasMapStore(atName, is3D, normalizeMap)
-	if clearStore:
-		store.atlas.Clear()
+	store = AtlasMapStore(atName, is3D, normalizeMap, clearStore)
 	return store
 
 #-----------------------------------------------------------
