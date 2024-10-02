@@ -161,7 +161,7 @@ namespace VisuMap
         }
 
 
-        public INumberTable VectorizeProtein(IList<string> pList, VisuMap.Script.IDataset pTable, string aaGroups, int secCount, int secLen) {
+        public INumberTable VectorizeProtein(IList<string> pList, VisuMap.Script.IDataset pTable, string aaGroups, int sections) {
             string[] cList = aaGroups.Split('|');
             Dictionary<char, int> P = new Dictionary<char, int>();
             for (int cIdx=0; cIdx<cList.Length; cIdx++)
@@ -185,8 +185,8 @@ namespace VisuMap
                 if (rowIdx < 0)
                     continue;
                 string pSeq = pTable.GetDataAt(rowIdx, 2);
-
-                double[] pRow = ToVector(pSeq, P, aaPos, aaSize, clusterWeight, waveWeight, secLen, secCount);
+                int secLen = Math.Max(50, pSeq.Length / sections + 1);
+                double[] pRow = ToVector(pSeq, P, aaPos, aaSize, clusterWeight, waveWeight, secLen, sections);
                 vList.Add(pRow);
             }
             return New.NumberTable(vList.ToArray());

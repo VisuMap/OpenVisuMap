@@ -69,8 +69,7 @@ def MainProc(menuKey):
 			aaGroups = 'RHK|DE'
 			aaGroups = 'A|V|L'
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1, 
-				aaGroups=aaGroups, secCount=20, secLen=25)
+			CreateProteinMap(pList, epochs=2000, is3D=False, initExag=6.0, ppl=0.01, aaGroups=aaGroups, sections=10)
 
 MainProc(vv.EventSource.Item)
 

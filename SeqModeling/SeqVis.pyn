@@ -243,17 +243,16 @@ def CreateProteinMapByCounts(idList, repeats=0, epochs=5000, initExag=3.0, final
 		mds.Close()
 
 def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0, 
-		finalExag=1.0, ppl=0.1, repeats=0, aaGroups='A', secCount=20, secLen=50):
+		finalExag=1.0, ppl=0.1, repeats=0, aaGroups='A', sections=10):
 	pTable = AssertProteinTable()	
-	dt = cs.VectorizeProtein(idList, pTable, aaGroups, secCount, secLen)
+	dt = cs.VectorizeProtein(idList, pTable, aaGroups, sections)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
-	mds = NewMds(dt, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=2.0, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'Pm2'
 	info.Set('aaG', aaGroups)
-	info.Set('aaN', secCount)
-	info.Set('aaL', secLen)
+	info.Set('aaN', sections)
 	RunMds(mds, repeats=repeats, info=info)
 	if repeats>=1:
 		mds.Close()
@@ -423,7 +422,7 @@ def NewDataset(S, winSize=0, decay=1.0, alphbetList=ALPHABET, augCfg='a|500|2.0|
 #-----------------------------------------------------------------------------
 
 def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
-		repeats=1, metric='EuclideanMetric', glyphSet=None):
+		repeats=1, metric='EuclideanMetric', glyphSet=None, glyphSize=0.5):
 	mds = New.MdsCluster(nt)
 	mds.Show()
 	mds.MdsAlgorithm = 2
@@ -438,17 +437,15 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1,
 	mds.Is3D = is3D
 	mds.AutoNormalizing =True
 	mds.GlyphOpacity = 0.5
-	mds.GlyphSize = 0.5
+	mds.GlyphSize = glyphSize
 	#mds.GlyphSet = 'C12|||||||||||'
 	mds.GlyphSet = vv.Map.GlyphType if glyphSet==None else glyphSet
 	return mds
 
-def RunMds(mds, repeats=1, glyphSize=0.5, glyphOpacity=0.5, info=None):
+def RunMds(mds, repeats=1, info=None):
 	if info is not None:
 		info.DDM = mds.DataDim
 	mds.Description = info.ToStr() if info is not None else 'Map created by RunMds'
-	mds.GlyphOpacity = glyphOpacity
-	mds.GlyphSize = glyphSize
 	mds.Repeats = repeats
 	mds.Reset().Start()
 	if not mds.Completed: 
@@ -477,6 +474,8 @@ def CreateSeqMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=N
 	pTable = AssertProteinTable()
 	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.GlyphSet = '36 Clusters'
+	mds.GlyphSize = glyphSize
+	mds.GlyphOpacity = glyphOpacity
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.WinSize = winSize	
 	info.AugCfg = augCfg
@@ -491,7 +490,7 @@ def CreateSeqMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=N
 		nt = NewDataset(pSeq, winSize=winSize, decay=decay, augCfg=augCfg)
 		SeqLabeling(nt, pSeq)
 		mds.SetTrainingData(nt)
-		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity, info=info)
+		RunMds(mds, repeats=repeats, info=info)
 		info.pId = pId
 		info.pLen = len(pSeq)
 		map = vv.LastView
@@ -569,7 +568,7 @@ def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8
 		info.pId = pId
 		info.pLen = len(pSeq)
 		info.DS = pTable.Name
-		RunMds(mds, repeats=repeats, glyphSize=glyphSize, glyphOpacity=glyphOpacity, info=info)
+		RunMds(mds, repeats=repeats, info=info)
 		map = vv.LastView
 		map.Title = f'{k}: {pId}, N: {nt.Rows}'
 		if mapStore != None: mapStore.AddMaps()
@@ -687,6 +686,7 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0):
 	minX, minY, maxX, maxY = 10000, 10000, 0, 0
 	for item in pAtlas.Items:
 		b = vv.Dataset.BodyForId(item.Name)
+		if b == None: continue
 		minX, minY = min(minX, b.X), min(minY, b.Y)
 		maxX, maxY = max(maxX, b.X), max(maxY, b.Y)
 	scaleX = (pAtlas.Width - 80)/(maxX-minX)
@@ -695,6 +695,7 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0):
 
 	for item in pAtlas.Items:
 		b = vv.Dataset.BodyForId(item.Name)
+		if b == None: continue
 		item.Left = int(scale*(b.X - minX)) + 20
 		item.Top = int(scale*(b.Y - minY)) + 20
 		item.IconHeight = iconHeight
