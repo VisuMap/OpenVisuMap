@@ -53,7 +53,8 @@ def ShowProteinList(pList, mainChain, includeHA, atName):
 		mapStore.atlas.ArrangeItems()
 		mapStore.atlas.TheForm.Show()
 
-def UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False, atName=None, stretch=0, contractFactor=1.0):
+def UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False, atName=None, 
+		stretch=0, contractFactor=1.0, iconWidth=50):
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True, normalizeMap=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
 		repeats=1, metric='EuclideanMetric', glyphSet='36 Clusters||Colored Balls')
@@ -88,7 +89,7 @@ def UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False, atNa
 		vv.Message(str(e))
 	if mapStore != None:
 		ma = mapStore.atlas
-		MatchProteinMap(ma, 50, 0)
+		MatchProteinMap(ma, iconWidth, 0)
 		ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 		ma.Description = info.ToStr()
 		ma.TheForm.Show()
@@ -253,6 +254,7 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 	bsList = New.BodyList()
 	bsList2 = New.BodyList() # for hetero atoms
 	ch2idx = ChainIndex()
+	rsIdxPre = -1
 	for L in fPDB:
 		if L[0] == '#':
 			break
@@ -271,6 +273,9 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 
 		if fs[0] == 'ATOM':
 			rsIdx = int(fs[8]) - 1
+			# some residues are recorded multiple time. We ignore the duplicates here.
+			if rsIdx == rsIdxPre:   
+				continue
 			# Set p1 which is either a capital for an AA type; or 'r' for RNA peptide; 
 			# or 'd' for DNA peptide; or 'x' for unknow elements.
 			if (rsName in P3) and ( (atName=='CA') or (atName=='C2') ):
@@ -286,6 +291,7 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 			else:
 				continue
 			bId = f'A{rsIdx}.{bsList.Count}'
+			rsIdxPre = rsIdx
 		elif fs[0] == 'HETATM':
 			bId = f'H.{fs[3]}.{bsList2.Count}'
 			p1 = fs[3]

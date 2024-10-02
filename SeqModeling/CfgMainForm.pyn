@@ -1,4 +1,4 @@
-#MenuLabels SeqMap SeqMap2 SeqMap3 SeqMap4 SeqMap5 P-ChmX P-Web P-3D P-2D P-Seq P-Open - ProteinMapCnt ProteinMap
+#MenuLabels SeqMap SeqMap2 SeqMap3 SeqMap4 SeqMap5 P-ChmX P-Web P-3D P-2D P-LSeq P-Open - ProteinMapCnt ProteinMap
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -42,7 +42,7 @@ def MainProc(menuKey):
 
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
-		case 'P-Seq':  ShowSeqInfo(pId)
+		case 'P-LSeq':  ShowSeqInfo(pId)
 		case 'P-3D':
 			atlasName = None
 			atlasName = 'Test-3D'
@@ -53,7 +53,7 @@ def MainProc(menuKey):
 			atlasName = None
 			atlasName = 'Test-2D'
 			#atlasName = vv.Dataset.Name + '-2D'
-			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName)
+			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, iconWidth=50)
 	
 		case 'P-Open': OpenCifFile(pId)
 
@@ -69,7 +69,8 @@ def MainProc(menuKey):
 			aaGroups = 'RHK|DE'
 			aaGroups = 'A|V|L'
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap(pList, epochs=2000, is3D=False, initExag=6.0, ppl=0.01, aaGroups=aaGroups, sections=10)
+			aaGroups = 'A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E'
+			CreateProteinMap(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.05, aaGroups=aaGroups, sections=10)
 
 MainProc(vv.EventSource.Item)
 

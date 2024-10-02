@@ -683,19 +683,26 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0):
 	info = MapInfo(pAtlas.Description)
 	if (info.DS != None) and (info.DS != vv.Dataset.Name):
 		vv.Folder.OpenDataset(info.DS)
+	if pAtlas.Items.Count == 0:
+		raise Exception('Empty atlas!')
 	minX, minY, maxX, maxY = 10000, 10000, 0, 0
 	for item in pAtlas.Items:
 		b = vv.Dataset.BodyForId(item.Name)
-		if b == None: continue
+		if b == None: 
+			continue
 		minX, minY = min(minX, b.X), min(minY, b.Y)
-		maxX, maxY = max(maxX, b.X), max(maxY, b.Y)
+		maxX, maxY = max(maxX, b.X+10.0), max(maxY, b.Y+10.0)
+	if (maxX == minX) or (maxY == minY):
+		raise Exception('No atlas item present')
+
 	scaleX = (pAtlas.Width - 80)/(maxX-minX)
 	scaleY = (pAtlas.Height - 80)/(maxY-minY)	
 	scale = min(scaleX, scaleY)
 
 	for item in pAtlas.Items:
 		b = vv.Dataset.BodyForId(item.Name)
-		if b == None: continue
+		if b == None: 
+			continue
 		item.Left = int(scale*(b.X - minX)) + 20
 		item.Top = int(scale*(b.Y - minY)) + 20
 		item.IconHeight = iconHeight
