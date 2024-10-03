@@ -1,3 +1,5 @@
+# functions to import and process pdb/cif files.
+
 def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True):
 	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
 	bsList = Interporlate(bsList, rp, eps)

@@ -1,3 +1,6 @@
+# Functions to download and import seqeunce files in csv format from site
+#   https://www.rcsb.org/search/browse/atc
+#
 import pandas as pd
 
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
@@ -8,6 +11,8 @@ def IsOK(pSeq):
 		if c not in P:
 			return False
 	return True
+
+#Intialize a empty table to import polypipetide data
 
 def InitDatabase(dsName, description):
 	dsName = vv.Folder.NewDataset(dsName, description).Name
@@ -21,6 +26,7 @@ def InitDatabase(dsName, description):
 	ds.AddColumn('Molecular Weight', 1, '0', 4)
 	ds.CommitChanges()
 
+# Import one or more cif files download from https://www.rcsb.org/search/browse/atc.
 def ImportPDBs():
 	fileList = vv.GuiManager.SelectFiles('PDB download', 'PDB seq files|*.csv', 'C:\\Users\\james\\Downloads')
 	if fileList == None:
@@ -57,7 +63,7 @@ def ImportPDBs():
 	vv.Dataset.CommitChanges()
 	print('Completed! ', cnt, errs)
 
-
+# Merge multiple local sequence table to a single one.
 def MergeDatasets(dstDatasetName, dsList):
 	InitDatabase(dstDatasetName, '')
 	included = set()
@@ -78,7 +84,6 @@ def MergeDatasets(dstDatasetName, dsList):
 			included.add(b.Id)
 	vv.Dataset.CommitChanges()
 	print(f'Merged: {rows} into {vv.Dataset.Rows}')
-
 
 '''
 InitDatabase('Ribosome', '')
