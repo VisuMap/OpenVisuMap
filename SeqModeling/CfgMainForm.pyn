@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web P-3D P-2D P-LSeq P-Open - ProteinMapCnt ProteinMap
+#MenuLabels P-ChmX P-Web P-3D P-2D P-LSeq P-Open SeqMap ProteinMapCnt ProteinMap
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -14,9 +14,7 @@ def MainProc(menuKey):
 		else:
 			pId = pSelected[0]
 	else:
-		pAll = [b.Id for b in pp.Dataset.BodyListEnabled()]
-		pList = pSelected if pSelected.Count > 1 else pAll
-		dstAtlas = None
+		pList = pSelected if pSelected.Count > 1 else [b.Id for b in pp.Dataset.BodyListEnabled()]
 
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
@@ -35,10 +33,14 @@ def MainProc(menuKey):
 		case 'P-Open': 
 			OpenCifFile(pId)
 
+		case 'SeqMap':
+			CreateSeqMaps(pSelected, epochs=2000, initExag=4.0, ppl=0.1, saveTo=None, decay=2.0, augCfg='s|100|0.1|1.5')
+
 		case 'ProteinMapCnt':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 			CreateProteinMapByCounts(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.01,
 				aaGroups=aaGroups, sections=20)
+
 		case 'ProteinMap':
 			aaGroups = 'RHK|DE'
 			aaGroups = 'A|V'
@@ -56,15 +58,5 @@ MainProc(vv.EventSource.Item)
 'AVILMFYW|STNQCGPRHKDE'
 'AVILMFYW|STNQ|C|G|P|RHK|DE'
 'GAVMLIP|FY|STNQCW|DE|HKR
-
-case 'SeqMap1':
-	CreateSeqMaps(pSelected, epochs=10000, winSize=0, repeats=1, ppl=0.15,  saveTo=dstAtlas, 
-		is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='a|500|2.0|2.0')
-case 'SeqMap2':
-	CreateSeqMaps(pSelected, epochs=10000, winSize=-1, repeats=1, ppl=0.15,  saveTo=dstAtlas,
-		is3D=False, initExag=3.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='b|2.0')
-case 'SeqMap3':
-	CreateSeqMaps(pSelected, epochs=5000, winSize=-1, repeats=1, ppl=0.15,  saveTo=dstAtlas,
-		is3D=False, initExag=3.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg=f's|40|0.04|2.5')
 
 '''

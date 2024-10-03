@@ -58,7 +58,7 @@ if 'cs' not in globals():
 # protein embedding map information
 class MapInfo():
 	def __init__(self, initStr = None):
-		for nm in 'pId,Gene,pLen,DS,Epochs,InitE,FinalE,PP,WinSize,AugCfg,Is3D,Mtd,SF,CF,PT'.split(','):
+		for nm in 'pId,Gene,pLen,DS,Epochs,InitE,FinalE,PP,AugCfg,Is3D,Mtd,SF,CF,PT'.split(','):
 			setattr(self, nm, None)
 		if initStr is not None:
 			self.ParseStr(initStr)
@@ -314,39 +314,6 @@ def FilterSq2(bv):
 
 #-----------------------------------------------------------------------------
 
-def NewDataset1(P, pSeq, decay):
-	L = len(P)
-	hv = np.zeros((L))  # head-vector.
-	stepSz = np.ones((L))
-	dt = np.zeros([len(pSeq), len(P)], np.float32)
-	for k, c in enumerate(pSeq):
-		hv += stepSz
-		hv[P[c]] = 0
-		dt[k] = hv
-	dt = np.reciprocal(decay+dt)
-	for k in range(1, dt.shape[0]):
-		dt[k, :] = 0.8*dt[k-1] + 0.2*dt[k]
-	return dt
-
-def NewDataset0(P, pSeq, winSize=0):
-	pSeq = FilterSeq(pSeq, P)
-	if winSize == 0: 
-		winSize = int(6.086+0.015652*len(pSeq))
-		winSize = max(5, int(0.5*winSize))
-	ww = [1.0 - k/winSize for k in range(winSize)]  # window weights
-	W, L = len(ww), len(pSeq)
-	dt = np.zeros([len(pSeq), len(P)], np.float32)
-	for row, c in enumerate(pSeq):
-		col0 = P[c]
-		W0 = -W+1  # symmetric window
-		for w in range(W0, W):
-			row_w = row + w
-			if row_w < 0 or row_w >= L:
-				continue
-			col = P[pSeq[row_w]]
-			dt[row, col] += ww[abs(w)]	
-	return dt
-
 def AugmentData(nt, augCfg='a|400|0.02|0.02'):
 	fs = augCfg.split('|')
 	N = nt.shape[0]
@@ -404,12 +371,22 @@ def AugmentData(nt, augCfg='a|400|0.02|0.02'):
 	return np.hstack((nt, A))
 
 
-def NewDataset(S, winSize=0, decay=1.0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
+def NewDataset(S, decay=1.0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
 	P = {a:k for k,a in enumerate(alphbetList)}
-	if winSize>= 0:
-		dt = AugmentData(NewDataset0(P, S, winSize), augCfg)
-	else:
-		dt = AugmentData(NewDataset1(P, S, decay=decay), augCfg)
+	L = len(P)
+	hv = np.zeros((L))  # head-vector.
+	stepSz = np.ones((L))
+	dt = np.zeros([len(S), len(P)], np.float32)
+	for k, c in enumerate(S):
+		hv += stepSz
+		hv[P[c]] = 0
+		dt[k] = hv
+	dt = np.reciprocal(decay+dt)
+	for k in range(1, dt.shape[0]):
+		dt[k, :] = 0.8*dt[k-1] + 0.2*dt[k]
+	
+	dt = AugmentData(dt, augCfg)
+
 	nt = mm.ToTable(dt)
 	for k, c in enumerate(S):
 		nt.RowSpecList[k].Name = c
@@ -461,11 +438,10 @@ def ShowMapData(pMap):
 	if info.Mtd == 'PDB':
 		nt = New.NumberTable(pp.BodyListEnabled(), 3)
 	else:
-		winSize = int(info.WinSize) if info.WinSize != None else 0
-		nt = NewDataset(pSeq, winSize=winSize, augCfg=info.AugCfg)
+		nt = NewDataset(pSeq, augCfg=info.AugCfg)
 	nt.ShowHeatMap().NormalizeView()
 
-def CreateSeqMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
+def CreateSeqMaps(pList, epochs=10000, decay=1.0, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
 		glyphOpacity=0.5, is3D=False, initExag=10.0, finalExag=1.0, augCfg='a|500|2.0|2.0'):
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
@@ -476,7 +452,6 @@ def CreateSeqMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=N
 	mds.GlyphSize = glyphSize
 	mds.GlyphOpacity = glyphOpacity
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	info.WinSize = winSize	
 	info.AugCfg = augCfg
 	info.Mtd = 'Frg'
 	info.DS = vv.Dataset.Name
@@ -486,7 +461,7 @@ def CreateSeqMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=N
 		if pSeq is None:
 			vv.Message("Cannot get protein seq of: " + pId)
 			vv.Return()
-		nt = NewDataset(pSeq, winSize=winSize, decay=decay, augCfg=augCfg)
+		nt = NewDataset(pSeq, decay=decay, augCfg=augCfg)
 		SeqLabeling(nt, pSeq)
 		mds.SetTrainingData(nt)
 		RunMds(mds, repeats=repeats, info=info)
@@ -495,13 +470,13 @@ def CreateSeqMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=N
 		map = vv.LastView
 		map.Title = f'{k}: {pId}, N: {nt.Rows}'
 		map.Description = info.ToStr()
+		map.NormalizeView()
 		if mapStore != None:
 			mapStore.AddMaps()
 	if repeats > 0:
 		mds.Close()
 	if mapStore != None: 
 		mapStore.Close()
-
 
 def Scanning(pMap, stride=100, stepSize=20):
 	bsList = [b.Id for b in pMap.BodyList]
@@ -511,18 +486,6 @@ def Scanning(pMap, stride=100, stepSize=20):
 			vv.Sleep(20)
 			if pMap.SelectedItems.Count == 0: return
 		vv.Sleep(1000)
-
-def NewDatasetMkv(tm, pSeq, augCfg):
-	#tmT = mm.ToNumpy(vv.AtlasManager.ReadNumberTable('TestMaps', 'MkvTransT'))
-	#tm = np.concatenate((tm, tmT), axis=1)
-
-	L = len(pSeq)
-	nt = np.zeros((L, tm.shape[1]), np.float64)
-	for n in range(L):
-		nt[n] = tm[ P[pSeq[n]] ]
-	nt = AugmentData(nt, augCfg)
-	dt = mm.ToTable(nt)
-	return dt
 
 def SeqLabeling(dt, pSeq):
 	aaIdx, aaNr = {}, {ch:0 for ch in ALPHABET}
@@ -538,43 +501,6 @@ def SeqLabeling(dt, pSeq):
 		rs = dt.RowSpecList[n]
 		rs.ShowName = True
 		rs.Name = rs.Name.lower()
-
-
-def SeqMapByMarkovian(pList, epochs=10000, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
-		glyphOpacity=0.5, is3D=False, initExag=10.0, finalExag=1.0, augCfg='a|500|2.0|2.0'):
-	tm = mm.ToNumpy(vv.AtlasManager.ReadNumberTable('TestMaps', 'MkvTrans'))
-
-	if len(pList) <= 0:
-		vv.Message("No protein group selected")
-		vv.Return(0)
-	pTable = vv.Dataset
-	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
-	mds.GlyphSet = '36 Clusters'
-	mds.GlyphSize = glyphSize
-	mds.GlyphOpacity = glyphOpacity
-
-	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	info.AugCfg = augCfg
-	info.Mtd = 'Mkv'
-	mapStore = NewMapStore(saveTo, is3D)
-	for k, pId in enumerate(pList):
-		pSeq = GetProteinSeq(pTable, pId)
-		if pSeq is None:
-			vv.Message("Cannot get aa-seq of: " + pId)
-			continue
-		nt = NewDatasetMkv(tm, pSeq, augCfg)
-		SeqLabeling(nt, pSeq)
-		mds.SetTrainingData(nt)
-		info.pId = pId
-		info.pLen = len(pSeq)
-		info.DS = pTable.Name
-		RunMds(mds, repeats=repeats, info=info)
-		map = vv.LastView
-		map.Title = f'{k}: {pId}, N: {nt.Rows}'
-		if mapStore != None: mapStore.AddMaps()
-	if mapStore != None: mapStore.Close()
-	if repeats > 0:
-		mds.Close()
 
 #-------------------------------------------------------------------
 
@@ -716,11 +642,7 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0):
 def ReCreateMap(pMap):
 	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	
 	info = MapInfo(pMap.Description)
-	if info.Mtd == 'Mkv':
-		tm = mm.ToNumpy(vv.AtlasManager.ReadNumberTable('TestMaps', 'MkvTrans'))
-		nt = NewDatasetMkv(tm, pSeq, augCfg=info.AugCfg)
-	else:
-		nt = NewDataset(pSeq, winSize=int(info.WinSize), augCfg=info.AugCfg)
+	nt = NewDataset(pSeq, augCfg=info.AugCfg)
 
 	for k, b in enumerate(pMap.BodyList):
 		nt.RowSpecList[k].CopyFromBody(b)
