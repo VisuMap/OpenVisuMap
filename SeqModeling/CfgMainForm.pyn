@@ -1,4 +1,4 @@
-#MenuLabels SeqMap SeqMap2 SeqMap3 SeqMap4 SeqMap5 P-ChmX P-Web P-3D P-2D P-LSeq P-Open - ProteinMapCnt ProteinMap
+#MenuLabels P-ChmX P-Web P-3D P-2D P-LSeq P-Open - ProteinMapCnt ProteinMap
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -16,30 +16,9 @@ def MainProc(menuKey):
 	else:
 		pAll = [b.Id for b in pp.Dataset.BodyListEnabled()]
 		pList = pSelected if pSelected.Count > 1 else pAll
-		dstAtlas = (None, 'TestMaps', 'atlas1', 'atlas2')[0]       #0:3
+		dstAtlas = None
 
 	match menuKey:
-		case 'SeqMap':
-			CreateSeqMaps(pSelected, epochs=10000, winSize=0, repeats=1, ppl=0.15,  saveTo=dstAtlas, 
-				is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='a|500|2.0|2.0')
-		case 'SeqMap2':
-			CreateSeqMaps(pSelected, epochs=10000, winSize=-1, repeats=1, ppl=0.15,  saveTo=dstAtlas,
-				is3D=False, initExag=3.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='b|1.0')
-		case 'SeqMap3':
-			for f in [ 0.75 ]:
-				n, r, w = 5000, 0.05*f, 0.02*f
-				SeqMapByMarkovian(pSelected, epochs=5000, repeats=1, ppl=0.2,  saveTo=dstAtlas,
-					is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.5, glyphOpacity=0.5, augCfg=f'a|{n}|{r}|{w}')
-		case 'SeqMap4': 
-			aug_cfg = 'M|0.5|0.4'
-			#aug_cfg = 'm|0.35'
-			#aug_cfg = f's|200|0.004|3.0'
-			SeqMapByMarkovian(pSelected, epochs=5000, repeats=1, ppl=0.2,  saveTo=dstAtlas,
-				is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.5, glyphOpacity=0.5, augCfg=aug_cfg)
-		case 'SeqMap5':
-			CreateSeqMaps(pSelected, epochs=5000, winSize=-1, repeats=1, ppl=0.15,  saveTo=dstAtlas,
-				is3D=False, initExag=3.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg=f's|40|0.04|2.5')
-
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-LSeq':  ShowSeqInfo(pId)
@@ -48,28 +27,24 @@ def MainProc(menuKey):
 			atlasName = 'Test-3D'
 			#atlasName = vv.Dataset.Name + '-3D'
 			ShowProteinList(pSelected, mainChain=True, includeHA=False, atName=atlasName)
-
 		case 'P-2D':
 			atlasName = None
 			atlasName = 'Test-2D'
 			#atlasName = vv.Dataset.Name + '-2D'
 			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, iconWidth=50)
-	
-		case 'P-Open': OpenCifFile(pId)
+		case 'P-Open': 
+			OpenCifFile(pId)
 
 		case 'ProteinMapCnt':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			#aaGroups = 'A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E'
 			CreateProteinMapByCounts(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.01,
-				aaGroups=aaGroups, secCount=20, secLen=200)
-
+				aaGroups=aaGroups, sections=20)
 		case 'ProteinMap':
 			aaGroups = 'RHK|DE'
 			aaGroups = 'A|V'
 			aaGroups = 'RHK|DE'
 			aaGroups = 'A|V|L'
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			aaGroups = 'A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E'
 			CreateProteinMap(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.05, aaGroups=aaGroups, sections=10)
 
 MainProc(vv.EventSource.Item)
@@ -81,4 +56,15 @@ MainProc(vv.EventSource.Item)
 'AVILMFYW|STNQCGPRHKDE'
 'AVILMFYW|STNQ|C|G|P|RHK|DE'
 'GAVMLIP|FY|STNQCW|DE|HKR
+
+case 'SeqMap1':
+	CreateSeqMaps(pSelected, epochs=10000, winSize=0, repeats=1, ppl=0.15,  saveTo=dstAtlas, 
+		is3D=False, initExag=4.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='a|500|2.0|2.0')
+case 'SeqMap2':
+	CreateSeqMaps(pSelected, epochs=10000, winSize=-1, repeats=1, ppl=0.15,  saveTo=dstAtlas,
+		is3D=False, initExag=3.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg='b|2.0')
+case 'SeqMap3':
+	CreateSeqMaps(pSelected, epochs=5000, winSize=-1, repeats=1, ppl=0.15,  saveTo=dstAtlas,
+		is3D=False, initExag=3.0, finalExag=1.0, glyphSize=0.8, glyphOpacity=0.5, augCfg=f's|40|0.04|2.5')
+
 '''

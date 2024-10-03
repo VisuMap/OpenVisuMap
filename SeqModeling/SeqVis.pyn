@@ -104,7 +104,7 @@ class AtlasMapStore():
 			if self.normalizeMap:
 				fm.GlyphSize = 1.0
 				fm.GlyphOpacity = 1.0
-				fct = 1400/(fm.Width+fm.Height)
+				fct = 1600/(fm.Width+fm.Height)
 				fm.Width = int(fct * fm.Width)
 				fm.Height = int(fct * fm.Height)
 				fm.NormalizeView()
@@ -225,10 +225,10 @@ def NewRandomTable(N):
 
 
 def CreateProteinMapByCounts(idList, repeats=0, epochs=5000, initExag=3.0, finalExag=1.0, ppl=0.1, is3D=False,
-		aaGroups='A', secCount=20, secLen=50):
+		aaGroups='A', sections=10):
 	from collections import Counter
 	pTable = AssertProteinTable()	
-	dt = cs.VectorizeProteinCnt(idList, pTable, aaGroups, secCount, secLen)
+	dt = cs.VectorizeProteinCnt(idList, pTable, aaGroups, sections)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 	mds = NewMds(dt, epochs=epochs, initExag=initExag, finalExag=finalExag, ppl=ppl, is3D=is3D)
@@ -236,8 +236,7 @@ def CreateProteinMapByCounts(idList, repeats=0, epochs=5000, initExag=3.0, final
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'PmCnt'
 	info.Set('aaG', aaGroups)
-	info.Set('aaN', secCount)
-	info.Set('aaL', secLen)
+	info.Set('aaN', sections)
 	RunMds(mds, repeats, info=info)
 	if repeats>= 1:
 		mds.Close()
@@ -481,7 +480,7 @@ def CreateSeqMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=N
 	info.AugCfg = augCfg
 	info.Mtd = 'Frg'
 	info.DS = vv.Dataset.Name
-	mapSore = NewMapStore(saveTo, is3D)
+	mapStore = NewMapStore(saveTo, is3D)
 	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
 		if pSeq is None:
@@ -496,12 +495,13 @@ def CreateSeqMaps(pList, epochs=10000, winSize=0, decay=1.0, repeats=1, saveTo=N
 		map = vv.LastView
 		map.Title = f'{k}: {pId}, N: {nt.Rows}'
 		map.Description = info.ToStr()
-		if mapStore is not None:
+		if mapStore != None:
 			mapStore.AddMaps()
 	if repeats > 0:
 		mds.Close()
 	if mapStore != None: 
 		mapStore.Close()
+
 
 def Scanning(pMap, stride=100, stepSize=20):
 	bsList = [b.Id for b in pMap.BodyList]
@@ -691,7 +691,7 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0):
 		if b == None: 
 			continue
 		minX, minY = min(minX, b.X), min(minY, b.Y)
-		maxX, maxY = max(maxX, b.X+10.0), max(maxY, b.Y+10.0)
+		maxX, maxY = max(maxX, b.X+0.1), max(maxY, b.Y+0.1)
 	if (maxX == minX) or (maxY == minY):
 		raise Exception('No atlas item present')
 

@@ -192,7 +192,7 @@ namespace VisuMap
             return New.NumberTable(vList.ToArray());
         }
 
-        public INumberTable VectorizeProteinCnt(IList<string> pList, VisuMap.Script.IDataset pTable, string aaGroups, int secCount, int secLen) {
+        public INumberTable VectorizeProteinCnt(IList<string> pList, VisuMap.Script.IDataset pTable, string aaGroups, int sections) {
             string[] cList = aaGroups.Split('|');
             Dictionary<char, int> P = new Dictionary<char, int>();
             for (int cIdx = 0; cIdx < cList.Length; cIdx++)
@@ -208,10 +208,12 @@ namespace VisuMap
                     continue;
                 string pSeq = pTable.GetDataAt(rowIdx, 2);
 
+                int secLen = Math.Max(50, pSeq.Length / sections + 1);
+
                 List<double[]> vSec = new List<double[]>();
                 for (int s = 0; s < pSeq.Length; s += secLen) {
                     int secEnd = Math.Min(s + secLen, pSeq.Length);
-                    if (vSec.Count == (secCount - 1))  // The last section will include all the rest.
+                    if (vSec.Count == (sections - 1))  // The last section will include all the rest.
                         secEnd = pSeq.Length;
                     Array.Clear(aaCnt, 0, aaCnt.Length);
 
@@ -223,11 +225,11 @@ namespace VisuMap
                     for (int k = 0; k < clusters; k++)
                         pV[k] = 0.01*aaCnt[k];
                     vSec.Add(pV);
-                    if (vSec.Count == secCount)
+                    if (vSec.Count == sections)
                         break;
                 }
 
-                double[] pRow = new double[secCount * clusters];
+                double[] pRow = new double[sections * clusters];
                 for (int k = 0; k < vSec.Count; k++)
                     Array.Copy(vSec[k], 0, pRow, k * clusters, clusters);
                 vList.Add(pRow);
