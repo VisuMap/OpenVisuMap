@@ -371,28 +371,28 @@ def AugmentData(nt, augCfg='a|400|0.02|0.02'):
 	return np.hstack((nt, A))
 
 
-def NewDataset(S, decay=1.0, alphbetList=ALPHABET, augCfg='a|500|2.0|2.0'):
-	P = {a:k for k,a in enumerate(alphbetList)}
-	L = len(P)
+def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
+	L = max(aaClusters.values()) + 1
 	hv = np.zeros((L))  # head-vector.
 	stepSz = np.ones((L))
-	dt = np.zeros([len(S), len(P)], np.float32)
+	dt = np.zeros([len(S), L], np.float32)
 	for k, c in enumerate(S):
 		hv += stepSz
-		hv[P[c]] = 0
+		if c in aaClusters:
+			hv[aaClusters[c]] = 0
 		dt[k] = hv
+
 	dt = np.reciprocal(decay+dt)
 	for k in range(1, dt.shape[0]):
-		dt[k, :] = 0.8*dt[k-1] + 0.2*dt[k]
-	
+		dt[k, :] = 0.8*dt[k-1] + 0.2*dt[k]	
 	dt = AugmentData(dt, augCfg)
 
 	nt = mm.ToTable(dt)
 	for k, c in enumerate(S):
 		nt.RowSpecList[k].Name = c
-		nt.RowSpecList[k].Type = P[c]
-	for col in range(len(P)):
-		nt.ColumnSpecList[col].Id = alphbetList[col]
+		nt.RowSpecList[k].Type = aaClusters[c] if c in aaClusters else 35
+	for col in range(L):
+		nt.ColumnSpecList[col].Id = chr(col+ord('a'))
 	return nt
 
 #-----------------------------------------------------------------------------
@@ -435,13 +435,10 @@ def RunMds(mds, repeats=1, info=None):
 def ShowMapData(pMap):
 	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	
 	info = MapInfo(pMap.Description)
-	if info.Mtd == 'PDB':
-		nt = New.NumberTable(pp.BodyListEnabled(), 3)
-	else:
-		nt = NewDataset(pSeq, augCfg=info.AugCfg)
+	nt = New.NumberTable(pp.BodyListEnabled(), 3)
 	nt.ShowHeatMap().NormalizeView()
 
-def CreateSeqMaps(pList, epochs=10000, decay=1.0, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
+def CreateSeqMaps(pList, aaGroups=None, epochs=10000, decay=1.0, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
 		glyphOpacity=0.5, is3D=False, initExag=10.0, finalExag=1.0, augCfg='a|500|2.0|2.0'):
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
@@ -455,28 +452,40 @@ def CreateSeqMaps(pList, epochs=10000, decay=1.0, repeats=1, saveTo=None, glyphS
 	info.AugCfg = augCfg
 	info.Mtd = 'Frg'
 	info.DS = vv.Dataset.Name
-	mapStore = NewMapStore(saveTo, is3D)
+	mapStore = NewMapStore(saveTo, is3D, clearStore=True)
+
+	aaClusters = {}  # maps aa to cluster indexes.
+	for k, aaG in enumerate(aaGroups.split('|')):
+		for aa in aaG:
+			aaClusters[aa] = k
+	
 	for k, pId in enumerate(pList):
 		pSeq = GetProteinSeq(pTable, pId)
 		if pSeq is None:
 			vv.Message("Cannot get protein seq of: " + pId)
 			vv.Return()
-		nt = NewDataset(pSeq, decay=decay, augCfg=augCfg)
-		SeqLabeling(nt, pSeq)
+		nt = NewDataset(pSeq, aaClusters, decay=decay, augCfg=augCfg)
+		#SeqLabeling(nt, pSeq)
 		mds.SetTrainingData(nt)
-		RunMds(mds, repeats=repeats, info=info)
 		info.pId = pId
 		info.pLen = len(pSeq)
+		vv.Title = f'Embedding sequence {pId}: {k+1}-th of {len(pList)}'
+		RunMds(mds, repeats=repeats, info=info)
 		map = vv.LastView
 		map.Title = f'{k}: {pId}, N: {nt.Rows}'
 		map.Description = info.ToStr()
 		map.NormalizeView()
 		if mapStore != None:
 			mapStore.AddMaps()
+
 	if repeats > 0:
 		mds.Close()
 	if mapStore != None: 
-		mapStore.Close()
+		ma = mapStore.atlas
+		ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
+		ma.Description = info.ToStr()
+		ma.ArrangeItems()
+		ma.Show()
 
 def Scanning(pMap, stride=100, stepSize=20):
 	bsList = [b.Id for b in pMap.BodyList]
