@@ -387,8 +387,8 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 			if dt[i, j] != 0:
 				dt[i, j] = 1.0/(dt[i, j] + decay)
 
-	moment = 0.8
-	for k in range(1, dt.shape[0]): dt[k, :] = moment*dt[k-1] + (1.0 - moment)*dt[k]	
+	#moment = 0.8
+	#for k in range(1, dt.shape[0]): dt[k, :] = moment*dt[k-1] + (1.0 - moment)*dt[k]	
 
 	dt = AugmentData(dt, augCfg)
 	
@@ -490,15 +490,6 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, repeats=1, saveT
 			vv.Message("Cannot get protein seq of: " + pId)
 			vv.Return()
 		nt = NewDataset(pSeq, aaClusters, decay=decay, augCfg=augCfg)
-
-		'''
-		print('A', nt.Rows, nt.Columns)
-		nt.ShowHeatMap()
-		print('B', nt.Rows, nt.Columns)
-		vv.Return()	
-		'''
-
-		#SeqLabeling(nt, pSeq)
 		mds.SetTrainingData(nt)
 		info.pId = pId
 		info.pLen = len(pSeq)
