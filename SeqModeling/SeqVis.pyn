@@ -387,7 +387,9 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 			if dt[i, j] != 0:
 				dt[i, j] = 1.0/(dt[i, j] + decay)
 
-	for k in range(1, dt.shape[0]): dt[k, :] = 0.8*dt[k-1] + 0.2*dt[k]	
+	moment = 0.8
+	for k in range(1, dt.shape[0]): dt[k, :] = moment*dt[k-1] + (1.0 - moment)*dt[k]	
+
 	dt = AugmentData(dt, augCfg)
 	
 	# add interpolation

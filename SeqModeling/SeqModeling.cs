@@ -6,7 +6,7 @@ using VisuMap.Script;
 //using Vector3 = SharpDX.Vector3;
 using Vector3 = System.Numerics.Vector3;
 
-namespace VisuMap { 
+namespace VisuMap {
 
     public class VectorN {
         float[] v;
@@ -17,35 +17,14 @@ namespace VisuMap {
 
         public VectorN(int vDim) {
             this.v = new float[vDim];
-        }       
+        }
 
         public float[] Vector { get => v; }
-        public int Length { get => v.Length; }
 
-        public VectorN AssignTo(VectorN vector2) {
-            Array.Copy(vector2.v, v, v.Length);
-            return this;
-        }
-
-        public static VectorN operator +(VectorN a, VectorN b) {
-            VectorN ab = new VectorN(a.Length);
-            for (int k = 0; k < ab.Length; k++)
-                ab.v[k] = a.v[k] + b.v[k];
-            return ab;
-        }
-
-        public static VectorN operator -(VectorN a, VectorN b) {
-            VectorN ab = new VectorN(a.Length);
-            for (int k = 0; k < ab.Length; k++)
-                ab.v[k] = a.v[k] - b.v[k];
-            return ab;
-        }
-
-        public static VectorN operator *(float f, VectorN a) {
-            VectorN fa = new VectorN(a.Length);
-            for (int k = 0; k < fa.Length; k++)
-                fa.v[k] = f * a.v[k];
-            return fa;
+        public float this[int index]
+        {
+            get => this.v[index];
+            set => this.v[index] = value;
         }
 
         public static VectorN[] NewVectorN(int length, int vDim) {
@@ -92,7 +71,7 @@ namespace VisuMap {
         public List<IBody> ClusterContract(List<IBody> bList, double factor) {
             Dictionary<short, double[]> centers = new Dictionary<short, double[]>();
             foreach (var b in bList) {
-                if (!centers.ContainsKey(b.Type)) 
+                if (!centers.ContainsKey(b.Type))
                     centers[b.Type] = new double[4];
                 double[] v = centers[b.Type];
                 v[0] += b.X;
@@ -117,30 +96,30 @@ namespace VisuMap {
         }
 
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0) {
-            if( (bList.Count <= 1) || (repeats==0) )
+            if ((bList.Count <= 1) || (repeats == 0))
                 return bList;
 
             Vector3[] D = new Vector3[bList.Count];
             for (int k = 0; k < D.Length; k++) {
-                D[k].X = (float) bList[k].X;
-                D[k].Y = (float) bList[k].Y;
-                D[k].Z = (float) bList[k].Z;
+                D[k].X = (float)bList[k].X;
+                D[k].Y = (float)bList[k].Y;
+                D[k].Z = (float)bList[k].Z;
             }
-            float eps = (float) convexcity;
-            for(int n=0; n<repeats; n++) {
+            float eps = (float)convexcity;
+            for (int n = 0; n < repeats; n++) {
                 int L = D.Length;
                 int K = 2 * L - 1;
                 Vector3[] P = new Vector3[K];
                 P[0] = D[0];
-                for(int k=1; k<L; k++) {
+                for (int k = 1; k < L; k++) {
                     P[2 * k - 1] = 0.5f * (D[k - 1] + D[k]);
                     P[2 * k] = D[k];
                 }
                 for (int k = 3; k < (K - 2); k += 2)
                     P[k] += eps * (2 * P[k] - P[k - 3] - P[k + 3]);
-                if ( K > 4 ) {
+                if (K > 4) {
                     P[1] += 0.35f * eps * (P[1] - P[4]);
-                    P[K-2] += 0.35f * eps * (P[K - 2] - P[K - 5]);
+                    P[K - 2] += 0.35f * eps * (P[K - 2] - P[K - 5]);
                 }
                 D = P;
             }
@@ -150,12 +129,12 @@ namespace VisuMap {
             int L2 = secL / 2;
             Body b0 = null;
             List<IBody> bs = new List<IBody>();
-            for (int k=0; k<D.Length; k+=secL) {                
-                b0 = bList[k/secL] as Body;
-                for (int i=k-L2; i<k+L2; i++) {
-                    if ( i == k) {
+            for (int k = 0; k < D.Length; k += secL) {
+                b0 = bList[k / secL] as Body;
+                for (int i = k - L2; i < k + L2; i++) {
+                    if (i == k) {
                         bs.Add(b0);
-                    } else if ( (i>=0) && (i<D.Length) ) {
+                    } else if ((i >= 0) && (i < D.Length)) {
                         Body b = new Body("i" + (bIdx0 + bs.Count));
                         b.Name = b0.Name;
                         b.Type = b0.Type;
@@ -181,16 +160,25 @@ namespace VisuMap {
                 int L = D.Length;
                 int K = 2 * L - 1;
                 VectorN[] P = VectorN.NewVectorN(K, vDim);
-                P[0].AssignTo(D[0]);
+                for (int i = 0; i < vDim; i++)
+                    P[0][i] = D[0][i];
                 for (int k = 1; k < L; k++) {
-                    P[2 * k - 1].AssignTo( 0.5f * (D[k - 1] + D[k]) );
-                    P[2 * k].AssignTo( D[k] );
+                    for (int i = 0; i < vDim; i++) {
+                        P[2 * k - 1][i] = 0.5f * (D[k - 1][i] + D[k][i]);
+                        P[2 * k][i] = D[k][i];
+                    }
                 }
+
                 for (int k = 3; k < (K - 2); k += 2)
-                    P[k].AssignTo( P[k] + eps * (2 * P[k] - P[k - 3] - P[k + 3]) );
+                    for (int i = 0; i < vDim; i++) {
+                        P[k][i] += eps * (2 * P[k][i] - P[k - 3][i] - P[k + 3][i]);
+                    }
+
                 if (K > 4) {
-                    P[1].AssignTo( P[1] + (0.35f * eps) * (P[1] - P[4]) );
-                    P[K - 2].AssignTo( P[K-2] + (0.35f * eps) * (P[K - 2] - P[K - 5]) );
+                    for (int i = 0; i<vDim; i++) {
+                        P[1][i] += 0.35f * eps * (P[1][i] - P[4][i]);
+                        P[K - 2][i] += 0.35f * eps * (P[K - 2][i] - P[K - 5][i]) ;
+                    }
                 }
                 D = P;
             }
