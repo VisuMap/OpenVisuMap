@@ -35,10 +35,11 @@ def MainProc(menuKey):
 
 		case 'SeqMap':
 			aaGroups = 'A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E'
-			#aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			#aaGroups = 'CGP|RHK|DE'
+			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
+			#aaGroups = 'RHK|DE'
+			#aaGroups = 'AVILMFYW'
 			atlasName = None
-			CreateSeqMaps(pSelected, aaGroups, epochs=2000, initExag=4.0, ppl=0.1, saveTo=atlasName, repeats=0, decay=2.0, augCfg='s|100|0.1|1.5')
+			CreateSeqMaps(pSelected, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=2.0, augCfg='s|100|0.1|1.5')
 
 		case 'ProteinMapCnt':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'

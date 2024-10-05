@@ -379,12 +379,15 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 	for k, c in enumerate(S):
 		hv += stepSz
 		if c in aaClusters:
+			dt[k] = hv
 			hv[aaClusters[c]] = 0
-		dt[k] = hv
 
-	dt = np.reciprocal(decay+dt)
-	for k in range(1, dt.shape[0]):
-		dt[k, :] = 0.8*dt[k-1] + 0.2*dt[k]	
+	for i in range(dt.shape[0]):
+		for j in range(dt.shape[1]):
+			if dt[i, j] != 0:
+				dt[i, j] = 1.0/(dt[i, j] + decay)
+
+	for k in range(1, dt.shape[0]): dt[k, :] = 0.8*dt[k-1] + 0.2*dt[k]	
 	dt = AugmentData(dt, augCfg)
 
 	nt = mm.ToTable(dt)
@@ -438,7 +441,7 @@ def ShowMapData(pMap):
 	nt = New.NumberTable(pp.BodyListEnabled(), 3)
 	nt.ShowHeatMap().NormalizeView()
 
-def CreateSeqMaps(pList, aaGroups=None, epochs=10000, decay=1.0, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
+def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
 		glyphOpacity=0.5, is3D=False, initExag=10.0, finalExag=1.0, augCfg='a|500|2.0|2.0'):
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
@@ -741,7 +744,5 @@ for k, pId in enumerate(fs):
 		print(f'Failed to load {pId}: {err}')
 		continue
 	mapStore.AddMaps()
-
-
 
 '''
