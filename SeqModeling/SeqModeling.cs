@@ -1,12 +1,62 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Numerics;
 using VisuMap.Script;
-using VisuMap.LinearAlgebra;
-using Vector3 = SharpDX.Vector3;
+//using Vector3 = SharpDX.Vector3;
+using Vector3 = System.Numerics.Vector3;
 
-namespace VisuMap
-{
+namespace VisuMap { 
+
+    public class VectorN {
+        float[] v;
+
+        public VectorN(float[] v) : this(v.Length) {
+            Array.Copy(v, this.v, v.Length);
+        }
+
+        public VectorN(int vDim) {
+            this.v = new float[vDim];
+        }       
+
+        public float[] Vector { get => v; }
+        public int Length { get => v.Length; }
+
+        public VectorN AssignTo(VectorN vector2) {
+            Array.Copy(vector2.v, v, v.Length);
+            return this;
+        }
+
+        public static VectorN operator +(VectorN a, VectorN b) {
+            VectorN ab = new VectorN(a.Length);
+            for (int k = 0; k < ab.Length; k++)
+                ab.v[k] = a.v[k] + b.v[k];
+            return ab;
+        }
+
+        public static VectorN operator -(VectorN a, VectorN b) {
+            VectorN ab = new VectorN(a.Length);
+            for (int k = 0; k < ab.Length; k++)
+                ab.v[k] = a.v[k] - b.v[k];
+            return ab;
+        }
+
+        public static VectorN operator *(float f, VectorN a) {
+            VectorN fa = new VectorN(a.Length);
+            for (int k = 0; k < fa.Length; k++)
+                fa.v[k] = f * a.v[k];
+            return fa;
+        }
+
+        public static VectorN[] NewVectorN(int length, int vDim) {
+            VectorN[] vn = new VectorN[length];
+            for (int k = 0; k < length; k++)
+                vn[k] = new VectorN(vDim);
+            return vn;
+        }
+    }
+
+
     public class SeqModeling {
         IVisuMap vv;
         INew New;
@@ -117,7 +167,38 @@ namespace VisuMap
             }
             return bs;
         }
-        
+
+        public INumberTable InterpolateVector(float[][] vList, int repeats, double convexcity) {
+            if ((vList.Length <= 1) || (repeats == 0))
+                return null;
+            VectorN[] D = new VectorN[vList.Length];
+            for (int k = 0; k < vList.Length; k++)
+                D[k] = new VectorN(vList[k]);
+            int vDim = vList[0].Length;
+            float eps = (float)convexcity;
+
+            for (int n = 0; n < repeats; n++) {
+                int L = D.Length;
+                int K = 2 * L - 1;
+                VectorN[] P = VectorN.NewVectorN(K, vDim);
+                P[0].AssignTo(D[0]);
+                for (int k = 1; k < L; k++) {
+                    P[2 * k - 1].AssignTo( 0.5f * (D[k - 1] + D[k]) );
+                    P[2 * k].AssignTo( D[k] );
+                }
+                for (int k = 3; k < (K - 2); k += 2)
+                    P[k].AssignTo( P[k] + eps * (2 * P[k] - P[k - 3] - P[k + 3]) );
+                if (K > 4) {
+                    P[1].AssignTo( P[1] + (0.35f * eps) * (P[1] - P[4]) );
+                    P[K - 2].AssignTo( P[K-2] + (0.35f * eps) * (P[K - 2] - P[K - 5]) );
+                }
+                D = P;
+            }
+
+            return New.NumberTable(D.Select(v => v.Vector).ToArray());            
+        }
+
+
         static double[] ToVector(string pSeq, Dictionary<char, int> P, int[] aaPos, int[][] aaSize, 
                 double[] clusterWeight, double[] waveWeight, int secLen, int secCount) {
             int clusters = aaPos.Length;

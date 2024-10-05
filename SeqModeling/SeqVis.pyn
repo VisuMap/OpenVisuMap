@@ -389,13 +389,33 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 
 	for k in range(1, dt.shape[0]): dt[k, :] = 0.8*dt[k-1] + 0.2*dt[k]	
 	dt = AugmentData(dt, augCfg)
-
-	nt = mm.ToTable(dt)
-	for k, c in enumerate(S):
-		nt.RowSpecList[k].Name = c
-		nt.RowSpecList[k].Type = aaClusters[c] if c in aaClusters else 35
-	for col in range(L):
-		nt.ColumnSpecList[col].Id = chr(col+ord('a'))
+	
+	# add interpolation
+	repeats, eps = 3, 0.1
+	if repeats == 0:
+		nt = mm.ToTable(dt)
+		for k, c in enumerate(S):
+			nt.RowSpecList[k].Name = c
+			nt.RowSpecList[k].Type = aaClusters[c] if c in aaClusters else 35
+		for col in range(L):
+			nt.ColumnSpecList[col].Id = chr(col+ord('a'))
+	else:
+		nt = cs.InterpolateVector(mm.ToMatrix32(dt), repeats, eps)
+		secL = 2**repeats
+		L2 = int(secL / 2)
+		for k in range(0, nt.Rows, secL):
+			k0 = int(k / secL)
+			c = S[k0]
+			rs0 = nt.RowSpecList[k]
+			rs0.Id = f'R{k0}'
+			rs0.Name = c
+			rs0.Type = aaClusters[c] if c in aaClusters else 35
+			for i in range(k-L2, k+L2, 1):
+				if (i != k) and (i>=0) and (i<nt.Rows):
+					rs = nt.RowSpecList[i]
+					rs.Id = f'i{i}'
+					rs.Name = rs0.Name
+					rs.Type = rs0.Type
 	return nt
 
 #-----------------------------------------------------------------------------
@@ -468,6 +488,14 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, repeats=1, saveT
 			vv.Message("Cannot get protein seq of: " + pId)
 			vv.Return()
 		nt = NewDataset(pSeq, aaClusters, decay=decay, augCfg=augCfg)
+
+		'''
+		print('A', nt.Rows, nt.Columns)
+		nt.ShowHeatMap()
+		print('B', nt.Rows, nt.Columns)
+		vv.Return()	
+		'''
+
 		#SeqLabeling(nt, pSeq)
 		mds.SetTrainingData(nt)
 		info.pId = pId
