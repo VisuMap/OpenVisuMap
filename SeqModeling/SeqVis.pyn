@@ -260,7 +260,7 @@ def CreateProteinMap2(idList, epochs=5000, is3D=False, initExag=10.0,
 		finalExag=1.0, ppl=0.1, repeats=0, aaGroups='A'):
 	pTable = AssertProteinTable()	
 	ft = vv.FindPluginObject("WaveTransforms").NewFourier(512)
-	tm = ft.GetTransformMatrix().SortColumnsOnType(True).SelectColumns([k for k in range(32)])
+	tm = ft.BaseMatrix.SortColumnsOnType(True).SelectColumns([k for k in range(32)])
 	dt = cs.VectorizeProtein2(idList, pTable, aaGroups, tm)
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)

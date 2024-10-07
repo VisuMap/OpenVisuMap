@@ -80,7 +80,7 @@ namespace VisuMap.WaveTransforms {
             }
         }
 
-        public INumberTable GetTransformMatrix() {
+        INumberTable GetTransformMatrix() {
             INumberTable rMatrix = matrixReal.SelectColumns(selectReal);
             INumberTable iMatrix = matrixImg.SelectColumns(selectImg);
             IList<IColumnSpec> cs = iMatrix.ColumnSpecList;
@@ -96,6 +96,10 @@ namespace VisuMap.WaveTransforms {
 
         public INumberTable BaseMatrixImage {
             get { return matrixImg; }
+        }
+
+        public INumberTable BaseMatrix {
+            get => GetTransformMatrix();
         }
 
         /// <summary>
