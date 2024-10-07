@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web P-3D P-2D P-LSeq P-Open SeqMap ProteinMapCnt ProteinMap
+#MenuLabels P-ChmX P-Web P-3D P-2D P-LSeq P-Open Sh-LocPDB SeqMap ProteinMapCnt ProteinMap ProteinMap2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -22,7 +22,7 @@ def MainProc(menuKey):
 		case 'P-LSeq':  ShowSeqInfo(pId)
 		case 'P-2D':
 			atlasName = None
-			#atlasName = 'Test-2D'
+			atlasName = 'Test-2D'
 			#atlasName = vv.Dataset.Name + '-2D'
 			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, iconWidth=50)
 		case 'P-3D':
@@ -33,11 +33,15 @@ def MainProc(menuKey):
 		case 'P-Open': 
 			OpenCifFile(pId)
 
+		case 'Sh-LocPDB':
+			from os.path import exists
+			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(f'c:/temp/{b.Id[:4]}.cif')]
+
 		case 'SeqMap':
-			aaGroups = 'A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E'
+			#aaGroups = 'A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E'
 			#aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			#aaGroups = 'RHK|DE'
-			#aaGroups = 'AVILMFYW'
+			aaGroups = 'RHK|DE'
+			aaGroups = 'AVILMFYW'
 			atlasName = None
 			CreateSeqMaps(pSelected, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
 
@@ -49,6 +53,10 @@ def MainProc(menuKey):
 		case 'ProteinMap':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 			CreateProteinMap(pList, epochs=5000, is3D=False, initExag=6.0, finalExag=1.25, ppl=0.005, aaGroups=aaGroups, sections=10)
+
+		case 'ProteinMap2':
+			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
+			CreateProteinMap2(pList, epochs=5000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1, aaGroups=aaGroups)
 
 MainProc(vv.EventSource.Item)
 
@@ -62,9 +70,5 @@ aaGroups = 'A|V|L'
 'AVILMFYW|STNQCGPRHKDE'
 'AVILMFYW|STNQ|C|G|P|RHK|DE'
 'GAVMLIP|FY|STNQCW|DE|HKR
-
-
-from os.path import exists
-vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(f'c:/temp/{b.Id[:4]}.cif')]
 
 '''

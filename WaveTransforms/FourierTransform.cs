@@ -80,6 +80,16 @@ namespace VisuMap.WaveTransforms {
             }
         }
 
+        public INumberTable GetTransformMatrix() {
+            INumberTable rMatrix = matrixReal.SelectColumns(selectReal);
+            INumberTable iMatrix = matrixImg.SelectColumns(selectImg);
+            IList<IColumnSpec> cs = iMatrix.ColumnSpecList;
+            for (int i = 0; i < cs.Count; i++) {
+                cs[i].Id += "_i";
+            }
+            return rMatrix.AppendColumns(iMatrix);
+        }
+
         public INumberTable BaseMatrixReal {
             get { return matrixReal; }
         }
@@ -140,13 +150,7 @@ namespace VisuMap.WaveTransforms {
         }
 
         public INumberTable Transform(INumberTable inTable) {
-            INumberTable rMatrix = matrixReal.SelectColumns(selectReal);
-            INumberTable iMatrix = matrixImg.SelectColumns(selectImg);
-            IList<IColumnSpec> cs = iMatrix.ColumnSpecList;
-            for (int i = 0; i < cs.Count; i++) {
-                cs[i].Id += "_i";
-            }
-            return MatrixProduct(inTable, rMatrix.AppendColumns(iMatrix));
+            return MatrixProduct(inTable, GetTransformMatrix());
         }
 
         public INumberTable Filter(INumberTable inTable, double lowFreq, double highFreq) {            

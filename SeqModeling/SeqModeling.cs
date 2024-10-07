@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Numerics;
 using VisuMap.Script;
 //using Vector3 = SharpDX.Vector3;
 using Vector3 = System.Numerics.Vector3;
@@ -259,6 +258,35 @@ namespace VisuMap {
                 vList.Add(pRow);
             }
             return New.NumberTable(vList.ToArray());
+        }
+
+        public INumberTable VectorizeProtein2(IList<string> pList, VisuMap.Script.IDataset pTable, string aaGroups, INumberTable transMatrix) {
+            string[] cList = aaGroups.Split('|');
+            Dictionary<char, int> P = new Dictionary<char, int>();
+            for (int cIdx = 0; cIdx < cList.Length; cIdx++)
+                foreach (char c in cList[cIdx])
+                    P[c] = cIdx;
+            int clusters = cList.Length;
+            int transLen = transMatrix.Rows;
+            double[][] tM = transMatrix.Matrix as double[][];
+
+            double[][] vList = new double[pList.Count][];
+            for(int pIdx=0; pIdx<pList.Count; pIdx++) { 
+                vList[pIdx] = new double[clusters * transMatrix.Columns];
+                int rowIdx = pTable.IndexOfRow(pList[pIdx]);
+                if (rowIdx < 0)
+                    continue;
+                double[] pVector = vList[pIdx];
+                string pSeq = pTable.GetDataAt(rowIdx, 2);
+                for(int k=0; k<pSeq.Length; k++)
+                    for (int n = 0; n < transMatrix.Columns; n++)
+                        pVector[P[pSeq[k]] * n] += tM[k % transLen][n];
+                // Scaling based on the string length.
+                double scale = 1000.0 / pSeq.Length;
+                for (int k = 0; k < pVector.Length; k++)
+                    pVector[k] *= scale;
+            }
+            return New.NumberTable(vList);
         }
 
         public INumberTable VectorizeProteinCnt(IList<string> pList, VisuMap.Script.IDataset pTable, string aaGroups, int sections) {
