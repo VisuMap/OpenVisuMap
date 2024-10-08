@@ -267,24 +267,24 @@ namespace VisuMap {
                 foreach (char c in cList[cIdx])
                     P[c] = cIdx;
             int clusters = cList.Length;
-            int transLen = transMatrix.Rows;
+            int L = transMatrix.Rows;
+            int N = transMatrix.Columns;
             double[][] tM = transMatrix.Matrix as double[][];
 
             double[][] vList = new double[pList.Count][];
             for(int pIdx=0; pIdx<pList.Count; pIdx++) { 
-                vList[pIdx] = new double[clusters * transMatrix.Columns];
+                vList[pIdx] = new double[clusters * N];
                 int rowIdx = pTable.IndexOfRow(pList[pIdx]);
                 if (rowIdx < 0)
                     continue;
                 double[] pVector = vList[pIdx];
                 string pSeq = pTable.GetDataAt(rowIdx, 2);
-                for(int k=0; k<pSeq.Length; k++)
-                    for (int n = 0; n < transMatrix.Columns; n++)
-                        pVector[P[pSeq[k]] * n] += tM[k % transLen][n];
-                // Scaling based on the string length.
-                double scale = 1000.0 / pSeq.Length;
-                for (int k = 0; k < pVector.Length; k++)
-                    pVector[k] *= scale;
+                for (int k = 0; k < pSeq.Length; k++) {
+                    int col0 = P[pSeq[k]] * N;
+                    double[] R_k = tM[k % L];
+                    for (int col = 0; col < N; col++)
+                        pVector[col0 + col] += R_k[col];
+                }
             }
             return New.NumberTable(vList);
         }
