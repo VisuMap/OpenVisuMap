@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web P-3D P-2D P-LSeq P-Open Sh-LocPDB SeqMap ProteinMapCnt ProteinMap ProteinMap2
+#MenuLabels P-ChmX P-Web P-3D P-2D P-LSeq P-Open Sh-LocPDB SeqMap ProteinMap ProteinMap2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -45,18 +45,13 @@ def MainProc(menuKey):
 			atlasName = None
 			CreateSeqMaps(pSelected, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
 
-		case 'ProteinMapCnt':
-			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMapByCounts(pList, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.01,
-				aaGroups=aaGroups, sections=20)
-
 		case 'ProteinMap':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap(pList, epochs=5000, is3D=False, initExag=6.0, finalExag=1.25, ppl=0.005, aaGroups=aaGroups, sections=10)
+			CreateProteinMap(pList, epochs=2000, is3D=False, ppl=0.05, aaGroups=aaGroups, sections=10)
 
 		case 'ProteinMap2':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap2(pList, epochs=5000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.025, aaGroups=aaGroups)
+			CreateProteinMap2(pList, epochs=2000, is3D=False, ppl=0.05, aaGroups=aaGroups, waveLen=512, waveCount=32)
 
 MainProc(vv.EventSource.Item)
 

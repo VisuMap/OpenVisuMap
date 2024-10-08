@@ -223,24 +223,6 @@ def NewRandomTable(N):
 		ds.AddRow("R"+str(n), '', 0, ['', '', s, str(len(s))])
 	ds.CommitChanges()
 
-
-def CreateProteinMapByCounts(idList, repeats=0, epochs=5000, initExag=3.0, finalExag=1.0, ppl=0.1, is3D=False,
-		aaGroups='A', sections=10):
-	from collections import Counter
-	pTable = AssertProteinTable()	
-	dt = cs.VectorizeProteinCnt(idList, pTable, aaGroups, sections)
-	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
-		dt.RowSpecList[k].CopyFromBody(b)
-	mds = NewMds(dt, epochs=epochs, initExag=initExag, finalExag=finalExag, ppl=ppl, is3D=is3D)
-	mds.RefreshFreq = 50
-	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	info.Mtd = 'PmCnt'
-	info.Set('aaG', aaGroups)
-	info.Set('aaN', sections)
-	RunMds(mds, repeats, info=info)
-	if repeats>= 1:
-		mds.Close()
-
 def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0, 
 		finalExag=1.0, ppl=0.1, repeats=0, aaGroups='A', sections=10):
 	pTable = AssertProteinTable()	
@@ -257,18 +239,25 @@ def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0,
 		mds.Close()
 
 def CreateProteinMap2(idList, epochs=5000, is3D=False, initExag=10.0, 
-		finalExag=1.0, ppl=0.1, repeats=0, aaGroups='A'):
+		finalExag=1.0, ppl=0.1, repeats=0, aaGroups='A', waveLen=512, waveCount=32):
 	pTable = AssertProteinTable()	
-	ft = vv.FindPluginObject("WaveTransforms").NewFourier(512)
-	tm = ft.BaseMatrix.SortColumnsOnType(True).SelectColumns([k for k in range(32)])
+	ft = vv.FindPluginObject("WaveTransforms")
+	ft = ft.NewFourier(waveLen)
+	#ft = ft.NewWalsh(waveLen)
+	#ft = ft.NewHaar(waveLen)
+	#ft = ft.NewWaveletD4(waveLen)
+	
+	tm = ft.BaseMatrix.SortColumnsOnType(True).SelectColumns([k for k in range(waveCount)])
 	dt = cs.VectorizeProtein2(idList, pTable, aaGroups, tm)
-	dt.NormalizeVertical()
+	#dt.NormalizeVertical()
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=2.0, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'Hrm'  # for 
 	info.Set('aaG', aaGroups)
+	info.Set('wvL', waveLen)
+	info.Set('wvCnt', waveCount)
 	RunMds(mds, repeats=repeats, info=info)
 	if repeats>=1:
 		mds.Close()
