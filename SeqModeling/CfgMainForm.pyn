@@ -51,7 +51,7 @@ def MainProc(menuKey):
 
 		case 'ProteinMap2':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap2(pList, epochs=2000, is3D=False, ppl=0.01, aaGroups=aaGroups, waveLen=512, waveCount=10)
+			CreateProteinMap2(pList, epochs=2000, initExag=6.0, ppl=0.05, aaGroups=aaGroups, waveLen=256, waveCount=12)
 
 MainProc(vv.EventSource.Item)
 
