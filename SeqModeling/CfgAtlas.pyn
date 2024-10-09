@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps LinkSelection P-2D P-3D P-Web P-ChmX P-Open MainChain MatchMap
+#MenuLabels ConfigMaps LinkSelection P-2D P-3D P-Web P-ChmX P-Open Sh-Selected MainChain MatchMap
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -45,6 +45,8 @@ def MainProc(menuKey):
 				mp.Close()
 		case 'MatchMap':
 			MatchProteinMap(pp, 50, 0)
+		case 'Sh-Selected':
+			vv.EventManager.OnItemsSelected('@ShowSelectedProteins()', pp)
 
 MainProc(vv.EventSource.Item)
 
