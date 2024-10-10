@@ -47,7 +47,7 @@ def MainProc(menuKey):
 
 		case 'ProteinMap':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap(pList, epochs=2000, is3D=False, ppl=0.05, aaGroups=aaGroups, sections=10)
+			CreateProteinMap(pList, epochs=2000, ppl=0.05, aaGroups=aaGroups, sections=10)
 
 		case 'ProteinMap2':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'

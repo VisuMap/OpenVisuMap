@@ -55,7 +55,7 @@ def ShowProteinList(pList, mainChain, includeHA, atName):
 		mapStore.atlas.ArrangeItems()
 		mapStore.atlas.TheForm.Show()
 
-def UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False, atName=None, 
+def UnFoldProteinList(pList, epochs=1000, repeats=1, mainChain=False, includeHA=False, atName=None, 
 		stretch=0, contractFactor=1.0, iconWidth=50):
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True, normalizeMap=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
@@ -83,9 +83,10 @@ def UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False, atNa
 			info.DS = f'DS:{vv.Dataset.Name}'
 			mds.SetTrainingData(nt)
 			vv.Title = f'Unfolding {pId}: {k+1}-th of {len(pList)}'
-			RunMds(mds, info=info)
-			if mapStore != None:	
+			RunMds(mds, info=info, repeats=repeats)
+			if mapStore != None:
 				mapStore.AddMaps()
+				mds.SelectedItems = []
 		mds.Close()
 	except Exception as e:
 		vv.Message(str(e))
