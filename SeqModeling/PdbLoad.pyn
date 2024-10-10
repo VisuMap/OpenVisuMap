@@ -86,7 +86,6 @@ def UnFoldProteinList(pList, epochs=1000, repeats=1, mainChain=False, includeHA=
 			RunMds(mds, info=info, repeats=repeats)
 			if mapStore != None:
 				mapStore.AddMaps()
-				mds.SelectedItems = []
 		mds.Close()
 	except Exception as e:
 		vv.Message(str(e))
