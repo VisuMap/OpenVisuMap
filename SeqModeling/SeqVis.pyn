@@ -246,7 +246,7 @@ def CreateProteinMap2(idList, epochs=2000, is3D=False, initExag=6.0,
 	#ft = ft.NewWalsh(waveLen)
 	#ft = ft.NewHaar(waveLen)
 	#ft = ft.NewWaveletD4(waveLen)
-		tm = ft.BaseMatrix.SortColumnsOnType(True).SelectColumns([k for k in range(waveCount)])
+	tm = ft.BaseMatrix.SortColumnsOnType(True).SelectColumns([k for k in range(waveCount)])
 	dt = cs.VectorizeProtein2(idList, pTable, aaGroups, tm)	
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
