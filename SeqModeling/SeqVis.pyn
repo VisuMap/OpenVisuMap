@@ -212,16 +212,29 @@ def LoadProteins(startIndex=0):
 				print(f'{nr}: {gSymbol:<12} {cnt:>4}  \t{pTotal}')
 	print('<<<<<<<<<<<<<<<    Done  >>>>>>>>>>>>>>>>>')
 
-def NewRandomTable(N):
+def AddRandomSeq():
 	import random
-	aaDist = list(vv.AtlasManager.ReadValueList('TestMaps', 'i2'))
-	aaList = ''.join([x.Id*int(x.Value*10000) for x in aaDist])
-	aaL, row, ds = len(aaList)-1, 1, vv.Dataset
-	for n in range(N):
-		L = random.randint(500, 5000)
-		s = ''.join([aaList[random.randint(0, aaL)] for k in range(L)])
-		ds.AddRow("R"+str(n), '', 0, ['', '', s, str(len(s))])
+	ds = vv.Dataset
+	idList = ['3G7T', '3LPX', '4AVZ', '1U5I']
+	pList = [ ds.GetDataAt(ds.IndexOfRow(pId), 2) for pId in idList]
+	rType = 53
+	N = 1000
+	mpc = 50    # mutation percentage
+	idx = ds.Rows
+	for pSeq in pList:
+		pLen = len(pSeq)
+		for n in range(N):
+			rList = []
+			for k in range(pLen):
+				p = random.randrange(10000)
+				c = pSeq[k] if p > mpc * 100 else ALPHABET[random.randrange(20)]
+				rList.append(c)
+			rSeq = ''.join(rList)
+			rLen = str(len(rSeq))
+			ds.AddRow(f'R{idx}', '', rType, ['', '', rSeq, rLen, '0.0'])
+			idx += 1
 	ds.CommitChanges()
+
 
 def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0, 
 		finalExag=1.0, ppl=0.1, repeats=0, aaGroups='A', sections=10):
