@@ -136,9 +136,12 @@ def LoadCifData(pId, mainChain=False):
 				vv.Return()
 			for L in fPDB:
 				if L.startswith('_struct_sheet_range.end_auth_seq_id'):
-					betaSet = LoadBetaSheet(fPDB)
+					LoadBetaSheet(fPDB, betaSet)
 				elif L.startswith('_struct_conf.pdbx_PDB_helix_length'):
-					helixSet = LoadHelix(fPDB)
+					LoadHelix(fPDB, helixSet)
+				elif L.startswith('_struct_conf.conf_type_id'):
+					if L.strip().endswith('HELX_P'):
+						LoadHelix2(fPDB, helixSet)
 				elif L.startswith('_struct.title'):
 					pdbTitle = GetString(L, fPDB)
 				elif L.startswith('_struct_ref_seq.align_id'):
@@ -148,14 +151,11 @@ def LoadCifData(pId, mainChain=False):
 					break	
 	except Exception as err:
 		print(err, f'Last Line:\n {bsList.Count}: |{L}|')
-
 	if bsList.Count == 0:
 		vv.Message('No amino-acids found!')
 		vv.Return()
-
 	if mainChain:
 		bsList = SelectChain(pId, bsList, acc2chain)
-
 	return localPath, bsList, bsList2, pdbTitle
 
 
@@ -230,8 +230,7 @@ def ShowHelix():
 def ShowBetaSheet():
 	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.b')]
 
-def LoadBetaSheet(fPDB):
-	betaSet = set()
+def LoadBetaSheet(fPDB, betaSet):
 	for L in fPDB:
 		if L[0] == '#': break
 		fs = L.split()
@@ -239,10 +238,8 @@ def LoadBetaSheet(fPDB):
 		idx1 = int(fs[8]) + 1
 		for i in range(idx0, idx1):
 			betaSet.add(i)
-	return betaSet		
 
-def LoadHelix(fPDB):
-	helixSet = set()
+def LoadHelix(fPDB, helixSet):
 	for L in fPDB:
 		if not L.startswith('HELX_P'): break
 		fs = L.split()
@@ -250,7 +247,20 @@ def LoadHelix(fPDB):
 		idx1 = int(fs[9]) + 1
 		for i in range(idx0, idx1):
 			helixSet.add(i)
-	return helixSet
+
+def LoadHelix2(fPDB, helixSet):
+	idx0 = -1
+	idx1 = -1
+	for L in fPDB:
+		if L.startswith('_struct_conf.beg_label_seq_id'):
+			idx0 = int(L.split()[1])
+		if L.startswith('_struct_conf.end_label_seq_id'):
+			idx1 = int(L.split()[1]) + 1
+		if L[0] == '#':
+			break
+	if (idx0>=0) and (idx1>=0):
+		for i in range(idx0, idx1):
+			helixSet.add(i)
 
 def LoadAtoms(fPDB, helixSet, betaSet):
 	bsList = New.BodyList()
