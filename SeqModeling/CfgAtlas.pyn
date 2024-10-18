@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps LinkSelection P-2D P-3D P-Web P-ChmX P-Open Sh-Selected MainChain MatchMap
+#MenuLabels ConfigMaps LinkSelection P-2D P-3D P-Web P-ChmX P-Open Sh-Selected MainChain MatchMap RndV
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -9,6 +9,12 @@ def HighlightItems():
 	if not srcClassName.endswith('.VisuMapImp'):
 		sIds = set(vv.SelectedItems)
 		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])
+
+def RandmizeItemsVertical(atlas):
+	import random
+	for item in atlas.Items:
+		item.Top = random.randint(0, 10000) % (atlas.Height - 50) + 15
+	atlas.Refresh()
 
 def MainProc(menuKey):
 
@@ -47,6 +53,9 @@ def MainProc(menuKey):
 			MatchProteinMap(pp, 50, 0)
 		case 'Sh-Selected':
 			vv.EventManager.OnItemsSelected('@ShowSelectedProteins()', pp)
+		case 'RndV':
+			RandmizeItemsVertical(pp)
+
 
 MainProc(vv.EventSource.Item)
 
