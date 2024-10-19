@@ -535,13 +535,18 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, repeats=1, saveT
 		ma.ArrangeItems()
 		ma.Show()
 
-def Scanning(pMap, stride=100, stepSize=20):
+def Scanning(pMap, stride=100, stepSize=20, broadcasting=False):
 	bsList = [b.Id for b in pMap.BodyList]
 	for rp in [0,1]:
 		for k in range(0, len(bsList), stepSize):
-			pp.SelectedItems = bsList[k:k+stride]
+			selected = bsList[k:k+stride]
+			if broadcasting:
+				vv.EventManager.RaiseItemsSelected(selected)
+			else:
+				pMap.SelectedItems = selected
 			vv.Sleep(20)
-			if pMap.SelectedItems.Count == 0: return
+			if pMap.SelectedItems.Count == 0: 
+				return
 		vv.Sleep(1000)
 
 def SeqLabeling(dt, pSeq):

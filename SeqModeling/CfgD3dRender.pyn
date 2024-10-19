@@ -7,8 +7,8 @@ match vv.EventSource.Item:
 	case 'ShowData':
 		AssertSeqMap(pp)
 		ShowMapData(pp)
-	case 'Scanning':		
-		Scanning(pp, stepSize=1)
+	case 'Scanning':
+		Scanning(pp, stepSize=1, broadcasting=vv.ModifierKeys.ControlPressed)
 	case 'P-Seq':
 		ShowAASeq(pp)
 	case 'ReCreateMap':
