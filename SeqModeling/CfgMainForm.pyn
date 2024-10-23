@@ -24,12 +24,12 @@ def MainProc(menuKey):
 			atlasName = None
 			atlasName = 'Test-2D'
 			#atlasName = vv.Dataset.Name + '-2D'
-			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, iconWidth=50)
+			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.25, iconWidth=50)
 		case 'P-3D':
 			atlasName = None
 			#atlasName = 'Test-3D'
 			#atlasName = vv.Dataset.Name + '-3D'
-			ShowProteinList(pSelected, mainChain=True, includeHA=False, atName=atlasName)
+			ShowProteinList(pSelected, mainChain=True, includeHA=False, atName=atlasName, expSize=-0.1)
 		case 'P-Open': 
 			OpenCifFile(pId)
 
@@ -38,11 +38,8 @@ def MainProc(menuKey):
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(f'c:/temp/{b.Id[:4]}.cif')]
 
 		case 'SeqMap':
-			#aaGroups = 'A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E'
-			#aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			aaGroups = 'RHK|DE'
-			aaGroups = 'AVILMFYW'
-			atlasName = None
+			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
+			atlasName = 'Test-2d'
 			CreateSeqMaps(pSelected, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
 
 		case 'ProteinMap':
@@ -51,7 +48,7 @@ def MainProc(menuKey):
 
 		case 'ProteinMap2':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap2(pList, epochs=2000, initExag=10.0, ppl=0.0025, aaGroups=aaGroups, waveLen=256, waveCount=16)
+			CreateProteinMap2(pList, epochs=2000, initExag=10.0, repeats=0, ppl=0.0025, aaGroups=aaGroups, waveLen=128, waveCount=16)
 
 MainProc(vv.EventSource.Item)
 

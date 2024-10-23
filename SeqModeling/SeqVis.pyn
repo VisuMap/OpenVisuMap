@@ -262,11 +262,12 @@ def CreateProteinMap2(idList, epochs=2000, is3D=False, initExag=6.0,
 	#ft = ft.NewWaveletD4(waveLen)
 	ft = ft.NewFourier(waveLen)
 	tm = ft.BaseMatrix.SortColumnsOnType(True)
-	coList = list(range(tm.Columns))[:waveCount]
+	coList = list(range(tm.Columns))[0:waveCount]
 	tm = tm.SelectColumns(coList)
 	dt = cs.VectorizeProtein2(idList, pTable, aaGroups, tm)	
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
+	#dt.NormalizeVertical()
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=0.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.StagedTraining = True
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)

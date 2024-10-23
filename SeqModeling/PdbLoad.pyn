@@ -1,8 +1,8 @@
 # functions to import and process pdb/cif files.
 
-def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True):
+def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True, expSize=0):
 	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
-	bsList = Interporlate(bsList, rp, eps)
+	bsList = Interporlate(bsList, rp, eps, expSize=expSize)
 	if includeHA:
 		bsList.AddRange(bsList2)
 	mp = New.Map3DView(bsList)
@@ -41,14 +41,14 @@ def SelectChain(pId, bsList, acc2chain):
 			bsList2.Add(b2)
 	return bsList2 if bsList2.Count > 0 else bsList
 
-def ShowProteinList(pList, mainChain, includeHA, atName):
+def ShowProteinList(pList, mainChain, includeHA, atName, expSize=0):
 	mapStore = NewMapStore(atName, is3D=True, clearStore=True)
 	if mapStore != None:
 		mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
 		mapStore.atlas.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 	for k, pId in enumerate(pList):
 		vv.Title = f'Loading {pId}: {k+1}-th of {len(pList)}'
-		ShowPDB(pId, mainChain=mainChain, includeHA=includeHA)
+		ShowPDB(pId, mainChain=mainChain, includeHA=includeHA, expSize=expSize)
 		if mapStore != None:	
 			mapStore.AddMaps()
 	if mapStore != None:
@@ -327,15 +327,15 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 				b.Hidden = True
 			bsList.Add(b)	
 	return bsList, bsList2
-
-
-def Interporlate(bsList, rp, eps):
+def Interporlate(bsList, rp, eps, expSize=0):
 	bs = New.BodyList()
 	k0 = 0
 	t0 = bsList[k0].Type
 	for k in range(bsList.Count+1):
 		if (k == bsList.Count) or (bsList[k].Type != t0):
-			D = cs.Interpolate3D(bsList.GetRange(k0, k-k0), rp, eps, bs.Count)
+			D = bsList.GetRange(k0, k-k0)
+			cs.LocalExpand(D, expSize, 4)
+			D = cs.Interpolate3D(D, rp, eps, bs.Count)
 			bs.AddRange(D)
 			if k < bsList.Count:
 				k0 = k

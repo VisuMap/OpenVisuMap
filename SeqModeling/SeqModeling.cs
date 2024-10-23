@@ -93,6 +93,27 @@ namespace VisuMap {
             }
             return bList;
         }
+        public void LocalExpand(List<IBody> bList, double expandSize, int repeats=4) {
+            if ((bList.Count < 3) || (repeats <= 0))
+                return;
+            int N = bList.Count;
+            Vector3[] P = new Vector3[N];
+            for (int k = 0; k < N; k++) {
+                P[k].X = (float)bList[k].X;
+                P[k].Y = (float)bList[k].Y;
+                P[k].Z = (float)bList[k].Z;
+            }
+            Vector3[] M = new Vector3[N - 2];
+            float expSz = (float)expandSize;
+            for (int rp=0; rp<repeats; rp++) {
+                for(int k=0; k<M.Length; k++) 
+                    M[k] = 0.5f * (P[k] + P[k + 2]);
+                for (int k = 0; k < M.Length; k++)
+                    P[k+1] = P[k+1] + expSz * (P[k+1] - M[k]);
+            }
+            for(int k=1; k<(N-1); k++)
+                bList[k].SetXYZ(P[k].X, P[k].Y, P[k].Z);
+        }
 
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0) {
             if ((bList.Count <= 1) || (repeats == 0))
