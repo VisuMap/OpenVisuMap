@@ -93,8 +93,8 @@ namespace VisuMap {
             }
             return bList;
         }
-        public void LocalExpand(List<IBody> bList, double expandSize, int repeats=4) {
-            if ((bList.Count < 3) || (repeats <= 0))
+        public void LocalSmoothen(List<IBody> bList, double smoothenRatio, int repeats=8) {
+            if ((bList==null) || (bList.Count < 3) || (repeats <= 0))
                 return;
             int N = bList.Count;
             Vector3[] P = new Vector3[N];
@@ -103,13 +103,13 @@ namespace VisuMap {
                 P[k].Y = (float)bList[k].Y;
                 P[k].Z = (float)bList[k].Z;
             }
-            Vector3[] M = new Vector3[N - 2];
-            float expSz = (float)expandSize;
+            Vector3[] Mean = new Vector3[N - 2];
+            float c = -(float)smoothenRatio;
             for (int rp=0; rp<repeats; rp++) {
-                for(int k=0; k<M.Length; k++) 
-                    M[k] = 0.5f * (P[k] + P[k + 2]);
-                for (int k = 0; k < M.Length; k++)
-                    P[k+1] = P[k+1] + expSz * (P[k+1] - M[k]);
+                for(int k=0; k<Mean.Length; k++) 
+                    Mean[k] = 0.5f * (P[k] + P[k + 2]);
+                for (int k = 0; k < Mean.Length; k++)
+                    P[k+1] += c * (P[k+1] - Mean[k]);
             }
             for(int k=1; k<(N-1); k++)
                 bList[k].SetXYZ(P[k].X, P[k].Y, P[k].Z);

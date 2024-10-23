@@ -24,12 +24,12 @@ def MainProc(menuKey):
 			atlasName = None
 			atlasName = 'Test-2D'
 			#atlasName = vv.Dataset.Name + '-2D'
-			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.25, iconWidth=50)
+			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.25, iconWidth=50, smtRatio=0)
 		case 'P-3D':
 			atlasName = None
 			#atlasName = 'Test-3D'
 			#atlasName = vv.Dataset.Name + '-3D'
-			ShowProteinList(pSelected, mainChain=True, includeHA=False, atName=atlasName, expSize=-0.1)
+			ShowProteinList(pSelected, mainChain=True, includeHA=False, atName=atlasName, smtRatio=0)
 		case 'P-Open': 
 			OpenCifFile(pId)
 
