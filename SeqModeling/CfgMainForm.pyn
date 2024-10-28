@@ -22,8 +22,8 @@ def MainProc(menuKey):
 		case 'P-LSeq':  ShowSeqInfo(pId)
 		case 'P-2D':
 			atlasName = None
-			atlasName = 'Test-2D'
-			#atlasName = vv.Dataset.Name + '-2D'
+			#atlasName = 'Test-2D'
+			atlasName = vv.Dataset.Name + '-2D'
 			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.25, iconWidth=50, smtRatio=0)
 		case 'P-3D':
 			atlasName = None

@@ -11,6 +11,10 @@ def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True, smtRatio=0):
 	info.pLen = bsList.Count
 	info.Mtd = 'PDB'
 	info.PT = pdbTitle
+	info.Set('SmR', smtRatio)
+	info.Set('HA', includeHA)
+	info.Set('Eps', eps)
+	info.Set('MC', mainChain)
 	mp.Description = info.ToStr()
 	mp.Title = f'{pId}: Len:{bsList.Count}'
 	mp.GlyphSet = '36 Clusters||Colored Balls'
