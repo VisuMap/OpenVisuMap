@@ -59,7 +59,7 @@ def ShowProteinList(pList, mainChain, includeHA, atName, smtRatio=0):
 		mapStore.atlas.ArrangeItems()
 		mapStore.atlas.TheForm.Show()
 
-def UnFoldProteinList(pList, epochs=1000, repeats=1, mainChain=False, includeHA=False, atName=None, 
+def UnFoldProteinList(pList, epochs=1000, repeats=1, eps=0.1, mainChain=False, includeHA=False, atName=None, 
 		stretch=0, contractFactor=1.0, iconWidth=50, smtRatio=0):
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True, normalizeMap=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
@@ -67,7 +67,7 @@ def UnFoldProteinList(pList, epochs=1000, repeats=1, mainChain=False, includeHA=
 	try:
 		for k, pId in enumerate(pList):
 			localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
-			bList = Interporlate(bList, rp=3, eps=0.1, smtRatio=smtRatio)
+			bList = Interporlate(bList, rp=3, eps=eps, smtRatio=smtRatio)
 			if includeHA:
 				bList.AddRange(bList2)
 			if contractFactor != 1.0:
@@ -85,6 +85,10 @@ def UnFoldProteinList(pList, epochs=1000, repeats=1, mainChain=False, includeHA=
 			info.Mtd = 'PDB'
 			info.PT = pdbTitle
 			info.DS = f'DS:{vv.Dataset.Name}'
+			info.Set('SmR', smtRatio)
+			info.Set('HA', includeHA)
+			info.Set('Eps', eps)
+			info.Set('MC', mainChain)
 			mds.SetTrainingData(nt)
 			vv.Title = f'Unfolding {pId}: {k+1}-th of {len(pList)}'
 			RunMds(mds, info=info, repeats=repeats)
