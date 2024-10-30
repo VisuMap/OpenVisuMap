@@ -769,7 +769,6 @@ def ShowSelectedProteins():
 def AtlasTileAll(atlas, aaGroups):
 	waveLen = 128
 	waveCount = 16
-	idList = [item.Name for item in atlas.Items]
 	pTable = AssertProteinTable()	
 	ft = vv.FindPluginObject('WaveTransforms')
 	if ft == None:
@@ -779,6 +778,7 @@ def AtlasTileAll(atlas, aaGroups):
 	tm = ft.BaseMatrix.SortColumnsOnType(True)
 	coList = list(range(tm.Columns))[0:waveCount]
 	tm = tm.SelectColumns(coList)
+	idList = [item.Name for item in atlas.Items]
 	dt = cs.VectorizeProtein2(idList, pTable, aaGroups, tm)	
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
@@ -788,12 +788,13 @@ def AtlasTileAll(atlas, aaGroups):
 	mds.FinalExaggeration = 1.0
 	mds.PerplexityRatio = 0.25
 	mds.RefreshFreq = 100
+	mds.StagedTraining = True
 	mds.Show()
 	mds.Reset().Start()
 	itemSet = {item.Name:item for item in atlas.Items}
 	itemSorted = [itemSet[id] for id in mds.GetSortedItemList()]
 	iconWidth = 70
-	iconHeight = 50
+	iconHeight = 60
 	columns = int( (atlas.Width - 50.0)/iconWidth )
 	for k, item in enumerate(itemSorted):
 		item.Top = 20 + (k//columns)*iconHeight
