@@ -283,70 +283,72 @@ def CreateProteinMap2(idList, epochs=2000, is3D=False, initExag=6.0,
 		mds.Close()
 
 cs3 = New.CsObject('''
-public INumberTable PcaNormalize(IList<IBody> bList) {
-		INumberTable nt = New.NumberTable(bList, 3);
-		nt = nt.DoPcaReduction(3);		
-		double x0 = nt.Matrix[0][0];
-		double y0 = nt.Matrix[0][1];
-		double z0 = nt.Matrix[0][2];
-		for(int k=0; k<bList.Count; k++) {
-			var R = nt.Matrix[k];
-			R[0] -= x0;
-			R[1] -= y0;
-			R[2] -= z0;
-		}
-		return nt;
-}
+public INumberTable PcaNormalize(INumberTable nt, int waveLen) {
+	// perform PCA rotation
+	nt = nt.DoPcaReduction(3);
 
-public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
-	INumberTable ft = dt.Multiply(tm);
-	for(int row=0; row<ft.Rows; row++)
-		Array.Copy(ft.Matrix[row] as double[], 0, ret, row*ft.Columns, ft.Columns);
-}
+	// shifting origine to the first point
+	double x0 = nt.Matrix[0][0];
+	double y0 = nt.Matrix[0][1];
+	double z0 = nt.Matrix[0][2];
+	for(int k=0; k<nt.Rows; k++) {
+		var R = nt.Matrix[k];
+		R[0] -= x0;
+		R[1] -= y0;
+		R[2] -= z0;
+	}
 
-public INumberTable TransposeCollapse(INumberTable dt, int waveLen) {
-	var dt2 = New.NumberTable(3, waveLen);
-	var M = dt2.Matrix;
-	for(int row=0; row<dt.Rows; row++) {
+	// collapsing and transposing nt:
+	var nt2 = New.NumberTable(3, waveLen);
+	var M = nt2.Matrix;
+	for(int row=0; row<nt.Rows; row++) {
 		int col = row%waveLen;
-		double[] R = dt.Matrix[row] as double[];
+		double[] R = nt.Matrix[row] as double[];
 		M[0][col] += R[0];
 		M[1][col] += R[1];
 		M[2][col] += R[2];
 	}
-	return dt2;
+	return nt2;
 }
+
+public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
+	double[][] M1 = dt.Matrix as double[][];
+	double[][] M2 = tm.Matrix as double[][];
+	int columns = M2[0].Length;
+	for(int row=0; row<M1.Length; row++)
+	for(int col=0; col<columns; col++) {
+		double v = 0.0;
+		for(int k=0; k<M2.Length; k++)
+			v += M1[row][k] * M2[k][col];
+		ret[row*columns + col] = v;
+	}
+}
+
 ''')
 
 def LoadMainChain(pId):
 	from os.path import exists
 	cacheFile = f'c:/temp/MainChain/{pId}.npy'
 	if exists(cacheFile):
-		nt = np.load(cacheFile)
-		bList = New.BodyList()
-		for k in range(nt.shape[0]):
-			b = New.Body(str(k))
-			b.X, b.Y, b.Z = nt[k]
-			bList.Add(b)
+		nt = np.load(cacheFile)		
 	else:
 		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)
 		nt = np.empty((bList.Count, 3))
 		for k, b in enumerate(bList):
 			nt[k] = b.X, b.Y, b.Z
 		np.save(cacheFile, nt)
-	return bList
+	return mm.ToTable(nt)
 
 def CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=10.0,  finalExag=1.0, repeats=0, ppl=0.1, waveLen=128, waveCount=16):
 	tm = GetFourier(waveLen, waveCount)
 	L = 3*waveCount
 	pD = New.NumberTable(vv.Dataset.BodyListForId(pList), L)
 	for k, pId in enumerate(pList):
-		if (k>0) and (k%10 == 0):
+		if (k>0) and (k%50 == 0):
 			vv.Title = f'Reading: {k}:{pId}'
 		vv.DoEvents()
-		bList = LoadMainChain(pId)
-		dt = cs3.PcaNormalize(bList)
-		dt = cs3.TransposeCollapse(dt, waveLen)
+		nt = LoadMainChain(pId)
+		dt = cs3.PcaNormalize(nt, waveLen)
 		cs3.FourierTrans(tm, dt, pD.Matrix[k])
 
 	mds = NewMds(pD, epochs=epochs, is3D=is3D, glyphSize=0.6, initExag=initExag, finalExag=finalExag, ppl=ppl)

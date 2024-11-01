@@ -4,6 +4,7 @@ vv.Import('PdbLoad.pyn')
 
 def MainProc(menuKey):
 	pSelected = pp.SelectedItems
+	ds = vv.Dataset
 	if menuKey.startswith('P-'):
 		if pSelected.Count == 0:
 			pId = vv.GuiManager.GetClipboard()
@@ -14,7 +15,7 @@ def MainProc(menuKey):
 		else:
 			pId = pSelected[0]
 	else:
-		pList = pSelected if pSelected.Count > 1 else [b.Id for b in pp.Dataset.BodyListEnabled()]
+		pList = pSelected if pSelected.Count > 1 else [b.Id for b in ds.BodyListEnabled()]
 
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
@@ -23,12 +24,12 @@ def MainProc(menuKey):
 		case 'P-2D':
 			#atlasName = None
 			#atlasName = 'Test-2D'
-			atlasName = vv.Dataset.Name + '-smtR:0'
+			atlasName = f'{ds.Name} - {vv.Map.Name}'
 			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.25, iconWidth=50, smtRatio=0)
 		case 'P-3D':
 			atlasName = None
 			#atlasName = 'Test-3D'
-			#atlasName = vv.Dataset.Name + '-3D'
+			#atlasName = ds.Name + '-3D'
 			ShowProteinList(pSelected, mainChain=True, includeHA=False, atName=atlasName, smtRatio=0.4)
 		case 'P-Open': 
 			OpenCifFile(pId)
@@ -51,7 +52,7 @@ def MainProc(menuKey):
 			CreateProteinMap2(pList, epochs=2000, initExag=10.0, repeats=0, ppl=0.0025, aaGroups=aaGroups, waveLen=128, waveCount=16)
 
 		case 'ProteinMap3':
-			CreateProteinMap3(pList, epochs=5000, initExag=10.0, finalExag=1.0, repeats=0, ppl=0.1, waveLen=128, waveCount=32)
+			CreateProteinMap3(pList, epochs=5000, initExag=10.0, finalExag=1.0, repeats=0, ppl=0.1, waveLen=256, waveCount=32)
 
 MainProc(vv.EventSource.Item)
 
