@@ -251,9 +251,7 @@ def CreateProteinMap(idList, epochs=5000, is3D=False, initExag=10.0,
 	if repeats>=1:
 		mds.Close()
 
-def CreateProteinMap2(idList, epochs=2000, is3D=False, initExag=6.0, 
-		finalExag=1.0, ppl=0.05, repeats=0, aaGroups='A', waveLen=256, waveCount=12):
-	pTable = AssertProteinTable()	
+def GetFourier(waveLen, waveCount):
 	ft = vv.FindPluginObject('WaveTransforms')
 	if ft == None:
 		vv.Message('Wave-Transforms plugin not installed!')
@@ -263,7 +261,12 @@ def CreateProteinMap2(idList, epochs=2000, is3D=False, initExag=6.0,
 	ft = ft.NewFourier(waveLen)
 	tm = ft.BaseMatrix.SortColumnsOnType(True)
 	coList = list(range(tm.Columns))[0:waveCount]
-	tm = tm.SelectColumns(coList)
+	return tm.SelectColumns(coList)
+
+def CreateProteinMap2(idList, epochs=2000, is3D=False, initExag=6.0, 
+		finalExag=1.0, ppl=0.05, repeats=0, aaGroups='A', waveLen=256, waveCount=12):
+	pTable = AssertProteinTable()	
+	tm = GetFourier(waveLen, waveCount)
 	dt = cs.VectorizeProtein2(idList, pTable, aaGroups, tm)	
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
 		dt.RowSpecList[k].CopyFromBody(b)
@@ -273,6 +276,64 @@ def CreateProteinMap2(idList, epochs=2000, is3D=False, initExag=6.0,
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'Hrm'  # for 
 	info.Set('aaG', aaGroups)
+	info.Set('wvL', waveLen)
+	info.Set('wvCnt', waveCount)
+	RunMds(mds, repeats=repeats, info=info)
+	if repeats>=1:
+		mds.Close()
+
+cs3 = New.CsObject('''
+public INumberTable PcaNormalize(IList<IBody> bList) {
+		INumberTable nt = New.NumberTable(bList, 3);
+		nt = nt.DoPcaReduction(3);		
+		double x0 = nt.Matrix[0][0];
+		double y0 = nt.Matrix[0][1];
+		double z0 = nt.Matrix[0][2];
+		for(int k=0; k<bList.Count; k++) {
+			var R = nt.Matrix[k];
+			R[0] -= x0;
+			R[1] -= y0;
+			R[2] -= z0;
+		}
+		return nt;
+}
+
+public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
+	INumberTable ft = dt.Multiply(tm);
+	for(int row=0; row<ft.Rows; row++)
+		Array.Copy(ft.Matrix[row] as double[], 0, ret, row*ft.Columns, ft.Columns);
+}
+
+public INumberTable TransposeCollapse(INumberTable dt, int waveLen) {
+	var dt2 = New.NumberTable(3, waveLen);
+	var M = dt2.Matrix;
+	for(int row=0; row<dt.Rows; row++) {
+		int col = row%waveLen;
+		double[] R = dt.Matrix[row] as double[];
+		M[0][col] += R[0];
+		M[1][col] += R[1];
+		M[2][col] += R[2];
+	}
+	return dt2;
+}
+''')
+
+def CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=10.0,  finalExag=1.0, repeats=0, ppl=0.1, waveLen=128, waveCount=16):
+	tm = GetFourier(waveLen, waveCount)
+	L = 3*waveCount
+	pD = New.NumberTable(vv.Dataset.BodyListForId(pList), L)
+	for k, pId in enumerate(pList):
+		vv.Title = f'Reading: {k}:{pId}'
+		vv.DoEvents()
+		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)	
+		dt = cs3.PcaNormalize(bList)
+		dt = cs3.TransposeCollapse(dt, waveLen)
+		cs3.FourierTrans(tm, dt, pD.Matrix[k])
+
+	mds = NewMds(pD, epochs=epochs, is3D=is3D, glyphSize=0.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
+	mds.StagedTraining = True
+	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
+	info.Mtd = 'FrT'  # for 
 	info.Set('wvL', waveLen)
 	info.Set('wvCnt', waveCount)
 	RunMds(mds, repeats=repeats, info=info)
@@ -767,17 +828,8 @@ def ShowSelectedProteins():
 	pp.SetSelectedItems([item for item in pp.Items if item.Name in selected])
 
 def AtlasTileAll(atlas, aaGroups):
-	waveLen = 128
-	waveCount = 16
 	pTable = AssertProteinTable()	
-	ft = vv.FindPluginObject('WaveTransforms')
-	if ft == None:
-		vv.Message('Wave-Transforms plugin not installed!')
-		vv.Return()
-	ft = ft.NewFourier(waveLen)
-	tm = ft.BaseMatrix.SortColumnsOnType(True)
-	coList = list(range(tm.Columns))[0:waveCount]
-	tm = tm.SelectColumns(coList)
+	tm = GetFourier(128, 16)
 	idList = [item.Name for item in atlas.Items]
 	dt = cs.VectorizeProtein2(idList, pTable, aaGroups, tm)	
 	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):

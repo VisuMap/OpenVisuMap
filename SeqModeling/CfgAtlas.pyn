@@ -11,12 +11,14 @@ def HighlightItems():
 		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])
 
 def RandmizeItemsVertical(atlas):
-	for item in atlas.Items:
+	items = atlas.GetSelectedItems()
+	for item in items:
 		item.Top = random.randint(0, 10000) % (atlas.Height - 50) + 15
 	atlas.Refresh()
 
 def RandmizeItemsHorizontal(atlas):
-	for item in atlas.Items:
+	items = atlas.GetSelectedItems()
+	for item in items:
 		item.Left = random.randint(0, 10000) % (atlas.Width - 50) + 15
 	atlas.Refresh()
 
