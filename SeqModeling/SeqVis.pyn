@@ -318,14 +318,33 @@ public INumberTable TransposeCollapse(INumberTable dt, int waveLen) {
 }
 ''')
 
+def LoadMainChain(pId):
+	from os.path import exists
+	cacheFile = f'c:/temp/MainChain/{pId}.npy'
+	if exists(cacheFile):
+		nt = np.load(cacheFile)
+		bList = New.BodyList()
+		for k in range(nt.shape[0]):
+			b = New.Body(str(k))
+			b.X, b.Y, b.Z = nt[k]
+			bList.Add(b)
+	else:
+		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)
+		nt = np.empty((bList.Count, 3))
+		for k, b in enumerate(bList):
+			nt[k] = b.X, b.Y, b.Z
+		np.save(cacheFile, nt)
+	return bList
+
 def CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=10.0,  finalExag=1.0, repeats=0, ppl=0.1, waveLen=128, waveCount=16):
 	tm = GetFourier(waveLen, waveCount)
 	L = 3*waveCount
 	pD = New.NumberTable(vv.Dataset.BodyListForId(pList), L)
 	for k, pId in enumerate(pList):
-		vv.Title = f'Reading: {k}:{pId}'
+		if (k>0) and (k%10 == 0):
+			vv.Title = f'Reading: {k}:{pId}'
 		vv.DoEvents()
-		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)	
+		bList = LoadMainChain(pId)
 		dt = cs3.PcaNormalize(bList)
 		dt = cs3.TransposeCollapse(dt, waveLen)
 		cs3.FourierTrans(tm, dt, pD.Matrix[k])
