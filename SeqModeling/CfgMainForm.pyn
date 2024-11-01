@@ -25,7 +25,7 @@ def MainProc(menuKey):
 			#atlasName = None
 			#atlasName = 'Test-2D'
 			atlasName = f'{ds.Name} - {vv.Map.Name}'
-			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.25, iconWidth=50, smtRatio=0)
+			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.25, iconWidth=50, smtRatio=0.1)
 		case 'P-3D':
 			atlasName = None
 			#atlasName = 'Test-3D'

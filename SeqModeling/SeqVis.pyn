@@ -283,34 +283,6 @@ def CreateProteinMap2(idList, epochs=2000, is3D=False, initExag=6.0,
 		mds.Close()
 
 cs3 = New.CsObject('''
-public INumberTable PcaNormalize(INumberTable nt, int waveLen) {
-	// perform PCA rotation
-	nt = nt.DoPcaReduction(3);
-
-	// shifting origine to the first point
-	double x0 = nt.Matrix[0][0];
-	double y0 = nt.Matrix[0][1];
-	double z0 = nt.Matrix[0][2];
-	for(int k=0; k<nt.Rows; k++) {
-		var R = nt.Matrix[k];
-		R[0] -= x0;
-		R[1] -= y0;
-		R[2] -= z0;
-	}
-
-	// collapsing and transposing nt:
-	var nt2 = New.NumberTable(3, waveLen);
-	var M = nt2.Matrix;
-	for(int row=0; row<nt.Rows; row++) {
-		int col = row%waveLen;
-		double[] R = nt.Matrix[row] as double[];
-		M[0][col] += R[0];
-		M[1][col] += R[1];
-		M[2][col] += R[2];
-	}
-	return nt2;
-}
-
 public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
 	double[][] M1 = dt.Matrix as double[][];
 	double[][] M2 = tm.Matrix as double[][];
@@ -323,7 +295,6 @@ public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
 		ret[row*columns + col] = v;
 	}
 }
-
 ''')
 
 def LoadMainChain(pId):
@@ -348,8 +319,9 @@ def CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=10.0,  finalExag=
 			vv.Title = f'Reading: {k}:{pId}'
 		vv.DoEvents()
 		nt = LoadMainChain(pId)
-		dt = cs3.PcaNormalize(nt, waveLen)
-		cs3.FourierTrans(tm, dt, pD.Matrix[k])
+		cs.LocalSmoothen2(nt.Matrix, 0.1, 8)
+		nt = cs.PcaNormalize(nt, waveLen)
+		cs3.FourierTrans(tm, nt, pD.Matrix[k])
 
 	mds = NewMds(pD, epochs=epochs, is3D=is3D, glyphSize=0.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.StagedTraining = True

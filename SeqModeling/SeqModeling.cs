@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Collections.Generic;
 using VisuMap.Script;
-//using Vector3 = SharpDX.Vector3;
 using Vector3 = System.Numerics.Vector3;
 
 namespace VisuMap {
@@ -113,6 +112,63 @@ namespace VisuMap {
             }
             for(int k=1; k<(N-1); k++)
                 bList[k].SetXYZ(P[k].X, P[k].Y, P[k].Z);
+        }
+
+        public void LocalSmoothen2(double[][] M, double smoothenRatio, int repeats = 8) {
+            if ((M == null) || (M.Length < 3) || (M[0].Length != 3) || (repeats <= 0))
+                return;
+
+            int N = M.Length;
+            Vector3[] P = new Vector3[N];
+            for (int k = 0; k < N; k++) {
+                double[] R = M[k];
+                P[k].X = (float)R[0];
+                P[k].Y = (float)R[1];
+                P[k].Z = (float)R[2];
+            }
+            Vector3[] Mean = new Vector3[N - 2];
+            float c = -(float)smoothenRatio;
+            for (int rp = 0; rp < repeats; rp++) {
+                for (int k = 0; k < Mean.Length; k++)
+                    Mean[k] = 0.5f * (P[k] + P[k + 2]);
+                for (int k = 0; k < Mean.Length; k++)
+                    P[k + 1] += c * (P[k + 1] - Mean[k]);
+            }
+
+            for (int k = 1; k < (N - 1); k++) {
+                double[] R = M[k];
+                R[0] = P[k].X;
+                R[1] = P[k].Y;
+                R[2] = P[k].Z;
+            }
+        }
+
+        public INumberTable PcaNormalize(INumberTable nt, int waveLen) {
+            // perform PCA rotation
+            nt = nt.DoPcaReduction(3);
+
+            // shifting origine to the first point
+            double x0 = nt.Matrix[0][0];
+            double y0 = nt.Matrix[0][1];
+            double z0 = nt.Matrix[0][2];
+            for (int k = 0; k < nt.Rows; k++) {
+                var R = nt.Matrix[k];
+                R[0] -= x0;
+                R[1] -= y0;
+                R[2] -= z0;
+            }
+
+            // collapsing and transposing nt:
+            var nt2 = New.NumberTable(3, waveLen);
+            var M = nt2.Matrix;
+            for (int row = 0; row < nt.Rows; row++) {
+                int col = row % waveLen;
+                double[] R = nt.Matrix[row] as double[];
+                M[0][col] += R[0];
+                M[1][col] += R[1];
+                M[2][col] += R[2];
+            }
+            return nt2;
         }
 
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0) {
