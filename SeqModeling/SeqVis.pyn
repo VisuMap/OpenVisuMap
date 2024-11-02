@@ -284,15 +284,19 @@ def CreateProteinMap2(idList, epochs=2000, is3D=False, initExag=6.0,
 
 cs3 = New.CsObject('''
 public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
+	// DO matrix multiplication dt * tm where dt and tm are 
+	// both column-set potentially with different number of rows.
 	double[][] M1 = dt.Matrix as double[][];
 	double[][] M2 = tm.Matrix as double[][];
-	int columns = M2[0].Length;
-	for(int row=0; row<M1.Length; row++)
-	for(int col=0; col<columns; col++) {
+	int minRows = Math.Min(M1.Length, M2.Length);
+	int C1 = M1[0].Length;
+	int C2 = M2[0].Length;
+	for(int c1=0; c1<C1; c1++)
+	for(int c2=0; c2<C2; c2++) {
 		double v = 0.0;
-		for(int k=0; k<M2.Length; k++)
-			v += M1[row][k] * M2[k][col];
-		ret[row*columns + col] = v;
+		for(int k=0; k<minRows; k++)
+			v += M1[k][c1] * M2[k][c2];
+		ret[c1*C2 + c2] = v;
 	}
 }
 ''')
@@ -322,7 +326,6 @@ def CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=10.0,  finalExag=
 		cs.LocalSmoothen2(nt.Matrix, 0.1, 8)
 		nt = cs.PcaNormalize(nt, waveLen)
 		cs3.FourierTrans(tm, nt, pD.Matrix[k])
-
 	mds = NewMds(pD, epochs=epochs, is3D=is3D, glyphSize=0.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.StagedTraining = True
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)

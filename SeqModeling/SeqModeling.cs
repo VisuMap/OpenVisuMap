@@ -158,17 +158,18 @@ namespace VisuMap {
                 R[2] -= z0;
             }
 
-            // collapsing and transposing nt:
-            var nt2 = New.NumberTable(3, waveLen);
-            var M = nt2.Matrix;
-            for (int row = 0; row < nt.Rows; row++) {
-                int col = row % waveLen;
-                double[] R = nt.Matrix[row] as double[];
-                M[0][col] += R[0];
-                M[1][col] += R[1];
-                M[2][col] += R[2];
+            // collapsing nt to {waveLen} rows
+            if (nt.Rows > waveLen) {
+                for(int row=waveLen; row<nt.Rows; row++) {
+                    var R1 = nt.Matrix[row];
+                    var R2 = nt.Matrix[row % waveLen];
+                    R2[0] += R1[0];
+                    R2[1] += R1[1];
+                    R2[2] += R1[2];
+                }
+                nt = nt.SelectRows(Enumerable.Range(0, waveLen).ToList());
             }
-            return nt2;
+            return nt;
         }
 
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0) {
