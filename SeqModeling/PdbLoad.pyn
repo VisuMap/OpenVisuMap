@@ -131,7 +131,7 @@ def GetAcc2Chain(fPDB):
 	
 
 def LoadCifData(pId, mainChain=False):
-	localPath = Download3DInfo(pId[:4])
+	localPath = pId if pId.endswith('.cif') else Download3DInfo(pId[:4])
 	try:
 		bsList, bsList2 = New.BodyList(), New.BodyList()
 		betaSet, helixSet = set(), set()
@@ -154,7 +154,7 @@ def LoadCifData(pId, mainChain=False):
 					pdbTitle = GetString(L, fPDB)
 				elif L.startswith('_struct_ref_seq.align_id'):
 					acc2chain = GetAcc2Chain(fPDB)
-				elif L.startswith('_atom_site.pdbx_PDB_model_num'):
+				elif L.startswith('_atom_site.'):
 					bsList, bsList2 = LoadAtoms(fPDB, helixSet, betaSet)
 					break	
 	except Exception as err:
@@ -249,7 +249,7 @@ def LoadBetaSheet(fPDB, betaSet):
 
 def LoadHelix(fPDB, helixSet):
 	for L in fPDB:
-		if not L.startswith('HELX_P'): break
+        if not L.startswith('HELX_P'): break
 		fs = L.split()
 		idx0 = int(fs[5])
 		idx1 = int(fs[9]) + 1
