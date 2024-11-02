@@ -157,7 +157,6 @@ namespace VisuMap {
                 R[1] -= y0;
                 R[2] -= z0;
             }
-
             // collapsing nt to {waveLen} rows
             if (nt.Rows > waveLen) {
                 for(int row=waveLen; row<nt.Rows; row++) {
