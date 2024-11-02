@@ -166,7 +166,7 @@ namespace VisuMap {
                     R2[1] += R1[1];
                     R2[2] += R1[2];
                 }
-                nt = nt.SelectRows(Enumerable.Range(0, waveLen).ToList());
+                nt.RemoveRows(Enumerable.Range(waveLen, nt.Rows).ToList());
             }
             return nt;
         }
