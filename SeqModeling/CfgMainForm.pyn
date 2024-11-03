@@ -24,7 +24,7 @@ def MainProc(menuKey):
 		case 'P-2D':
 			#atlasName = None
 			#atlasName = 'Test-2D'
-			atlasName = f'{ds.Name} - {vv.Map.Name}'
+			atlasName = f'{ds.Name}/{vv.Map.Name}'
 			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.25, iconWidth=50, smtRatio=0.1)
 		case 'P-3D':
 			atlasName = None
@@ -52,7 +52,7 @@ def MainProc(menuKey):
 			CreateProteinMap2(pList, epochs=2000, initExag=10.0, repeats=0, ppl=0.0025, aaGroups=aaGroups, waveLen=128, waveCount=16)
 
 		case 'ProteinMap3':
-			CreateProteinMap3(pList, epochs=5000, initExag=10.0, finalExag=1.0, repeats=0, ppl=0.1, waveLen=128, waveCount=32)
+			CreateProteinMap3(pList, epochs=5000, initExag=5.0, finalExag=1.0, repeats=0, ppl=0.15, waveLen=128, waveCount=32)
 
 MainProc(vv.EventSource.Item)
 
