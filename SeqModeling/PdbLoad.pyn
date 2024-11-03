@@ -249,7 +249,8 @@ def LoadBetaSheet(fPDB, betaSet):
 
 def LoadHelix(fPDB, helixSet):
 	for L in fPDB:
-        if not L.startswith('HELX_P'): break
+		if not L.startswith('HELX_P'):
+			break
 		fs = L.split()
 		idx0 = int(fs[5])
 		idx1 = int(fs[9]) + 1
