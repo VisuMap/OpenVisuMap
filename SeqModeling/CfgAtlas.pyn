@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps LinkSelection P-2D P-3D P-Web P-ChmX P-Open Sh-Selected MainChain MatchMap RndV RndH TileAll
+#MenuLabels ConfigMaps LinkSelection P-2D P-3D P-Web P-ChmX P-Open MainChain MatchMap RndV RndH TileAll
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -58,8 +58,6 @@ def MainProc(menuKey):
 				mp.Close()
 		case 'MatchMap':
 			MatchProteinMap(pp, 50, 0)
-		case 'Sh-Selected':
-			vv.EventManager.OnItemsSelected('@ShowSelectedProteins()', pp)
 		case 'RndV':
 			RandmizeItemsVertical(pp)
 		case 'RndH':
