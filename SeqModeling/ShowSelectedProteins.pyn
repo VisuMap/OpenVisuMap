@@ -1,0 +1,9 @@
+# ShowSelectedProteins.pyn
+# Used by Atlas view as view-shown handle. It marks the atlas items as selected
+# when some protein ids have been selected.
+
+def ShowSelectedProteins():
+	selected = set(vv.SelectedItems)
+	pp.SetSelectedItems([item for item in pp.Items if item.Name in selected])
+
+vv.EventManager.OnItemsSelected('@ShowSelectedProteins()', pp)

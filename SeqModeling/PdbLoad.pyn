@@ -103,7 +103,7 @@ def UnFoldProteinList(pList, epochs=1000, repeats=1, eps=0.1, mainChain=False, i
 		ma = mapStore.atlas
 		MatchProteinMap(ma, iconWidth, 0)
 		ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
-		ma.OnAtlasShown = "@vv.Import('SeqVis.pyn');vv.EventManager.OnItemsSelected('@ShowSelectedProteins()', pp)"
+		ma.OnAtlasShown = 'ShowSelectedProteins.pyn'
 		ma.Description = info.ToStr()
 		ma.TheForm.Show()
 

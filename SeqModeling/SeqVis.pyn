@@ -47,7 +47,6 @@ def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling
 		#msbuild = '"C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/MSBuild.exe"'
 		#vv.StartProcess(msbuild, 'SeqModeling.csproj /p:Configuration=Release', False).WaitForExit(1000)
 		copy(vv.CurrentScriptDirectory + '/bin/Release/' + seqdll, vv.CurrentScriptDirectory)
-	#dllFile = vv.CurrentScriptDirectory + '/bin/Debug/SeqModeling.dll'
 	vv.LoadLibrary(dllFile)
 	return New.Instance(className)
 
@@ -822,10 +821,6 @@ def ScanningForAA(pMap, pAA, progressive=False):
 	else:
 		pMap.SelectedItems = aaList
 
-
-def ShowSelectedProteins():
-	selected = set(vv.SelectedItems)
-	pp.SetSelectedItems([item for item in pp.Items if item.Name in selected])
 
 def AtlasTileAll(atlas, aaGroups):
 	pTable = AssertProteinTable()	
