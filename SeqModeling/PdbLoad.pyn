@@ -373,4 +373,5 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, contractFactor=1
 	mds.GlyphSize = 0.5
 	RunMds(mds, repeats=repeats, info=info)
 	vv.LastView.Title = winTitle
-	mds.Close()
+	if repeats != 0:
+		mds.Close()

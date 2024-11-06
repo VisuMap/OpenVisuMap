@@ -4,7 +4,6 @@ vv.Import('PdbLoad.pyn')
 
 def MainProc(menuKey):
 	pSelected = pp.SelectedItems
-	atlasName = None
 	atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}'
 	if menuKey.startswith('P-'):
 		if pSelected.Count == 0:
@@ -23,9 +22,12 @@ def MainProc(menuKey):
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-LSeq':  ShowSeqInfo(pId)
 		case 'P-2D':
-			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.25, iconWidth=50, smtRatio=0.1)
+			#atlasName = None
+			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.25, iconWidth=50, smtRatio=0.05)
 		case 'P-3D':
-			ShowProteinList(pSelected, mainChain=True, includeHA=False, atName=atlasName, smtRatio=0.4)
+			atlasName += ' : 3D'
+			atlasName = None
+			ShowProteinList(pSelected, mainChain=False, includeHA=False, atName=atlasName, smtRatio=0.0)
 		case 'P-Open': 
 			OpenCifFile(pId)
 		case 'Sh-LocPDB':

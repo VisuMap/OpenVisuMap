@@ -313,7 +313,7 @@ def LoadMainChain(pId):
 		np.save(cacheFile, nt)
 	return mm.ToTable(nt)
 
-def GetFourierTrans(pList, waveLen, waveCount):
+def GetFourierTrans(pList, waveLen, waveCount, saveLen=False):
 	tm = GetFourier(waveLen, waveCount)
 	L = 3*waveCount
 	pD = New.NumberTable(vv.Dataset.BodyListForId(pList), L)
@@ -322,9 +322,11 @@ def GetFourierTrans(pList, waveLen, waveCount):
 			vv.Title = f'Reading: {k}:{pId}'
 		vv.DoEvents()
 		nt = LoadMainChain(pId)
+		if saveLen:	vv.Dataset.SetValueAt(vv.Dataset.IndexOfRow(pId), 4, nt.Rows)
 		cs.LocalSmoothen2(nt.Matrix, 0.1, 8)
 		nt = cs.PcaNormalize(nt, waveLen)
 		cs3.FourierTrans(tm, nt, pD.Matrix[k])
+	if saveLen: vv.Dataset.CommitChanges()
 	return pD
 
 def CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=10.0,  finalExag=1.0, repeats=0, ppl=0.1, waveLen=128, waveCount=16):
