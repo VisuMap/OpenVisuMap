@@ -64,7 +64,7 @@ def UnFoldProteinList(pList, epochs=1000, repeats=1, eps=0.1, mainChain=False, i
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True, normalizeMap=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
 		repeats=1, metric='EuclideanMetric', glyphSet='36 Clusters||Colored Balls')
-	mds.RefreshFreq = 500
+	mds.RefreshFreq = 1000
 	mds.AutoNormalizing = False
 	try:
 		for k, pId in enumerate(pList):
@@ -105,7 +105,9 @@ def UnFoldProteinList(pList, epochs=1000, repeats=1, eps=0.1, mainChain=False, i
 		ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 		ma.OnAtlasShown = 'ShowSelectedProteins.pyn'
 		ma.Description = info.ToStr()
+		ma.DataChanged = True
 		ma.TheForm.Show()
+		ma.Redraw()
 
 def GetString(L, fPDB):
 	idx = L.find('\'')
