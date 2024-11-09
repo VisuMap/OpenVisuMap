@@ -110,6 +110,7 @@ class AtlasMapStore():
 			item = self.atlas.CaptureItem(fm)
 			item.Name = MapInfo(fm.Description).pId
 			item.CacheImage = True
+			item.Opacity = 0.5
 			fm.Close()
 	def Close(self):
 		self.atlas.Close()
@@ -269,7 +270,12 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 
 	if using3DInfo:
 		# using the main chain from the PDB file
-		seqList = [ LoadMainSeq(pId) for pId in pList ]
+		seqList = []
+		for k, pId in enumerate(pList):
+			if (k>0) and (k%20 == 0):
+				vv.Title = f'Reading: {k}:{pId}'
+			seqList.append( LoadMainSeq(pId) )
+			vv.DoEvents()
 		dt = cs.VectorizeProtein2(seqList, aaGroups, tm)		
 	else:
 		# using the sequence in the current dataset 2-th column

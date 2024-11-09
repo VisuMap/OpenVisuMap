@@ -44,7 +44,8 @@ def MainProc(menuKey):
 			atName = 'Test-2D'
 			UnfoldAtlasMaps(pp, pp.GetSelectedItems(), atName, stretch=5.0, contractFactor=0.9)
 		case 'P-3D':
-			ShowPDB(pId, rp=3, eps=0.1, includeHA=False, smtRatio=0.1) 
+			for e in pSelected:
+				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, smtRatio=0.1) 
 		case 'P-Web':
 			ShowWeb(pId)
 		case 'P-ChmX':

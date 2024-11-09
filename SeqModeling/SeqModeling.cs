@@ -161,10 +161,10 @@ namespace VisuMap {
             if (nt.Rows > waveLen) {
                 for(int row=waveLen; row<nt.Rows; row++) {
                     var R1 = nt.Matrix[row];
-                    int rIdx = row % waveLen;
+                    int cirIdx = row % waveLen;
                     if ((row / waveLen) % 2 == 1)
-                        rIdx = waveLen - 1 - rIdx;
-                    var R2 = nt.Matrix[rIdx];
+                        cirIdx = waveLen - 1 - cirIdx;
+                    var R2 = nt.Matrix[cirIdx];
                     R2[0] += R1[0];
                     R2[1] += R1[1];
                     R2[2] += R1[2];
@@ -362,7 +362,10 @@ namespace VisuMap {
                     if (!P.ContainsKey(c))
                         continue;
                     int col0 = P[c] * N;
-                    double[] R_k = tM[k % L];
+                    int cirIdx = k % L;
+                    if ((k / L) % 2 == 1)
+                        cirIdx = L - 1 - cirIdx;
+                    double[] R_k = tM[cirIdx];
                     for (int col = 0; col < N; col++)
                         pVector[col0 + col] += R_k[col];
                 }
