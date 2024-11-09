@@ -345,21 +345,18 @@ namespace VisuMap {
             return New.NumberTable(vList.ToArray());
         }
 
-        public INumberTable VectorizeProtein2(IList<string> pList, VisuMap.Script.IDataset pTable, string aaGroups, INumberTable transMatrix) {
+        public INumberTable VectorizeProtein2(IList<string> seqList, string aaGroups, INumberTable transMatrix) {
             var P = Cluster2Index(aaGroups);
             int clusters = P.Values.Max() + 1;
             int L = transMatrix.Rows;
             int N = transMatrix.Columns;
             double[][] tM = transMatrix.Matrix as double[][];
 
-            double[][] vList = new double[pList.Count][];
-            for(int pIdx=0; pIdx<pList.Count; pIdx++) { 
+            double[][] vList = new double[seqList.Count][];
+            for (int pIdx = 0; pIdx < seqList.Count; pIdx++) {
                 vList[pIdx] = new double[clusters * N];
-                int rowIdx = pTable.IndexOfRow(pList[pIdx]);
-                if (rowIdx < 0)
-                    continue;
                 double[] pVector = vList[pIdx];
-                string pSeq = pTable.GetDataAt(rowIdx, 2);
+                string pSeq = seqList[pIdx];
                 for (int k = 0; k < pSeq.Length; k++) {
                     char c = pSeq[k];
                     if (!P.ContainsKey(c))

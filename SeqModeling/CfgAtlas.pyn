@@ -64,7 +64,7 @@ def MainProc(menuKey):
 			RandmizeItemsHorizontal(pp)
 		case 'TileAll':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			AtlasTileAll(pp, aaGroups)
+			AtlasTileAll(pp, aaGroups, using3DInfo=False)
 
 
 

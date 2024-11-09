@@ -262,14 +262,25 @@ def GetFourier(waveLen, waveCount):
 	coList = list(range(tm.Columns))[0:waveCount]
 	return tm.SelectColumns(coList)
 
-def CreateProteinMap2(idList, epochs=2000, is3D=False, initExag=6.0, 
-		finalExag=1.0, ppl=0.05, repeats=0, aaGroups='A', waveLen=256, waveCount=12):
+def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, 
+		ppl=0.05, repeats=0, using3DInfo=True, aaGroups='A', waveLen=256, waveCount=12):
 	pTable = AssertProteinTable()	
 	tm = GetFourier(waveLen, waveCount)
-	dt = cs.VectorizeProtein2(idList, pTable, aaGroups, tm)	
-	for k, b in enumerate(vv.Dataset.BodyListForId(idList)):
+
+	if using3DInfo:
+		# using the main chain from the PDB file
+		seqList = [ LoadMainSeq(pId) for pId in pList ]
+		dt = cs.VectorizeProtein2(seqList, aaGroups, tm)		
+	else:
+		# using the sequence in the current dataset 2-th column
+		seqList = []
+		for pId in pList:
+			rowIdx = pTable.IndexOfRow(pId)
+			if rowIdx >= 0:
+				seqList.append( pTable.GetDataAt(rowIdx, 2) )
+		dt = cs.VectorizeProtein2(seqList, aaGroups, tm)
+	for k, b in enumerate(vv.Dataset.BodyListForId(pList)):
 		dt.RowSpecList[k].CopyFromBody(b)
-	#dt.NormalizeVertical()
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=0.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.StagedTraining = True
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
@@ -311,7 +322,20 @@ def LoadMainChain(pId):
 		for k, b in enumerate(bList):
 			nt[k] = b.X, b.Y, b.Z
 		np.save(cacheFile, nt)
-	return mm.ToTable(nt)
+	return mm.ToTable(nt, bList)	
+
+def LoadMainSeq(pId):
+	from os.path import exists
+	cacheFile = f'c:/temp/MainChainSeq/{pId}.seq'
+	if exists(cacheFile):
+		with open(cacheFile, 'r') as inFile:
+			seq = inFile.read()
+	else:
+		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)
+		seq = ''.join( [ b.Name[0] for b in bList ] ) 
+		with open(cacheFile, 'w') as outFile:
+			outFile.write(seq)
+	return seq
 
 def GetFourierTrans(pList, waveLen, waveCount, saveLen=False):
 	tm = GetFourier(waveLen, waveCount)
@@ -824,21 +848,21 @@ def ScanningForAA(pMap, pAA, progressive=False):
 		pMap.SelectedItems = aaList
 
 
-def AtlasTileAll(atlas, aaGroups):
+def AtlasTileAll(atlas, aaGroups, using3DInfo=False):
 	pTable = AssertProteinTable()	
 	pList = [item.Name for item in atlas.Items]
-	dt = GetFourierTrans(pList, 128, 16)
-	'''
-	tm = GetFourier(128, 16)
-	dt = cs.VectorizeProtein2(pList, pTable, aaGroups, tm)	
-	for k, b in enumerate(vv.Dataset.BodyListForId(pList)):
-		dt.RowSpecList[k].CopyFromBody(b)
-	'''
+	if using3DInfo:
+		dt = GetFourierTrans(pList, 128, 16)
+	else:
+		tm = GetFourier(128, 16)
+		dt = cs.VectorizeProtein2(pList, pTable, aaGroups, tm)	
+		for k, b in enumerate(vv.Dataset.BodyListForId(pList)):
+			dt.RowSpecList[k].CopyFromBody(b)
 	mds = New.TsneSorter(dt, "EuclideanMetric")
 	mds.MaxLoops = 10000
 	mds.InitExaggeration = 10
 	mds.FinalExaggeration = 1.0
-	mds.PerplexityRatio = 0.25
+	mds.PerplexityRatio = 0.15
 	mds.RefreshFreq = 100
 	mds.StagedTraining = True
 	mds.Show()
