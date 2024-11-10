@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web P-3D P-2D P-LSeq P-Open Sh-LocPDB SeqMap ProteinMap ProteinMap2 ProteinMap3
+#MenuLabels P-ChmX P-Web P-3D P-2D P-LSeq P-Open Sh-LocPDB SeqMap ProteinMap ProteinMap2 ProteinMap3 TypeProtein
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -44,6 +44,8 @@ def MainProc(menuKey):
 			CreateProteinMap2(pList, epochs=5000, repeats=0, ppl=0.2, initExag=6.0, finalExag=1.0, using3DInfo=True, aaGroups=aaGroups, waveLen=128, waveCount=16)
 		case 'ProteinMap3':
 			CreateProteinMap3(pList, epochs=5000, repeats=0, ppl=0.15, initExag=8.0, finalExag=1.0, waveLen=256, waveCount=32)
+		case 'TypeProtein':
+			TypeProteinList(pSelected)
 
 MainProc(vv.EventSource.Item)
 

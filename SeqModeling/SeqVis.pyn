@@ -343,7 +343,7 @@ def LoadMainSeq(pId):
 			outFile.write(seq)
 	return seq
 
-def GetFourierTrans(pList, waveLen, waveCount, saveLen=False):
+def GetFourierTrans(pList, waveLen, waveCount):
 	tm = GetFourier(waveLen, waveCount)
 	L = 3*waveCount
 	pD = New.NumberTable(vv.Dataset.BodyListForId(pList), L)
@@ -352,15 +352,13 @@ def GetFourierTrans(pList, waveLen, waveCount, saveLen=False):
 			vv.Title = f'Reading: {k}:{pId}'
 		vv.DoEvents()
 		nt = LoadMainChain(pId)
-		if saveLen:	vv.Dataset.SetValueAt(vv.Dataset.IndexOfRow(pId), 4, nt.Rows)
 		cs.LocalSmoothen2(nt.Matrix, 0.1, 8)
 		nt = cs.PcaNormalize(nt, waveLen)
 		cs3.FourierTrans(tm, nt, pD.Matrix[k])
-	if saveLen: vv.Dataset.CommitChanges()
 	return pD
 
 def CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=10.0,  finalExag=1.0, repeats=0, ppl=0.1, waveLen=128, waveCount=16):
-	pD = GetFourierTrans(pList, waveLen, waveCount, saveLen=True)
+	pD = GetFourierTrans(pList, waveLen, waveCount)
 	mds = NewMds(pD, epochs=epochs, is3D=is3D, glyphSize=0.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.StagedTraining = True
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
@@ -883,6 +881,19 @@ def AtlasTileAll(atlas, aaGroups, using3DInfo=False):
 		item.Left = 20 + (k%columns)*iconWidth
 	atlas.Refresh()
 	mds.Close()
+
+def TypeProteinList(pList):
+	ft = New.FreeTable()
+	ft.AddColumn('Len', True)
+	for pId in pList:
+		sLen = len( LoadMainSeq(pId) )
+		ft.AddRow(pId, 0, [str(sLen)])
+	tb = ft.ShowAsTable()
+	tb.SortOnColumn('Len', True)
+	tb.SelectedItems = [ 'Len' ]
+	tb.AssignMethod = 0
+	tb.ClusterData()
+	tb.Close()
 
 '''
 
