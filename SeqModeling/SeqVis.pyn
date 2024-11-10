@@ -110,7 +110,6 @@ class AtlasMapStore():
 			item = self.atlas.CaptureItem(fm)
 			item.Name = MapInfo(fm.Description).pId
 			item.CacheImage = True
-			item.Opacity = 0.5
 			fm.Close()
 	def Close(self):
 		self.atlas.Close()
@@ -285,8 +284,9 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 			if rowIdx >= 0:
 				seqList.append( pTable.GetDataAt(rowIdx, 2) )
 		dt = cs.VectorizeProtein2(seqList, aaGroups, tm)
-	for k, b in enumerate(vv.Dataset.BodyListForId(pList)):
+	for k, b in enumerate(pTable.BodyListForId(pList)):
 		dt.RowSpecList[k].CopyFromBody(b)
+
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=0.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.StagedTraining = True
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
@@ -790,9 +790,9 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0):
 		item.IconWidth = iconWidth
 		item.LabelStyle = 0
 		item.Transparent = True
-		item.Opacity = 1.0
+		item.Opacity = 0.7
 		item.ShowBorder = False
-	pAtlas.RedrawResizedItems(pAtlas.Items, False)
+	pAtlas.Redraw()
 
 def ReCreateMap(pMap):
 	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	
