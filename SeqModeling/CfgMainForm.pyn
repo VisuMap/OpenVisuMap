@@ -23,7 +23,7 @@ def MainProc(menuKey):
 		case 'P-LSeq':  ShowSeqInfo(pId)
 		case 'P-2D':
 			#atlasName = None
-			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.05, iconWidth=50, smtRatio=0.1)
+			UnFoldProteinList(pSelected, epochs=2000, repeats=1, mainChain=True, includeHA=False, atName=atlasName, stretch=0.1, iconWidth=50, smtRatio=0.1)
 		case 'P-3D':
 			atlasName += ' : 3D'
 			atlasName = None

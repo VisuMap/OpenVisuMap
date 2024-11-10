@@ -88,7 +88,6 @@ class MapInfo():
 				if len(fs) == 2:
 					dic[fs[0]] = fs[1]
 
-
 class AtlasMapStore():	
 	def __init__(self, atName, is3D, normalizeMap, clearAtlas):
 		self.atlas = New.Atlas(atName)
@@ -200,17 +199,6 @@ def AddProteins(ds, gId, maxCount=20, minLen=400, maxLen=1000_000):
 	vv.Dataset.CommitChanges()
 	return gSymbol, len(infoList)
 
-def LoadProteins(startIndex=0):
-	ds = vv.Folder.ReadDataset(GENE_TABLE)
-	pTotal = 0
-	for nr, g in enumerate( [b.Id for b in ds.BodyList] ):
-		if nr >= startIndex:
-			gSymbol, cnt = AddProteins(ds, g, maxCount=20, minLen=50, maxLen=400)
-			pTotal += cnt
-			if cnt != 0:
-				print(f'{nr}: {gSymbol:<12} {cnt:>4}  \t{pTotal}')
-	print('<<<<<<<<<<<<<<<    Done  >>>>>>>>>>>>>>>>>')
-
 def AddRandomSeq():
 	import random
 	ds = vv.Dataset
@@ -317,31 +305,6 @@ public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
 }
 ''')
 
-def LoadMainChain(pId):
-	from os.path import exists
-	cacheFile = PidToSeqPath(pId)
-	if exists(cacheFile):
-		nt = np.load(cacheFile)		
-	else:
-		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)
-		nt = np.empty((bList.Count, 3))
-		for k, b in enumerate(bList):
-			nt[k] = b.X, b.Y, b.Z
-		np.save(cacheFile, nt)
-	return mm.ToTable(nt, bList)	
-
-def LoadMainSeq(pId):
-	from os.path import exists
-	cacheFile = PidToSeqPath(pId)
-	if exists(cacheFile):
-		with open(cacheFile, 'r') as inFile:
-			seq = inFile.read()
-	else:
-		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)
-		seq = ''.join( [ b.Name[0] for b in bList ] ) 
-		with open(cacheFile, 'w') as outFile:
-			outFile.write(seq)
-	return seq
 
 def GetFourierTrans(pList, waveLen, waveCount):
 	tm = GetFourier(waveLen, waveCount)

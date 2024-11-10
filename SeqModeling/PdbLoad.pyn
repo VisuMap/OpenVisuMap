@@ -107,7 +107,8 @@ def UnFoldProteinList(pList, epochs=1000, repeats=1, eps=0.1, mainChain=False, i
 			RunMds(mds, info=info, repeats=repeats)
 			if mapStore != None:
 				mapStore.AddMaps()
-		mds.Close()
+		if repeats > 0:
+			mds.Close()
 	except Exception as e:
 		vv.Message(str(e))
 	if mapStore != None:
@@ -349,6 +350,33 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 				b.Hidden = True
 			bsList.Add(b)	
 	return bsList, bsList2
+
+def LoadMainChain(pId):
+	from os.path import exists
+	cacheFile = PidToSeqPath(pId)
+	if exists(cacheFile):
+		nt = np.load(cacheFile)		
+	else:
+		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)
+		nt = np.empty((bList.Count, 3))
+		for k, b in enumerate(bList):
+			nt[k] = b.X, b.Y, b.Z
+		np.save(cacheFile, nt)
+	return mm.ToTable(nt, bList)	
+
+def LoadMainSeq(pId):
+	from os.path import exists
+	cacheFile = PidToSeqPath(pId)
+	if exists(cacheFile):
+		with open(cacheFile, 'r') as inFile:
+			seq = inFile.read()
+	else:
+		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)
+		seq = ''.join( [ b.Name[0] for b in bList ] ) 
+		with open(cacheFile, 'w') as outFile:
+			outFile.write(seq)
+	return seq
+
 
 def Interporlate(bsList, rp, eps, smtRatio=0):
 	bs = New.BodyList()
