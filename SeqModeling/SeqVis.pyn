@@ -319,7 +319,7 @@ public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
 
 def LoadMainChain(pId):
 	from os.path import exists
-	cacheFile = f'c:/temp/MainChain/{pId}.npy'
+	cacheFile = PidToSeqPath(pId)
 	if exists(cacheFile):
 		nt = np.load(cacheFile)		
 	else:
@@ -332,7 +332,7 @@ def LoadMainChain(pId):
 
 def LoadMainSeq(pId):
 	from os.path import exists
-	cacheFile = f'c:/temp/MainChainSeq/{pId}.seq'
+	cacheFile = PidToSeqPath(pId)
 	if exists(cacheFile):
 		with open(cacheFile, 'r') as inFile:
 			seq = inFile.read()
@@ -859,8 +859,9 @@ def AtlasTileAll(atlas, aaGroups, using3DInfo=False):
 		dt = GetFourierTrans(pList, 128, 16)
 	else:
 		tm = GetFourier(128, 16)
-		dt = cs.VectorizeProtein2(pList, pTable, aaGroups, tm)	
-		for k, b in enumerate(vv.Dataset.BodyListForId(pList)):
+		seqList = [LoadMainSeq(pId) for pId in pList]
+		dt = cs.VectorizeProtein2(seqList, aaGroups, tm)	
+		for k, b in enumerate(pTable.BodyListForId(pList)):
 			dt.RowSpecList[k].CopyFromBody(b)
 	mds = New.TsneSorter(dt, "EuclideanMetric")
 	mds.MaxLoops = 10000

@@ -1,5 +1,16 @@
 # functions to import and process pdb/cif files.
 
+def PidToPath(pId):
+	if len(pId)<4:
+		raise Exception('invalid protein ID')
+	return f'c:/temp/PdbCache/{pId[:4]}.cif'
+
+def PidToSeqPath(pId):
+	if len(pId)<4:
+		raise Exception('invalid protein ID')
+	return f'c:/temp/MainChain/{pId[:4]}.seq'
+
+
 def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True, smtRatio=0):
 	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
 	bsList = Interporlate(bsList, rp, eps, smtRatio=smtRatio)
@@ -177,9 +188,7 @@ def OpenPDBFile(pMap):
 	OpenCifFile(info.pId)
 
 def OpenCifFile(pId):
-	pId = pId[:4]
-	pdbPath = f'C:/temp/{pId}.cif'
-	vv.StartProcess("vi", f'C:/temp/{pId}.cif')
+	vv.StartProcess("vi", PidToPath(pId))
 
 def AugmentByIndex(nt, stretch):
 	nt.AddColumns(1)
@@ -201,8 +210,7 @@ def AugmentByIndex(nt, stretch):
 def Download3DInfo(pId):
 	from os.path import exists
 	from urllib.request import urlretrieve
-	fileName = pId + '.cif'
-	localPath = 'c:/temp/' + fileName
+	localPath = PidToPath(pId)
 	if not exists(localPath):
 		urlretrieve(f'https://files.rcsb.org/download/{fileName}', localPath)
 	return localPath
