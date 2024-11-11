@@ -213,7 +213,7 @@ def Download3DInfo(pId):
 	from urllib.request import urlretrieve
 	localPath = PidToPath(pId)
 	if not exists(localPath):
-		urlretrieve(f'https://files.rcsb.org/download/{fileName}', localPath)
+		urlretrieve(f'https://files.rcsb.org/download/{pId[:4]}.cif', localPath)
 	return localPath
 
 class ChainIndex():
