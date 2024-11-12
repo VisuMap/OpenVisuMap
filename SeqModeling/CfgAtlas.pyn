@@ -45,7 +45,7 @@ def MainProc(menuKey):
 			UnfoldAtlasMaps(pp, pp.GetSelectedItems(), atName, stretch=5.0, contractFactor=0.9)
 		case 'P-3D':
 			for e in pSelected:
-				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, smtRatio=0.1) 
+				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, mainChain=True, smtRatio=0.1) 
 		case 'P-Web':
 			ShowWeb(pId)
 		case 'P-ChmX':
@@ -65,7 +65,7 @@ def MainProc(menuKey):
 			RandmizeItemsHorizontal(pp)
 		case 'TileAll':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			AtlasTileAll(pp, aaGroups, using3DInfo=False)
+			AtlasTileAll(pp, aaGroups, using3DInfo=False, waveLen=128, waveCount=16)
 
 
 

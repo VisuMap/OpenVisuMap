@@ -754,6 +754,7 @@ def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0):
 		item.Opacity = 0.7
 		item.ShowBorder = False
 	pAtlas.Redraw()
+	pAtlas.DataChanged = True
 
 def ReCreateMap(pMap):
 	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	
@@ -815,13 +816,13 @@ def ScanningForAA(pMap, pAA, progressive=False):
 		pMap.SelectedItems = aaList
 
 
-def AtlasTileAll(atlas, aaGroups, using3DInfo=False):
+def AtlasTileAll(atlas, aaGroups, using3DInfo=False, waveLen=128, waveCount=16):
 	pTable = AssertProteinTable()	
 	pList = [item.Name for item in atlas.Items]
 	if using3DInfo:
-		dt = GetFourierTrans(pList, 128, 16)
+		dt = GetFourierTrans(pList, waveLen, waveCount)
 	else:
-		tm = GetFourier(128, 16)
+		tm = GetFourier(waveLen, waveCount)
 		seqList = [LoadMainSeq(pId) for pId in pList]
 		dt = cs.VectorizeProtein2(seqList, aaGroups, tm)	
 		for k, b in enumerate(pTable.BodyListForId(pList)):
