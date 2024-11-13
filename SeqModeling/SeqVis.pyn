@@ -99,6 +99,7 @@ class AtlasMapStore():
 		self.normalizeMap = normalizeMap
 	def AddMaps(self):
 		for fm in vv.FindFormList(self.viewName):
+			fm.TheForm.Hide()
 			if self.normalizeMap:
 				fm.GlyphSize = 1.0
 				fm.GlyphOpacity = 1.0

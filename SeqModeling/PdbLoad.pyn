@@ -1,14 +1,22 @@
 # functions to import and process pdb/cif files.
 
+# get the path for the cached (PDB) CIF file.
 def PidToPath(pId):
 	if len(pId)<4:
 		raise Exception('invalid protein ID')
 	return f'c:/temp/PdbCache/{pId[:4]}.cif'
 
+# get cache file for the main chain sequence
 def PidToSeqPath(pId):
 	if len(pId)<4:
 		raise Exception('invalid protein ID')
-	return f'c:/temp/MainChain/{pId[:4]}.seq'
+	return f'c:/temp/MainChainSeq/{pId}.seq'
+
+# get cache npy file for the main chain.
+def PidToMainChain(pId):
+	if len(pId)<4:
+		raise Exception('invalid protein ID')
+	return f'c:/temp/MainChain/{pId}.npy'
 
 
 def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True, smtRatio=0):
@@ -353,7 +361,7 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 
 def LoadMainChain(pId):
 	from os.path import exists
-	cacheFile = PidToSeqPath(pId)
+	cacheFile = PidToMainChain(pId)
 	if exists(cacheFile):
 		nt = np.load(cacheFile)		
 	else:

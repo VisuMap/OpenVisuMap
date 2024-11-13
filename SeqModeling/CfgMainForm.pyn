@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web P-3D P-2D P-LSeq P-Open Sh-LocPDB SeqMap ProteinMap ProteinMap2 ProteinMap3 TypeProtein AtlasView
+#MenuLabels P-ChmX P-Web P-2D P-3D SeqMap P-LSeq P-Open Sh-LocPDB ProteinMap ProteinMap2 ProteinMap3 TypeProtein AtlasView
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -20,28 +20,29 @@ def MainProc(menuKey):
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
-		case 'P-LSeq':  ShowSeqInfo(pId)
+		case 'P-LSeq': ShowSeqInfo(pId)
 		case 'P-2D':
 			#atlasName = None
 			UnFoldProteinList(pSelected, epochs=2000, repeats=1, mainChain=True, includeHA=False, atName=atlasName, stretch=0.1, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
-			atlasName += ' : 3D'
+			atlasName += '-3D'
 			atlasName = None
 			ShowProteinList(pSelected, mainChain=False, includeHA=False, atName=atlasName, smtRatio=0.0)
+		case 'SeqMap':
+			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
+			atlasName += '-Seq'
+			CreateSeqMaps(pSelected, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
 		case 'P-Open': 
 			OpenCifFile(pId)
 		case 'Sh-LocPDB':
 			from os.path import exists
-			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(f'c:/temp/{b.Id[:4]}.cif')]
-		case 'SeqMap':
-			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateSeqMaps(pSelected, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
+			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'ProteinMap':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 			CreateProteinMap(pList, epochs=2000, ppl=0.0015, aaGroups=aaGroups, sections=10)
 		case 'ProteinMap2':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap2(pList, epochs=5000, repeats=1, ppl=0.2, initExag=6.0, finalExag=1.0, using3DInfo=True, aaGroups=aaGroups, waveLen=128, waveCount=16)
+			CreateProteinMap2(pList, epochs=5000, repeats=1, ppl=0.2, initExag=6.0, finalExag=1.0, using3DInfo=True, aaGroups=aaGroups, waveLen=256, waveCount=32)
 		case 'ProteinMap3':
 			CreateProteinMap3(pList, epochs=5000, repeats=0, ppl=0.15, initExag=8.0, finalExag=1.0, waveLen=256, waveCount=32)
 		case 'TypeProtein':
@@ -53,9 +54,10 @@ def MainProc(menuKey):
 				vv.Return()
 			atlas = New.Atlas(atlasName)
 			atlas.MakeFloating()
-			notSelected = [ item for item in atlas.Items if item.Name not in set(pSelected) ]
-			atlas.RemoveItems(notSelected)
-			atlas.ResetView()
+			if pSelected.Count > 0:
+				notSelected = [ item for item in atlas.Items if item.Name not in set(pSelected) ]
+				atlas.RemoveItems(notSelected)
+				atlas.ResetView()
 			atlas.Show()
 
 MainProc(vv.EventSource.Item)

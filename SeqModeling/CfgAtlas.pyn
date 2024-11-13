@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps LinkSelection P-2D P-3D P-Web P-ChmX P-Open MainChain MatchMap RndV RndH TileAll
+#MenuLabels ConfigMaps P-2D P-3D P-Web P-ChmX P-Open MainChain MatchMap RndV RndH TileAll
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -36,9 +36,6 @@ def MainProc(menuKey):
 	match vv.EventSource.Item:
 		case 'ConfigMaps':
 			ConfigAtlasMaps(pp, 1000, 700, gSize=0.75, gOpacity=0.5, hiddenSize=4, reset=False)
-		case 'LinkSelection':
-			pp.OnItemsSelected = '@vv.SelectedItems = [x.Name for x in pp.GetSelectedItems()]'
-			pp.SetEventHandler('ItemsSelected', '@HighlightItems()')
 		case 'P-2D':
 			#atName = pp.AtlasName + ' 2D'
 			atName = 'Test-2D'
