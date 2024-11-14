@@ -363,7 +363,8 @@ def LoadMainChain(pId):
 	from os.path import exists
 	cacheFile = PidToMainChain(pId)
 	if exists(cacheFile):
-		nt = np.load(cacheFile)		
+		nt = np.load(cacheFile)
+		bList = None	
 	else:
 		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)
 		nt = np.empty((bList.Count, 3))

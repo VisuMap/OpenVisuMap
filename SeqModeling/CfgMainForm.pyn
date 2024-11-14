@@ -44,7 +44,7 @@ def MainProc(menuKey):
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 			CreateProteinMap2(pList, epochs=5000, repeats=1, ppl=0.2, initExag=6.0, finalExag=1.0, using3DInfo=True, aaGroups=aaGroups, waveLen=256, waveCount=32)
 		case 'ProteinMap3':
-			CreateProteinMap3(pList, epochs=5000, repeats=0, ppl=0.15, initExag=8.0, finalExag=1.0, waveLen=256, waveCount=32)
+			CreateProteinMap3(pList, epochs=5000, repeats=1, ppl=0.15, initExag=8.0, finalExag=1.0, waveLen=256, waveCount=32)
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'AtlasView':
