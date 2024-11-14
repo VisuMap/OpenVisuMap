@@ -89,28 +89,23 @@ class MapInfo():
 					dic[fs[0]] = fs[1]
 
 class AtlasMapStore():	
-	def __init__(self, atName, is3D, normalizeMap, clearAtlas):
+	def __init__(self, atName, is3D, clearAtlas):
 		self.atlas = New.Atlas(atName)
 		if clearAtlas:
 			self.atlas.Clear()
-		self.atlas.Show()
 		self.viewName = 'D3dRender' if is3D else 'MdsCluster'
-		self.atlas.TheForm.Hide()
-		self.normalizeMap = normalizeMap
 	def AddMaps(self):
 		for fm in vv.FindFormList(self.viewName):
 			item = self.atlas.CaptureItem(fm)
 			item.Name = MapInfo(fm.Description).pId
 			item.CacheImage = True
-			item.IconWidth = 50
-			item.IconHeight = 0
 	def Close(self):
 		self.atlas.Close()
 
-def NewMapStore(atName, is3D=True, clearStore=False, normalizeMap=False):
+def NewMapStore(atName, is3D=True, clearStore=False):
 	if atName is None:
 		return None
-	store = AtlasMapStore(atName, is3D, normalizeMap, clearStore)
+	store = AtlasMapStore(atName, is3D, clearStore)
 	return store
 
 #-----------------------------------------------------------
@@ -714,7 +709,7 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5,
 
 
 # arrange the map items to match the positions in the main map
-def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0):
+def MatchProteinMap(pAtlas, iconWidth=50, iconHeight=0):
 	pAtlas.BackgroundColor = New.Color(255, 0, 0, 64)	
 	pAtlas.SelectorColor = New.Color('DimGray')
 	info = MapInfo(pAtlas.Description)

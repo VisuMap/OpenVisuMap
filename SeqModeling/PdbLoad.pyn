@@ -43,7 +43,7 @@ def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True, smtRatio=0):
 	mp.GlyphSize = 0.75
 	mp.GlyphOpacity = 0.5
 	mp.Show()
-	mp.NormalizeView()
+	mp.NormalizeView()	
 
 def SelectChain(pId, bsList, acc2chain):
 	b = vv.Dataset.BodyForId(pId)
@@ -80,7 +80,7 @@ def ShowProteinList(pList, mainChain, includeHA, atName, smtRatio=0):
 
 def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=False, atName=None, 
 		stretch=0, contractFactor=1.0, iconWidth=50, smtRatio=0):
-	mapStore = NewMapStore(atName, is3D=False, clearStore=True, normalizeMap=True)	
+	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
 		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||Colored Balls')
 	mds.RefreshFreq = epochs
@@ -88,10 +88,16 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 	mds.GlyphOpacity = 1.0
 	try:
 		for k, pId in enumerate(pList):
-			localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
+			if mainChain and not includeHA:
+				bList = New.BodyList(LoadMainChain(pId))
+				localPath, bList2, pdbTitle = '-', None, '-'
+			else:
+				localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
+
 			bList = Interporlate(bList, rp=3, eps=eps, smtRatio=smtRatio)
 			if includeHA:
 				bList.AddRange(bList2)
+
 			if contractFactor != 1.0:
 				bList = New.BodyListClone(bList)
 				bList = cs.ClusterContract(bList, contractFactor)
@@ -127,7 +133,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		ma.OnAtlasShown = 'ShowSelectedProteins.pyn'
 		ma.Description = info.ToStr()
 		ma.DataChanged = True
-		ma.TheForm.Show()	
+		ma.Show()
 
 
 def GetString(L, fPDB):
