@@ -78,13 +78,12 @@ def ShowProteinList(pList, mainChain, includeHA, atName, smtRatio=0):
 		mapStore.atlas.ArrangeItems()
 		mapStore.atlas.TheForm.Show()
 
-def UnFoldProteinList(pList, epochs=1000, repeats=1, eps=0.1, mainChain=False, includeHA=False, atName=None, 
+def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=False, atName=None, 
 		stretch=0, contractFactor=1.0, iconWidth=50, smtRatio=0):
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True, normalizeMap=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
-		repeats=1, metric='EuclideanMetric', glyphSet='36 Clusters||Colored Balls')
+		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||Colored Balls')
 	mds.RefreshFreq = epochs
-	mds.AutoNormalizing = False
 	try:
 		for k, pId in enumerate(pList):
 			localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
@@ -112,10 +111,10 @@ def UnFoldProteinList(pList, epochs=1000, repeats=1, eps=0.1, mainChain=False, i
 			info.Set('MC', mainChain)
 			mds.SetTrainingData(nt)
 			vv.Title = f'Unfolding {pId}: {k+1}-th of {len(pList)}'
-			RunMds(mds, info=info, repeats=repeats)
+			RunMds(mds, info=info, repeats=0)
 			if mapStore != None:
 				mapStore.AddMaps()
-		if repeats > 0:
+		if mapStore != None:
 			mds.Close()
 	except Exception as e:
 		vv.Message(str(e))
@@ -127,7 +126,13 @@ def UnFoldProteinList(pList, epochs=1000, repeats=1, eps=0.1, mainChain=False, i
 		ma.Description = info.ToStr()
 		ma.DataChanged = True
 		ma.TheForm.Show()
-		ma.Redraw()
+		for it in ma.Items:
+			mp = it.Open()
+			mp.GlyphSize = 2.0
+			mp.ResetSize()
+			mp.Close()
+
+
 
 def GetString(L, fPDB):
 	idx = L.find('\'')

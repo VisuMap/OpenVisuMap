@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps P-2D P-3D P-Web P-ChmX P-Open MainChain MatchMap RndV RndH TileAll
+#MenuLabels ConfigMaps P-3D P-Web P-ChmX P-Open TileAll
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -9,18 +9,6 @@ def HighlightItems():
 	if not srcClassName.endswith('.VisuMapImp'):
 		sIds = set(vv.SelectedItems)
 		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])
-
-def RandmizeItemsVertical(atlas):
-	items = atlas.GetSelectedItems()
-	for item in items:
-		item.Top = random.randint(0, 10000) % (atlas.Height - 50) + 15
-	atlas.Refresh()
-
-def RandmizeItemsHorizontal(atlas):
-	items = atlas.GetSelectedItems()
-	for item in items:
-		item.Left = random.randint(0, 10000) % (atlas.Width - 50) + 15
-	atlas.Refresh()
 
 
 def MainProc(menuKey):
@@ -35,11 +23,7 @@ def MainProc(menuKey):
 			
 	match vv.EventSource.Item:
 		case 'ConfigMaps':
-			ConfigAtlasMaps(pp, 1000, 700, gSize=0.75, gOpacity=0.5, hiddenSize=4, reset=False)
-		case 'P-2D':
-			#atName = pp.AtlasName + ' 2D'
-			atName = 'Test-2D'
-			UnfoldAtlasMaps(pp, pp.GetSelectedItems(), atName, stretch=5.0, contractFactor=0.9)
+			ConfigAtlasMaps(pp, 1000, 700, gSize=0.75, gOpacity=0.5, hiddenSize=4, reset=False)			
 		case 'P-3D':
 			for e in pSelected:
 				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, mainChain=True, smtRatio=0.1) 
@@ -49,17 +33,8 @@ def MainProc(menuKey):
 			ShowChimeraX(pId)
 		case 'P-Open':  
 			OpenCifFile(pId)
-		case 'MainChain':
-			for atItem in pp.GetSelectedItems():
-				mp = atItem.Open()
-				ShowMainChain(mp)
-				mp.Close()
 		case 'MatchMap':
 			MatchProteinMap(pp, 50, 0)
-		case 'RndV':
-			RandmizeItemsVertical(pp)
-		case 'RndH':
-			RandmizeItemsHorizontal(pp)
 		case 'TileAll':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 			AtlasTileAll(pp, aaGroups, using3DInfo=False, waveLen=128, waveCount=16)

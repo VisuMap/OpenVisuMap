@@ -94,23 +94,16 @@ class AtlasMapStore():
 		if clearAtlas:
 			self.atlas.Clear()
 		self.atlas.Show()
-		self.viewName = 'D3dRender' if is3D else 'MapSnapshot'
+		self.viewName = 'D3dRender' if is3D else 'MdsCluster'
 		self.atlas.TheForm.Hide()
 		self.normalizeMap = normalizeMap
 	def AddMaps(self):
 		for fm in vv.FindFormList(self.viewName):
-			fm.TheForm.Hide()
-			if self.normalizeMap:
-				fm.GlyphSize = 1.0
-				fm.GlyphOpacity = 1.0
-				fct = 1600/(fm.Width+fm.Height)
-				fm.Width = int(fct * fm.Width)
-				fm.Height = int(fct * fm.Height)
-				fm.NormalizeView()
 			item = self.atlas.CaptureItem(fm)
 			item.Name = MapInfo(fm.Description).pId
 			item.CacheImage = True
-			fm.Close()
+			item.IconWidth = 50
+			item.IconHeight = 0
 	def Close(self):
 		self.atlas.Close()
 
@@ -718,6 +711,7 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5,
 		it.LabelStyle = 2
 		it.Name = info.pId
 		mp.Close()
+
 
 # arrange the map items to match the positions in the main map
 def MatchProteinMap(pAtlas, iconWidth=30, iconHeight=0):
