@@ -88,12 +88,12 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 	mds.GlyphOpacity = 1.0
 	try:
 		for k, pId in enumerate(pList):
-			if mainChain and not includeHA:
+			'''
+			if mainChain and not includeHA and False:
 				bList = New.BodyList(LoadMainChain(pId))
 				localPath, bList2, pdbTitle = '-', None, '-'
 			else:
 				localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
-
 			bList = Interporlate(bList, rp=3, eps=eps, smtRatio=smtRatio)
 			if includeHA:
 				bList.AddRange(bList2)

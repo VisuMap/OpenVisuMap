@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps P-3D P-Web P-ChmX P-Open TileAll
+#MenuLabels ConfigMaps P-3D P-Web P-ChmX P-Open MatchMap TileAll
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')

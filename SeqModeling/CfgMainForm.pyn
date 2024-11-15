@@ -54,11 +54,12 @@ def MainProc(menuKey):
 				vv.Message('No atlas found with the name: ' + atlasName)
 				vv.Return()
 			atlas = New.Atlas(atlasName)
-			atlas.MakeFloating()
-			if pSelected.Count > 0:
-				notSelected = [ item for item in atlas.Items if item.Name not in set(pSelected) ]
-				atlas.RemoveItems(notSelected)
-				atlas.ResetView()
+			if not vv.ModifierKeys.ControlPressed:
+				atlas.MakeFloating()
+				if pSelected.Count > 0:
+					notSelected = [ item for item in atlas.Items if item.Name not in set(pSelected) ]
+					atlas.RemoveItems(notSelected)
+					atlas.ResetView()			
 			atlas.Show()
 
 MainProc(vv.EventSource.Item)
