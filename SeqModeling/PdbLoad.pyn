@@ -360,22 +360,34 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 			bsList.Add(b)	
 	return bsList, bsList2
 
+csLoad = New.CsObject('''
+public List<IBody> LoadMainChain(string cacheFile) {
+	List<IBody> bList = new List<IBody>();
+	using( TextReader tr = new StreamReader(cacheFile) ) {
+		while(true) {
+			string line = tr.ReadLine();
+			if (line == null) break;
+			string[] fs = line.Split('|');
+			Body b = new Body(fs[0]);
+			b.Name = fs[1];
+			b.Type = short.Parse(fs[2]);
+			b.X = float.Parse(fs[3]);
+			b.Y = float.Parse(fs[4]);
+			b.Z = float.Parse(fs[5]);
+			bList.Add(b);
+		}		
+	}
+	return bList;
+}
+''')
+
 def LoadMainChain(pId):
 	from os.path import exists
 	cacheFile = PidToMainChain(pId)
 	bList = New.BodyList()
 	if exists(cacheFile):
 		print('Loading from cache')
-		with open(cacheFile, 'r') as inFile:
-			for line in inFile.readlines():
-				fs = line.split('|')
-				b = New.Body(fs[0])
-				b.Name = fs[1]
-				b.Type = int(fs[2])
-				b.X = float(fs[3])
-				b.Y = float(fs[4])
-				b.Z = float(fs[5])
-				bList.Add( b )
+		bList = csLoad.LoadMainChain(cacheFile)
 	else:
 		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)
 		with open(cacheFile, 'w') as outFile:

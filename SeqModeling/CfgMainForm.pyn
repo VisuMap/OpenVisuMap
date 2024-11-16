@@ -60,6 +60,28 @@ MainProc(vv.EventSource.Item)
 
 '''
 
+dsList = [ 	
+	'MainlyAlpha',
+	'MainlyBeta',
+	'Developmental',
+	'Immune System',
+	'Reproductive',
+	'ECODE topology',
+	'BetaSandwiches',
+	'Local-Symmetry',
+	'LocalVirus',
+	'Beta barrels',
+	'Trans regulation',
+	'Membran',
+	'Proteasome',
+	'Unstrucuted',
+	'Artifacts',
+	'Ribosome',
+	'Golgi',
+	'Mitochondrian',
+	'Diseas',
+	'TranscriptionFactor', ]
+
 aaGroups='AVILMFYW|STNQ|CGP|RHK|DE'
 'A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E'
 'AVILMFYW|STNQCGPRHKDE'
