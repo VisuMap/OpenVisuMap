@@ -6,14 +6,14 @@ def MainProc(menuKey):
 	atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}'
 	pSelected = pp.SelectedItems
 	pId = pSelected[0] if pSelected.Count > 1 else None
-	pList = lambda: pSelected if pSelected.Count > 1 else [b.Id for b in vv.Dataset.BodyListEnabled()]
+	pList = lambda: pSelected if pSelected.Count > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
 
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
 			if pSelected.Count == 1: atlasName = None
-			UnFoldProteinList(pList(), epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=20.0, iconWidth=50, smtRatio=0.0)
+			UnFoldProteinList(pList(), epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=10.0, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
 			atlasName += '-3D'
 			if pSelected.Count == 1: atlasName = None
