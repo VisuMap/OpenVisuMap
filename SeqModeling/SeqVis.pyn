@@ -274,6 +274,9 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	RunMds(mds, repeats=repeats, info=info)
 	if repeats>=1:
 		mds.Close()
+		vv.LastView.NormalizeView()
+		vv.LastView.CaptureMap()
+		vv.LastView.Close()
 
 cs3 = New.CsObject('''
 public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
@@ -324,14 +327,6 @@ def CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=10.0,  finalExag=
 #-----------------------------------------------------------------------------
 
 
-def ShowSeqInfo(pId):
-	ds = vv.Dataset
-	rIdx = ds.IndexOfRow(pId)
-	pSeq = ds.GetDataAt(rIdx, 2)
-	pGene = ds.BodyList[rIdx].Name			
-	pLen = int(ds.GetDataAt(rIdx, 3))
-	sTitle = f'Protein: {pGene}, {pId}, L:{pLen}'
-	New.TextPanel(sTitle, pSeq).Show()
 
 def ShowWeb(pId):
 	if vv.Dataset.ColumnSpecList[0].Id == 'PID':
@@ -840,7 +835,9 @@ def AtlasTileAll(atlas, aaGroups, using3DInfo=False, waveLen=128, waveCount=16):
 def TypeProteinList(pList):
 	ft = New.FreeTable()
 	ft.AddColumn('Len', True)
-	for pId in pList:
+	for k, pId in enumerate(pList):
+		if k % 50 == 0:
+			vv.Title = f'Loading: {k}-th seq. of {len(pList)}'
 		sLen = len( LoadMainSeq(pId) )
 		ft.AddRow(pId, 0, [str(sLen)])
 	tb = ft.ShowAsTable()

@@ -1,29 +1,19 @@
-#MenuLabels P-ChmX P-Web P-2D P-3D SeqMap P-LSeq P-Open Sh-LocPDB ProteinMap ProteinMap2 ProteinMap3 TypeProtein AtlasView
+#MenuLabels P-ChmX P-Web P-3D SeqMap P-Open Sh-LocPDB ProteinMap ProteinMap3 AtlasView TypeProtein P-2D ProteinMap2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
 def MainProc(menuKey):
-	pSelected = pp.SelectedItems
 	atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}'
-	if menuKey.startswith('P-'):
-		if pSelected.Count == 0:
-			pId = vv.GuiManager.GetClipboard()
-			if len(pId) != 4:
-				vv.Message('No protein selected')
-				return
-			pSelected = [ pId ]
-		else:
-			pId = pSelected[0]
-	else:
-		pList = pSelected if pSelected.Count > 1 else [b.Id for b in vv.Dataset.BodyListEnabled()]
+	pSelected = pp.SelectedItems
+	pId = pSelected[0] if pSelected.Count > 1 else None
+	pList = lambda: pSelected if pSelected.Count > 1 else [b.Id for b in vv.Dataset.BodyListEnabled()]
 
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
-		case 'P-LSeq': ShowSeqInfo(pId)
 		case 'P-2D':
 			if pSelected.Count == 1: atlasName = None
-			UnFoldProteinList(pSelected, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.1, iconWidth=50, smtRatio=0.0)
+			UnFoldProteinList(pList(), epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=20.0, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
 			atlasName += '-3D'
 			if pSelected.Count == 1: atlasName = None
@@ -34,20 +24,23 @@ def MainProc(menuKey):
 			if pSelected.Count == 1: atlasName = None
 			CreateSeqMaps(pSelected, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
 		case 'P-Open': 
+			if pId == None:
+				vv.Message('No protein selected')
+				vv.Return()
 			OpenCifFile(pId)
 		case 'Sh-LocPDB':
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'ProteinMap':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap(pList, epochs=2000, ppl=0.0015, aaGroups=aaGroups, sections=10)
+			CreateProteinMap(pList(), epochs=2000, ppl=0.0015, aaGroups=aaGroups, sections=10)
 		case 'ProteinMap2':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap2(pList, epochs=5000, repeats=1, ppl=0.2, initExag=6.0, finalExag=1.0, using3DInfo=True, aaGroups=aaGroups, waveLen=256, waveCount=32)
+			CreateProteinMap2(pList(), epochs=5000, repeats=1, ppl=0.2, initExag=6.0, finalExag=1.0, using3DInfo=True, aaGroups=aaGroups, waveLen=256, waveCount=32)
 		case 'ProteinMap3':
-			CreateProteinMap3(pList, epochs=5000, repeats=1, ppl=0.15, initExag=8.0, finalExag=1.0, waveLen=256, waveCount=32)
+			CreateProteinMap3(pList(), epochs=5000, repeats=1, ppl=0.15, initExag=8.0, finalExag=1.0, waveLen=256, waveCount=32)
 		case 'TypeProtein':
-			TypeProteinList(pList)
+			TypeProteinList(pList())
 		case 'AtlasView':
 			atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}'
 			if atlasName not in vv.AtlasManager.GetAtlasList():
@@ -66,13 +59,11 @@ MainProc(vv.EventSource.Item)
 
 
 '''
-aaGroups = 'RHK|DE'
-aaGroups = 'A|V'
-aaGroups = 'RHK|DE'
-aaGroups = 'A|V|L'
-'AVILMFYW|STNQ|CGP|RHK|DE'
+
+aaGroups='AVILMFYW|STNQ|CGP|RHK|DE'
 'A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E'
 'AVILMFYW|STNQCGPRHKDE'
 'AVILMFYW|STNQ|C|G|P|RHK|DE'
 'GAVMLIP|FY|STNQCW|DE|HKR
+
 '''

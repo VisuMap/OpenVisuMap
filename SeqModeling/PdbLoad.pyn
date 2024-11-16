@@ -6,17 +6,11 @@ def PidToPath(pId):
 		raise Exception('invalid protein ID')
 	return f'c:/temp/PdbCache/{pId[:4]}.cif'
 
-# get cache file for the main chain sequence
-def PidToSeqPath(pId):
-	if len(pId)<4:
-		raise Exception('invalid protein ID')
-	return f'c:/temp/MainChainSeq/{pId}.seq'
-
 # get cache npy file for the main chain.
 def PidToMainChain(pId):
 	if len(pId)<4:
 		raise Exception('invalid protein ID')
-	return f'c:/temp/MainChain/{pId}.npy'
+	return f'c:/temp/MainChain/{pId}.pmc'
 
 
 def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True, smtRatio=0):
@@ -88,14 +82,12 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 	mds.GlyphOpacity = 1.0
 	try:
 		for k, pId in enumerate(pList):
-			'''
 			if mainChain and not includeHA:
 				bList = New.BodyList(LoadMainChain(pId))
 				localPath, bList2, pdbTitle = '-', None, '-'
 			else:
 				localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
-			'''
-			localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
+
 			bList = Interporlate(bList, rp=3, eps=eps, smtRatio=smtRatio)
 			if includeHA:
 				bList.AddRange(bList2)
@@ -104,8 +96,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 				bList = New.BodyListClone(bList)
 				bList = cs.ClusterContract(bList, contractFactor)
 			nt = New.NumberTable(bList,3)
-			if stretch != 0:
-				AugmentByIndex(nt, stretch=stretch)
+			nt = AugmentByIndex(nt, stretch=stretch)
 			
 			info = MapInfo()
 			info.SF = stretch
@@ -122,6 +113,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			mds.SetTrainingData(nt)
 			vv.Title = f'Unfolding {pId}: {k+1}-th of {len(pList)}'
 			RunMds(mds, info=info, repeats=0)
+
 			if mapStore != None:
 				mapStore.AddMaps()
 		if mapStore != None:
@@ -371,30 +363,40 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 def LoadMainChain(pId):
 	from os.path import exists
 	cacheFile = PidToMainChain(pId)
+	bList = New.BodyList()
 	if exists(cacheFile):
-		nt = np.load(cacheFile)
-		bList = None	
+		print('Loading from cache')
+		with open(cacheFile, 'r') as inFile:
+			for line in inFile.readlines():
+				fs = line.split('|')
+				b = New.Body(fs[0])
+				b.Name = fs[1]
+				b.Type = int(fs[2])
+				b.X = float(fs[3])
+				b.Y = float(fs[4])
+				b.Z = float(fs[5])
+				bList.Add( b )
 	else:
 		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)
-		nt = np.empty((bList.Count, 3))
-		for k, b in enumerate(bList):
-			nt[k] = b.X, b.Y, b.Z
-		np.save(cacheFile, nt)
-	return mm.ToTable(nt, bList)	
+		with open(cacheFile, 'w') as outFile:
+			for b in bList:
+				outFile.write(f'{b.Id}|{b.Name}|{b.Type}|{b.X:.2f}|{b.Y:.2f}|{b.Z:.2f}\n')
+	return New.NumberTable(bList, 3)
 
 def LoadMainSeq(pId):
 	from os.path import exists
-	cacheFile = PidToSeqPath(pId)
+	cacheFile = PidToMainChain(pId)
+	seq = []
 	if exists(cacheFile):
 		with open(cacheFile, 'r') as inFile:
-			seq = inFile.read()
+			for line in inFile.readlines():
+				idx = line.index('|')
+				seq.append(line[idx+1])
 	else:
-		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)
-		seq = ''.join( [ b.Name[0] for b in bList ] ) 
-		with open(cacheFile, 'w') as outFile:
-			outFile.write(seq)
-	return seq
-
+		nt = LoadMainChain(pId)
+		for rs in nt.RowSpecList:
+			seq.append(rs.Name[0])
+	return ''.join(seq)
 
 def Interporlate(bsList, rp, eps, smtRatio=0):
 	bs = New.BodyList()
