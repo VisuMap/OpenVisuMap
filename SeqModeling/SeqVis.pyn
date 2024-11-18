@@ -834,12 +834,14 @@ def AtlasTileAll(atlas, aaGroups, using3DInfo=False, waveLen=128, waveCount=16):
 def TypeProteinList(pList):
 	ft = New.FreeTable()
 	ft.AddColumn('Len', True)
+	ft.AddRows('A', len(pList))
 	for k, pId in enumerate(pList):
-		if k % 50 == 0:
+		if k % 500 == 0:
 			vv.Title = f'Loading: {k}-th seq. of {len(pList)}'
 			vv.DoEvents()
 		sLen = len( LoadMainSeq(pId) )
-		ft.AddRow(pId, 0, [str(sLen)])
+		ft.RowSpecList[k].Id = pId
+		ft.Matrix[k][0] = str(sLen)
 	tb = ft.ShowAsTable()
 	tb.SortOnColumn('Len', True)
 	tb.SelectedItems = [ 'Len' ]

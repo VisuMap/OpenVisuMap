@@ -33,6 +33,20 @@ public List<IBody> LoadMainChain(string cacheFile) {
 	return bList;
 }
 
+public string LoadMainSeq(string cacheFile) {
+	StringBuilder sb = new StringBuilder();
+	using( TextReader tr = new StreamReader(cacheFile) ) {
+		while(true) {
+			string line = tr.ReadLine();
+			if (line == null) 
+				break;
+			int idx = line.IndexOf('|');
+			sb.Append(line[idx+1]);
+		}
+	}
+	return sb.ToString();
+}
+
 public void MinimizeView(IForm frm) {
 	frm.TheForm.Activate();
 	frm.TheForm.WindowState = (System.Windows.Forms.FormWindowState)1;
@@ -409,17 +423,15 @@ def LoadMainChain(pId):
 def LoadMainSeq(pId):
 	from os.path import exists
 	cacheFile = PidToMainChain(pId)
-	seq = []
 	if exists(cacheFile):
-		with open(cacheFile, 'r') as inFile:
-			for line in inFile.readlines():
-				idx = line.index('|')
-				seq.append(line[idx+1])
+		return csLoad.LoadMainSeq(cacheFile)
 	else:
+		seq = []
 		nt = LoadMainChain(pId)
 		for rs in nt.RowSpecList:
 			seq.append(rs.Name[0])
-	return ''.join(seq)
+		return ''.join(seq)
+
 
 def Interporlate(bsList, rp, eps, smtRatio=0):
 	bs = New.BodyList()
