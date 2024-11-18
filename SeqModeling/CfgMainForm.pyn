@@ -13,7 +13,7 @@ def MainProc(menuKey):
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
 			if pSelected.Count == 1: atlasName = None
-			UnFoldProteinList(pList(), epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=10.0, iconWidth=50, smtRatio=0.0)
+			UnFoldProteinList(pList(), epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.0, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
 			atlasName += '-3D'
 			if pSelected.Count == 1: atlasName = None
@@ -82,10 +82,14 @@ dsList = [
 	'Diseas',
 	'TranscriptionFactor', ]
 
+for ds in dsList[12:]:
+	vv.OpenDatasetMap(ds, 'mapK')
+	vv.ClickMenu('SeqVis/P-2D')
+	vv.FindFormList('Atlas')[0].Close()
+
 aaGroups='AVILMFYW|STNQ|CGP|RHK|DE'
 'A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E'
 'AVILMFYW|STNQCGPRHKDE'
 'AVILMFYW|STNQ|C|G|P|RHK|DE'
 'GAVMLIP|FY|STNQCW|DE|HKR
-
 '''

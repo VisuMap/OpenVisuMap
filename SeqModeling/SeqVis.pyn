@@ -501,7 +501,6 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1,
 	mds.GlyphSize = glyphSize
 	mds.StagedTraining = False
 	mds.ExaggerationSmoothen = True
-	#mds.GlyphSet = 'C12|||||||||||'
 	mds.GlyphSet = vv.Map.GlyphType if glyphSet==None else glyphSet
 	return mds
 

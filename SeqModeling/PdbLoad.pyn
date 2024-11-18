@@ -1,4 +1,5 @@
 # functions to import and process pdb/cif files.
+import time
 
 # get the path for the cached (PDB) CIF file.
 def PidToPath(pId):
@@ -12,6 +13,31 @@ def PidToMainChain(pId):
 		raise Exception('invalid protein ID')
 	return f'c:/temp/MainChain/{pId}.pmc'
 
+csLoad = New.CsObject('''
+public List<IBody> LoadMainChain(string cacheFile) {
+	List<IBody> bList = new List<IBody>();
+	using( TextReader tr = new StreamReader(cacheFile) ) {
+		while(true) {
+			string line = tr.ReadLine();
+			if (line == null) break;
+			string[] fs = line.Split('|');
+			Body b = new Body(fs[0]);
+			b.Name = fs[1];
+			b.Type = short.Parse(fs[2]);
+			b.X = float.Parse(fs[3]);
+			b.Y = float.Parse(fs[4]);
+			b.Z = float.Parse(fs[5]);
+			bList.Add(b);
+		}		
+	}
+	return bList;
+}
+
+public void MinimizeView(IForm frm) {
+	frm.TheForm.Activate();
+	frm.TheForm.WindowState = (System.Windows.Forms.FormWindowState)1;
+}
+''')
 
 def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True, smtRatio=0):
 	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
@@ -81,6 +107,9 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 	mds.GlyphSize = 2.0
 	mds.GlyphOpacity = 1.0
 	mds.ExaggerationSmoothen = False
+	if mapStore != None:
+		csLoad.MinimizeView(mds)
+	time0 = time.time()
 	try:
 		for k, pId in enumerate(pList):
 			if mainChain and not includeHA:
@@ -88,6 +117,9 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 				localPath, bList2, pdbTitle = '-', None, '-'
 			else:
 				localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
+
+			seqLen = bList.Count
+			seqHd = ''.join([ b.Name[0] for b in list(bList)[:8] ])
 
 			bList = Interporlate(bList, rp=3, eps=eps, smtRatio=smtRatio)
 			if includeHA:
@@ -112,7 +144,8 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			info.Set('Eps', eps)
 			info.Set('MC', mainChain)
 			mds.SetTrainingData(nt)
-			vv.Title = f'Unfolding {pId}: {k+1}-th of {len(pList)}'
+			vv.Title = f'Unfolding {pId}: {k+1}-th of {len(pList)}; L:{seqLen}, Sq:{seqHd}...'
+			vv.DoEvents()
 			RunMds(mds, info=info, repeats=0)
 
 			if mapStore != None:
@@ -126,10 +159,11 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		MatchProteinMap(ma, iconWidth, 0)
 		ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 		ma.OnAtlasShown = 'ShowSelectedProteins.pyn'
+		tm = time.time() - time0
+		info.Set('Tm', f'{tm:.1f}s')
 		ma.Description = info.ToStr()
-		ma.DataChanged = True
 		ma.Show()
-
+		ma.DataChanged = True # since the Show() clears the DataChanged flag.
 
 def GetString(L, fPDB):
 	idx = L.find('\'')
@@ -361,33 +395,11 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 			bsList.Add(b)	
 	return bsList, bsList2
 
-csLoad = New.CsObject('''
-public List<IBody> LoadMainChain(string cacheFile) {
-	List<IBody> bList = new List<IBody>();
-	using( TextReader tr = new StreamReader(cacheFile) ) {
-		while(true) {
-			string line = tr.ReadLine();
-			if (line == null) break;
-			string[] fs = line.Split('|');
-			Body b = new Body(fs[0]);
-			b.Name = fs[1];
-			b.Type = short.Parse(fs[2]);
-			b.X = float.Parse(fs[3]);
-			b.Y = float.Parse(fs[4]);
-			b.Z = float.Parse(fs[5]);
-			bList.Add(b);
-		}		
-	}
-	return bList;
-}
-''')
-
 def LoadMainChain(pId):
 	from os.path import exists
 	cacheFile = PidToMainChain(pId)
 	bList = New.BodyList()
 	if exists(cacheFile):
-		print('Loading from cache')
 		bList = csLoad.LoadMainChain(cacheFile)
 	else:
 		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)
