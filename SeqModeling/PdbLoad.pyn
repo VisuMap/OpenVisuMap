@@ -117,9 +117,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 				localPath, bList2, pdbTitle = '-', None, '-'
 			else:
 				localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
-
 			seqLen = bList.Count
-			seqHd = ''.join([ b.Name[0] for b in list(bList)[:8] ])
 
 			bList = Interporlate(bList, rp=3, eps=eps, smtRatio=smtRatio)
 			if includeHA:
@@ -144,7 +142,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			info.Set('Eps', eps)
 			info.Set('MC', mainChain)
 			mds.SetTrainingData(nt)
-			vv.Title = f'Unfolding {pId}: {k+1}-th of {len(pList)}; L:{seqLen}, Sq:{seqHd}...'
+			vv.Title = f'Unfolding {pId}: {k+1}-th of {len(pList)}; L:{seqLen}'
 			vv.DoEvents()
 			RunMds(mds, info=info, repeats=0)
 
