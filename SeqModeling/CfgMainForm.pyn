@@ -5,7 +5,7 @@ vv.Import('PdbLoad.pyn')
 def MainProc(menuKey):
 	atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}'
 	pSelected = pp.SelectedItems
-	pId = pSelected[0] if pSelected.Count > 1 else None
+	pId = pSelected[0] if pSelected.Count > 0 else None
 	pList = lambda: pSelected if pSelected.Count > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
 
 	match menuKey:
