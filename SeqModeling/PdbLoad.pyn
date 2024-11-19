@@ -53,7 +53,7 @@ public void MinimizeView(IForm frm) {
 }
 ''')
 
-def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True, smtRatio=0):
+def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75):
 	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
 	bsList = Interporlate(bsList, rp, eps, smtRatio=smtRatio)
 	if includeHA:
@@ -74,8 +74,8 @@ def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True, smtRatio=0):
 	mp.ReadOnly = True
 	mp.ShowPerformance = False
 	mp.ShowBoundingBox = False
-	mp.GlyphSize = 0.75
-	mp.GlyphOpacity = 0.5
+	mp.GlyphSize = glyphSize
+	mp.GlyphOpacity = glyphOpacity
 	mp.Show()
 	mp.NormalizeView()	
 
@@ -98,14 +98,14 @@ def SelectChain(pId, bsList, acc2chain):
 			bsList2.Add(b2)
 	return bsList2 if bsList2.Count > 0 else bsList
 
-def ShowProteinList(pList, mainChain, includeHA, atName, smtRatio=0):
+def ShowProteinList(pList, mainChain, includeHA, atName, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75):
 	mapStore = NewMapStore(atName, is3D=True, clearStore=True)
 	if mapStore != None:
 		mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
 		mapStore.atlas.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 	for k, pId in enumerate(pList):
 		vv.Title = f'Loading {pId}: {k+1}-th of {len(pList)}'
-		ShowPDB(pId, mainChain=mainChain, includeHA=includeHA, smtRatio=smtRatio)
+		ShowPDB(pId, mainChain=mainChain, includeHA=includeHA, smtRatio=smtRatio, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
 		if mapStore != None:	
 			mapStore.AddMaps()
 	if mapStore != None:
@@ -156,7 +156,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			info.Set('Eps', eps)
 			info.Set('MC', mainChain)
 			mds.SetTrainingData(nt)
-			vv.Title = f'Unfolding {pId}: {k+1}-th of {len(pList)}; L:{seqLen}'
+			vv.Title = f'Unfolding {pId}/{seqLen}: {k+1}-th of {len(pList)}'
 			vv.DoEvents()
 			RunMds(mds, info=info, repeats=0)
 

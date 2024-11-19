@@ -25,8 +25,9 @@ def MainProc(menuKey):
 		case 'ConfigMaps':
 			ConfigAtlasMaps(pp, 1000, 700, gSize=0.75, gOpacity=0.5, hiddenSize=4, reset=False)			
 		case 'P-3D':
+			justMainChain = vv.ModifierKeys.ControlPressed
 			for e in pSelected:
-				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, mainChain=True, smtRatio=0.1) 
+				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, mainChain=justMainChain, smtRatio=0.0) 
 		case 'P-Web':
 			ShowWeb(pId)
 		case 'P-ChmX':

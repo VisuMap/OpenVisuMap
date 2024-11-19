@@ -17,7 +17,8 @@ def MainProc(menuKey):
 		case 'P-3D':
 			atlasName += '-3D'
 			if pSelected.Count == 1: atlasName = None
-			ShowProteinList(pSelected, mainChain=False, includeHA=False, atName=atlasName, smtRatio=0.0)
+			justMainChain = vv.ModifierKeys.ControlPressed
+			ShowProteinList(pSelected, mainChain=justMainChain, includeHA=False, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
 		case 'SeqMap':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 			atlasName += '-Seq'
@@ -36,7 +37,7 @@ def MainProc(menuKey):
 			CreateProteinMap(pList(), epochs=2000, ppl=0.0015, aaGroups=aaGroups, sections=10)
 		case 'ProteinMap2':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap2(pList(), epochs=5000, repeats=1, ppl=0.2, initExag=6.0, finalExag=1.0, using3DInfo=True, aaGroups=aaGroups, waveLen=256, waveCount=32)
+			CreateProteinMap2(pList(), epochs=5000, repeats=1, ppl=0.1, initExag=3.0, finalExag=1.0, using3DInfo=True, aaGroups=aaGroups, waveLen=256, waveCount=32)
 		case 'ProteinMap3':
 			CreateProteinMap3(pList(), epochs=5000, repeats=1, ppl=0.15, initExag=8.0, finalExag=1.0, waveLen=256, waveCount=32)
 		case 'TypeProtein':

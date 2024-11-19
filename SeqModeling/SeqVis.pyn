@@ -99,6 +99,8 @@ class AtlasMapStore():
 			item = self.atlas.CaptureItem(fm)
 			item.Name = MapInfo(fm.Description).pId
 			item.CacheImage = True
+			if fm.Name == 'D3dRender':
+				fm.Close()
 	def Close(self):
 		self.atlas.Close()
 
@@ -275,8 +277,8 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	if repeats>=1:
 		mds.Close()
 		vv.LastView.NormalizeView()
-		vv.LastView.CaptureMap()
-		vv.LastView.Close()
+		#vv.LastView.CaptureMap()
+		#vv.LastView.Close()
 
 cs3 = New.CsObject('''
 public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
@@ -524,7 +526,7 @@ def ShowMapData(pMap):
 	nt = New.NumberTable(pp.BodyListEnabled(), 3)
 	nt.ShowHeatMap().NormalizeView()
 
-def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, repeats=1, saveTo=None, glyphSize=0.8, ppl=0.05,
+def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, glyphSize=1.75, ppl=0.05,
 		glyphOpacity=0.5, is3D=False, initExag=10.0, finalExag=1.0, augCfg='a|500|2.0|2.0'):
 	if len(pList) <= 0:
 		vv.Message("No protein group selected")
@@ -534,6 +536,8 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, repeats=1, saveT
 	mds.GlyphSet = '36 Clusters'
 	mds.GlyphSize = glyphSize
 	mds.GlyphOpacity = glyphOpacity
+	mds.AutoNormalizing = True
+	mds.RefreshFreq = 500
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.AugCfg = augCfg
 	info.Mtd = 'Frg'
@@ -555,21 +559,15 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, repeats=1, saveT
 		info.pId = pId
 		info.pLen = len(pSeq)
 		vv.Title = f'Embedding sequence {pId}: {k+1}-th of {len(pList)}'
-		RunMds(mds, repeats=repeats, info=info)
-		map = vv.LastView
-		map.Title = f'{k}: {pId}, N: {nt.Rows}'
-		map.Description = info.ToStr()
-		map.NormalizeView()
+		RunMds(mds, repeats=0, info=info)
 		if mapStore != None:
 			mapStore.AddMaps()
-
-	if repeats > 0:
-		mds.Close()
+	mds.Close()
 	if mapStore != None: 
 		ma = mapStore.atlas
 		ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 		ma.Description = info.ToStr()
-		ma.ArrangeItems()
+		MatchProteinMap(ma, 75, 0)
 		ma.Show()
 
 def Scanning(pMap, stride=100, stepSize=20, broadcasting=False):
