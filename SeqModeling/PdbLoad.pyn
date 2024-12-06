@@ -468,3 +468,58 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, contractFactor=1
 	vv.LastView.Title = winTitle
 	if repeats != 0:
 		mds.Close()
+
+def LoadChains(pId):
+	_, bList, _, pdbTitle = LoadCifData(pId, mainChain=False)
+	chList = []
+	chType = -1    # current chain type
+	chName = ''	  # current chain name.
+	seqList = []
+	for b in bList:
+		if b.Type == chType:
+			seqList.append(b.Name[0])
+		else:
+			if len(seqList) > 0:
+				pSeq = ''.join(seqList)		
+				chList.append( (chName, pSeq, len(pSeq)) )
+			chType = b.Type
+			fs = b.Name.split('.')
+			chName = fs[2]
+			seqList = [ fs[0] ]
+	if len(seqList) > 0:
+		pSeq = ''.join(seqList)		
+		chList.append( (chName, pSeq, len(pSeq)) )
+
+	# remove repeats:
+	chSet = {}
+	chIdSet = {}
+	for (chId, pSeq, seqLen) in chList:
+		if pSeq in chSet:
+			chSet[pSeq] += 1
+		else:
+			chSet[pSeq] = 1
+			chIdSet[pSeq] = chId
+	ds = vv.Dataset
+	for k, ch in enumerate(chSet):
+		chId = chIdSet[ch]
+		repeats = chSet[ch]
+		chLen = len(ch)
+		ds.AddRow(f'{pId}_{k}', chId,  0, list([pId, str(repeats), ch, str(chLen)]))
+	return len(chSet)
+
+def LoadAllChains():
+	import os
+	pList = []
+	for f in os.listdir('c:/temp/PDBCache'):
+		if f.endswith('.cif'):
+			pList.append(f[:4])
+	chCount = 0
+	for k, pId in enumerate(pList):
+		print(k, ': ', pId, chCount)
+		chCount += LoadChains(pId)
+		vv.DoEvents()
+	vv.Dataset.CommitChanges()
+
+'''
+LoadAllChains()
+'''
