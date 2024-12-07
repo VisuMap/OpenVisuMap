@@ -509,13 +509,11 @@ def LoadChains(pId):
 
 def LoadAllChains():
 	import os
-	pList = []
-	for f in os.listdir('c:/temp/PDBCache'):
-		if f.endswith('.cif'):
-			pList.append(f[:4])
+	pList = [f[:4] for f in os.listdir('c:/temp/PDBCache') if f.endswith('.cif')]	
 	chCount = 0
 	for k, pId in enumerate(pList):
-		print(k, ': ', pId, chCount)
+		if k%50 == 0:
+			print(k, ': ', pId, chCount)
 		chCount += LoadChains(pId)
 		vv.DoEvents()
 	vv.Dataset.CommitChanges()
