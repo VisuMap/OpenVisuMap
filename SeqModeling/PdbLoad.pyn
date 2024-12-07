@@ -53,8 +53,8 @@ public void MinimizeView(IForm frm) {
 }
 ''')
 
-def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, includeHA=True, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75):
-	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
+def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, chainNames=None, includeHA=True, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75):
+	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, mainChain=mainChain, chainNames=chainNames)
 	bsList = Interporlate(bsList, rp, eps, smtRatio=smtRatio)
 	if includeHA:
 		bsList.AddRange(bsList2)
@@ -103,9 +103,11 @@ def ShowProteinList(pList, mainChain, includeHA, atName, smtRatio=0, glyphSize=1
 	if mapStore != None:
 		mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
 		mapStore.atlas.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
+	hasChainName = vv.Dataset.ColumnSpecList[1].Id == 'Repeats'
 	for k, pId in enumerate(pList):
 		vv.Title = f'Loading {pId}: {k+1}-th of {len(pList)}'
-		ShowPDB(pId, mainChain=mainChain, includeHA=includeHA, smtRatio=smtRatio, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
+		chainNames = [ vv.Dataset.BodyForId(pId).Name ] if hasChainName else None
+		ShowPDB(pId, mainChain=mainChain, chainNames=chainNames, includeHA=includeHA, smtRatio=smtRatio, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
 		if mapStore != None:	
 			mapStore.AddMaps()
 	if mapStore != None:
@@ -203,7 +205,7 @@ def GetAcc2Chain(fPDB):
 	return dict		
 	
 
-def LoadCifData(pId, mainChain=False):
+def LoadCifData(pId, mainChain=False, chainNames=None):
 	localPath = pId if pId.endswith('.cif') else Download3DInfo(pId[:4])
 	try:
 		bsList, bsList2 = New.BodyList(), New.BodyList()
@@ -228,7 +230,7 @@ def LoadCifData(pId, mainChain=False):
 				elif L.startswith('_struct_ref_seq.align_id'):
 					acc2chain = GetAcc2Chain(fPDB)
 				elif L.startswith('_atom_site.'):
-					bsList, bsList2 = LoadAtoms(fPDB, helixSet, betaSet)
+					bsList, bsList2 = LoadAtoms(fPDB, helixSet, betaSet, chainNames)
 					break	
 	except Exception as err:
 		print(err, f'Last Line:\n {bsList.Count}: |{L}|')
@@ -341,11 +343,12 @@ def LoadHelix2(fPDB, helixSet):
 		for i in range(idx0, idx1):
 			helixSet.add(i)
 
-def LoadAtoms(fPDB, helixSet, betaSet):
+def LoadAtoms(fPDB, helixSet, betaSet, chainNames=None):
 	bsList = New.BodyList()
 	bsList2 = New.BodyList() # for hetero atoms
 	ch2idx = ChainIndex()
 	rsIdxPre = -1
+	selectedChain = set(chainNames) if chainNames != None else None
 	for L in fPDB:
 		if L[0] == '#':
 			break
@@ -355,11 +358,15 @@ def LoadAtoms(fPDB, helixSet, betaSet):
 		if len(fs) < 21:
 			vv.Message(f'Invalid record: {len(fs)}: |{L}|')
 			vv.Return()		
-		
+
+		chName = fs[18] + '_' + fs[20]
+		if selectedChain != None:
+			if chName not in selectedChain:
+				ch2idx.Lookup(chName)
+				continue
 		rsX, rsY, rsZ = float(fs[10]), float(fs[11]), -float(fs[12])	
 		atName = fs[3].strip('\"')
 		rsName = fs[5]
-		chName = fs[18] + '_' + fs[20]
 		secType = 'x'  # default secondary type
 
 		if fs[0] == 'ATOM':
