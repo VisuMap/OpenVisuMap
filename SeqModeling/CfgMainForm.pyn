@@ -1,34 +1,32 @@
-#MenuLabels P-ChmX P-Web P-3D SeqMap P-Open Sh-LocPDB ProteinMap ProteinMap3 AtlasView TypeProtein P-2D ProteinMap2
+#MenuLabels P-ChmX P-Web P-3D SeqMap P-Open Sh-LocPDB AtlasView TypeProtein P-2D ProteinMap
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
-def SortByY(idList):
-	bList = list(vv.Dataset.BodyListForId(idList))
-	bList.sort(key=lambda b: b.Y)
-	return New.StringArray([b.Id for b in bList])
+def SortByPosX(idList):
+	idList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
 
 def MainProc(menuKey):
 	atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}'
-	pSelected = pp.SelectedItems
-	pId = pSelected[0] if pSelected.Count > 0 else None
-	pList = lambda: pSelected if pSelected.Count > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
+	pSelected = list(pp.SelectedItems)
+	pId = pSelected[0] if len(pSelected) > 0 else None
+	pList = lambda: pSelected if len(pSelected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
 
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
-			if pSelected.Count == 1: atlasName = None
+			if len(pSelected) == 1: atlasName = None
 			UnFoldProteinList(pList(), epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.0, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
 			atlasName += '-3D'
-			#pSelected = SortByY(pSelected)
-			if pSelected.Count == 1: atlasName = None
+			SortByPosX(pSelected)
+			if len(pSelected) == 1: atlasName = None
 			justMainChain = vv.ModifierKeys.ControlPressed
 			ShowProteinList(pSelected, mainChain=justMainChain, includeHA=False, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
 		case 'SeqMap':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 			atlasName += '-Seq'
-			if pSelected.Count == 1: atlasName = None
+			if len(pSelected) == 1: atlasName = None
 			CreateSeqMaps(pSelected, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
 		case 'P-Open': 
 			if pId == None:
@@ -40,13 +38,8 @@ def MainProc(menuKey):
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'ProteinMap':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap(pList(), epochs=2000, ppl=0.0015, aaGroups=aaGroups, sections=10)
-		case 'ProteinMap2':
-			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 			CreateProteinMap2(pList(), epochs=5000, repeats=1, ppl=0.2, initExag=4.0, finalExag=0.5, 
 					using3DInfo=False, aaGroups=aaGroups, waveLen=256, waveCount=32)
-		case 'ProteinMap3':
-			CreateProteinMap3(pList(), epochs=5000, repeats=1, ppl=0.15, initExag=8.0, finalExag=1.0, waveLen=256, waveCount=32)
 		case 'TypeProtein':
 			TypeProteinList(pList())
 		case 'AtlasView':
@@ -57,7 +50,7 @@ def MainProc(menuKey):
 			atlas = New.Atlas(atlasName)
 			if not vv.ModifierKeys.ControlPressed:
 				atlas.MakeFloating()
-				if pSelected.Count > 0:
+				if len(pSelected) > 0:
 					notSelected = [ item for item in atlas.Items if item.Name not in set(pSelected) ]
 					atlas.RemoveItems(notSelected)
 					atlas.ResetView()			
