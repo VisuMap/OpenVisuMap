@@ -77,7 +77,7 @@ def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, chainNames=None, includeHA=True
 	mp.GlyphSize = glyphSize
 	mp.GlyphOpacity = glyphOpacity
 	mp.Show()
-	mp.NormalizeView()	
+	mp.NormalizeView()
 
 def SelectChain(pId, bsList, acc2chain):
 	b = vv.Dataset.BodyForId(pId)
@@ -111,8 +111,13 @@ def ShowProteinList(pList, mainChain, includeHA, atName, smtRatio=0, glyphSize=1
 		if mapStore != None:	
 			mapStore.AddMaps()
 	if mapStore != None:
-		mapStore.atlas.ArrangeItems()
-		mapStore.atlas.TheForm.Show()
+		ma = mapStore.atlas
+		ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
+		ma.OnAtlasShown = 'ShowSelectedProteins.pyn'
+		for item in ma.Items: 
+			item.IconWidth = 250
+		ma.Show()
+		ma.ArrangeItems()
 
 def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=False, atName=None, 
 		stretch=0, contractFactor=1.0, iconWidth=50, smtRatio=0):

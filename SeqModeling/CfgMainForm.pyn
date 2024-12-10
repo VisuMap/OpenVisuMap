@@ -2,6 +2,11 @@
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
+def SortByY(idList):
+	bList = list(vv.Dataset.BodyListForId(idList))
+	bList.sort(key=lambda b: b.Y)
+	return New.StringArray([b.Id for b in bList])
+
 def MainProc(menuKey):
 	atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}'
 	pSelected = pp.SelectedItems
@@ -16,6 +21,7 @@ def MainProc(menuKey):
 			UnFoldProteinList(pList(), epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.0, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
 			atlasName += '-3D'
+			#pSelected = SortByY(pSelected)
 			if pSelected.Count == 1: atlasName = None
 			justMainChain = vv.ModifierKeys.ControlPressed
 			ShowProteinList(pSelected, mainChain=justMainChain, includeHA=False, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
@@ -37,7 +43,7 @@ def MainProc(menuKey):
 			CreateProteinMap(pList(), epochs=2000, ppl=0.0015, aaGroups=aaGroups, sections=10)
 		case 'ProteinMap2':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap2(pList(), epochs=1000, repeats=1, ppl=0.2, initExag=3.0, finalExag=1.0, 
+			CreateProteinMap2(pList(), epochs=5000, repeats=1, ppl=0.2, initExag=4.0, finalExag=0.5, 
 					using3DInfo=False, aaGroups=aaGroups, waveLen=256, waveCount=32)
 		case 'ProteinMap3':
 			CreateProteinMap3(pList(), epochs=5000, repeats=1, ppl=0.15, initExag=8.0, finalExag=1.0, waveLen=256, waveCount=32)
@@ -94,4 +100,19 @@ aaGroups='AVILMFYW|STNQ|CGP|RHK|DE'
 'AVILMFYW|STNQCGPRHKDE'
 'AVILMFYW|STNQ|C|G|P|RHK|DE'
 'GAVMLIP|FY|STNQCW|DE|HKR
+
+modOp = NewModuleOp(aaGroups)
+
+bSet = set()
+bs = vv.Dataset
+for k, b in enumerate(bs.BodyList):
+	seq = bs.GetDataAt(k, 2)
+	seq = SeqMod(modOp, seq)
+	if seq in bSet:
+		b.Disabled = True
+	else:
+		b.Disabled = False
+		bSet.add(seq)
+vv.Map.RedrawAll()
+
 '''

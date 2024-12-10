@@ -246,6 +246,15 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	pTable = AssertProteinTable()	
 	tm = GetFourier(waveLen, waveCount)
 
+	''' Scaling base vectors by their frequencies. 
+	fList = New.NumberArray(tm.Columns)
+	for k in range(tm.Columns):
+		fList[k] = float( 1 + (k+1)//2 ) if k != 0 else 2.0
+	for R in tm.Matrix:
+		for k in range(tm.Columns):
+			R[k] *= fList[k]
+	'''
+
 	if using3DInfo:
 		# using the main chain from the PDB file
 		seqList = []
@@ -847,6 +856,16 @@ def TypeProteinList(pList):
 	tb.ClusterData()
 	tb.Close()
 
+def NewModuleOp(aaGroups):
+	aaClusters = {}
+	for k, aaG in enumerate(aaGroups.split('|')):
+		for aa in aaG:
+			aaClusters[aa] = chr(ord('a')+k)
+	return aaClusters
+
+def SeqMod(op, seq):
+	return ''.join( [modOp[c] for c in seq] )
+
 '''
 
 pp.GlyphOpacity = 0.125
@@ -869,5 +888,23 @@ ScanningForAA(pp, 'DE')    #R|H|K|RHK|D|E|DE  # Positive (3) and Negative (2) ch
 for aa in 3*['AVILMFYW', 'STNQ', 'CGP', 'RHK', 'DE']:
 	ScanningForAA(pp, aa)
 	vv.Sleep(1000)
+
+
+aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
+aaGroups = 'AVILMFYW|STNQCGPRHKDE'
+def TransSeq(aaGroups):
+	aaClusters = {}  # maps aa to cluster indexes.
+	for k, aaG in enumerate(aaGroups.split('|')):
+		for aa in aaG:
+			aaClusters[aa] = chr(ord('a')+k)
+	ds = vv.Dataset
+	ds.ColumnSpecList[4].Name = aaGroups
+	for k in range(ds.Rows):
+		seq = ds.GetDataAt(k, 2)
+		seq2 = ''.join( [aaClusters[c] for c in seq] )
+		ds.SetDataAt(k, 4, seq2)
+	ds.CommitChanges()
+TransSeq(aaGroups)
+
 
 '''
