@@ -345,9 +345,22 @@ namespace VisuMap {
             return New.NumberTable(vList.ToArray());
         }
 
+        Dictionary<char, List<int>> Cluster2IdxList(string aaGroups) {
+            string[] cList = aaGroups.Split('|');
+            var P = new Dictionary<char, List<int>>();
+            for (int cIdx = 0; cIdx < cList.Length; cIdx++) {
+                foreach (char c in cList[cIdx]) {
+                    if (!P.ContainsKey(c))
+                        P[c] = new List<int>();
+                    P[c].Add(cIdx);
+                }
+            }
+            return P;
+        }
+
         public INumberTable VectorizeProtein2(IList<string> seqList, string aaGroups, INumberTable transMatrix) {
-            var P = Cluster2Index(aaGroups);
-            int clusters = P.Values.Max() + 1;
+            var P = Cluster2IdxList(aaGroups);
+            int clusters = P.Values.Max(vs=>vs.Max()) + 1;
             int L = transMatrix.Rows;
             int N = transMatrix.Columns;
             double[][] tM = transMatrix.Matrix as double[][];
@@ -361,13 +374,15 @@ namespace VisuMap {
                     char c = pSeq[k];
                     if (!P.ContainsKey(c))
                         continue;
-                    int col0 = P[c] * N;
                     int cirIdx = k % L;
                     if ((k / L) % 2 == 1)
                         cirIdx = L - 1 - cirIdx;
                     double[] R_k = tM[cirIdx];
-                    for (int col = 0; col < N; col++)
-                        pVector[col0 + col] += R_k[col];
+                    foreach (int idx in P[c]) {
+                        int col0 = idx * N;
+                        for (int col = 0; col < N; col++)
+                            pVector[col0 + col] += R_k[col];
+                    }
                 }
             }
             return New.NumberTable(vList);
