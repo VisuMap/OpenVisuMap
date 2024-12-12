@@ -38,7 +38,8 @@ def MainProc(menuKey):
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'ProteinMap':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap2(pList(), epochs=5000, repeats=1, ppl=0.2, initExag=4.0, finalExag=0.5, 
+			for aaGroups in [ 'AVILMFYW|STNQ|CGP|RHK|DE', 'AVILMFYW|STNQCGPRHKDE', 'AVILMFYWSTNQCGPRHKDE' ][0:1]:
+				CreateProteinMap2(pList(), epochs=1000, repeats=1, ppl=0.1, initExag=4.0, finalExag=1.0,
 					using3DInfo=False, aaGroups=aaGroups, waveLen=256, waveCount=32)
 		case 'TypeProtein':
 			TypeProteinList(pList())

@@ -318,33 +318,7 @@ namespace VisuMap {
             return P;
         }
 
-        public INumberTable VectorizeProtein(IList<string> pList, VisuMap.Script.IDataset pTable, string aaGroups, int sections) {
-            var P = Cluster2Index(aaGroups);
-            int clusters = P.Values.Max() + 1;
-            int wLen = 50; // maximal gape or wave length
-            int[][] aaSize = new int[clusters][];
-            int[] aaPos = new int[clusters];
-            double[] waveWeight = new double[wLen];   // weight for different wave-length (gape size).
-            for (int k = 0; k < clusters; k++)
-                aaSize[k] = new int[wLen];
-            for (int k = 0; k < wLen; k++)
-                waveWeight[k] = 1.0 / (k + 0.1);
-            List<int> cSize = Enumerable.Range(0, clusters).Select(cIdx => P.Count(aa => aa.Value == cIdx)).ToList();
-            double[] clusterWeight = cSize.Select(sz => 1.0 / sz ).ToArray();
-
-            List<double[]> vList = new List<double[]>();
-            foreach (string pId in pList) {
-                int rowIdx = pTable.IndexOfRow(pId);
-                if (rowIdx < 0)
-                    continue;
-                string pSeq = pTable.GetDataAt(rowIdx, 2);
-                int secLen = Math.Max(50, pSeq.Length / sections + 1);
-                double[] pRow = ToVector(pSeq, P, aaPos, aaSize, clusterWeight, waveWeight, secLen, sections);
-                vList.Add(pRow);
-            }
-            return New.NumberTable(vList.ToArray());
-        }
-
+ 
         Dictionary<char, List<int>> Cluster2IdxList(string aaGroups) {
             string[] cList = aaGroups.Split('|');
             var P = new Dictionary<char, List<int>>();
