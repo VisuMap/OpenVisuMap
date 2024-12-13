@@ -63,6 +63,8 @@ class MapInfo():
 			self.ParseStr(initStr)
 	def Set(self, name, value):
 		setattr(self, name, value)
+	def Get(self, name):
+		return getattr(self, name)
 	def Init(self, epochs, is3D, initExag, finalExag, ppl):
 		self.Epochs = epochs
 		self.Is3D = is3D
@@ -89,11 +91,11 @@ class MapInfo():
 					dic[fs[0]] = fs[1]
 
 class AtlasMapStore():	
-	def __init__(self, atName, is3D, clearAtlas):
+	def __init__(self, atName, tgtViewName, clearAtlas):
 		self.atlas = New.Atlas(atName)
 		if clearAtlas:
 			self.atlas.Clear()
-		self.viewName = 'D3dRender' if is3D else 'MdsCluster'
+		self.viewName = tgtViewName
 	def AddMaps(self):
 		for fm in vv.FindFormList(self.viewName):
 			item = self.atlas.CaptureItem(fm)
@@ -101,13 +103,23 @@ class AtlasMapStore():
 			item.CacheImage = True
 			if fm.Name == 'D3dRender':
 				fm.Close()
+	def AddMap(self):
+		fmList = vv.FindFormList(self.viewName)
+		if fmList.Count > 0:
+			fm = fmList[0]
+			item = self.atlas.CaptureItem(fm)
+			item.CacheImage = True
+			return fm
+		else:
+			return None
 	def Close(self):
 		self.atlas.Close()
 
 def NewMapStore(atName, is3D=True, clearStore=False):
 	if atName is None:
 		return None
-	store = AtlasMapStore(atName, is3D, clearStore)
+	tgtViewName = 'D3dRender' if is3D else 'MdsCluster'
+	store = AtlasMapStore(atName, tgtViewName, clearStore)
 	return store
 
 #-----------------------------------------------------------
@@ -270,8 +282,6 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	if repeats>=1:
 		mds.Close()
 		vv.LastView.NormalizeView()
-		#vv.LastView.CaptureMap()
-		#vv.LastView.Close()
 
 cs3 = New.CsObject('''
 public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
@@ -498,13 +508,14 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1,
 	return mds
 
 def RunMds(mds, repeats=1, info=None):
-	if info is not None:
-		info.DDM = mds.DataDim
-	mds.Description = info.ToStr() if info is not None else 'Map created by RunMds'
 	mds.Repeats = repeats
 	mds.Reset().Start()
 	if not mds.Completed: 
 		raise Exception("MDS aborted")
+	if info is not None:
+		info.DDM = mds.DataDim
+		info.Set('CST', mds.TheForm.TsneLastCost)
+		mds.Description = info.ToStr() if info is not None else 'Map created by RunMds'
 	if repeats == 1:
 		mds.ShowSnapshot()
 	return mds
@@ -810,15 +821,12 @@ def AtlasTileAll(atlas, aaGroups, using3DInfo=False, waveLen=128, waveCount=16):
 	mds.Show()
 	mds.Reset().Start()
 	itemSet = {item.Name:item for item in atlas.Items}
-	itemSorted = [itemSet[id] for id in mds.GetSortedItemList()]
-	iconWidth = max([item.Width for item in itemSorted])+5
-	iconHeight = max([item.Height for item in itemSorted])+5
-	columns = int( (atlas.Width - 50.0)/iconWidth )
-	for k, item in enumerate(itemSorted):
-		item.Top = 20 + (k//columns)*iconHeight
-		item.Left = 20 + (k%columns)*iconWidth
-	atlas.Refresh()
+	atlas.Items.Clear()
+	for item in [itemSet[id] for id in mds.GetSortedItemList()]:
+		atlas.Items.Add(item)
+	atlas.ArrangeItems(False)
 	mds.Close()
+
 
 def TypeProteinList(pList):
 	ft = New.FreeTable()

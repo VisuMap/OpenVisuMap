@@ -37,10 +37,31 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'ProteinMap':
+			'''
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			for aaGroups in [ 'AVILMFYW|STNQ|CGP|RHK|DE', 'AVILMFYW|STNQCGPRHKDE', 'AVILMFYWSTNQCGPRHKDE' ][0:1]:
+			CreateProteinMap2(pList(), epochs=1000, repeats=1, ppl=0.1, initExag=4.0, finalExag=1.0,
+				using3DInfo=False, aaGroups=aaGroups, waveLen=256, waveCount=32)
+			'''
+			mStore = AtlasMapStore('P-Maps', 'MapSnapshot', True)
+			from itertools import combinations
+			aaList = combinations('AVILMFYW',  3)
+			for g in aaList:
+				aaGroups = ''.join(g)
 				CreateProteinMap2(pList(), epochs=1000, repeats=1, ppl=0.1, initExag=4.0, finalExag=1.0,
 					using3DInfo=False, aaGroups=aaGroups, waveLen=256, waveCount=32)
+				mStore.AddMap().Close()
+			ma = mStore.atlas
+			ma.Show()
+			for item in ma.Items:
+				frm = item.Open()
+				info = MapInfo(frm.Description)
+				item.Name = info.Get('aaG') + ': ' + info.Get('CST')
+				item.LabelStyle = 2
+				item.IconHeight = 0
+				item.IconWidth = 200
+				frm.Close()
+			ma.ArrangeItems(False)
+
 		case 'TypeProtein':
 			TypeProteinList(pList())
 		case 'AtlasView':
