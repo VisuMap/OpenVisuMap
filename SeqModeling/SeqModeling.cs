@@ -405,7 +405,7 @@ namespace VisuMap {
                     } else if (L.StartsWith("_struct_ref_seq.align_id")) {
                         acc2chain = GetAcc2Chain(tr);
                     } else if (L.StartsWith("_atom_site.")) {
-                        bList = LoadAtoms(tr);
+                        bList = LoadAtoms(tr, helixSet, betaSet, acc2chain, chainNames);
                         break;
                     }
                 }
@@ -414,12 +414,64 @@ namespace VisuMap {
         }
 
         void LoadBetaSheet(TextReader tr, HashSet<int> betaSet) {
+            while(true) {
+                string L = tr.ReadLine();
+                if (L[0] == '#')
+                    break;
+                string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                int idx0 = int.Parse(fs[4]) - 1;
+                int idx1 = int.Parse(fs[8]) + 1;
+                for (int i = idx0; i < idx1; i++)
+                    betaSet.Add(i);
+            }
         }
 
         void LoadHelix(TextReader tr, HashSet<int> helixSet) {
+            while (true) {
+                string L = tr.ReadLine();
+                if (L[0] == '#')
+                    break;
+                string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                int idx0 = int.Parse(fs[5]);
+                int idx1 = int.Parse(fs[9]) + 1;
+                for (int i = idx0; i < idx1; i++)
+                    helixSet.Add(i);
+            }
         }
 
         void LoadHelix2(TextReader tr, HashSet<int> helixSet) {
+            int idx0 = -1;
+            int idx1 = -1;
+            while (true) {
+                string L = tr.ReadLine();
+                if (L[0] == '#')
+                    break;
+                string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (L.StartsWith("_struct_conf.beg_label_seq_id"))
+                    idx0 = int.Parse(fs[1]);
+                if (L.StartsWith("_struct_conf.end_label_seq_id"))
+                    idx1 = int.Parse(fs[1]) + 1;
+            }
+            if ( (idx0>=0) && (idx1>=0) ) {
+                for (int i = idx0; i < idx1; i++)
+                    helixSet.Add(i);
+            }
+
+        }
+
+        Dictionary<string, string> GetAcc2Chain(TextReader tr) {
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+            while (true) {
+                string L = tr.ReadLine();
+                if (L[0] == '#')
+                    break;
+                if (L[0] == '_')
+                    continue;
+                string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (!dict.ContainsKey(fs[8]))
+                    dict[fs[8]] = fs[3];
+            }
+            return dict;
         }
 
         string GetPDBTitle(string L, TextReader tr) {
@@ -441,13 +493,62 @@ namespace VisuMap {
             return this.pdbTitle;
         }
 
-        Dictionary<string, string> GetAcc2Chain(TextReader tr) {
-            return null;
-        }
 
-        List<IBody> LoadAtoms(TextReader tr) {
-            vv.Echo("LoadAtoms");
-            return null;
+        List<IBody> LoadAtoms(TextReader tr, HashSet<int> helixSet, HashSet<int> betaSet, Dictionary<string, string> acc2chain, List<string> chainNames) {
+            List<IBody> bsList = vv.New.BodyList();
+            List<IBody> bsList2 = vv.New.BodyList();
+            Dictionary<string, int> ch2idx = new Dictionary<string, int>();
+            ch2idx["HOH"] = 72 + 3;
+            ch2idx["NAG"] = 72 + 11;
+            int headIndex = 0;
+            int Lookup(string chName) {
+                if ( !ch2idx.ContainsKey(chName)) {
+                    for (int k = headIndex; k < 200; k++) {
+                        if (!ch2idx.ContainsValue(k)) {
+                            ch2idx[chName] = k;
+                            headIndex = k + 1;
+                            break;
+                        }
+                    }
+                    if (!ch2idx.ContainsKey(chName))
+                        ch2idx[chName] = 200;
+                }
+                return ch2idx[chName];
+            }
+            int reIdxPre = -1;
+            HashSet<string> selectedChains = (chainNames != null) ? new HashSet<string>(chainNames) : null;
+
+            int count = 0;
+
+            while(true) {
+                string L = tr.ReadLine();
+                if (L[0] == '#') break;
+                if (L[0] == '_') continue;
+                string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (fs.Length < 21) {
+                    vv.Message("Invalid record: " + fs.Length + ": |" + L + "|");
+                    return null;
+                }
+                string chName = fs[18] + "_" + fs[20];
+                if (selectedChains != null) {
+                    if ( ! selectedChains.Contains(chName) ) {
+                        Lookup(chName);
+                        continue;
+                    }
+                }
+                float rsX = float.Parse(fs[10]);
+                float rsY = float.Parse(fs[11]);
+                float rsZ = float.Parse(fs[12]);
+                string atName = fs[3].Trim(new char[] { '"' });
+                string rsName = fs[5];
+                char secType = 'x';
+
+                if ( fs[0] == "ATOM" ) {
+                    count++;
+                }
+            }
+
+            return bsList;
         }
         #endregion
     }

@@ -44,9 +44,10 @@ def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling
 	dllFile = vv.CurrentScriptDirectory + '/' + seqdll
 	srcFile = vv.CurrentScriptDirectory + '/' + 'SeqModeling.cs'
 	if not exists(dllFile) or stat(dllFile).st_mtime < stat(srcFile).st_mtime:
-		#msbuild = '"C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/MSBuild.exe"'
+    	#msbuild = '"C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/MSBuild.exe"'
 		#vv.StartProcess(msbuild, 'SeqModeling.csproj /p:Configuration=Release', False).WaitForExit(1000)
 		copy(vv.CurrentScriptDirectory + '/bin/Release/' + seqdll, vv.CurrentScriptDirectory)
+		#copy(vv.CurrentScriptDirectory + '/bin/Debug/' + seqdll, vv.CurrentScriptDirectory)
 	vv.LoadLibrary(dllFile)
 	return New.Instance(className)
 
@@ -238,7 +239,7 @@ def GetFourier(waveLen, waveCount):
 	return tm.SelectColumns(coList)
 
 def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, 
-		ppl=0.05, repeats=0, using3DInfo=True, aaGroups='A', waveLen=256, waveCount=12):
+		ppl=0.05, staged=False, repeats=0, using3DInfo=True, aaGroups='A', waveLen=256, waveCount=12):
 	pTable = AssertProteinTable()	
 	tm = GetFourier(waveLen, waveCount)
 
@@ -272,7 +273,7 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 		dt.RowSpecList[k].CopyFromBody(b)
 
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=0.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
-	#mds.StagedTraining = False
+	mds.StagedTraining = staged
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'Hrm'  # for 
 	info.Set('aaG', aaGroups)
@@ -513,8 +514,8 @@ def RunMds(mds, repeats=1, info=None):
 	if not mds.Completed: 
 		raise Exception("MDS aborted")
 	if info is not None:
-		info.DDM = mds.DataDim
-		info.Set('CST', mds.TheForm.TsneLastCost)
+		info.DDM = mds.DataDim		
+		info.Set('CST', mds.CostTsne)
 		mds.Description = info.ToStr() if info is not None else 'Map created by RunMds'
 	if repeats == 1:
 		mds.ShowSnapshot()

@@ -63,7 +63,7 @@ def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, chainNames=None, includeHA=True
 	info.pId = pId
 	info.pLen = bsList.Count
 	info.Mtd = 'PDB'
-	info.PT = pdbTitle
+	info.PT = SimplifyTitle(pdbTitle)
 	info.Set('SmR', smtRatio)
 	info.Set('HA', includeHA)
 	info.Set('Eps', eps)
@@ -156,7 +156,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			info.pId = pId
 			info.pLen = bList.Count
 			info.Mtd = 'PDB'
-			info.PT = pdbTitle
+			info.PT = SimplifyTitle(pdbTitle)
 			info.DS = f'DS:{vv.Dataset.Name}'
 			info.Set('SmR', smtRatio)
 			info.Set('HA', includeHA)
@@ -184,7 +184,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		ma.Show()
 		ma.DataChanged = True # since the Show() clears the DataChanged flag.
 
-def GetString(L, fPDB):
+def GetTitleString(L, fPDB):
 	idx = L.find('\'')
 	if idx < 0:
 		L = fPDB.readline()
@@ -194,10 +194,11 @@ def GetString(L, fPDB):
 			return L.strip().strip('\'')
 		else:
 			return ''
-	s = L[idx:].strip().strip('\'')
-	s = s.replace(':', '..')
-	s = s.replace(';', '.,')
-	return s
+	return L[idx:].strip().strip('\'')
+
+def SimplifyTitle(title):
+	return title.replace(':', '..').replace(';', '.,')
+
 
 def GetAcc2Chain(fPDB):
 	dict = {}
@@ -231,7 +232,7 @@ def LoadCifData(pId, mainChain=False, chainNames=None):
 					if L.strip().endswith('HELX_P'):
 						LoadHelix2(fPDB, helixSet)
 				elif L.startswith('_struct.title'):
-					pdbTitle = GetString(L, fPDB)
+					pdbTitle = GetTitleString(L, fPDB)
 				elif L.startswith('_struct_ref_seq.align_id'):
 					acc2chain = GetAcc2Chain(fPDB)
 				elif L.startswith('_atom_site.'):
@@ -536,9 +537,6 @@ vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
 fn, bs, bs2, title = LoadCifData('1SA0', False, None)
-len(bs2)
-print(title)
 bs = cs.LoadCif('c:/temp/PdbCache/1SA0.cif', True, None)
-title = cs.GetTitle()
 
 '''
