@@ -379,12 +379,13 @@ namespace VisuMap {
         }
         #region LoadCif() method
         string pdbTitle = null;
+        List<IBody> heteroChains = null;
+        Dictionary<string, string> acc2chain = null;
 
-        public List<IBody> LoadCif(string fileName, bool justMainChain, List<string> chainNames) {
+        public List<IBody> LoadCif(string fileName, List<string> chainNames) {
             List<IBody> bList = null;
             HashSet<int> betaSet = new HashSet<int>();
             HashSet<int> helixSet = new HashSet<int>();
-            Dictionary<string, string> acc2chain = null;
             using (TextReader tr = new StreamReader(fileName)) {
                 string L = tr.ReadLine();
                 if (!L.StartsWith("data_"))
@@ -405,7 +406,7 @@ namespace VisuMap {
                     } else if (L.StartsWith("_struct_ref_seq.align_id")) {
                         acc2chain = GetAcc2Chain(tr);
                     } else if (L.StartsWith("_atom_site.")) {
-                        bList = LoadAtoms(tr, helixSet, betaSet, acc2chain, chainNames);
+                        bList = LoadAtoms(tr, helixSet, betaSet, chainNames);
                         break;
                     }
                 }
@@ -493,8 +494,39 @@ namespace VisuMap {
             return this.pdbTitle;
         }
 
+        public List<IBody> GetHeteroChains() {
+            return heteroChains;
+        }
 
-        List<IBody> LoadAtoms(TextReader tr, HashSet<int> helixSet, HashSet<int> betaSet, Dictionary<string, string> acc2chain, List<string> chainNames) {
+        public Dictionary<string, string> GetAccession2ChainTable() {
+            return acc2chain;
+        }
+
+        Dictionary<string, char> P3 = new Dictionary<string, char>()
+        {
+            {"ALA", 'A' },
+            {"ARG", 'R' },
+            {"ASN", 'N' },
+            {"ASP", 'D' },
+            {"CYS", 'C' },
+            {"GLU", 'E' },
+            {"GLN", 'Q' },
+            {"GLY", 'G' },
+            {"HIS", 'H' },
+            {"ILE", 'I' },
+            {"LEU", 'L' },
+            {"LYS", 'K' },
+            {"MET", 'M' },
+            {"PHE", 'F' },
+            {"PRO", 'P' },
+            {"SER", 'S' },
+            {"THR", 'T' },
+            {"TRP", 'W' },
+            {"TYR", 'Y' },
+            {"VAL", 'V'}
+        };
+
+        List<IBody> LoadAtoms(TextReader tr, HashSet<int> helixSet, HashSet<int> betaSet, List<string> chainNames) {
             List<IBody> bsList = vv.New.BodyList();
             List<IBody> bsList2 = vv.New.BodyList();
             Dictionary<string, int> ch2idx = new Dictionary<string, int>();
@@ -515,12 +547,13 @@ namespace VisuMap {
                 }
                 return ch2idx[chName];
             }
-            int reIdxPre = -1;
+            int rsIdxPre = -1;
             HashSet<string> selectedChains = (chainNames != null) ? new HashSet<string>(chainNames) : null;
 
-            int count = 0;
+            var RNA_set = new HashSet<string>() { "A", "U", "G", "C" };
+            var DNA_set = new HashSet<string>() { "DA", "DT", "DG", "DC" };
 
-            while(true) {
+            while (true) {
                 string L = tr.ReadLine();
                 if (L[0] == '#') break;
                 if (L[0] == '_') continue;
@@ -531,7 +564,7 @@ namespace VisuMap {
                 }
                 string chName = fs[18] + "_" + fs[20];
                 if (selectedChains != null) {
-                    if ( ! selectedChains.Contains(chName) ) {
+                    if (!selectedChains.Contains(chName)) {
                         Lookup(chName);
                         continue;
                     }
@@ -541,13 +574,56 @@ namespace VisuMap {
                 float rsZ = float.Parse(fs[12]);
                 string atName = fs[3].Trim(new char[] { '"' });
                 string rsName = fs[5];
-                char secType = 'x';
+                string secType = "x";
+                string p1 = "x";
+                string bId = null;
 
-                if ( fs[0] == "ATOM" ) {
-                    count++;
+                if (fs[0] == "ATOM") {
+                    int rsIdx = int.Parse(fs[8]) - 1;
+                    if (rsIdx == rsIdxPre)
+                        continue;
+                    if (P3.ContainsKey(rsName) && ((atName == "CA") || (atName == "C2"))) {
+                        p1 = P3[rsName].ToString();
+                        if (helixSet.Contains(rsIdx))
+                            secType = "h";
+                        else if (betaSet.Contains(rsIdx))
+                            secType = "b";
+                    } else if (RNA_set.Contains(rsName) && (atName == "C1")) {
+                        p1 = "r";
+                    } else if (DNA_set.Contains(rsName) && (atName == "C1")) {
+                        p1 = "d";
+                    } else
+                        continue;
+                    bId = $"A{rsIdx}.{bsList.Count}";
+                    rsIdxPre = rsIdx;
+                } else if (fs[0] == "HETATM") {
+                    bId = $"H.{fs[3]}.{bsList2.Count}";
+                    p1 = fs[3];
+                } else
+                    continue;
+
+                IBody b = vv.New.Body(bId);
+                b.X = rsX;
+                b.Y = rsY;
+                b.Z = rsZ;
+
+                b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType;
+                b.Type = (short)Lookup(chName);
+
+                if (b.Id[0] == 'H') {
+                    if (ch2idx.ContainsKey(rsName))
+                        b.Type = (short)Lookup(rsName);
+                    else
+                        b.Type = 72 + 25;
+                    bsList2.Add(b);
+                } else {
+                    if ( (b.Name[0]=='r') || (b.Name[0] == 'd') )
+                        b.Hidden = true;
+                    bsList.Add(b);
                 }
             }
 
+            heteroChains = bsList2;
             return bsList;
         }
         #endregion

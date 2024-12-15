@@ -213,6 +213,19 @@ def GetAcc2Chain(fPDB):
 
 def LoadCifData(pId, mainChain=False, chainNames=None):
 	localPath = pId if pId.endswith('.cif') else Download3DInfo(pId[:4])
+	usingCS = True
+	if usingCS:
+		bsList = cs.LoadCif(localPath, chainNames)
+
+		if mainChain:
+			dic = cs.GetAccession2ChainTable()
+			acc2chain = {}
+			for key in dic.Keys:
+				acc2chain[key] = dic[key]
+			print(len(acc2chain))
+			bsList = SelectChain(pId, bsList, acc2chain)
+
+		return localPath, bsList, cs.GetHeteroChains(), cs.GetTitle()
 	try:
 		bsList, bsList2 = New.BodyList(), New.BodyList()
 		betaSet, helixSet = set(), set()
@@ -537,6 +550,9 @@ vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
 fn, bs, bs2, title = LoadCifData('1SA0', False, None)
-bs = cs.LoadCif('c:/temp/PdbCache/1SA0.cif', True, None)
+bs = cs.LoadCif('c:/temp/PdbCache/1SA0.cif', None)
+acc2chain = cs.GetAccession2ChainTable()
 
+len(acc2chain.Count
+print(len(cs.GetHeteroChains()))
 '''
