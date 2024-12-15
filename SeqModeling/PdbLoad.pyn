@@ -532,4 +532,13 @@ def LoadAllChains():
 
 '''
 LoadAllChains()
+vv.Import('SeqVis.pyn')
+vv.Import('PdbLoad.pyn')
+
+fn, bs, bs2, title = LoadCifData('1SA0', False, None)
+len(bs2)
+print(title)
+bs = cs.LoadCif('c:/temp/PdbCache/1SA0.cif', True, None)
+title = cs.GetTitle()
+
 '''

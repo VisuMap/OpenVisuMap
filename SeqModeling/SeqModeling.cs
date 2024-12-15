@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using VisuMap.Script;
 using Vector3 = System.Numerics.Vector3;
+using System.IO;
 
 namespace VisuMap {
 
@@ -376,5 +377,78 @@ namespace VisuMap {
                 }
             }
         }
+        #region LoadCif() method
+        string pdbTitle = null;
+
+        public List<IBody> LoadCif(string fileName, bool justMainChain, List<string> chainNames) {
+            List<IBody> bList = null;
+            HashSet<int> betaSet = new HashSet<int>();
+            HashSet<int> helixSet = new HashSet<int>();
+            Dictionary<string, string> acc2chain = null;
+            using (TextReader tr = new StreamReader(fileName)) {
+                string L = tr.ReadLine();
+                if (!L.StartsWith("data_"))
+                    return null;
+                while (true) {
+                    L = tr.ReadLine();
+                    if (L == null)
+                        break;
+                    if (L.StartsWith("_struct_sheet_range.end_auth_seq_id")) {
+                        LoadBetaSheet(tr, betaSet);
+                    } else if (L.StartsWith("_struct_conf.pdbx_PDB_helix_length")) {
+                        LoadHelix(tr, helixSet);
+                    } else if (L.StartsWith("_struct_conf.conf_type_id")) {
+                        if (L.TrimEnd().EndsWith("HELX_P"))
+                            LoadHelix2(tr, helixSet);
+                    } else if (L.StartsWith("_struct.title")) {
+                        pdbTitle = GetPDBTitle(L, tr);
+                    } else if (L.StartsWith("_struct_ref_seq.align_id")) {
+                        acc2chain = GetAcc2Chain(tr);
+                    } else if (L.StartsWith("_atom_site.")) {
+                        bList = LoadAtoms(tr);
+                        break;
+                    }
+                }
+            }
+            return bList;
+        }
+
+        void LoadBetaSheet(TextReader tr, HashSet<int> betaSet) {
+        }
+
+        void LoadHelix(TextReader tr, HashSet<int> helixSet) {
+        }
+
+        void LoadHelix2(TextReader tr, HashSet<int> helixSet) {
+        }
+
+        string GetPDBTitle(string L, TextReader tr) {
+            int idx = L.IndexOf('\'');
+            if (idx<0) {
+                L = tr.ReadLine();
+                if (L[0] == ';')
+                    return L.Substring(1).Trim();
+                else if (L[0] == '\'')
+                    return L.Trim().Trim('\'');
+                else
+                    return "";
+            }
+            string s = L.Substring(idx).Trim().Trim('\'');
+            return s;
+        }
+
+        public string GetTitle() {
+            return this.pdbTitle;
+        }
+
+        Dictionary<string, string> GetAcc2Chain(TextReader tr) {
+            return null;
+        }
+
+        List<IBody> LoadAtoms(TextReader tr) {
+            vv.Echo("LoadAtoms");
+            return null;
+        }
+        #endregion
     }
 }
