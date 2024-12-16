@@ -16,7 +16,7 @@ def MainProc(menuKey):
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
 			if len(pSelected) == 1: atlasName = None
-			UnFoldProteinList(pList(), epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.0, iconWidth=50, smtRatio=0.0)
+			UnFoldProteinList(pList(), epochs=1000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.0, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
 			atlasName += '-3D'
 			SortByPosX(pSelected)
@@ -37,30 +37,47 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'ProteinMap':
-			'''
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap2(pList(), epochs=1000, repeats=1, ppl=0.1, initExag=4.0, finalExag=1.0,
-				using3DInfo=False, aaGroups=aaGroups, waveLen=256, waveCount=32)
+			aaHydrophobic = 'AVILMFYW'
+			aaPolarUncharged = 'STNQ'
+			aaSpecial = 'CUGP'
+			aaNoPolar = 'AGILMPV'
+			aaCarboxyl = 'DE'
+			aaAmine = 'RHK'
+			aaAromatic = 'FWY'
+			aaHydroxyl = 'STY'
+			aaList = [ aaHydrophobic, aaPolarUncharged,  aaSpecial, aaNoPolar, aaCarboxyl, aaAmine, aaAromatic, aaHydroxyl]
+
+			aaGroups = '|'.join(aaList)
+
+			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
+			CreateProteinMap2(pList(), epochs=5000, repeats=1, ppl=0.05, staged=False, initExag=6.0, finalExag=1.0,
+				using3DInfo=False, aaGroups=aaGroups, waveLen=1024, waveCount=32)
+
 			'''
 			mStore = AtlasMapStore('P-Maps', 'MapSnapshot', True)
 			from itertools import combinations
-			aaList = combinations('AVILMFYW',  3)
+			aaList = combinations(aaList,  2)
+			aaList = [ 'DE|RHK|FWY|AVILMFYW', 'DERHKFWYAVILMFYW', 'AVILMFYWSTNQCGPRHKDE']
 			for g in aaList:
-				aaGroups = ''.join(g)
-				CreateProteinMap2(pList(), epochs=1000, repeats=1, ppl=0.1, initExag=4.0, finalExag=1.0,
+				#aaGroups = '|'.join(g)
+				aaGroups = g
+				CreateProteinMap2(pList(), epochs=2000, repeats=1, ppl=0.1, initExag=4.0, finalExag=1.0,
 					using3DInfo=False, aaGroups=aaGroups, waveLen=256, waveCount=32)
 				mStore.AddMap().Close()
+
 			ma = mStore.atlas
 			ma.Show()
 			for item in ma.Items:
 				frm = item.Open()
 				info = MapInfo(frm.Description)
-				item.Name = info.Get('aaG') + ': ' + info.Get('CST')
+				item.Name = info.Get('aaG').replace('|', '-') + ': ' + info.Get('CST')[:6]
 				item.LabelStyle = 2
 				item.IconHeight = 0
 				item.IconWidth = 200
 				frm.Close()
-			ma.ArrangeItems(False)
+			ma.ArrangeItems(False)			
+			'''
 
 		case 'TypeProtein':
 			TypeProteinList(pList())
