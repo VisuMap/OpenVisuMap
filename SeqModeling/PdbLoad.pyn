@@ -131,13 +131,15 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 	if mapStore != None:
 		csLoad.MinimizeView(mds)
 	time0 = time.time()
+	hasChainName = vv.Dataset.ColumnSpecList[1].Id == 'Repeats'
 	try:
 		for k, pId in enumerate(pList):
+			chainNames = [ vv.Dataset.BodyForId(pId).Name ] if hasChainName else None
 			if mainChain and not includeHA:
 				bList = New.BodyList(LoadMainChain(pId))
 				localPath, bList2, pdbTitle = '-', None, '-'
 			else:
-				localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain)
+				localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain, chainNames=chainNames)
 			seqLen = bList.Count
 
 			bList = Interporlate(bList, rp=3, eps=eps, smtRatio=smtRatio)
@@ -162,6 +164,8 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			info.Set('HA', includeHA)
 			info.Set('Eps', eps)
 			info.Set('MC', mainChain)
+			if chainNames != None:
+				info.Set('CNs', '|'.join(chainNames) )
 			mds.SetTrainingData(nt)
 			vv.Title = f'Unfolding {pId}/{seqLen}: {k+1}-th of {len(pList)}'
 			vv.DoEvents()
@@ -178,8 +182,6 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		MatchProteinMap(ma, iconWidth, 0)
 		ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 		ma.OnAtlasShown = 'ShowSelectedProteins.pyn'
-		tm = time.time() - time0
-		info.Set('Tm', f'{tm:.1f}s')
 		ma.Description = info.ToStr()
 		ma.Show()
 		ma.DataChanged = True # since the Show() clears the DataChanged flag.
@@ -213,8 +215,9 @@ def GetAcc2Chain(fPDB):
 
 def LoadCifData(pId, mainChain=False, chainNames=None):
 	localPath = pId if pId.endswith('.cif') else Download3DInfo(pId[:4])
+	if chainNames != None:  mainChain = False
 	usingCS = True
-	if usingCS:  # the CS version is about 10% faster.
+	if usingCS:  # the CS version is about 70% faster.
 		bsList = cs.LoadCif(localPath, chainNames)
 
 		if mainChain:

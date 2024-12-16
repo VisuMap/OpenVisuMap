@@ -66,6 +66,8 @@ class MapInfo():
 		setattr(self, name, value)
 	def Get(self, name):
 		return getattr(self, name)
+	def Has(self, attrName):
+		return hasattr(self, attrName)
 	def Init(self, epochs, is3D, initExag, finalExag, ppl):
 		self.Epochs = epochs
 		self.Is3D = is3D
