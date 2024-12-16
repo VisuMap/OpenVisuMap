@@ -147,4 +147,21 @@ for k, b in enumerate(bs.BodyList):
 		bSet.add(seq)
 vv.Map.RedrawAll()
 
+ds = vv.Dataset
+bs = list(ds.BodyList)
+chCount={}
+for k, b in enumerate(bs):
+	pId = b.Id[:4]
+	#rep = int( ds.GetValueAt(k, 1) )
+	rep = 1
+	if pId not in chCount:
+		chCount[pId] = rep
+	else:
+		chCount[pId] += rep
+
+for k, b in enumerate(bs):
+	pId = b.Id[:4]
+	ds.SetValueAt(k, 5, chCount[pId])
+ds.CommitChanges()
+		
 '''

@@ -132,6 +132,8 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		csLoad.MinimizeView(mds)
 	time0 = time.time()
 	hasChainName = vv.Dataset.ColumnSpecList[1].Id == 'Repeats'
+	if hasChainName: 
+		mainChain = False
 	try:
 		for k, pId in enumerate(pList):
 			chainNames = [ vv.Dataset.BodyForId(pId).Name ] if hasChainName else None
@@ -548,13 +550,4 @@ def LoadAllChains():
 
 '''
 LoadAllChains()
-vv.Import('SeqVis.pyn')
-vv.Import('PdbLoad.pyn')
-
-fn, bs, bs2, title = LoadCifData('1SA0', False, None)
-bs = cs.LoadCif('c:/temp/PdbCache/1SA0.cif', None)
-acc2chain = cs.GetAccession2ChainTable()
-
-len(acc2chain.Count
-print(len(cs.GetHeteroChains()))
 '''
