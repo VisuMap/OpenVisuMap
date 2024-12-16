@@ -280,6 +280,8 @@ def OpenCifFile(pId):
 	vv.StartProcess("vi", PidToPath(pId))
 
 def AugmentByIndex(nt, stretch):
+	if stretch == 0:
+		return nt
 	nt.AddColumns(1)
 	M = nt.Matrix
 	rsList = nt.RowSpecList
