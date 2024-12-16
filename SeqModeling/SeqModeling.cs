@@ -527,14 +527,12 @@ namespace VisuMap {
         };
 
         List<IBody> LoadAtoms(TextReader tr, HashSet<int> helixSet, HashSet<int> betaSet, List<string> chainNames) {
-            List<IBody> bsList = vv.New.BodyList();
-            List<IBody> bsList2 = vv.New.BodyList();
-            Dictionary<string, int> ch2idx = new Dictionary<string, int>();
-            ch2idx["HOH"] = 72 + 3;
-            ch2idx["NAG"] = 72 + 11;
+            Dictionary<string, int> ch2idx = new Dictionary<string, int>() {
+                { "HOH", 72 + 3 },
+                { "NAG", 72 + 11 } } ;
             int headIndex = 0;
             int Lookup(string chName) {
-                if ( !ch2idx.ContainsKey(chName)) {
+                if (!ch2idx.ContainsKey(chName)) {
                     for (int k = headIndex; k < 200; k++) {
                         if (!ch2idx.ContainsValue(k)) {
                             ch2idx[chName] = k;
@@ -547,17 +545,23 @@ namespace VisuMap {
                 }
                 return ch2idx[chName];
             }
-            int rsIdxPre = -1;
-            HashSet<string> selectedChains = (chainNames != null) ? new HashSet<string>(chainNames) : null;
 
+            List<IBody> bsList = vv.New.BodyList();
+            List<IBody> bsList2 = vv.New.BodyList();
+            HashSet<string> selectedChains = (chainNames != null) ? new HashSet<string>(chainNames) : null;
+            int rsIdxPre = -1;
             var RNA_set = new HashSet<string>() { "A", "U", "G", "C" };
             var DNA_set = new HashSet<string>() { "DA", "DT", "DG", "DC" };
+            char[] fSeparator = new char[] { ' ' };
+            char[] dbQuoats = new char[] { '"' };
 
             while (true) {
                 string L = tr.ReadLine();
-                if (L[0] == '#') break;
-                if (L[0] == '_') continue;
-                string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if ( (L == null) || (L[0] == '#') )
+                    break;
+                if (L[0] == '_')
+                    continue;
+                string[] fs = L.Split(fSeparator, StringSplitOptions.RemoveEmptyEntries);
                 if (fs.Length < 21) {
                     vv.Message("Invalid record: " + fs.Length + ": |" + L + "|");
                     return null;
@@ -569,10 +573,8 @@ namespace VisuMap {
                         continue;
                     }
                 }
-                float rsX = float.Parse(fs[10]);
-                float rsY = float.Parse(fs[11]);
-                float rsZ = float.Parse(fs[12]);
-                string atName = fs[3].Trim(new char[] { '"' });
+
+                string atName = fs[3].Trim(dbQuoats);
                 string rsName = fs[5];
                 string secType = "x";
                 string p1 = "x";
@@ -603,9 +605,9 @@ namespace VisuMap {
                     continue;
 
                 IBody b = vv.New.Body(bId);
-                b.X = rsX;
-                b.Y = rsY;
-                b.Z = rsZ;
+                b.X = float.Parse(fs[10]);
+                b.Y = float.Parse(fs[11]);
+                b.Z = float.Parse(fs[12]);
 
                 b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType;
                 b.Type = (short)Lookup(chName);
@@ -617,7 +619,7 @@ namespace VisuMap {
                         b.Type = 72 + 25;
                     bsList2.Add(b);
                 } else {
-                    if ( (b.Name[0]=='r') || (b.Name[0] == 'd') )
+                    if ( (b.Name[0] == 'r') || (b.Name[0] == 'd') )
                         b.Hidden = true;
                     bsList.Add(b);
                 }
