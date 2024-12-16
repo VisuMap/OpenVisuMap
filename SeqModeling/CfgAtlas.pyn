@@ -26,7 +26,7 @@ def MainProc(menuKey):
 			ConfigAtlasMaps(pp, 1000, 700, gSize=0.75, gOpacity=0.5, hiddenSize=4, reset=False)			
 		case 'P-3D':
 			justMainChain = vv.ModifierKeys.ControlPressed
-			chainNames = [ vv.Dataset.BodyForId(pId).Name ] if vv.Dataset.ColumnSpecList[1].Id == 'Repeats' else None
+			chainNames = GetChainName(pId)
 			for e in pSelected:
 				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, mainChain=justMainChain, chainNames=chainNames, smtRatio=0.0) 
 		case 'P-Web':

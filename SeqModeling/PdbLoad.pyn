@@ -103,10 +103,9 @@ def ShowProteinList(pList, mainChain, includeHA, atName, smtRatio=0, glyphSize=1
 	if mapStore != None:
 		mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
 		mapStore.atlas.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
-	hasChainName = vv.Dataset.ColumnSpecList[1].Id == 'Repeats'
 	for k, pId in enumerate(pList):
 		vv.Title = f'Loading {pId}: {k+1}-th of {len(pList)}'
-		chainNames = [ vv.Dataset.BodyForId(pId).Name ] if hasChainName else None
+		chainNames = GetChainName(pId)
 		ShowPDB(pId, mainChain=mainChain, chainNames=chainNames, includeHA=includeHA, smtRatio=smtRatio, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
 		if mapStore != None:	
 			mapStore.AddMaps()
@@ -119,6 +118,16 @@ def ShowProteinList(pList, mainChain, includeHA, atName, smtRatio=0, glyphSize=1
 		ma.Show()
 		ma.ArrangeItems(False)
 
+def GetChainName(pId):
+	ds = vv.Dataset
+	chIdx = ds.IndexOfColumn('ChainName')
+	if chIdx >= 0:
+		rowIdx = ds.BodyIndexForId(pId)
+		chName = ds.GetDataAt(rowIdx, chIdx)
+		return [ chName ]
+	else:
+		return None
+
 def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=False, atName=None, 
 		stretch=0, contractFactor=1.0, iconWidth=50, smtRatio=0):
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
@@ -130,13 +139,11 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 	mds.ExaggerationSmoothen = False
 	if mapStore != None:
 		csLoad.MinimizeView(mds)
-	time0 = time.time()
-	hasChainName = vv.Dataset.ColumnSpecList[1].Id == 'Repeats'
-	if hasChainName: 
+	if vv.Dataset.IndexOfColumn('ChainName')>=0:
 		mainChain = False
 	try:
 		for k, pId in enumerate(pList):
-			chainNames = [ vv.Dataset.BodyForId(pId).Name ] if hasChainName else None
+			chainNames = GetChainName(pId)
 			if mainChain and not includeHA:
 				bList = New.BodyList(LoadMainChain(pId))
 				localPath, bList2, pdbTitle = '-', None, '-'
