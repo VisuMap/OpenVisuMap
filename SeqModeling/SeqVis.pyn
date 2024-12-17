@@ -245,14 +245,9 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	pTable = AssertProteinTable()	
 	tm = GetFourier(waveLen, waveCount)
 
-	''' Scaling base vectors by their frequencies. 
-	fList = New.NumberArray(tm.Columns)
-	for k in range(tm.Columns):
-		fList[k] = float( 1 + (k+1)//2 ) if k != 0 else 2.0
+	#Scaling base vectors to reduce dominance of the first base that reflect the seq-length.
 	for R in tm.Matrix:
-		for k in range(tm.Columns):
-			R[k] *= fList[k]
-	'''
+		for k, f in enumerate([1.0, 4.0, 4.0]): R[k] *= f
 
 	if using3DInfo:
 		# using the main chain from the PDB file

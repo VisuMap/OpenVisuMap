@@ -5,6 +5,29 @@ vv.Import('PdbLoad.pyn')
 def SortByPosX(idList):
 	idList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
 
+def GetAAGroup(idx=0):
+	aaHydrophobic = 'AVILMFYW'
+	aaPolarUncharged = 'STNQ'
+	aaSpecial = 'CUGP'
+	aaNoPolar = 'AGILMPV'
+	aaCarboxyl = 'DE'
+	aaAmine = 'RHK'
+	aaAromatic = 'FWY'
+	aaHydroxyl = 'STY'
+
+	match idx:
+		case 0:
+			return 'AVILMFYW|STNQ|CGP|RHK|DE'
+		case 1:
+			return '|'.join( [ aaHydrophobic, aaPolarUncharged,  aaSpecial, aaNoPolar, aaCarboxyl, aaAmine, aaAromatic, aaHydroxyl] )
+		case 2:
+			return aaHydrophobic
+		case 3:
+			return aaAromatic
+		case 9:
+			return '|'.join('AVILMFYWSTNQCGPRHKDE')
+
+
 def MainProc(menuKey):
 	atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}'
 	pSelected = list(pp.SelectedItems)
@@ -24,7 +47,7 @@ def MainProc(menuKey):
 			justMainChain = vv.ModifierKeys.ControlPressed
 			ShowProteinList(pSelected, mainChain=justMainChain, includeHA=False, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
 		case 'SeqMap':
-			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
+			aaGroups = GetAAGroup(idx=0)
 			atlasName += '-Seq'
 			if len(pSelected) == 1: atlasName = None
 			CreateSeqMaps(pSelected, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
@@ -37,22 +60,9 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'ProteinMap':
-			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			aaHydrophobic = 'AVILMFYW'
-			aaPolarUncharged = 'STNQ'
-			aaSpecial = 'CUGP'
-			aaNoPolar = 'AGILMPV'
-			aaCarboxyl = 'DE'
-			aaAmine = 'RHK'
-			aaAromatic = 'FWY'
-			aaHydroxyl = 'STY'
-			aaList = [ aaHydrophobic, aaPolarUncharged,  aaSpecial, aaNoPolar, aaCarboxyl, aaAmine, aaAromatic, aaHydroxyl]
-
-			aaGroups = '|'.join(aaList)
-
-			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			CreateProteinMap2(pList(), epochs=5000, repeats=1, ppl=0.05, staged=False, initExag=6.0, finalExag=1.0,
-				using3DInfo=False, aaGroups=aaGroups, waveLen=1024, waveCount=32)
+			aaGroups = GetAAGroup(idx=0)
+			CreateProteinMap2(pList(), epochs=2000, repeats=2, ppl=0.025, staged=False, initExag=6.0, finalExag=1.0,
+				using3DInfo=False, aaGroups=aaGroups, waveLen=1024, waveCount=17)
 
 			'''
 			mStore = AtlasMapStore('P-Maps', 'MapSnapshot', True)
