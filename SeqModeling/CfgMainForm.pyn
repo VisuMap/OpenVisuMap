@@ -61,7 +61,7 @@ def MainProc(menuKey):
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'ProteinMap':
 			aaGroups = GetAAGroup(idx=0)
-			CreateProteinMap2(pList(), epochs=2000, repeats=2, ppl=0.025, staged=False, initExag=6.0, finalExag=1.0,
+			CreateProteinMap2(pList(), epochs=2000, repeats=1, ppl=0.025, staged=False, initExag=6.0, finalExag=1.0,
 				using3DInfo=False, aaGroups=aaGroups, waveLen=1024, waveCount=17)
 
 			'''

@@ -236,7 +236,12 @@ def GetFourier(waveLen, waveCount):
 	#ft = ft.NewHaar(waveLen)
 	#ft = ft.NewWaveletD4(waveLen)
 	ft = ft.NewFourier(waveLen)
-	tm = ft.BaseMatrix.SortColumnsOnType(True)
+	tm = ft.BaseMatrix
+	# The columns of tm are the based vectors. The first half are real; the second half are imaginary.
+	# The column type are the frequency of the base vectors. Sorting columns-by-type will move all
+	# low frequency columns to the beginning of the table; so that the next stmt will select
+	# the low frequency (real and imaginary) bases.
+	tm = tm.SortColumnsOnType(True)
 	coList = list(range(tm.Columns))[0:waveCount]
 	return tm.SelectColumns(coList)
 
@@ -247,7 +252,7 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 
 	#Scaling base vectors to reduce dominance of the first base that reflect the seq-length.
 	for R in tm.Matrix:
-		for k, f in enumerate([1.0, 4.0, 4.0]): R[k] *= f
+		for k, f in enumerate([1.0, 4.0, 4.0, 2.0, 2.0]): R[k] *= f
 
 	if using3DInfo:
 		# using the main chain from the PDB file
