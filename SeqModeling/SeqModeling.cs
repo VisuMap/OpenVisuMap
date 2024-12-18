@@ -333,7 +333,7 @@ namespace VisuMap {
             return P;
         }
 
-        public INumberTable VectorizeProtein2(IList<string> seqList, string aaGroups, INumberTable transMatrix) {
+        public INumberTable VectorizeProtein(IList<string> seqList, string aaGroups, INumberTable transMatrix) {
             var P = Cluster2IdxList(aaGroups);
             int clusters = P.Values.Max(vs=>vs.Max()) + 1;
             int L = transMatrix.Rows;

@@ -246,7 +246,7 @@ def GetFourier(waveLen, waveCount):
 	return tm.SelectColumns(coList)
 
 def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, 
-		ppl=0.05, staged=False, repeats=0, using3DInfo=True, aaGroups='A', waveLen=256, waveCount=12):
+		ppl=0.05, staged=False, repeats=0, using3DInfo=True, aaGroups='A', waveLen=1024, waveCount=17):
 	pTable = AssertProteinTable()	
 	tm = GetFourier(waveLen, waveCount)
 
@@ -262,7 +262,7 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 				vv.Title = f'Reading: {k}:{pId}'
 			seqList.append( LoadMainSeq(pId) )
 			vv.DoEvents()
-		dt = cs.VectorizeProtein2(seqList, aaGroups, tm)		
+		dt = cs.VectorizeProtein(seqList, aaGroups, tm)		
 	else:
 		# using the sequence in the current dataset 2-th column
 		seqList = []
@@ -270,7 +270,7 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 			rowIdx = pTable.IndexOfRow(pId)
 			if rowIdx >= 0:
 				seqList.append( pTable.GetDataAt(rowIdx, 2) )
-		dt = cs.VectorizeProtein2(seqList, aaGroups, tm)
+		dt = cs.VectorizeProtein(seqList, aaGroups, tm)
 	for k, b in enumerate(pTable.BodyListForId(pList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 
@@ -811,7 +811,7 @@ def AtlasTileAll(atlas, aaGroups, using3DInfo=False, waveLen=128, waveCount=16):
 	else:
 		tm = GetFourier(waveLen, waveCount)
 		seqList = [LoadMainSeq(pId) for pId in pList]
-		dt = cs.VectorizeProtein2(seqList, aaGroups, tm)	
+		dt = cs.VectorizeProtein(seqList, aaGroups, tm)	
 		for k, b in enumerate(pTable.BodyListForId(pList)):
 			dt.RowSpecList[k].CopyFromBody(b)
 	mds = New.TsneSorter(dt, "EuclideanMetric")
