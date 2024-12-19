@@ -32,14 +32,14 @@ def MainProc(menuKey):
 	atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}'
 	pSelected = list(pp.SelectedItems)
 	pId = pSelected[0] if len(pSelected) > 0 else None
-	pList = lambda: pSelected if len(pSelected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
+	pList = pSelected if len(pSelected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
 
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
 			if len(pSelected) == 1: atlasName = None
-			UnFoldProteinList(pList(), epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.0, iconWidth=50, smtRatio=0.0)
+			UnFoldProteinList(pList, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.0, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
 			atlasName += '-3D'
 			SortByPosX(pSelected)
@@ -60,37 +60,21 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'ProteinMap':
-			aaGroups = GetAAGroup(idx=0)
-			CreateProteinMap2(pList(), epochs=2000, repeats=1, ppl=0.025, staged=False, initExag=6.0, finalExag=1.0,
-				using3DInfo=False, aaGroups=aaGroups)
-
+			CreateProteinMap2(pList, epochs=2000, repeats=1, ppl=0.025, staged=False, initExag=6.0, finalExag=1.0,
+				using3DInfo=False, aaGroups=GetAAGroup(0), waveCount=25)
 			'''
-			mStore = AtlasMapStore('P-Maps', 'MapSnapshot', True)
-			from itertools import combinations
-			aaList = combinations(aaList,  2)
-			aaList = [ 'DE|RHK|FWY|AVILMFYW', 'DERHKFWYAVILMFYW', 'AVILMFYWSTNQCGPRHKDE']
-			for g in aaList:
-				#aaGroups = '|'.join(g)
-				aaGroups = g
-				CreateProteinMap2(pList(), epochs=2000, repeats=1, ppl=0.1, initExag=4.0, finalExag=1.0,
-					using3DInfo=False, aaGroups=aaGroups, waveLen=256, waveCount=32)
-				mStore.AddMap().Close()
-
-			ma = mStore.atlas
-			ma.Show()
-			for item in ma.Items:
-				frm = item.Open()
-				info = MapInfo(frm.Description)
-				item.Name = info.Get('aaG').replace('|', '-') + ': ' + info.Get('CST')[:6]
-				item.LabelStyle = 2
-				item.IconHeight = 0
-				item.IconWidth = 200
-				frm.Close()
-			ma.ArrangeItems(False)			
+			gList = 'AVILMFYWSTNQCGPRHKDE'			
+			mStore = AtlasMapStore('Test-Maps 1', 'MdsCluster', True)
+			for wCnt in [17, 25]:
+				for aaGroups in gList:
+					CreateProteinMap2(pList, epochs=4000, repeats=0, ppl=0.25, staged=True, initExag=6.0, finalExag=1.0,
+						using3DInfo=False, aaGroups=aaGroups, waveCount=wCnt)
+					mStore.AddMap().Close()
+			mStore.atlas.Show()
 			'''
 
 		case 'TypeProtein':
-			TypeProteinList(pList())
+			TypeProteinList(pList)
 		case 'AtlasView':
 			atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}'
 			if atlasName not in vv.AtlasManager.GetAtlasList():
@@ -132,46 +116,12 @@ dsList = [
 	'Diseas',
 	'TranscriptionFactor', ]
 
-for ds in dsList[12:]:
-	vv.OpenDatasetMap(ds, 'mapK')
-	vv.ClickMenu('SeqVis/P-2D')
-	vv.FindFormList('Atlas')[0].Close()
-
-aaGroups='AVILMFYW|STNQ|CGP|RHK|DE'
-'A|V|I|L|M|F|Y|W|S|T|N|Q|C|G|P|R|H|K|D|E'
-'AVILMFYW|STNQCGPRHKDE'
-'AVILMFYW|STNQ|C|G|P|RHK|DE'
-'GAVMLIP|FY|STNQCW|DE|HKR
-
-modOp = NewModuleOp(aaGroups)
-
-bSet = set()
-bs = vv.Dataset
-for k, b in enumerate(bs.BodyList):
-	seq = bs.GetDataAt(k, 2)
-	seq = SeqMod(modOp, seq)
-	if seq in bSet:
-		b.Disabled = True
-	else:
-		b.Disabled = False
-		bSet.add(seq)
-vv.Map.RedrawAll()
 
 ds = vv.Dataset
 bs = list(ds.BodyList)
-chCount={}
-for k, b in enumerate(bs):
-	pId = b.Id[:4]
-	#rep = int( ds.GetValueAt(k, 1) )
-	rep = 1
-	if pId not in chCount:
-		chCount[pId] = rep
-	else:
-		chCount[pId] += rep
+items = New.ValueItemList(bs)
+for k, item in enumerate(items):
+	item.Value = ds.GetValueAt(k, 5)
+New.SpectrumView(items).Show()
 
-for k, b in enumerate(bs):
-	pId = b.Id[:4]
-	ds.SetValueAt(k, 5, chCount[pId])
-ds.CommitChanges()
-		
 '''

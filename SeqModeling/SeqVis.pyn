@@ -512,13 +512,15 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1,
 
 def RunMds(mds, repeats=1, info=None):
 	mds.Repeats = repeats
+	if info is not None:
+		info.DDM = mds.DataDim		
+		mds.Description = info.ToStr()
 	mds.Reset().Start()
 	if not mds.Completed: 
 		raise Exception("MDS aborted")
 	if info is not None:
-		info.DDM = mds.DataDim		
 		info.Set('CST', mds.CostTsne)
-		mds.Description = info.ToStr() if info is not None else 'Map created by RunMds'
+		mds.Description = info.ToStr()
 	if repeats == 1:
 		mds.ShowSnapshot()
 	return mds
