@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-3D HideIPO MarkHelix MarkBeta MainChain RnaChain 
+#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-3D P-3DChain HideIPO MarkHelix MarkBeta MainChain RnaChain 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -22,11 +22,20 @@ match vv.EventSource.Item:
 	case 'P-Web':
 		pId = MapInfo(pp.Description).pId
 		ShowWeb(pId)
-	case 'P-3D':
+	case 'P-3D':		
 		info = MapInfo(pp.Description)
 		pId = info.pId
 		chainNames = info.Get('CNs').split('|') if info.Has('CNs') else None				
 		ShowPDB(pId, rp=3, eps=0.1, includeHA=False, chainNames=chainNames) 
+	case 'P-3DChain':
+		info = MapInfo(pp.Description)
+		pId = info.pId[:4]
+		chName = pp.SelectedBodies[0].Name.split('.')[2]
+		for k, b in enumerate(vv.Dataset.BodyList):
+			id = b.Id[:4]
+			chN = vv.Dataset.GetDataAt(k, 6)
+			if id == pId and chN == chName:
+				ShowPDB(pId, rp=3, eps=0.1, includeHA=False, chainNames=[chName]) 
 	case 'HideIPO':
 		HideInterpolates()
 	case 'MarkHelix':

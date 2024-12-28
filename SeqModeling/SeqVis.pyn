@@ -277,7 +277,7 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=0.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.StagedTraining = staged
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	info.Mtd = 'Hrm'  # for 
+	info.Mtd = 'Hrm'  
 	info.Set('aaG', aaGroups)
 	info.Set('wvL', waveLen)
 	info.Set('wvCnt', waveCount)
@@ -335,8 +335,8 @@ def CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=10.0,  finalExag=
 #-----------------------------------------------------------------------------
 
 def ShowWeb(pId):
+	pId = pId[:4]
 	if vv.Dataset.ColumnSpecList[0].Id == 'PID':
-		pId = pId[:4]
 		vv.StartProcess(f'https://rcsb.org/3d-view/{pId}')
 	else:
 		vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/protein/{pId}')
@@ -512,14 +512,14 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1,
 
 def RunMds(mds, repeats=1, info=None):
 	mds.Repeats = repeats
-	if info is not None:
+	if info != None:
 		info.DDM = mds.DataDim		
 		mds.Description = info.ToStr()
 	mds.Reset().Start()
 	if not mds.Completed: 
 		raise Exception("MDS aborted")
-	if info is not None:
-		info.Set('CST', mds.CostTsne)
+	if info != None:
+		info.Set('MSz', mds.GlyphSpan)
 		mds.Description = info.ToStr()
 	if repeats == 1:
 		mds.ShowSnapshot()

@@ -8,7 +8,10 @@ def SortByPosX(idList):
 def GetAAGroup(idx=0):
 	aaHydrophobic = 'AVILMFYW'
 	aaPolarUncharged = 'STNQ'
-	aaSpecial = 'CUGP'
+	aaSpecial = 'CGP'
+	aaSpC = 'C'
+	aaSpG = 'G'
+	aaSpP = 'P'
 	aaNoPolar = 'AGILMPV'
 	aaCarboxyl = 'DE'
 	aaAmine = 'RHK'
@@ -20,13 +23,27 @@ def GetAAGroup(idx=0):
 			return 'AVILMFYW|STNQ|CGP|RHK|DE'
 		case 1:
 			return '|'.join( [ aaHydrophobic, aaPolarUncharged,  aaSpecial, aaNoPolar, aaCarboxyl, aaAmine, aaAromatic, aaHydroxyl] )
+		case 11:
+			return [ aaHydrophobic, aaPolarUncharged,  aaSpecial, aaNoPolar, aaCarboxyl, aaAmine, aaAromatic, aaHydroxyl]
 		case 2:
 			return aaHydrophobic
 		case 3:
 			return aaAromatic
+		case 4:
+			from itertools import combinations
+			#return ['|'.join(g) for g in combinations(list('CGPDEFWY'), 3)]
+			return ['|'.join(g) for g in combinations(list('AVILMFYW'), 3)]
 		case 9:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE')
 
+def CreateProteinMapList(gList, pList, epochs=2500, clearStore=False):
+	mStore = AtlasMapStore(f'P-Atlas-{len(pList)}', 'MdsCluster', clearStore)
+	for aaGroups in gList:
+		CreateProteinMap2(pList, epochs=epochs, repeats=0, ppl=0.25, staged=True, 
+			initExag=6.0, finalExag=1.0, using3DInfo=False, aaGroups=aaGroups)
+		mStore.AddMap().Close()
+		mStore.atlas.SaveAtlas()
+	mStore.atlas.Show()
 
 def MainProc(menuKey):
 	atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}'
@@ -59,20 +76,13 @@ def MainProc(menuKey):
 		case 'Sh-LocPDB':
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
-		case 'ProteinMap':
-			CreateProteinMap2(pList, epochs=2000, repeats=1, ppl=0.025, staged=False, initExag=6.0, finalExag=1.0,
-				using3DInfo=False, aaGroups=GetAAGroup(0), waveCount=25)
-			'''
-			gList = 'AVILMFYWSTNQCGPRHKDE'			
-			mStore = AtlasMapStore('Test-Maps 1', 'MdsCluster', True)
-			for wCnt in [17, 25]:
-				for aaGroups in gList:
-					CreateProteinMap2(pList, epochs=4000, repeats=0, ppl=0.25, staged=True, initExag=6.0, finalExag=1.0,
-						using3DInfo=False, aaGroups=aaGroups, waveCount=wCnt)
-					mStore.AddMap().Close()
-			mStore.atlas.Show()
-			'''
+		case 'ProteinMap':		
+			
+			#CreateProteinMap2(pList, aaGroups=GetAAGroup(0), epochs=5000, repeats=3, 
+			#	ppl=0.25, staged=True, initExag=6.0, finalExag=1.0, using3DInfo=False)
 
+			CreateProteinMapList(GetAAGroup(4), pList, epochs=2500, clearStore=True)
+		
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'AtlasView':
@@ -91,37 +101,43 @@ def MainProc(menuKey):
 
 MainProc(vv.EventSource.Item)
 
-
 '''
-
-dsList = [ 	
-	'MainlyAlpha',
-	'MainlyBeta',
-	'Developmental',
-	'Immune System',
-	'Reproductive',
-	'ECODE topology',
-	'BetaSandwiches',
-	'Local-Symmetry',
-	'LocalVirus',
-	'Beta barrels',
-	'Trans regulation',
-	'Membran',
-	'Proteasome',
-	'Unstrucuted',
-	'Artifacts',
-	'Ribosome',
-	'Golgi',
-	'Mitochondrian',
-	'Diseas',
-	'TranscriptionFactor', ]
-
 
 ds = vv.Dataset
 bs = list(ds.BodyList)
-items = New.ValueItemList(bs)
-for k, item in enumerate(items):
-	item.Value = ds.GetValueAt(k, 5)
-New.SpectrumView(items).Show()
+pList = {}
+for b in bs:
+	pId = b.Id[:4]
+	if pId not in pList:
+		pList[pId] = []
+	pList[pId].append(b.Id)
+
+ft = New.FreeTable(len(pList), 0)
+for k, p in enumerate(pList):
+	rs = ft.RowSpecList[k]
+	rs.Id = p
+	rs.Name = ','.join( pList[p] )
+ft.ShowAsTable()
+
+ft.SaveAsDataset('AAA', '')
+
+for item in pp.Items:
+	mp = item.Open()
+	info = MapInfo(mp.Description)
+	item.Name = info.aaG + ' : ' + info.Get('MSz')[:5]
+	item.LabelStyle = 2
+	mp.Close()
+
+ds = vv.Dataset
+mgr = vv.EventManager
+gList = []
+for t in range(2683):
+	gList.append([b.Id for b in ds.BodyListForType(t)])
+gList.sort(reverse=False, key=lambda g: len(g))
+for g in gList:
+	mgr.RaiseItemsSelected(g) 
+	vv.Sleep(250)
+	if vv.ModifierKeys.ControlPressed:
+		break
 
 '''
