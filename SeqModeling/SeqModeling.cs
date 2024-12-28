@@ -215,7 +215,7 @@ namespace VisuMap {
                     if (i == k) {
                         bs.Add(b0);
                     } else if ((i >= 0) && (i < D.Length)) {
-                        Body b = new Body("i" + (bIdx0 + bs.Count));
+                        Body b = new Body("i" + b0.Type + '.' + i);
                         b.Name = b0.Name;
                         b.Type = b0.Type;
                         b.Flags = b0.Flags;
@@ -548,7 +548,6 @@ namespace VisuMap {
 
             List<IBody> bsList = vv.New.BodyList();
             List<IBody> bsList2 = vv.New.BodyList();
-            HashSet<string> selectedChains = (chainNames != null) ? new HashSet<string>(chainNames) : null;
             int rsIdxPre = -1;
             var RNA_set = new HashSet<string>() { "A", "U", "G", "C" };
             var DNA_set = new HashSet<string>() { "DA", "DT", "DG", "DC" };
@@ -567,13 +566,6 @@ namespace VisuMap {
                     return null;
                 }
                 string chName = fs[18] + "_" + fs[20];
-                if (selectedChains != null) {
-                    if (!selectedChains.Contains(chName)) {
-                        Lookup(chName);
-                        continue;
-                    }
-                }
-
                 string atName = fs[3].Trim(dbQuoats);
                 string rsName = fs[5];
                 string secType = "x";
@@ -623,6 +615,12 @@ namespace VisuMap {
                         b.Hidden = true;
                     bsList.Add(b);
                 }
+            }
+
+            if ( chainNames != null) {
+                HashSet<string> selectedChains = new HashSet<string>(chainNames);
+                bsList = bsList.Where(b => selectedChains.Contains(b.Name.Split('.')[2])).ToList();
+                bsList2 = bsList2.Where(b => selectedChains.Contains(b.Name.Split('.')[2])).ToList();
             }
 
             heteroChains = bsList2;

@@ -219,58 +219,20 @@ def GetAcc2Chain(fPDB):
 		fs = L.split()
 		if fs[8] not in dict:
 			dict[fs[8]] = fs[3]
-	return dict		
-	
+	return dict	
 
 def LoadCifData(pId, mainChain=False, chainNames=None):
 	localPath = pId if pId.endswith('.cif') else Download3DInfo(pId[:4])
-	if chainNames != None:  mainChain = False
-	usingCS = True
-	if usingCS:  # the CS version is about 70% faster.
-		bsList = cs.LoadCif(localPath, chainNames)
-
-		if mainChain:
-			dic = cs.GetAccession2ChainTable()
-			acc2chain = {}
-			for key in dic.Keys:
-				acc2chain[key] = dic[key]
-			bsList = SelectChain(pId, bsList, acc2chain)
-
-		return localPath, bsList, cs.GetHeteroChains(), cs.GetTitle()
-	try:
-		bsList, bsList2 = New.BodyList(), New.BodyList()
-		betaSet, helixSet = set(), set()
-		pdbTitle = ''
-		acc2chain = {}
-		with open(localPath) as fPDB:
-			L = fPDB.readline()
-			if not L.startswith('data_'):
-				vv.Message('Invalid header-line: ' + L)
-				vv.Return()
-			for L in fPDB:
-				if L.startswith('_struct_sheet_range.end_auth_seq_id'):
-					LoadBetaSheet(fPDB, betaSet)
-				elif L.startswith('_struct_conf.pdbx_PDB_helix_length'):
-					LoadHelix(fPDB, helixSet)
-				elif L.startswith('_struct_conf.conf_type_id'):
-					if L.strip().endswith('HELX_P'):
-						LoadHelix2(fPDB, helixSet)
-				elif L.startswith('_struct.title'):
-					pdbTitle = GetTitleString(L, fPDB)
-				elif L.startswith('_struct_ref_seq.align_id'):
-					acc2chain = GetAcc2Chain(fPDB)
-				elif L.startswith('_atom_site.'):
-					bsList, bsList2 = LoadAtoms(fPDB, helixSet, betaSet, chainNames)
-					break	
-	except Exception as err:
-		print(err, f'Last Line:\n {bsList.Count}: |{L}|')
-	if bsList.Count == 0:
-		vv.Message('No amino-acids found!')
-		vv.Return()
+	if chainNames != None:  
+		mainChain = False
+	bsList = cs.LoadCif(localPath, chainNames)
 	if mainChain:
+		dic = cs.GetAccession2ChainTable()
+		acc2chain = {}
+		for key in dic.Keys:
+			acc2chain[key] = dic[key]
 		bsList = SelectChain(pId, bsList, acc2chain)
-	return localPath, bsList, bsList2, pdbTitle
-
+	return localPath, bsList, cs.GetHeteroChains(), cs.GetTitle()
 
 def OpenPDBFile(pMap):
 	info = MapInfo(pMap.Description)
@@ -342,110 +304,6 @@ def ShowHelix():
 def ShowBetaSheet():
 	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.b')]
 
-def LoadBetaSheet(fPDB, betaSet):
-	for L in fPDB:
-		if L[0] == '#': break
-		fs = L.split()
-		idx0 = int(fs[4]) - 1
-		idx1 = int(fs[8]) + 1
-		for i in range(idx0, idx1):
-			betaSet.add(i)
-
-def LoadHelix(fPDB, helixSet):
-	for L in fPDB:
-		if not L.startswith('HELX_P'):
-			break
-		fs = L.split()
-		idx0 = int(fs[5])
-		idx1 = int(fs[9]) + 1
-		for i in range(idx0, idx1):
-			helixSet.add(i)
-
-def LoadHelix2(fPDB, helixSet):
-	idx0 = -1
-	idx1 = -1
-	for L in fPDB:
-		if L.startswith('_struct_conf.beg_label_seq_id'):
-			idx0 = int(L.split()[1])
-		if L.startswith('_struct_conf.end_label_seq_id'):
-			idx1 = int(L.split()[1]) + 1
-		if L[0] == '#':
-			break
-	if (idx0>=0) and (idx1>=0):
-		for i in range(idx0, idx1):
-			helixSet.add(i)
-
-def LoadAtoms(fPDB, helixSet, betaSet, chainNames=None):
-	bsList = New.BodyList()
-	bsList2 = New.BodyList() # for hetero atoms
-	ch2idx = ChainIndex()
-	rsIdxPre = -1
-	selectedChain = set(chainNames) if chainNames != None else None
-	for L in fPDB:
-		if L[0] == '#':
-			break
-		if L[0] == '_':
-			continue
-		fs = L.split()
-		if len(fs) < 21:
-			vv.Message(f'Invalid record: {len(fs)}: |{L}|')
-			vv.Return()		
-
-		chName = fs[18] + '_' + fs[20]
-		if selectedChain != None:
-			if chName not in selectedChain:
-				ch2idx.Lookup(chName)
-				continue
-		rsX, rsY, rsZ = float(fs[10]), float(fs[11]), -float(fs[12])	
-		atName = fs[3].strip('\"')
-		rsName = fs[5]
-		secType = 'x'  # default secondary type
-
-		if fs[0] == 'ATOM':
-			rsIdx = int(fs[8]) - 1
-			# some residues are recorded multiple time. We ignore the duplicates here.
-			if rsIdx == rsIdxPre:   
-				continue
-			# Set p1 which is either a capital for an AA type; or 'r' for RNA peptide; 
-			# or 'd' for DNA peptide; or 'x' for unknow elements.
-			if (rsName in P3) and ( (atName=='CA') or (atName=='C2') ):
-				p1 = P3[rsName]  # amino acid polymers.
-				if rsIdx in helixSet:
-					secType = 'h'
-				elif rsIdx in betaSet:
-					secType = 'b'
-			elif (rsName in 'AUGC') and (atName=="C1'"):
-				p1 = 'r'   # RNA polymers
-			elif (rsName in ['DA', 'DT', 'DG', 'DC'] ) and (atName=="C1'"):
-				p1 = 'd'   # DNA fragments
-			else:
-				continue
-			bId = f'A{rsIdx}.{bsList.Count}'
-			rsIdxPre = rsIdx
-		elif fs[0] == 'HETATM':
-			bId = f'H.{fs[3]}.{bsList2.Count}'
-			p1 = fs[3]
-		else:
-			continue	
-
-		b = New.Body(bId)
-		b.X, b.Y, b.Z = rsX, rsY, rsZ
-
-		b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType
-		b.Type = ch2idx.Lookup(chName)
-		
-		if b.Id[0] == 'H':  # for heter-atoms
-			if ch2idx.Contains(rsName):
-				b.Type = ch2idx.Lookup(rsName)
-			else:
-				b.Type = 72+25
-			bsList2.Add(b)
-		else:
-			if b.Name[0] in ['r', 'd']:
-				b.Hidden = True
-			bsList.Add(b)	
-	return bsList, bsList2
-
 def LoadMainChain(pId):
 	from os.path import exists
 	cacheFile = PidToMainChain(pId)
@@ -470,7 +328,6 @@ def LoadMainSeq(pId):
 		for rs in nt.RowSpecList:
 			seq.append(rs.Name[0])
 		return ''.join(seq)
-
 
 def Interporlate(bsList, rp, eps, smtRatio=0):
 	bs = New.BodyList()

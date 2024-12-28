@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web P-3D SeqMap P-Open Sh-LocPDB AtlasView TypeProtein P-2D ProteinMap
+#MenuLabels P-ChmX P-Web P-3D P-3Dx SeqMap P-Open Sh-LocPDB AtlasView TypeProtein P-2D ProteinMap
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -63,6 +63,9 @@ def MainProc(menuKey):
 			if len(pSelected) == 1: atlasName = None
 			justMainChain = vv.ModifierKeys.ControlPressed
 			ShowProteinList(pSelected, mainChain=justMainChain, includeHA=False, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
+		case 'P-3Dx':
+			for pId in pSelected:
+				ShowPDB(pId, rp=3, eps=0.1, includeHA=True, mainChain=False, chainNames=None, smtRatio=0.0) 			
 		case 'SeqMap':
 			aaGroups = GetAAGroup(idx=0)
 			atlasName += '-Seq'
