@@ -38,7 +38,8 @@ def GetAAGroup(idx=0):
 
 def CreateProteinMapList(gList, pList, epochs=2500, clearStore=False):
 	mStore = AtlasMapStore(f'P-Atlas-{len(pList)}', 'MdsCluster', clearStore)
-	for aaGroups in gList:
+	for k, aaGroups in enumerate(gList):
+		vv.Title = f'Protein Map: {k}-th of {len(gList)}...'
 		CreateProteinMap2(pList, epochs=epochs, repeats=0, ppl=0.25, staged=True, 
 			initExag=6.0, finalExag=1.0, using3DInfo=False, aaGroups=aaGroups)
 		mStore.AddMap().Close()
@@ -65,7 +66,7 @@ def MainProc(menuKey):
 			ShowProteinList(pSelected, mainChain=justMainChain, includeHA=False, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
 		case 'P-3Dx':
 			for pId in pSelected:
-				ShowPDB(pId, rp=3, eps=0.1, includeHA=True, mainChain=False, chainNames=None, smtRatio=0.0) 			
+				ShowPDB(pId, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0) 			
 		case 'SeqMap':
 			aaGroups = GetAAGroup(idx=0)
 			atlasName += '-Seq'

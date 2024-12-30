@@ -70,7 +70,7 @@ def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, chainNames=None, includeHA=True
 	info.Set('MC', mainChain)
 	mp.Description = info.ToStr()
 	mp.Title = f'{pId}: Len:{bsList.Count}'
-	mp.GlyphSet = '36 Clusters||Colored Balls'
+	mp.GlyphSet = '36 Clusters||||Colored Balls'
 	mp.ReadOnly = True
 	mp.ShowPerformance = False
 	mp.ShowBoundingBox = False
@@ -132,7 +132,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		stretch=0, contractFactor=1.0, iconWidth=50, smtRatio=0):
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=5.0, finalExag=1.0, ppl=0.1, 
-		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||Colored Balls')
+		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
 	mds.RefreshFreq = epochs
 	mds.GlyphSize = 2.0
 	mds.GlyphOpacity = 1.0
@@ -244,7 +244,7 @@ def OpenCifFile(pId):
 def AugmentByIndex(nt, stretch):
 	if stretch == 0:
 		return nt
-	nt.AddColumns(1)
+	nt.AddColumns(4)
 	M = nt.Matrix
 	rsList = nt.RowSpecList
 	# get the number of interpolation points which is normally 8
@@ -252,12 +252,36 @@ def AugmentByIndex(nt, stretch):
 		if rsList[ipp].Id[0] == 'A':
 			break
 	dx = 0.01*stretch/ipp
-	offset = 0	
+
+	meanV = {}
+	meanCnt = {}
 	for row, rs in enumerate(rsList):
+		if rs.Type not in meanCnt:
+			meanCnt[rs.Type] = 0
+			meanV[rs.Type] = [0, 0, 0]
+		meanCnt[rs.Type] += 1
+		V, R = meanV[rs.Type], M[row]
+		for dim in range(3):
+			V[dim] += R[dim]
+
+	for row, rs in enumerate(rsList):
+		if (row==0) or (rs.Type != rsList[row-1].Type): 
+			offset = 0.5*meanCnt[rs.Type]*dx
 		# hetero atoms don't participate in the unfold stretching
 		if rs.Id[0] == 'H': continue
 		M[row][3] += offset
 		offset += dx
+
+	for t in meanCnt:
+		n = meanCnt[t]
+		for dim in range(3):
+			V = meanV[t]
+			V[dim] = 1.0 * V[dim]/n
+	for row, rs in enumerate(rsList):
+		V, R = meanV[rs.Type], M[row]
+		for dim in range(3):
+			R[4+dim] = V[dim]
+
 	return nt
 
 def Download3DInfo(pId):

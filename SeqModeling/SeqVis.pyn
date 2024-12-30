@@ -540,7 +540,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 		vv.Return(0)
 	pTable = AssertProteinTable()
 	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
-	mds.GlyphSet = '36 Clusters'
+	mds.GlyphSet = '36 Clusters||||Colored Balls'
 	mds.GlyphSize = glyphSize
 	mds.GlyphOpacity = glyphOpacity
 	mds.AutoNormalizing = True

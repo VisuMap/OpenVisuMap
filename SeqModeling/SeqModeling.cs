@@ -526,10 +526,11 @@ namespace VisuMap {
             {"VAL", 'V'}
         };
 
+        const int maxChainIndex = 144; // 4x36 of "36 Clusters" 
         List<IBody> LoadAtoms(TextReader tr, HashSet<int> helixSet, HashSet<int> betaSet, List<string> chainNames) {
             Dictionary<string, int> ch2idx = new Dictionary<string, int>() {
-                { "HOH", 72 + 3 },
-                { "NAG", 72 + 11 } } ;
+                { "HOH", maxChainIndex + 3 },
+                { "NAG", maxChainIndex + 11 } } ;
             int headIndex = 0;
             int Lookup(string chName) {
                 if (!ch2idx.ContainsKey(chName)) {
@@ -608,7 +609,7 @@ namespace VisuMap {
                     if (ch2idx.ContainsKey(rsName))
                         b.Type = (short)Lookup(rsName);
                     else
-                        b.Type = 72 + 25;
+                        b.Type = maxChainIndex + 25;
                     bsList2.Add(b);
                 } else {
                     if ( (b.Name[0] == 'r') || (b.Name[0] == 'd') )
