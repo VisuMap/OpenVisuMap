@@ -377,6 +377,28 @@ namespace VisuMap {
                 }
             }
         }
+
+        public unsafe double NWDistance(string sA, string sB, short gapCost = 2, short matchCost = 0, short mismatchCost = 1) {
+            int rows = sA.Length;
+            int cols = sB.Length;
+            if (rows == 0) return cols * gapCost;
+            if (cols == 0) return rows * gapCost;
+            int* A = stackalloc int[cols + 1];   // this is much faster than the new short[] call.
+            int* B = stackalloc int[cols + 1];
+
+            for (int col = 0; col <= cols; col++) A[col] = col * gapCost;
+            for (int row = 1; row <= rows; row++) {
+                B[0] = row * gapCost;
+                for (int col = 1; col <= cols; col++) {
+                    B[col] = Math.Min(Math.Min(
+                        A[col] + gapCost, B[col - 1] + gapCost),
+                        A[col - 1] + ((sA[row - 1] == sB[col - 1]) ? matchCost : mismatchCost));
+                }
+                int* tmp = A; A = B; B = tmp;
+            }
+            return A[cols];
+        }
+
         #region LoadCif() method
         string pdbTitle = null;
         List<IBody> heteroChains = null;
