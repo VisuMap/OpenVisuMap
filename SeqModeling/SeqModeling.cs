@@ -67,7 +67,7 @@ namespace VisuMap {
             return mBody;
         }
 
-        public List<IBody> ClusterContract(List<IBody> bList, double factor) {
+        public List<IBody> LocalExpand(List<IBody> bList, double factor) {
             Dictionary<short, double[]> centers = new Dictionary<short, double[]>();
             foreach (var b in bList) {
                 if (!centers.ContainsKey(b.Type))

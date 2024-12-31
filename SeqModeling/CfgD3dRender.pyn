@@ -5,7 +5,7 @@ vv.Import('PdbLoad.pyn')
 
 def LookupKey(key2type, ckey):
 	for k in key2type:
-		if cs.NWDistance(ckey, k) < 10:
+		if cs.NWDistance(ckey, k) < 20:
 			return k
 	key2type[ckey] = 1+len(key2type)
 	return ckey
@@ -15,23 +15,29 @@ def UnifyChains():
 	chains = []
 	prefix = []
 	curType = -1
+	maxKeyLen = 50
 	for b in pp.BodyList:
 		if b.Id[0] == 'A':
 			if b.Type != curType:
 				if curType >= 0:
-					chains.append( (''.join(prefix[10:40]), curType) )
+					chains.append( (''.join(prefix[10:maxKeyLen]), curType) )
 				curType = b.Type
 				prefix = []
-			if len(prefix) <= 40:
+			if len(prefix) < maxKeyLen:
 				prefix.append(b.Name[0])
-	if len(prefix)>0:	
-		chains.append( (''.join(prefix[10:40]), curType) )
+	if len(prefix)>0:	# Add the last chain
+		chains.append( (''.join(prefix[10:maxKeyLen]), curType) )
+
 	type2type = {}
 	if 'key2type' not in globals():
 		key2type = {}
+	keyLen = len(key2type)
 	for ckey, ty in chains:
 		ky = LookupKey(key2type, ckey)
 		type2type[ty] = key2type[ky]
+	newKeys = len(key2type) - keyLen
+	vv.Message(f'Added {newKeys} new chains!')
+
 	aIdx = 0  # atom index with a chain
 	curType = -1
 	for b in pp.BodyList:
@@ -40,9 +46,8 @@ def UnifyChains():
 			aIdx = 0
 		else:
 			aIdx += 1			
-		newType = type2type[curType]
-		b.Id = f'{b.Id[0]}{newType}.{aIdx}'
-		b.Type = newType
+		b.Type = type2type[curType]
+		b.Id = f'{b.Id[0]}{b.Type}.{aIdx}'
 	pp.RedrawAll()
 
 
@@ -60,7 +65,7 @@ match vv.EventSource.Item:
 	case 'Smoothen':
 		SmoothenCurve(pp, repeats=50)
 	case 'P-2D':
-		UnFoldMap(pp, repeats=0, epochs=2500, initExag=8.0, ppl=0.2, stretch=0.1, contractFactor=1.0)
+		UnFoldMap(pp, repeats=0, epochs=2500, initExag=8.0, ppl=0.2, stretch=1.25, expandFactor=1.1)
 	case 'HideIPO':
 		HideInterpolates()
 	case 'MarkHelix':

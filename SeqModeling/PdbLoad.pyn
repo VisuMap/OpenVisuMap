@@ -129,7 +129,7 @@ def GetChainName(pId):
 		return None
 
 def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=False, atName=None, 
-		stretch=0, contractFactor=1.0, iconWidth=50, smtRatio=0):
+		stretch=0, expandFactor=1.0, iconWidth=50, smtRatio=0):
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=5.0, finalExag=1.0, ppl=0.1, 
 		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
@@ -155,15 +155,15 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			if includeHA:
 				bList.AddRange(bList2)
 
-			if contractFactor != 1.0:
+			if expandFactor != 1.0:
 				bList = New.BodyListClone(bList)
-				bList = cs.ClusterContract(bList, contractFactor)
+				bList = cs.LocalExpand(bList, expandFactor)
 			nt = New.NumberTable(bList,3)
 			nt = AugmentByIndex(nt, stretch=stretch)
 			
 			info = MapInfo()
 			info.SF = stretch
-			info.CF = contractFactor
+			info.CF = expandFactor
 			info.pId = pId
 			info.pLen = bList.Count
 			info.Mtd = 'PDB'
@@ -242,8 +242,7 @@ def OpenCifFile(pId):
 	vv.StartProcess("vi", PidToPath(pId))
 
 def AugmentByIndex(nt, stretch):
-	if stretch == 0:
-		return nt
+	if stretch == 0: return nt
 	nt.AddColumns(4)
 	M = nt.Matrix
 	rsList = nt.RowSpecList
@@ -251,7 +250,7 @@ def AugmentByIndex(nt, stretch):
 	for ipp in range(1, 128):  
 		if rsList[ipp].Id[0] == 'A':
 			break
-	dx = 0.01*stretch/ipp
+	dx = 0.1*stretch/ipp
 
 	meanV = {}
 	meanCnt = {}
@@ -273,9 +272,8 @@ def AugmentByIndex(nt, stretch):
 		offset += dx
 
 	for t in meanCnt:
-		n = meanCnt[t]
+		n, V = meanCnt[t], meanV[t]
 		for dim in range(3):
-			V = meanV[t]
 			V[dim] = 1.0 * V[dim]/n
 	for row, rs in enumerate(rsList):
 		V, R = meanV[rs.Type], M[row]
@@ -369,19 +367,18 @@ def Interporlate(bsList, rp, eps, smtRatio=0):
 				t0 = bsList[k0].Type
 	return bs
 
-def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, contractFactor=1.0, initExag=10.0, finalExag=1.0, is3D=False):
+def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, expandFactor=1.0, initExag=10.0, finalExag=1.0, is3D=False):
 	bList = pMap.BodyListEnabled()
-	if contractFactor != 1.0:
+	if expandFactor != 1.0:
 		bList = New.BodyListClone(bList)
-		bList = cs.ClusterContract(bList, contractFactor)
+		bList = cs.LocalExpand(bList, expandFactor)
 	nt = New.NumberTable(bList,3)
-	if stretch != 0:
-		AugmentByIndex(nt, stretch=stretch)
+	AugmentByIndex(nt, stretch=stretch)
 	mds = NewMds(nt, is3D=is3D, glyphSet=pMap.GlyphSet, initExag=initExag, finalExag=finalExag,
 		epochs=epochs, ppl=ppl)
 	info = MapInfo(pMap.Description).SetMds(mds)
 	info.SF = stretch
-	info.CF = contractFactor
+	info.CF = expandFactor  # Local expanding factor
 	winTitle = pMap.Title
 	mds.GlyphSize = 0.5
 	RunMds(mds, repeats=repeats, info=info)
