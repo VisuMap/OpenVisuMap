@@ -266,7 +266,7 @@ def AugmentByIndex(nt, stretch):
 
 	for row, rs in enumerate(rsList):
 		if (row==0) or (rs.Type != rsList[row-1].Type): 
-			offset = 0.5*meanCnt[rs.Type]*dx
+			offset = -0.5*meanCnt[rs.Type]*dx
 		# hetero atoms don't participate in the unfold stretching
 		if rs.Id[0] == 'H': continue
 		M[row][3] += offset
