@@ -439,5 +439,10 @@ def LoadAllChains():
 	vv.Dataset.CommitChanges()
 
 '''
+
 LoadAllChains()
+vv.SelectedItems = vv.FindItems('ProteinSeq', 'RGAFGKPQGTVARVHIGQVIMSIRTKLQ')
+
+d = cs.NWDistance('MRGAFGKPQGTVARVHG', 'mRGAFGKPQGTVARVHIG')
+print(d)
 '''
