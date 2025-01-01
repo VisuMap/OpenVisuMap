@@ -290,23 +290,6 @@ def Download3DInfo(pId):
 		urlretrieve(f'https://files.rcsb.org/download/{pId[:4]}.cif', localPath)
 	return localPath
 
-class ChainIndex():
-	def __init__(self):
-		self.chain2Index = {'HOH':(72+3), 'NAG':(72+11)}
-		self.headIndex = 0
-	def Lookup(self, chName):
-		if chName not in self.chain2Index:
-			for k in range(self.headIndex, 200, 1):
-				if k not in self.chain2Index.values():
-					self.chain2Index[chName] = k
-					self.headIndex = k+1
-					break
-			if chName not in self.chain2Index:
-				self.chain2Index[chName] = 200
-		return self.chain2Index[chName]
-	def Contains(self, chName):
-		return chName in self.chain2Index
-
 def CheckForPDB(pMap):
 	info = MapInfo(pMap.Description)
 	if info.Mtd != 'PDB':

@@ -20,13 +20,13 @@ def UnifyChains():
 		if b.Id[0] == 'A':
 			if b.Type != curType:
 				if curType >= 0:
-					chains.append( (''.join(prefix[10:maxKeyLen]), curType) )
+					chains.append( (''.join(prefix[:maxKeyLen]), curType) )
 				curType = b.Type
 				prefix = []
 			if len(prefix) < maxKeyLen:
 				prefix.append(b.Name[0])
 	if len(prefix)>0:	# Add the last chain
-		chains.append( (''.join(prefix[10:maxKeyLen]), curType) )
+		chains.append( (''.join(prefix[:maxKeyLen]), curType) )
 
 	type2type = {}
 	if 'key2type' not in globals():
@@ -36,18 +36,22 @@ def UnifyChains():
 		ky = LookupKey(key2type, ckey)
 		type2type[ty] = key2type[ky]
 	newKeys = len(key2type) - keyLen
-	vv.Message(f'Added {newKeys} new chains!')
-
-	aIdx = 0  # atom index with a chain
-	curType = -1
+	#vv.Message(f'Added {newKeys} new chains!')
+	
+	# There might be case that multiple chains be assigned the same type. 
+	# We resolve these conflict by indexing all atoms in each type.
 	for b in pp.BodyList:
-		if b.Type != curType:
-			curType = b.Type
-			aIdx = 0
-		else:
-			aIdx += 1			
-		b.Type = type2type[curType]
-		b.Id = f'{b.Id[0]}{b.Type}.{aIdx}'
+		if b.Type not in type2type:
+			type2type[b.Type] = b.Type
+	typeIdx = {t:0 for t in set(type2type.values())}
+
+	for b in pp.BodyList:
+		if b.Type not in type2type:
+			vv.Message(f'Unknow chain type: {b.Type}')
+			break
+		b.Type = type2type[b.Type]
+		b.Id = f'{b.Id[0]}{b.Type}.{typeIdx[b.Type]}'
+		typeIdx[b.Type] += 1
 	pp.RedrawAll()
 
 
@@ -65,7 +69,7 @@ match vv.EventSource.Item:
 	case 'Smoothen':
 		SmoothenCurve(pp, repeats=50)
 	case 'P-2D':
-		UnFoldMap(pp, repeats=0, epochs=2500, initExag=8.0, ppl=0.2, stretch=1.25, expandFactor=1.1)
+		UnFoldMap(pp, repeats=1, epochs=2000, initExag=8.0, ppl=0.2, stretch=1.25, expandFactor=1.1)
 	case 'HideIPO':
 		HideInterpolates()
 	case 'MarkHelix':
