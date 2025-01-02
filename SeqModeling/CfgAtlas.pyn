@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps P-3D P-3Dx P-Web P-ChmX P-Open MatchMap TileAll
+#MenuLabels ConfigMaps P-3D P-3Dx P-Web P-ChmX P-Open MatchMap TileAll P-3D2
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -31,8 +31,13 @@ def MainProc(menuKey):
 				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, mainChain=justMainChain, chainNames=chainNames, smtRatio=0.0) 
 		case 'P-3Dx':
 			for e in pSelected:
-				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=True, mainChain=False, chainNames=None, smtRatio=0.0) 
-
+				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=True, mainChain=False, chainNames=None, smtRatio=0.0)
+		case 'P-3D2':
+			for item in pp.SelectedItems:
+				mp = item.Open()
+				mp.ClickMenu('SeqVis/UniChains')
+				mp.ClickMenu('SeqVis/P-2D')
+				mp.Close()
 		case 'P-Web':
 			ShowWeb(pId)
 		case 'P-ChmX':

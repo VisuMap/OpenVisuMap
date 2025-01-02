@@ -22,7 +22,7 @@ ds = vm.LoadFromVisuMap(M.e)
 
 #====================================================================================
 
-def ResetTest():
+def ResetTest(cfgIdx):
     global epochs, randomizeOrder, centralizing, stateSeed
     global mapDim, mtr, A0, nn, md, lc, ns, sp, denMap
     randomizeOrder, centralizing, stateSeed = True, False, None
@@ -30,9 +30,12 @@ def ResetTest():
     epochs, nn = 1000, 1000
     denMap = False
     lc  = 5
-    #md, sp, ns = 0.1, 1.5, 30
-    md, sp, ns = 0.5, 1.0, 15
-    #md, sp, ns = 0.23, 1.12, 15
+    if cfgIdx == 0:
+        md, sp, ns = 0.5, 1.0, 15
+    elif cfgIdx == 1:
+        md, sp, ns = 0.1, 1.5, 30
+    else:
+        md, sp, ns = 0.23, 1.12, 15
 
 def DoTest():
     global ds, nr
@@ -65,10 +68,10 @@ def DoTest():
 
 #====================================================================================
 try:
-  cmd = vm.DataLinkCmd()  
-  ResetTest()
-  mapDim = 2
-  for k in range(2):
+  cmd = vm.DataLinkCmd()
+  for cfg in [0, 1, 2]:
+    ResetTest(cfg)
+    mapDim = 2
     DoTest()
     #cmd.RunScript('vv.GuiManager.TileAllWindows()')
 
