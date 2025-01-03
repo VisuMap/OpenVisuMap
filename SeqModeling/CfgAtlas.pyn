@@ -31,7 +31,7 @@ def MainProc(menuKey):
 				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, mainChain=justMainChain, chainNames=chainNames, smtRatio=0.0) 
 		case 'P-3Dx':
 			for e in pSelected:
-				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=True, mainChain=False, chainNames=None, smtRatio=0.0)
+				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0)
 		case 'P-3D2':
 			for item in pp.SelectedItems:
 				mp = item.Open()

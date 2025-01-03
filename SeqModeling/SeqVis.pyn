@@ -882,7 +882,13 @@ def UnifyChains(pMap):
 				curType = b.Type
 				prefix = []
 			if len(prefix) < maxKeyLen:
-				prefix.append(b.Name[0])
+				c0 = b.Name[0]
+				if c0 == 'r':
+					prefix.append(b.Name[2].lower())
+				elif c0 == 'd':
+					prefix.append(b.Name[2].lower())
+				else:
+					prefix.append(c0)
 	if len(prefix)>0:	# Add the last chain
 		chains.append( (''.join(prefix[:maxKeyLen]), curType) )
 
