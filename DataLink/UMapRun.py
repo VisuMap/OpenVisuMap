@@ -71,7 +71,6 @@ try:
   cmd = vm.DataLinkCmd()
   for cfg in [0, 1, 2]:
     ResetTest(cfg)
-    mapDim = 2
     DoTest()
     #cmd.RunScript('vv.GuiManager.TileAllWindows()')
 
