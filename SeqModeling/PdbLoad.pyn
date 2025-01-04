@@ -370,26 +370,37 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, expandFactor=1.0
 	if repeats != 0:
 		mds.Close()
 
-def LoadChains(pId):
+def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 	_, bList, _, pdbTitle = LoadCifData(pId, mainChain=False)
 	chList = []
 	chType = -1    # current chain type
 	chName = ''	  # current chain name.
 	seqList = []
+	ppType = -1   # polypeptide type: 0: aa-pp, 1: rna-pp, 2: dna-pp
 	for b in bList:
 		if b.Type == chType:
-			seqList.append(b.Name[0])
+			pp = b.Name[0] if ppType == 0 else b.Name[2]
+			seqList.append(pp)
 		else:
 			if len(seqList) > 0:
-				pSeq = ''.join(seqList)		
-				chList.append( (chName, pSeq, len(pSeq)) )
+				if (aaChains and ppType==0) or (rnaChains and ppType==1) or (dnaChains and ppType==2):
+					pSeq = ''.join(seqList)
+					chList.append( (chName, pSeq, len(pSeq)) )
 			chType = b.Type
 			fs = b.Name.split('.')
 			chName = fs[2]
-			seqList = [ fs[0] ]
+			if fs[0] == 'r':	
+				ppType = 1
+			elif fs[0] == 'd':
+				ppType = 2
+			else:
+				ppType = 0
+			pp = b.Name[0] if ppType == 0 else b.Name[2]
+			seqList = [ pp ]
 	if len(seqList) > 0:
-		pSeq = ''.join(seqList)		
-		chList.append( (chName, pSeq, len(pSeq)) )
+		if (aaChains and ppType==0) or (rnaChains and ppType==1) or (dnaChains and ppType==2):
+			pSeq = ''.join(seqList)		
+			chList.append( (chName, pSeq, len(pSeq)) )
 
 	# remove repeats:
 	chSet = {}
@@ -408,21 +419,33 @@ def LoadChains(pId):
 		ds.AddRow(f'{pId}_{k}', chId,  0, list([pId, str(repeats), ch, str(chLen)]))
 	return len(chSet)
 
-def LoadAllChains():
+def LoadAllChains(aaChains=True, rnaChains=False, dnaChains=False):
 	import os
-	pList = [f[:4] for f in os.listdir('c:/temp/PDBCache') if f.endswith('.cif')]	
 	chCount = 0
+	pList = [f[:4] for f in os.listdir('c:/temp/PDBCache') if f.endswith('.cif')]	
 	for k, pId in enumerate(pList):
 		if k%50 == 0:
 			print(k, ': ', pId, chCount)
-		chCount += LoadChains(pId)
+		chCount += LoadChains(pId, aaChains=aaChains, rnaChains=rnaChains, dnaChains=dnaChains)
 		vv.DoEvents()
 	vv.Dataset.CommitChanges()
 
 '''
 
-LoadAllChains()
+LoadAllChains(False, False, True)
+
 vv.SelectedItems = vv.FindItems('ProteinSeq', 'RGAFGKPQGTVARVHIGQVIMSIRTKLQ')
+
+aa = 'NLRKNNRQPYAVSELAGHQTSAESWGTGRAVARIPRVRGGGTHRSGQGAFGNMCRGGRMFAPTKTWRRWHRRVNTTQKRYAICSA'[:40]
+bb = 'RGAFGKPQGTVARVHIGQVIMSIRTKLQ'[:20]
+L = len(aa)//2
+a1 = aa[:L]
+a2 = aa[L:]
+s1 = set(vv.FindItems('ProteinSeq', a1)) 
+s2 = set(vv.FindItems('ProteinSeq', a2)) 
+s12 = s1.union(s2)
+print(len(s1), len(s2), len(s12))
+
 
 d = cs.NWDistance('MRGAFGKPQGTVARVHG', 'mRGAFGKPQGTVARVHIG')
 print(d)
