@@ -454,7 +454,11 @@ namespace VisuMap {
                 string L = tr.ReadLine();
                 if (L[0] == '#')
                     break;
+                if (L[0] == ';')
+                    continue;
                 string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (fs.Length < 10)
+                    continue;
                 int idx0 = int.Parse(fs[5]);
                 int idx1 = int.Parse(fs[9]) + 1;
                 for (int i = idx0; i < idx1; i++)
