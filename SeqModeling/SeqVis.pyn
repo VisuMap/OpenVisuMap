@@ -286,26 +286,6 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 		mds.Close()
 		vv.LastView.NormalizeView()
 
-cs3 = New.CsObject('''
-public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
-	// DO matrix multiplication dt * tm where dt and tm are 
-	// both column-set potentially with different number of rows.
-	double[][] M1 = dt.Matrix as double[][];
-	double[][] M2 = tm.Matrix as double[][];
-	int minRows = Math.Min(M1.Length, M2.Length);
-	int C1 = M1[0].Length;
-	int C2 = M2[0].Length;
-	for(int c1=0; c1<C1; c1++)
-	for(int c2=0; c2<C2; c2++) {
-		double v = 0.0;
-		for(int k=0; k<minRows; k++)
-			v += M1[k][c1] * M2[k][c2];
-		ret[c1*C2 + c2] = v;
-	}
-}
-''')
-
-
 def GetFourierTrans(pList, waveLen, waveCount):
 	tm = GetFourier(waveLen, waveCount)
 	L = 3*waveCount
@@ -317,7 +297,7 @@ def GetFourierTrans(pList, waveLen, waveCount):
 		nt = LoadMainChain(pId)
 		cs.LocalSmoothen2(nt.Matrix, 0.1, 8)
 		nt = cs.PcaNormalize(nt, waveLen)
-		cs3.FourierTrans(tm, nt, pD.Matrix[k])
+		cs2.FourierTrans(tm, nt, pD.Matrix[k])
 	return pD
 
 def CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=10.0,  finalExag=1.0, repeats=0, ppl=0.1, waveLen=128, waveCount=16):
@@ -788,9 +768,33 @@ def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0, expandFactor=1.0):
 		ma.TheForm.Show()
 
 cs2 = New.CsObject('''
+
 public IList<string> SelectByAA(IList<IBody> bList, string pAA) {
 	return bList.Where(b=>pAA.Contains(b.Name[0])).Select(b=>b.Id).ToList();
 }
+
+public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
+	// DO matrix multiplication dt * tm where dt and tm are 
+	// both column-set potentially with different number of rows.
+	double[][] M1 = dt.Matrix as double[][];
+	double[][] M2 = tm.Matrix as double[][];
+	int minRows = Math.Min(M1.Length, M2.Length);
+	int C1 = M1[0].Length;
+	int C2 = M2[0].Length;
+	for(int c1=0; c1<C1; c1++)
+	for(int c2=0; c2<C2; c2++) {
+		double v = 0.0;
+		for(int k=0; k<minRows; k++)
+			v += M1[k][c1] * M2[k][c2];
+		ret[c1*C2 + c2] = v;
+	}
+}
+
+public void SwapHiddenBodies(List<IBody> bsList) {
+    foreach(var b in bsList)
+		b.Hidden = !b.Hidden;
+}
+
 ''')
 
 def ScanningForAA(pMap, pAA, progressive=False):
