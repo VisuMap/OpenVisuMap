@@ -128,10 +128,10 @@ def GetChainName(pId):
 	else:
 		return None
 
-def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=False, atName=None, 
+def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=False, initExag=5.0, ppl=0.1, atName=None, 
 		stretch=0, expandFactor=1.0, iconWidth=50, smtRatio=0):
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
-	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=5.0, finalExag=1.0, ppl=0.1, 
+	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=1.0, ppl=ppl, 
 		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
 	mds.RefreshFreq = epochs
 	mds.GlyphSize = 2.0
@@ -152,6 +152,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			seqLen = bList.Count
 
 			bList = Interporlate(bList, rp=3, eps=eps, smtRatio=smtRatio)
+
 			if includeHA:
 				bList.AddRange(bList2)
 
@@ -407,23 +408,20 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 
 	# merge the repeated sequences:
 	chSet = {}
-	chIdSet = {}
-	ppSet = {}
+	chInfo = {}
 	for (chId, ppType, pSeq, seqLen) in chList:
 		if pSeq in chSet:
 			chSet[pSeq] += 1
 		else:
 			chSet[pSeq] = 1
-			chIdSet[pSeq] = chId
-			ppSet[pSeq] = ppType
+			chInfo[pSeq] = (chId, ppType)
 
 	ds = vv.Dataset
 	for k, ch in enumerate(chSet):
-		chId = chIdSet[ch]
 		repeats = chSet[ch]
-		ppType = ppSet[ch]
 		chLen = len(ch)
-		ds.AddRow(f'{pId}_{k}', chId,  ppType, [pId, str(repeats), ch, str(chLen), chId])
+		chId, ppType = chInfo[ch]
+		ds.AddRow(f'{pId}_{k}', None,  ppType, [pId, str(repeats), ch, str(chLen), chId])
 	return len(chSet)
 
 def LoadAllChains(aaChains=True, rnaChains=False, dnaChains=False):
