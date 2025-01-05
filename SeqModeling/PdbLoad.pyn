@@ -155,6 +155,9 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			if includeHA:
 				bList.AddRange(bList2)
 
+			for b in bList:
+				b.Hidden = False
+
 			if expandFactor != 1.0:
 				bList = New.BodyListClone(bList)
 				bList = cs.LocalExpand(bList, expandFactor)
