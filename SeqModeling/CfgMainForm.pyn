@@ -56,8 +56,9 @@ def MainProc(menuKey):
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
-			if len(pSelected) == 1: atlasName = None
-			UnFoldProteinList(pList, epochs=2000, mainChain=True, includeHA=False, atName=atlasName, stretch=0.0, iconWidth=50, smtRatio=0.0)
+			if len(pSelected) == 1: 
+				atlasName = None
+			UnFoldProteinList(pList, epochs=2000, mainChain=False, includeHA=False, initExag=3.0, atName=atlasName, stretch=0.0, iconWidth=50, smtRatio=0.75)
 		case 'P-3D':
 			atlasName += '-3D'
 			SortByPosX(pSelected)
@@ -84,8 +85,11 @@ def MainProc(menuKey):
 			
 			#CreateProteinMap2(pList, aaGroups=GetAAGroup(0), epochs=5000, repeats=3, 
 			#	ppl=0.25, staged=True, initExag=6.0, finalExag=1.0, using3DInfo=False)
+			#
+			#CreateProteinMapList(GetAAGroup(4), pList, epochs=2500, clearStore=True)
 
-			CreateProteinMapList(GetAAGroup(4), pList, epochs=2500, clearStore=True)
+			CreateProteinMap2(pList, aaGroups='A|T|C|G', epochs=5000, repeats=0, 
+				ppl=0.25, staged=True, initExag=3.0, finalExag=1.0, using3DInfo=False, waveCount=32)
 		
 		case 'TypeProtein':
 			TypeProteinList(pList)
@@ -143,5 +147,18 @@ for g in gList:
 	vv.Sleep(250)
 	if vv.ModifierKeys.ControlPressed:
 		break
+
+sb = {}
+ds = vv.Dataset
+for k, b in enumerate(ds.BodyList):
+	id = b.Id[:4]
+	nr = ds.GetValueAt(k,1)
+	if id in sb:
+		sb[id] += nr
+	else:
+		sb[id] = nr
+for k, b in enumerate(ds.BodyList):
+	ds.SetValueAt(k, 5, sb[b.Id[:4]])
+ds.CommitChanges()		
 
 '''

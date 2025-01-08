@@ -627,10 +627,8 @@ def ShowAASeq(pMap):
 		for b in pSelected:
 			if (b.Id[0] == 'A'):
 				nm = b.Name
-				if nm[0] == 'r': 
+				if (nm[0] == 'r') or (nm[0] == 'd'):
 					pSeq.append(nm[2])
-				elif nm[0] == 'd':
-					pSeq.append(nm[3])
 				else:
 					pSeq.append(nm[0])
 		pSeq = ''.join(pSeq)
@@ -922,6 +920,21 @@ def UnifyChains(pMap):
 		typeIdx[b.Type] += 1
 	pMap.RedrawAll()
 
+def FlippingChains(pMap, loopSize=60, loops=5):
+	szList = loops * ( list(range(loopSize)) + list(range(loopSize, -1, -1)) )
+	for k, sz in enumerate(szList):
+		f = sz/loopSize
+		pMap.GlyphSize = 3.0 * f + 0.4
+		pMap.HiddenBodySize = int(20.0*(1-f)/pp.GlyphSize)
+		pMap.Redraw()
+		vv.Sleep(2000 if sz%loopSize==0 else 20)
+		if k == int(0.5*len(szList)):
+			ss.SwapHiddenBodies(pMap.BodyList)
+	pMap.GlyphSize = 1.0
+	pMap.HiddenBodySize = 4
+	ss.SwapHiddenBodies(pMap.BodyList)
+	pMap.Redraw()
+	
 '''
 
 pp.GlyphOpacity = 0.125

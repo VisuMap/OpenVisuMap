@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen P-2D P-Seq P-Web P-ChmX HideIPO MarkHelix MarkBeta MainChain RnaChain 'Open PDB' UniChains
+#MenuLabels ShowData Scanning ReCreateMap Smoothen P-2D P-Seq P-Web P-ChmX HideIPO MarkHelix MarkBeta MainChain RnaChain 'Open PDB' UniChains Flipping
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -17,8 +17,8 @@ match vv.EventSource.Item:
 	case 'Smoothen':
 		SmoothenCurve(pp, repeats=50)
 	case 'P-2D':
-		UnFoldMap(pp, repeats=1, epochs=2000, initExag=8.0, ppl=0.2, stretch=1.25, expandFactor=1.1)
-		#UnFoldMap(pp, repeats=1, epochs=2000, initExag=8.0, ppl=0.2, stretch=0.0, expandFactor=1.0)
+		#UnFoldMap(pp, repeats=1, epochs=2000, initExag=8.0, ppl=0.2, stretch=1.25, expandFactor=1.1)
+		UnFoldMap(pp, repeats=1, epochs=2000, initExag=8.0, ppl=0.2, stretch=0.5, expandFactor=1.0)
 	case 'HideIPO':
 		HideInterpolates()
 	case 'MarkHelix':
@@ -41,6 +41,8 @@ match vv.EventSource.Item:
 		if vv.ModifierKeys.ControlPressed:
 			key2type = {}		
 		UnifyChains(pp)
+	case 'Flipping':		
+		FlippingChains(pp)
 					
 
 
