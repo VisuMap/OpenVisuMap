@@ -612,6 +612,12 @@ namespace VisuMap {
                     } else if (RNA_set.Contains(rsName) && atName.StartsWith("P") ) {
                         p1 = "r";
                     } else if (DNA_set.Contains(rsName) && atName.StartsWith("C1") ) {
+                        //
+                        // DNA strands normally exists in pair in form of a double-helix. The atom C1' is 
+                        // located more towards the center of the helix compared to the P atom. So, using C1'
+                        // atoms as chain-sampling-points makes the two helix strands close to another; and
+                        // further and therefor less entangled with the sourranding atoms.
+                        //
                         rsName = rsName[1].ToString();
                         p1 = "d";
                     } else
