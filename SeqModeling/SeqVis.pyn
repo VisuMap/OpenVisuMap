@@ -922,12 +922,18 @@ def UnifyChains(pMap):
 
 def FlippingChains(pMap, loopSize=60, loops=5):
 	szList = loops * ( list(range(loopSize)) + list(range(loopSize, -1, -1)) )
+	pMap.HiddenBodyColor = New.Color('White')
+	for b in pMap.BodyList:
+		b.Highlighted = (b.Name[0] == 'd')
 	for k, sz in enumerate(szList):
 		f = sz/loopSize
-		pMap.GlyphSize = 3.0 * f + 0.4
+		pMap.GlyphSize = 3.0 * f + 0.3
 		pMap.HiddenBodySize = int(20.0*(1-f)/pp.GlyphSize)
 		pMap.Redraw()
-		vv.Sleep(2000 if sz%loopSize==0 else 20)
+		if vv.ModifierKeys.ControlPressed:
+			break
+		vv.DoEvents()
+		vv.Sleep(2000 if sz%loopSize==0 else 50)
 		if k == int(0.5*len(szList)):
 			ss.SwapHiddenBodies(pMap.BodyList)
 	pMap.GlyphSize = 1.0
@@ -938,26 +944,6 @@ def FlippingChains(pMap, loopSize=60, loops=5):
 '''
 
 pp.GlyphOpacity = 0.125
-
-ScanningForAA(pp, 'S')  #S|T|C|STC			# Necleophilic
-ScanningForAA(pp, 'VLIMP')  #V|L|I|M|P|VLIMP		# Hydrophobic
-ScanningForAA(pp, 'FYW')  #F|Y|W|FYW	  # Aromatic
-ScanningForAA(pp, 'DE')  #D|E|DE       # Acidic
-ScanningForAA(pp, 'N')  #N|Q|NQ       # Amide
-ScanningForAA(pp, 'HKR')  #H|K|R|HKR    # Basic
-ScanningForAA(pp, 'GA', True)  #G|A|GA    # Small AA
-ScanningForAA(pp, 'M')  #A|R|N|D|C|E|Q|G|H|I|L|K|M|F|P|S|T|W|Y|V
-ScanningForAA(pp, 'H') #H|W|HW		# 2 forms 'bound' 1EK9
-
-ScanningForAA(pp, 'L')  #A|V|I|L|M|F|Y|W|AVILMFYW		# Hydrophobic
-ScanningForAA(pp, 'STNQ')  #S|T|N|Q|STNQ		# Polar Uncharged
-ScanningForAA(pp, 'P')  #C|G|P|CGP         # Special Cases
-ScanningForAA(pp, 'DE')    #R|H|K|RHK|D|E|DE  # Positive (3) and Negative (2) changed.
-
-for aa in 3*['AVILMFYW', 'STNQ', 'CGP', 'RHK', 'DE']:
-	ScanningForAA(pp, aa)
-	vv.Sleep(1000)
-
 
 aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 aaGroups = 'AVILMFYW|STNQCGPRHKDE'
