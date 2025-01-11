@@ -78,6 +78,7 @@ def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, chainNames=None, includeHA=True
 	mp.GlyphOpacity = glyphOpacity
 	mp.Show()
 	mp.NormalizeView()
+	return mp
 
 def SelectChain(pId, bsList, acc2chain):
 	b = vv.Dataset.BodyForId(pId)
@@ -355,7 +356,7 @@ def Interporlate(bsList, rp, eps, smtRatio=0):
 				t0 = bsList[k0].Type
 	return bs
 
-def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, expandFactor=1.0, initExag=10.0, finalExag=1.0, is3D=False):
+def UnFoldMap(pMap, epochs=1000, ppl=0.1, staged=False, repeats=1, stretch=0, expandFactor=1.0, initExag=10.0, finalExag=1.0, is3D=False):
 	bList = pMap.BodyListEnabled()
 	if expandFactor != 1.0:
 		bList = New.BodyListClone(bList)
@@ -363,7 +364,7 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0, expandFactor=1.0
 	nt = New.NumberTable(bList,3)
 	AugmentByIndex(nt, stretch=stretch)
 	mds = NewMds(nt, is3D=is3D, glyphSet=pMap.GlyphSet, initExag=initExag, finalExag=finalExag,
-		epochs=epochs, ppl=ppl)
+		epochs=epochs, ppl=ppl, staged=staged)
 	info = MapInfo(pMap.Description).SetMds(mds)
 	info.SF = stretch
 	info.CF = expandFactor  # Local expanding factor

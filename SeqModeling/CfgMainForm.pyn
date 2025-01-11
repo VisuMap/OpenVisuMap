@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web P-3D P-3Dx SeqMap P-Open Sh-LocPDB AtlasView TypeProtein P-2D ProteinMap
+#MenuLabels P-ChmX P-Web P-3D P-3Dx SeqMap P-Open Sh-LocPDB AtlasView TypeProtein P-2D ProteinMap Siblings
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -67,7 +67,8 @@ def MainProc(menuKey):
 			ShowProteinList(pSelected, mainChain=justMainChain, includeHA=False, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
 		case 'P-3Dx':
 			for pId in pSelected:
-				ShowPDB(pId, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0) 			
+				mp = ShowPDB(pId, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0)
+				mp.ClickMenu('SeqVis/Flipping')
 		case 'SeqMap':
 			aaGroups = GetAAGroup(idx=0)
 			atlasName += '-Seq'
@@ -105,6 +106,10 @@ def MainProc(menuKey):
 					atlas.RemoveItems(notSelected)
 					atlas.ResetView()			
 			atlas.Show()
+		case 'Siblings':
+			pId = pId[:4]
+			bsList = vv.Dataset.BodyListEnabled()
+			vv.SelectedItems = [b.Id for b in bsList if b.Id[:4] == pId]
 
 MainProc(vv.EventSource.Item)
 
@@ -174,6 +179,6 @@ hasDNA = set([b.Id[:4] for b in vv.Folder.ReadDataset('DnaChains').BodyList])
 hasNT = hasDNA.union(hasRNA)
 hasRD = hasDNA.intersection(hasRNA)
 print(len(hasRNA), len(hasDNA), len(hasNT), len(hasRD))
-vv.SelectedItems = [ b.Id for b in vv.Dataset.BodyList if b.Id[:4] in hasRD ]
+vv.SelectedItems = [ b.Id for b in vv.Dataset.BodyList if b.Id[:4] in hasNT ]
 
 '''

@@ -497,7 +497,7 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 
 #-----------------------------------------------------------------------------
 
-def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
+def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, staged=False,
 		repeats=1, metric='EuclideanMetric', glyphSet=None, glyphSize=0.5):
 	mds = New.MdsCluster(nt)
 	mds.Show()
@@ -514,7 +514,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1,
 	mds.AutoNormalizing =True
 	mds.GlyphOpacity = 0.5
 	mds.GlyphSize = glyphSize
-	mds.StagedTraining = False
+	mds.StagedTraining = staged
 	mds.ExaggerationSmoothen = True
 	mds.GlyphSet = vv.Map.GlyphType if glyphSet==None else glyphSet
 	return mds
@@ -921,14 +921,16 @@ def UnifyChains(pMap):
 	pMap.RedrawAll()
 
 def FlippingChains(pMap, loopSize=60, loops=5):
-	szList = loops * ( list(range(loopSize)) + list(range(loopSize, -1, -1)) )
+	szList = loops * ( list(range(loopSize+1)) + list(range(loopSize, -1, -1)) )
 	pMap.HiddenBodyColor = New.Color('White')
 	for b in pMap.BodyList:
 		b.Highlighted = (b.Name[0] == 'd')
+	pMap.GlyphOpacity = 0.4
+	pMap.StartAnimation()
 	for k, sz in enumerate(szList):
 		f = sz/loopSize
-		pMap.GlyphSize = 3.0 * f + 0.3
-		pMap.HiddenBodySize = int(20.0*(1-f)/pp.GlyphSize)
+		pMap.GlyphSize = 2.0 * f + 0.3
+		pMap.HiddenBodySize = int(15.0*(1-f)/pp.GlyphSize)
 		pMap.Redraw()
 		if vv.ModifierKeys.ControlPressed:
 			break
@@ -939,8 +941,8 @@ def FlippingChains(pMap, loopSize=60, loops=5):
 	pMap.GlyphSize = 1.0
 	pMap.HiddenBodySize = 4
 	ss.SwapHiddenBodies(pMap.BodyList)
-	pMap.Redraw()
-	
+	pMap.Redraw()	
+
 '''
 
 pp.GlyphOpacity = 0.125
