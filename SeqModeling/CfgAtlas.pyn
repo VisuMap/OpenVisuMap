@@ -25,10 +25,12 @@ def MainProc(menuKey):
 		case 'ConfigMaps':
 			ConfigAtlasMaps(pp, 1000, 700, gSize=0.75, gOpacity=0.5, hiddenSize=4, reset=False)			
 		case 'P-3D':
-			justMainChain = vv.ModifierKeys.ControlPressed
-			chainNames = GetChainName(pId)
+			justMainChain = vv.ModifierKeys.ControlPressed			
 			for e in pSelected:
-				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, mainChain=justMainChain, chainNames=chainNames, smtRatio=0.0) 
+				pId = e.Name
+				chainNames = GetChainName(pId)
+				mp = ShowPDB(pId, rp=3, eps=0.1, includeHA=False, mainChain=justMainChain, chainNames=chainNames, smtRatio=0.0)
+				mp.NormalizeView()
 		case 'P-3Dx':
 			for e in pSelected:
 				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0)
