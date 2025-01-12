@@ -539,7 +539,7 @@ def RunMds(mds, repeats=1, info=None):
 def ShowMapData(pMap):
 	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	
 	info = MapInfo(pMap.Description)
-	nt = New.NumberTable(pp.BodyListEnabled(), 3)
+	nt = New.NumberTable(pMap.BodyListEnabled(), 3)
 	nt.ShowHeatMap().NormalizeView()
 
 def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, glyphSize=1.75, ppl=0.05,

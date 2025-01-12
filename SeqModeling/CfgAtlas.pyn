@@ -8,7 +8,7 @@ def HighlightItems():
 	#Only continues if the event is not triggered by vv.SelectedItems call in HighlightBodies().
 	if not srcClassName.endswith('.VisuMapImp'):
 		sIds = set(vv.SelectedItems)
-		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])
+		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])	
 
 
 def MainProc(menuKey):
@@ -20,7 +20,8 @@ def MainProc(menuKey):
 			return
 		else:
 			pId = pSelected[0].Name
-			
+	ctrPressed = vv.ModifierKeys.ControlPressed	
+
 	match vv.EventSource.Item:
 		case 'ConfigMaps':
 			ConfigAtlasMaps(pp, 1000, 700, gSize=0.75, gOpacity=0.5, hiddenSize=4, reset=False)			
@@ -33,7 +34,10 @@ def MainProc(menuKey):
 				mp.NormalizeView()
 		case 'P-3Dx':
 			for e in pSelected:
-				ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0)
+				mp = ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0)
+				if ctrPressed:
+					mp.ClickMenu('SeqVis/P-2D')
+					mp.Close()
 		case 'P-3D2':
 			for item in pp.SelectedItems:
 				mp = item.Open()

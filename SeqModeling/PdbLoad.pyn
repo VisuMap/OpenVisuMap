@@ -1,5 +1,6 @@
 # functions to import and process pdb/cif files.
 import time
+import math
 
 # get the path for the cached (PDB) CIF file.
 def PidToPath(pId):
@@ -278,7 +279,7 @@ def AugmentByIndex(nt, stretch):
 
 	for t in meanCnt:
 		n, V = meanCnt[t], meanV[t]
-		fct = max(0.3*stretch, 1.0)
+		fct = 0.25*(1 + math.sqrt(stretch))
 		for dim in range(3):
 			V[dim] = fct * V[dim]/n
 	for row, rs in enumerate(rsList):
