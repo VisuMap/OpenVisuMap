@@ -278,7 +278,7 @@ def AugmentByIndex(nt, stretch):
 
 	for t in meanCnt:
 		n, V = meanCnt[t], meanV[t]
-		fct = max(0.4*stretch, 0.7)
+		fct = max(0.3*stretch, 1.0)
 		for dim in range(3):
 			V[dim] = fct * V[dim]/n
 	for row, rs in enumerate(rsList):
