@@ -903,7 +903,8 @@ def UnifyChains(pMap):
 		type2type[ty] = key2type[ky]
 	newKeys = len(key2type) - keyLen
 	#vv.Message(f'Added {newKeys} new chains!')
-	
+
+		
 	# There might be case that multiple chains be assigned the same type. 
 	# We resolve these conflict by indexing all atoms in each type.
 	for b in pMap.BodyList:
@@ -918,7 +919,11 @@ def UnifyChains(pMap):
 		b.Type = type2type[b.Type]
 		b.Id = f'{b.Id[0]}{b.Type}.{typeIdx[b.Type]}'
 		typeIdx[b.Type] += 1
-	pMap.Redraw()	
+
+	if pMap.Name == 'MapSnapshot':
+		pMap.RedrawBodiesType()
+	else:
+		pMap.Redraw()
 
 def FlippingChains(pMap, loopSize=60, loops=5):
 	szList = loops * ( list(range(loopSize+1)) + list(range(loopSize, -1, -1)) )

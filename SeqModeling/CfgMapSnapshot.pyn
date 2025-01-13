@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-3D P-3DChain HideIPO MarkHelix MarkBeta MainChain RnaChain 
+#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-3D P-3DChain HideIPO MarkHelix MarkBeta UniChains MainChain RnaChain 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -44,5 +44,10 @@ match vv.EventSource.Item:
 		ShowBetaSheet()
 	case 'P-Open':
 		OpenPDBFile(pp)
+	case 'UniChains':
+		if vv.ModifierKeys.ControlPressed:
+			key2type = {}		
+		UnifyChains(pp)
+
 
 
