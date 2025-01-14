@@ -47,8 +47,8 @@ def CreateProteinMapList(gList, pList, epochs=2500, clearStore=False):
 	mStore.atlas.Show()
 
 def MainProc(menuKey):
-	atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}'
 	pSelected = list(pp.SelectedItems)
+	atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}.{len(pSelected)}'
 	pId = pSelected[0] if len(pSelected) > 0 else None
 	pList = pSelected if len(pSelected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
 

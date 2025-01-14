@@ -2,7 +2,7 @@
 # Used by Atlas:  marks the atlas items when some protein ids have been selected in other views.
 def ShowSelectedProteins():
 	atlas = vv.EventSource.Argument
-	if pp.Name == 'Atlas' or atlas == None:
+	if pp.Name == 'Atlas' or atlas == None or atlas.IsDisposed:
 		return
 	setS=set(vv.SelectedItems)
 	atlas.SetSelectedItems([e for e in atlas.Items if e.Name in setS])
