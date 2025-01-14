@@ -40,6 +40,7 @@
     <Content Include="ShowActiveCells.js" />
     <Content Include="ShowActiveGenes.js" />
     <Content Include="ShowMaps.js" />
+    <Content Include="ShowMeanVector.js" />
     <Content Include="StagedTraining.js" />
     <Content Include="UnInstall.js" />
     <Content Include="VariationTracing.js" />

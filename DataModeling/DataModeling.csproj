@@ -173,6 +173,7 @@
     <Content Include="Interpolation.js" />
     <Content Include="License.txt" />
     <Content Include="ManagerTest.js" />
+    <Content Include="Use2Models.js" />
     <None Include="Resources\CfgSettings.png" />
     <Content Include="ModelClientTest.js" />
     <Content Include="ProbWeight.client.js" />
