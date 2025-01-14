@@ -95,6 +95,12 @@ class MapInfo():
 		setattr(self, name, value)
 	def Get(self, name):
 		return getattr(self, name)
+	def Extend(self, name, value):
+		if self.Has(name):
+			newV = self.Get(name) + ',' + str(value)
+		else:
+			newV = str(value)
+		self.Set(name, newV)
 	def Has(self, attrName):
 		return hasattr(self, attrName)
 	def Init(self, epochs, is3D, initExag, finalExag, ppl):
@@ -633,7 +639,6 @@ def ShowAASeq(pMap):
 					pSeq.append(nm[0])
 		pSeq = ''.join(pSeq)
 		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
-		tp.Show()
 	else:
 		pSeq = ''.join([b.Name[0] for b in pSelected]).upper()
 		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
@@ -642,7 +647,11 @@ def ShowAASeq(pMap):
 		pMap.AddEventHandler('ItemsSelected', '@OnSeqSelected()')
 		bId2Idx = {pMap.BodyList[k].Id:k for k in range(pMap.BodyList.Count)}
 		pMap.Tag = (tp, bId2Idx)
-		tp.Show()
+	tp.AddLine('\n')
+	for pn, pv in info.__dict__.items():
+		if pv != None:
+			tp.AddLine(f'{pn}\t{pv}')
+	tp.Show()
 
 def OnSeqSelection():
 	pMap = pp.Tag
@@ -706,11 +715,13 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5,
 		mp.HiddenBodySize = hiddenSize
 		mp.NameLabelColor = New.Color('Yellow')
 		mp.NameLabelFont = New.Font('Microsoft Sans Serif', 18.0)
-		mp.Resize(0,0,mpWidth,mpHeight)
-		#mp.NormalizeView()
+		#mp.Resize(0,0,mpWidth,mpHeight)
+		mp.ResetSize()
+		mp.NormalizeView()
 		info = MapInfo(mp.Description)
 		it.LabelStyle = 2
 		it.Name = info.pId
+		it.IconHeight = 0
 		mp.Close()
 
 
@@ -771,8 +782,11 @@ def ReCreateMap(pMap):
 
 def SmoothenCurve(pMap, repeats):
 	bsList = [b for b in pMap.BodyListEnabled() if b.Id[0] != 'H']
+	info = MapInfo(pMap.Description)
+	info.Extend('SRpts', repeats)
 	for n in range(repeats):
 		cs.SmoothenBodyList(bsList)
+	pMap.Description = info.ToStr()
 	pMap.RedrawAll()
 
 def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0, expandFactor=1.0):

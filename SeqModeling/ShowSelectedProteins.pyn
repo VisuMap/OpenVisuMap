@@ -4,6 +4,7 @@ def ShowSelectedProteins():
 	if vv.EventSource.Form.Name == 'Atlas':
 		return
 	setS=set(vv.SelectedItems)
-	pp.SetSelectedItems([e for e in pp.Items if e.Name in setS])
+	selected = [e for e in pp.Items if e.Name in setS]
+	pp.SetSelectedItems(selected)
 	
 vv.EventManager.OnItemsSelected('@ShowSelectedProteins()', pp)
