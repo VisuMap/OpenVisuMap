@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web P-3D P-3Dx SeqMap P-Open Sh-LocPDB AtlasView TypeProtein P-2D ProteinMap Siblings
+#MenuLabels P-ChmX P-Web P-3D P-3Dx SeqMap P-Open Sh-LocPDB AtlasView TypeProtein P-2D P-2Dx ProteinMap Siblings
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -55,10 +55,10 @@ def MainProc(menuKey):
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
-		case 'P-2D':
-			if len(pSelected) == 1: 
-				atlasName = None
-			UnFoldProteinList(pList, epochs=2000, mainChain=False, includeHA=False, initExag=3.0, atName=atlasName, stretch=0.2, iconWidth=50, smtRatio=0.0)
+		case 'P-2D' | 'P-2Dx':
+			if len(pSelected) == 1: atlasName = None
+			UnFoldProteinList(pList, epochs=2000, mainChain=False, includeHA=False,  wholeComplex=(menuKey == 'P-2Dx'), 
+				initExag=3.0, atName=atlasName, stretch=0.2, clusterStretch=0.5, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
 			atlasName += '-3D'
 			SortByPosX(pSelected)

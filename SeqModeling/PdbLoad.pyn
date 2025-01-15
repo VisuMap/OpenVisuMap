@@ -130,8 +130,8 @@ def GetChainName(pId):
 	else:
 		return None
 
-def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=False, initExag=5.0, ppl=0.1, atName=None, 
-		stretch=0, clusterStretch=1.0, expandFactor=1.0, iconWidth=50, smtRatio=0):
+def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=False, wholeComplex=False, initExag=5.0, ppl=0.1, atName=None, 
+		stretch=0, clusterStretch=0.5, expandFactor=1.0, iconWidth=50, smtRatio=0):
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=1.0, ppl=ppl, 
 		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
@@ -145,7 +145,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		mainChain = False
 	try:
 		for k, pId in enumerate(pList):
-			chainNames = GetChainName(pId)
+			chainNames = None if wholeComplex else GetChainName(pId)
 			if mainChain and not includeHA:
 				bList = New.BodyList(LoadMainChain(pId))
 				localPath, bList2, pdbTitle = '-', None, '-'
