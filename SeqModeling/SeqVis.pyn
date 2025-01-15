@@ -722,6 +722,8 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5,
 		it.LabelStyle = 2
 		it.Name = info.pId
 		it.IconHeight = 0
+		it.ShowBorder = True
+		it.BorderColor = New.Color(28, 28, 28)
 		mp.Close()
 
 
@@ -789,7 +791,7 @@ def SmoothenCurve(pMap, repeats):
 	pMap.Description = info.ToStr()
 	pMap.RedrawAll()
 
-def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0, expandFactor=1.0):
+def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0, clusterStretch=1.0, expandFactor=1.0):
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True)
 	mapStore.atlas.Description = atlas.Description
 	mapStore.atlas.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
@@ -798,7 +800,7 @@ def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0, expandFactor=1.0):
 		mp.TheForm.Hide()
 		atlas.SetSelectedItems([m])
 		UnFoldMap(mp, epochs=1000, repeats=1, is3D=False,
-			finalExag=1.0, ppl=0.1, stretch=stretch, expandFactor=expandFactor)
+			finalExag=1.0, ppl=0.1, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
 		mp.Close()
 		if mapStore != None:
 			mapStore.AddMaps()

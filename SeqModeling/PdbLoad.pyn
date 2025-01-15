@@ -131,7 +131,7 @@ def GetChainName(pId):
 		return None
 
 def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=False, initExag=5.0, ppl=0.1, atName=None, 
-		stretch=0, expandFactor=1.0, iconWidth=50, smtRatio=0):
+		stretch=0, clusterStretch=1.0, expandFactor=1.0, iconWidth=50, smtRatio=0):
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=1.0, ppl=ppl, 
 		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
@@ -161,11 +161,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			for b in bList:
 				b.Hidden = False
 
-			if expandFactor != 1.0:
-				bList = New.BodyListClone(bList)
-				bList = cs.LocalExpand(bList, expandFactor)
-			nt = New.NumberTable(bList,3)
-			nt = AugmentByIndex(nt, stretch=stretch)
+			nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
 			
 			info = MapInfo()
 			info.SF = stretch
@@ -247,9 +243,21 @@ def OpenPDBFile(pMap):
 def OpenCifFile(pId):
 	vv.StartProcess("vi", PidToPath(pId))
 
-def AugmentByIndex(nt, stretch):
-	if stretch == 0: return nt
-	nt.AddColumns(4)
+def Augment2Table(bList, stretch, clusterStretch=1.0, expandFactor=1.0):
+
+	if expandFactor != 1.0:
+		bList = New.BodyListClone(bList)
+		bList = cs.LocalExpand(bList, expandFactor)
+	nt = New.NumberTable(bList,3)
+
+	if stretch == 0 and clusterStretch == 0:
+		return nt
+	
+	if clusterStretch == 0:
+		nt.AddColumns(1)
+	else:
+		nt.AddColumns(4)
+
 	M = nt.Matrix
 	rsList = nt.RowSpecList
 	# get the number of interpolation points which is normally 8
@@ -277,16 +285,15 @@ def AugmentByIndex(nt, stretch):
 		M[row][3] += offset
 		offset += dx
 
-	for t in meanCnt:
-		n, V = meanCnt[t], meanV[t]
-		fct = 0.5*(1 + math.sqrt(stretch))
-		for dim in range(3):
-			V[dim] = fct * V[dim]/n
-	for row, rs in enumerate(rsList):
-		V, R = meanV[rs.Type], M[row]
-		for dim in range(3):
-			R[4+dim] = V[dim]
-
+	if clusterStretch != 0:
+		for t in meanCnt:
+			n, V = meanCnt[t], meanV[t]
+			for dim in range(3):
+				V[dim] = clusterStretch * V[dim]/n
+		for row, rs in enumerate(rsList):
+			V, R = meanV[rs.Type], M[row]
+			for dim in range(3):
+				R[4+dim] = V[dim]
 	return nt
 
 def Download3DInfo(pId):
@@ -357,13 +364,9 @@ def Interporlate(bsList, rp, eps, smtRatio=0):
 				t0 = bsList[k0].Type
 	return bs
 
-def UnFoldMap(pMap, epochs=1000, ppl=0.1, staged=False, repeats=1, stretch=0, expandFactor=1.0, initExag=10.0, finalExag=1.0, is3D=False):
+def UnFoldMap(pMap, epochs=1000, ppl=0.1, staged=False, repeats=1, stretch=0, clusterStretch=1.0, expandFactor=1.0, initExag=10.0, finalExag=1.0, is3D=False):
 	bList = pMap.BodyListEnabled()
-	if expandFactor != 1.0:
-		bList = New.BodyListClone(bList)
-		bList = cs.LocalExpand(bList, expandFactor)
-	nt = New.NumberTable(bList,3)
-	AugmentByIndex(nt, stretch=stretch)
+	nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
 	mds = NewMds(nt, is3D=is3D, glyphSet=pMap.GlyphSet, initExag=initExag, finalExag=finalExag,
 		epochs=epochs, ppl=ppl, staged=staged)
 	info = MapInfo(pMap.Description).SetMds(mds)

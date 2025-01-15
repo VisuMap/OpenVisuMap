@@ -18,9 +18,10 @@ match vv.EventSource.Item:
 		SmoothenCurve(pp, repeats=50)
 	case 'P-2D':
 		pMap = pp
-		#UnFoldMap(pMap, repeats=1, epochs=2000, initExag=8.0, ppl=0.2, stretch=1.25, expandFactor=1.1)
-		for sf in [2.0]:
-			UnFoldMap(pMap, repeats=1, epochs=3000, initExag=10.0, ppl=0.15, stretch=sf, expandFactor=1.0)
+		#UnFoldMap(pMap, repeats=1, epochs=2000, initExag=8.0, ppl=0.2, stretch=1.25, clusterStretch=1.0, expandFactor=1.1)
+		#for s in [0, 0.1, 0.2, 0.4]:
+		for s in [1.0]:
+			UnFoldMap(pMap, repeats=1, epochs=3000, initExag=10.0, ppl=0.15, stretch=s, clusterStretch=0.5, expandFactor=1.0)
 	case 'HideIPO':
 		HideInterpolates()
 	case 'MarkHelix':

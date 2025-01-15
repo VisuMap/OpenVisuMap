@@ -58,7 +58,7 @@ def MainProc(menuKey):
 		case 'P-2D':
 			if len(pSelected) == 1: 
 				atlasName = None
-			UnFoldProteinList(pList, epochs=2000, mainChain=False, includeHA=False, initExag=3.0, atName=atlasName, stretch=0.0, iconWidth=50, smtRatio=0.0)
+			UnFoldProteinList(pList, epochs=2000, mainChain=False, includeHA=False, initExag=3.0, atName=atlasName, stretch=0.2, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
 			atlasName += '-3D'
 			SortByPosX(pSelected)
@@ -179,6 +179,6 @@ hasDNA = set([b.Id[:4] for b in vv.Folder.ReadDataset('DnaChains').BodyList])
 hasNT = hasDNA.union(hasRNA)
 hasRD = hasDNA.intersection(hasRNA)
 print(len(hasRNA), len(hasDNA), len(hasNT), len(hasRD))
-vv.SelectedItems = [ b.Id for b in vv.Dataset.BodyList if b.Id[:4] in hasNT ]
+vv.SelectedItems = [ b.Id for b in vv.Dataset.BodyList if b.Id[:4] in hasDNA ]
 
 '''
