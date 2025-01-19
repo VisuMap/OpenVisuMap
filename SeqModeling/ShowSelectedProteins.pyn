@@ -1,8 +1,7 @@
 # ShowSelectedProteins.pyn
 # Used by Atlas:  marks the atlas items when some protein ids have been selected in other views.
 def ShowSelectedProteins():
-	if vv.EventSource.Form.Name == 'Atlas':
-		return
+	#if vv.EventSource.Form.Name == 'Atlas': return
 	setS=set(vv.SelectedItems)
 	selected = [e for e in pp.Items if e.Name in setS]
 	pp.SetSelectedItems(selected)

@@ -138,9 +138,8 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=1.0, ppl=ppl, 
 		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
 	mds.RefreshFreq = epochs
-	mds.GlyphSize = 2.0
+	mds.GlyphSize = 0.75 if atName==None else 2.0
 	mds.GlyphOpacity = 1.0
-	mds.ExaggerationSmoothen = False
 	if mapStore != None:
 		csLoad.MinimizeView(mds)
 	if vv.Dataset.IndexOfColumn('ChainName')>=0:
