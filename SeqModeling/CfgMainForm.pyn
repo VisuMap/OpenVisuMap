@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web P-3D P-3Dx SeqMap P-Open Sh-LocPDB AtlasView TypeProtein P-2D P-2Dx ProteinMap Siblings
+#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx  
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -33,6 +33,8 @@ def GetAAGroup(idx=0):
 			from itertools import combinations
 			#return ['|'.join(g) for g in combinations(list('CGPDEFWY'), 3)]
 			return ['|'.join(g) for g in combinations(list('AVILMFYW'), 3)]
+		case 10:
+			return 'AVILMFYW|STNQ|CGP|RHK|DE|aut|cg'
 		case 9:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE')
 
@@ -48,17 +50,17 @@ def CreateProteinMapList(gList, pList, epochs=2500, clearStore=False):
 
 def MainProc(menuKey):
 	pSelected = list(pp.SelectedItems)
-	atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}.{len(pSelected)}'
+	atlasName = f'{vv.Map.Name}.{len(pSelected)}'
 	pId = pSelected[0] if len(pSelected) > 0 else None
 	pList = pSelected if len(pSelected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
 
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
-		case 'P-2D' | 'P-2Dx':
+		case 'P-2D' |'P-2Dx'   :
 			if len(pSelected) == 1: atlasName = None
 			UnFoldProteinList(pList, epochs=2000, mainChain=False, includeHA=False,  wholeComplex=(menuKey == 'P-2Dx'), 
-				initExag=3.0, atName=atlasName, stretch=0.2, clusterStretch=0.5, iconWidth=50, smtRatio=0.0)
+				initExag=5.0, ppl=0.15, atName=atlasName, stretch=1.0, clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
 			atlasName += '-3D'
 			SortByPosX(pSelected)
@@ -82,30 +84,16 @@ def MainProc(menuKey):
 		case 'Sh-LocPDB':
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
-		case 'ProteinMap':		
-			CreateProteinMap2(pList, aaGroups=GetAAGroup(0), epochs=5000, repeats=0, 
-				ppl=0.25, staged=True, initExag=6.0, finalExag=1.0, using3DInfo=False)
+		case 'P-Map':
+			CreateProteinMap2(pList, aaGroups=GetAAGroup(10), epochs=5000, repeats=0, 
+				ppl=0.1, staged=False, initExag=6.0, finalExag=1.0, using3DInfo=False)
 			'''
 			CreateProteinMapList(GetAAGroup(4), pList, epochs=2500, clearStore=True)
-
 			CreateProteinMap2(pList, aaGroups='C|G', epochs=5000, repeats=0, 
 				ppl=0.25, staged=True, initExag=3.0, finalExag=1.0, using3DInfo=False, waveCount=64)
 			'''
 		case 'TypeProtein':
 			TypeProteinList(pList)
-		case 'AtlasView':
-			atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}'
-			if atlasName not in vv.AtlasManager.GetAtlasList():
-				vv.Message('No atlas found with the name: ' + atlasName)
-				vv.Return()
-			atlas = New.Atlas(atlasName)
-			if not vv.ModifierKeys.ControlPressed:
-				atlas.MakeFloating()
-				if len(pSelected) > 0:
-					notSelected = [ item for item in atlas.Items if item.Name not in set(pSelected) ]
-					atlas.RemoveItems(notSelected)
-					atlas.ResetView()			
-			atlas.Show()
 		case 'Siblings':
 			pId = pId[:4]
 			bsList = vv.Dataset.BodyListEnabled()
@@ -180,5 +168,24 @@ hasNT = hasDNA.union(hasRNA)
 hasRD = hasDNA.intersection(hasRNA)
 print(len(hasRNA), len(hasDNA), len(hasNT), len(hasRD))
 vv.SelectedItems = [ b.Id for b in vv.Dataset.BodyList if b.Id[:4] in hasDNA ]
+
+ds = vv.Dataset
+pSize = {}
+for k, b in enumerate(ds.BodyList):
+	pId = b.Id[:4]
+	rp = ds.GetValueAt(k, 1)
+	pLen = ds.GetValueAt(k, 3)
+	sz = rp * pLen
+	if pId in pSize:
+		pSize[pId] += sz
+	else:
+		pSize[pId] = sz
+
+for k, b in enumerate(ds.BodyList):
+	ds.SetValueAt(k, 5, pSize[b.Id[:4]])
+
+
+	
+	
 
 '''

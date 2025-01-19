@@ -625,12 +625,18 @@ def SeqLabeling(dt, pSeq):
 
 def ShowAASeq(pMap):
 	info = MapInfo(pMap.Description)
-	pSelected = pMap.SelectedBodies
+	pSelected = pMap.GetSelectedBodies()
 	if pSelected.Count == 0:
 		pSelected = pMap.BodyListEnabled()
 	if info.Mtd == 'PDB':
 		pSeq = []
+		preType = -1
 		for b in pSelected:
+			if b.Type != preType:
+				if len(pSeq) > 0:
+					pSeq.append('\n')
+				preType = b.Type
+				pSeq.append(f'[{b.Type}]:')
 			if (b.Id[0] == 'A'):
 				nm = b.Name
 				if (nm[0] == 'r') or (nm[0] == 'd'):
@@ -638,7 +644,7 @@ def ShowAASeq(pMap):
 				else:
 					pSeq.append(nm[0])
 		pSeq = ''.join(pSeq)
-		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
+		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}: {info.PT}', pSeq)
 	else:
 		pSeq = ''.join([b.Name[0] for b in pSelected]).upper()
 		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
@@ -761,7 +767,8 @@ def MatchProteinMap(pAtlas, iconWidth=50, iconHeight=0):
 		item.LabelStyle = 0
 		item.Transparent = True
 		item.Opacity = 0.7
-		item.ShowBorder = False
+		item.ShowBorder = True
+		item.BorderColor = New.Color(32, 32, 32)
 	pAtlas.Redraw()
 	pAtlas.DataChanged = True
 

@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps P-3D P-3Dx P-Web P-ChmX P-Open MatchMap TileAll P-3D2
+#MenuLabels ConfigMaps P-3D P-3Dx P-Web P-ChmX P-Open MatchMap TileAll P-3D2 P-Seq
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -55,6 +55,12 @@ def MainProc(menuKey):
 		case 'TileAll':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 			AtlasTileAll(pp, aaGroups, using3DInfo=False, waveLen=256, waveCount=32)
+		case 'P-Seq':
+			if pp.SelectedItems.Count > 0:
+				mp = pp.SelectedItems[0].Open()
+				ShowAASeq(mp)
+				mp.Close()
+
 
 
 

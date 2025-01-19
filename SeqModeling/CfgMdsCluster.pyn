@@ -1,0 +1,6 @@
+#MenuLabels P-Seq
+vv.Import('SeqVis.pyn')
+
+match vv.EventSource.Item:
+	case 'P-Seq':
+		ShowAASeq(pp)
