@@ -134,6 +134,11 @@ def GetChainName(pId):
 
 def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=False, wholeComplex=False, initExag=5.0, ppl=0.1, atName=None, 
 		stretch=0, clusterStretch=0.5, expandFactor=1.0, iconWidth=50, smtRatio=0):
+
+	if wholeComplex:
+		# Remove all duplicates.
+		pList = list(set([p[:4] for p in pList]))
+	
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=1.0, ppl=ppl, 
 		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
@@ -153,9 +158,6 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			else:
 				localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain, chainNames=chainNames)
 			seqLen = bList.Count
-
-			if seqLen > 30000:
-				continue
 
 			bList = Interporlate(bList, rp=3, eps=eps, smtRatio=smtRatio)
 
@@ -182,7 +184,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			if chainNames != None:
 				info.Set('CNs', '|'.join(chainNames) )
 			mds.SetTrainingData(nt)
-			vv.Title = f'Unfolding {pId}/{seqLen}: {k+1}-th of {len(pList)}'
+			vv.Title = f'Unfolding {pId}/{seqLen:,}: {k+1}-th of {len(pList)}'
 			vv.DoEvents()
 			RunMds(mds, info=info, repeats=0)
 
@@ -410,15 +412,18 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 				ppType = 0
 			pp = b.Name[0] if ppType == 0 else b.Name[2]
 			seqList = [ pp ]
+
 	if len(seqList) > 0:
 		if (aaChains and ppType==0) or (rnaChains and ppType==1) or (dnaChains and ppType==2):
-			pSeq = ''.join(seqList)		
+			pSeq = ''.join(seqList)
 			chList.append( (chName, ppType, pSeq, len(pSeq)) )
 
 	# merge the repeated sequences:
 	chSet = {}
 	chInfo = {}
+	totalLength = 0
 	for (chId, ppType, pSeq, seqLen) in chList:
+		totalLength += seqLen
 		if pSeq in chSet:
 			chSet[pSeq] += 1
 		else:
@@ -432,7 +437,7 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 		chId, ppType = chInfo[ch]
 		seq = ch if ppType == 0 else ch.lower()
 		ds.AddRow(f'{pId}_{k}', None,  ppType, [pId, str(repeats), seq, str(chLen), chId])
-	return len(chSet)
+	return len(chList), totalLength, pdbTitle
 
 def LoadAllChains(aaChains=True, rnaChains=False, dnaChains=False):
 	import os
@@ -442,16 +447,25 @@ def LoadAllChains(aaChains=True, rnaChains=False, dnaChains=False):
 		return
 	chCount = 0
 	pList = [f[:4] for f in os.listdir('c:/temp/PDBCache') if f.endswith('.cif')]	
+	#pList = pList[:50]
+
+	pTable = New.FreeTable()
+	pTable.AddColumn('Chains', True)
+	pTable.AddColumn('Size', True)
+	pTable.AddColumn('Title', False)
+
 	for k, pId in enumerate(pList):
 		if (k+1)%50 == 0:
 			print(k+1, ': ', pId, chCount)
-		chCount += LoadChains(pId, aaChains=aaChains, rnaChains=rnaChains, dnaChains=dnaChains)
+		chCnt, totalLen, title = LoadChains(pId, aaChains=aaChains, rnaChains=rnaChains, dnaChains=dnaChains)
+		chCount += chCnt
+		pTable.AddRow(pId, 0, [str(chCnt), str(totalLen), title])
 		vv.DoEvents()
 	vv.Dataset.CommitChanges()
+	pTable.ShowAsTable()	
 
 '''
 
-print('abc'.lower())
 LoadAllChains(True, True, True)
 
 vv.SelectedItems = vv.FindItems('ProteinSeq', 'RGAFGKPQGTVARVHIGQVIMSIRTKLQ')
@@ -475,5 +489,11 @@ for k, b in enumerate(ds.BodyList):
 	if b.Type != 0:
 		seq = ds.GetValueAt(k, 2)
 		ds.SetStringAt(k, 2, seq.lower())
+
+isLarge = set(vv.SelectedItems)
+for b in vv.Dataset.BodyList:
+	if b.Id[:4] in isLarge:
+		b.Disabled = True
+vv.Map.Redraw()
 
 '''
