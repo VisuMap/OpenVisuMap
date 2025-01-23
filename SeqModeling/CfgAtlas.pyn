@@ -50,8 +50,8 @@ def MainProc(menuKey):
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 			AtlasTileAll(pp, aaGroups, using3DInfo=False, waveLen=256, waveCount=32)
 		case 'P-Seq':
-			if pp.SelectedItems.Count > 0:
-				mp = pp.SelectedItems[0].Open()
+			for item in pp.SelectedItems:
+				mp = item.Open()
 				ShowAASeq(mp)
 				mp.Close()
 

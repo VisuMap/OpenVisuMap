@@ -82,6 +82,26 @@ public void SwapHiddenBodies(List<IBody> bsList) {
 		b.Hidden = !b.Hidden;
 }
 
+public IList<IBody> FlatSampling(List<IBody> bsList, double minDist) {
+	List<IBody> sampling = New.BodyList();
+	double limit = minDist * minDist;
+	foreach(IBody b in bsList) {
+		bool isSampled = false;
+		for(int k=0; k<sampling.Count; k++){
+			IBody a = sampling[k];
+			double dx = a.X - b.X;
+			double dy = a.Y - b.Y;
+			if ( (dx*dx + dy*dy) < limit ) {
+				isSampled = true;
+				break;
+			}				
+		}
+		if ( ! isSampled ) 
+			sampling.Add(b);		
+	}
+	return sampling;
+}
+
 ''')
 
 # protein embedding map information
