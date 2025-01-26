@@ -177,9 +177,6 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			if includeHA:
 				bList.AddRange(bList2)
 
-			for b in bList:
-				b.Hidden = False
-
 			nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
 			
 			info = MapInfo()
@@ -301,6 +298,7 @@ def Augment2Table(bList, stretch, clusterStretch=1.0, expandFactor=1.0):
 			offset = -0.5*meanCnt[rs.Type]*dx
 		# hetero atoms don't participate in the unfold stretching
 		if rs.Id[0] == 'H': continue
+		#if rs.Name[0] == 'r': continue
 		M[row][3] += offset
 		offset += dx
 
