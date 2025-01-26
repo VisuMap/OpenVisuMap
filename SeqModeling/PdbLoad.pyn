@@ -47,11 +47,6 @@ public string LoadMainSeq(string cacheFile) {
 	}
 	return sb.ToString();
 }
-
-public void MinimizeView(IForm frm) {
-	frm.TheForm.Activate();
-	frm.TheForm.WindowState = (System.Windows.Forms.FormWindowState)1;
-}
 ''')
 
 def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, chainNames=None, includeHA=True, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75):
@@ -155,11 +150,9 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=1.0, ppl=ppl, 
 		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
-	mds.RefreshFreq = epochs
+	mds.RefreshFreq = 50
 	mds.GlyphSize = 0.75 if atName==None else 2.0
 	mds.GlyphOpacity = 1.0
-	if mapStore != None:
-		csLoad.MinimizeView(mds)
 	if vv.Dataset.IndexOfColumn('ChainName')>=0:
 		mainChain = False
 	try:

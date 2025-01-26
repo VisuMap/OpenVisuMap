@@ -52,19 +52,21 @@ def MainProc(menuKey):
 	selected = list(pp.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None
 	pList = selected if len(selected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
-	atlasName = f'{vv.Map.Name}.{len(pList)}'
+	atlasName = f'{vv.Map.Name}.{len(pList)}' if len(pList) == 1 else None
 
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
-		case 'P-2D' | 'P-2Dx':
-			if len(pList) == 1: atlasName = None
-			UnFoldProteinList(pList, epochs=2000, mainChain=False, includeHA=False,  wholeComplex=(menuKey == 'P-2Dx'), samplingDist=5.0,
+		case 'P-2D':
+			UnFoldProteinList(pList, epochs=2000, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=5.0,
+				initExag=5.0, ppl=0.25, atName=atlasName, stretch=1.0, clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
+		case 'P-2Dx':
+			if atlasName != None: atlasName += 'x'
+			UnFoldProteinList(pList, epochs=2000, mainChain=False, includeHA=False,  wholeComplex=True, samplingDist=5.0,
 				initExag=5.0, ppl=0.25, atName=atlasName, stretch=1.0, clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
-			atlasName += '-3D'
+			if atlasName != None: atlasName += '-3D'
 			SortByPosX(pList)
-			if len(pList) == 1: atlasName = None
 			justMainChain = vv.ModifierKeys.ControlPressed
 			ShowProteinList(pList, mainChain=justMainChain, includeHA=False, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
 		case 'P-3Dx':
@@ -73,8 +75,7 @@ def MainProc(menuKey):
 				mp.ClickMenu('SeqVis/Flipping')
 		case 'SeqMap':
 			aaGroups = GetAAGroup(idx=0)
-			atlasName += '-Seq'
-			if len(pList) == 1: atlasName = None
+			if atlasName != None: atlasName += '-Seq'
 			CreateSeqMaps(pList, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
 		case 'P-Open': 
 			if pId == None:
