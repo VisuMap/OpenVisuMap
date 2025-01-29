@@ -35,6 +35,12 @@ def GetAAGroup(idx=0):
 			return ['|'.join(g) for g in combinations(list('AVILMFYW'), 3)]
 		case 10:
 			return 'AVILMFYW|STNQ|CGP|RHK|DE|aut|cg'
+		case 12:
+			return 'FL|S|Y|CW|L|P|HQ|R|IM|T|N|K|S|R|V|A|D|E|G|aut|cg'
+		case 13:
+			return 'FLSYCW|LPHQR|IMTNKSR|VADEG|aut|cg'
+		case 14:
+			return 'IMTNKSR|aut|cg'
 		case 9:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE')
 
@@ -52,7 +58,7 @@ def MainProc(menuKey):
 	selected = list(pp.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None
 	pList = selected if len(selected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
-	atlasName = f'{vv.Map.Name}.{len(pList)}' if len(pList) == 1 else None
+	atlasName = None if len(pList) == 1 else f'{vv.Map.Name}.{len(pList)}'
 
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
@@ -62,8 +68,8 @@ def MainProc(menuKey):
 				initExag=5.0, ppl=0.25, atName=atlasName, stretch=1.0, clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
 		case 'P-2Dx':
 			if atlasName != None: atlasName += 'x'
-			UnFoldProteinList(pList, epochs=2000, mainChain=False, includeHA=False,  wholeComplex=True, samplingDist=5.0,
-				initExag=5.0, ppl=0.25, atName=atlasName, stretch=1.0, clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
+			UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False,  wholeComplex=True, samplingDist=1.0,
+				initExag=5.0, ppl=0.25, atName=atlasName, stretch=2.0, clusterStretch=1.0, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
 			if atlasName != None: atlasName += '-3D'
 			SortByPosX(pList)
@@ -86,13 +92,7 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
-			CreateProteinMap2(pList, aaGroups=GetAAGroup(10), epochs=5000, repeats=0, 
-				ppl=0.1, staged=False, initExag=6.0, finalExag=1.0, using3DInfo=False)
-			'''
-			CreateProteinMapList(GetAAGroup(4), pList, epochs=2500, clearStore=True)
-			CreateProteinMap2(pList, aaGroups='C|G', epochs=5000, repeats=0, 
-				ppl=0.25, staged=True, initExag=3.0, finalExag=1.0, using3DInfo=False, waveCount=64)
-			'''
+			CreateProteinMap2(pList, aaGroups=GetAAGroup(10), epochs=1000, ppl=0.1, initExag=3.0)
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':

@@ -144,8 +144,9 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		pList = ss.FlatSampling(vv.Dataset.BodyListForId(pList), samplingDist)
 		pList = [b.Id for b in pList]
 		vv.Title += f' Sampled {len(pList)} chains!'
-		#vv.SelectedItems = pList
-		#return
+		if vv.ModifierKeys.ControlPressed:
+			vv.SelectedItems = pList
+			return
 	
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=1.0, ppl=ppl, 

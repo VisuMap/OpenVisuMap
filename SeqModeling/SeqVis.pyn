@@ -301,7 +301,7 @@ def GetFourier(waveLen, waveCount):
 	return tm.SelectColumns(coList)
 
 def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, 
-		ppl=0.05, staged=False, repeats=0, using3DInfo=True, aaGroups='A', waveLen=1024, waveCount=17):
+		ppl=0.05, staged=False, repeats=0, using3DInfo=False, aaGroups='A', waveLen=1024, waveCount=17):
 	pTable = AssertProteinTable()	
 	tm = GetFourier(waveLen, waveCount)
 
