@@ -1,6 +1,7 @@
 #MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx  
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
+import time
 
 def SortByPosX(idList):
 	idList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
@@ -59,16 +60,17 @@ def MainProc(menuKey):
 	pId = selected[0] if len(selected) > 0 else None
 	pList = selected if len(selected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
 	atlasName = None if len(pList) == 1 else f'{vv.Map.Name}.{len(pList)}'
+	t0 = time.time()
 
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
-			UnFoldProteinList(pList, epochs=2000, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=5.0,
-				initExag=5.0, ppl=0.25, atName=atlasName, stretch=1.0, clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
+			UnFoldProteinList(pList, epochs=5000, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=5.0,
+				initExag=5.0, ppl=0.15, atName=atlasName, stretch=1.0, clusterStretch=0.0, iconWidth=100, smtRatio=0.0)
 		case 'P-2Dx':
 			if atlasName != None: atlasName += 'x'
-			UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False,  wholeComplex=True, samplingDist=1.0,
+			UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False,  wholeComplex=True, samplingDist=5.0,
 				initExag=5.0, ppl=0.25, atName=atlasName, stretch=2.0, clusterStretch=1.0, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
 			if atlasName != None: atlasName += '-3D'
@@ -92,13 +94,23 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
-			CreateProteinMap2(pList, aaGroups=GetAAGroup(10), epochs=1000, ppl=0.1, initExag=3.0)
+			CreateProteinMap2(pList, repeats=0, aaGroups=GetAAGroup(0), epochs=2500, ppl=0.15, initExag=10.0, waveCount=10)
+			'''
+			for mp in [129]:
+				mpName = f'T_{mp}K'
+				vv.Dataset.OpenMap(mpName)
+				pList = [b.Id for b in vv.Dataset.BodyListEnabled()]
+				for wc in [50]:
+					CreateProteinMap2(pList, repeats=1, aaGroups=GetAAGroup(10), epochs=100, ppl=0.1, initExag=3.0, waveCount=wc)
+				vv.GuiManager.CloseAllWindows()
+			'''
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
 			pId = pId[:4]
 			bsList = vv.Dataset.BodyListEnabled()
 			vv.SelectedItems = [b.Id for b in bsList if b.Id[:4] == pId]
+	#vv.Message(f'Time: {time.time() - t0:.1f}')
 
 MainProc(vv.EventSource.Item)
 

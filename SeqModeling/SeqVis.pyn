@@ -158,6 +158,7 @@ class AtlasMapStore():
 		for fm in vv.FindFormList(self.viewName):
 			item = self.atlas.CaptureItem(fm)
 			item.Name = MapInfo(fm.Description).pId
+			item.Id = item.Name
 			item.CacheImage = True
 			if fm.Name == 'D3dRender':
 				fm.Close()
@@ -741,7 +742,15 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5,
 		mp.HiddenBodySize = hiddenSize
 		mp.NameLabelColor = New.Color('Yellow')
 		mp.NameLabelFont = New.Font('Microsoft Sans Serif', 18.0)
-		#mp.Resize(0,0,mpWidth,mpHeight)
+
+		allHidden = True
+		for b in mp.BodyList:
+			if not b.Hidden:
+				allHidden = False
+				break
+		if allHidden:
+			for b in mp.BodyList: b.Hidden = False
+										
 		mp.ResetSize()
 		mp.NormalizeView()
 		info = MapInfo(mp.Description)
@@ -937,6 +946,7 @@ def UnifyChains(pMap):
 	if len(prefix)>0:	# Add the last chain
 		chains.append( (''.join(prefix[:maxKeyLen]), curType) )
 
+	# setup dictionary type2type to convert chain types to new type in global scope
 	type2type = {}
 	if 'key2type' not in globals():
 		key2type = {}
@@ -948,7 +958,7 @@ def UnifyChains(pMap):
 	#vv.Message(f'Added {newKeys} new chains!')
 
 		
-	# There might be case that multiple chains be assigned the same type. 
+	# Multiple chains might be assigned the same type. 
 	# We resolve these conflict by indexing all atoms in each type.
 	for b in pMap.BodyList:
 		if b.Type not in type2type:

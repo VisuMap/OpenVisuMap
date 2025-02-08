@@ -151,7 +151,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=1.0, ppl=ppl, 
 		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
-	mds.RefreshFreq = 50
+	mds.RefreshFreq = 250
 	mds.GlyphSize = 0.75 if atName==None else 2.0
 	mds.GlyphOpacity = 1.0
 	if vv.Dataset.IndexOfColumn('ChainName')>=0:
@@ -201,8 +201,9 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 	if mapStore != None:
 		ma = mapStore.atlas
 		MatchProteinMap(ma, iconWidth, 0)
-		ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
-		ma.OnAtlasShown = 'ShowSelectedProteins.pyn'
+		#ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
+		#ma.OnAtlasShown = 'ShowSelectedProteins.pyn'
+		ma.EventEnabled = True
 		ma.Description = info.ToStr()
 		ma.Show()
 		ma.DataChanged = True # since the Show() clears the DataChanged flag.
