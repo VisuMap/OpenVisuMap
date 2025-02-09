@@ -204,6 +204,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		#ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 		#ma.OnAtlasShown = 'ShowSelectedProteins.pyn'
 		ma.EventEnabled = True
+		ma.HiddenItemSize = 3
 		ma.Description = info.ToStr()
 		ma.Show()
 		ma.DataChanged = True # since the Show() clears the DataChanged flag.

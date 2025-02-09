@@ -156,9 +156,10 @@ class AtlasMapStore():
 		self.viewName = tgtViewName
 	def AddMaps(self):
 		for fm in vv.FindFormList(self.viewName):
+			info = MapInfo(fm.Description)
 			item = self.atlas.CaptureItem(fm)
-			item.Name = MapInfo(fm.Description).pId
-			item.Id = item.Name
+			item.Name = info.pId
+			item.Id = info.pId
 			item.CacheImage = True
 			if fm.Name == 'D3dRender':
 				fm.Close()
@@ -742,6 +743,8 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5,
 		mp.HiddenBodySize = hiddenSize
 		mp.NameLabelColor = New.Color('Yellow')
 		mp.NameLabelFont = New.Font('Microsoft Sans Serif', 18.0)
+		info = MapInfo(mp.Description)
+		mp.Title = f'{info.pId}: {info.PT}'
 
 		allHidden = True
 		for b in mp.BodyList:
