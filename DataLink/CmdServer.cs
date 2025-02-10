@@ -1103,7 +1103,7 @@ namespace VisuMap.DataLink {
                             mbList.Clear();
                         }
                         foreach (var b in bs) mbList.Add(b);
-                        preMap3D.RedrawAll();
+                        preMap3D.Redraw();
                     }
                     if (access == "R") {
                         if ( (mapRecorder == null) || (mapRecorder.IsDisposed) ) {
