@@ -143,7 +143,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 	if samplingDist > 0:
 		pList = ss.FlatSampling(vv.Dataset.BodyListForId(pList), samplingDist)
 		pList = [b.Id for b in pList]
-		vv.Title += f' Sampled {len(pList)} chains!'
+		vv.Title = f'Sampled {len(pList)} chains!'
 		if vv.ModifierKeys.ControlPressed:
 			vv.SelectedItems = pList
 			return
@@ -200,9 +200,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		vv.Message(str(e))
 	if mapStore != None:
 		ma = mapStore.atlas
-		MatchProteinMap(ma, iconWidth, 0)
-		#ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
-		#ma.OnAtlasShown = 'ShowSelectedProteins.pyn'
+		MatchProteinMap(ma, iconWidth)
 		ma.EventEnabled = True
 		ma.HiddenItemSize = 3
 		ma.Description = info.ToStr()

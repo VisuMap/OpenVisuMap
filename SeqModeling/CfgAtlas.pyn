@@ -24,7 +24,7 @@ def MainProc(menuKey):
 
 	match vv.EventSource.Item:
 		case 'ConfigMaps':
-			ConfigAtlasMaps(pp, 1000, 700, gSize=0.75, gOpacity=0.5, hiddenSize=4, reset=False)			
+			ConfigAtlasMaps(pp, 1000, 700, gSize=1.5, gOpacity=0.5, iconWidth=None, hiddenSize=4, reset=False)			
 		case 'P-3D':
 			justMainChain = vv.ModifierKeys.ControlPressed			
 			for e in pSelected:
@@ -45,7 +45,7 @@ def MainProc(menuKey):
 		case 'P-Open':  
 			OpenCifFile(pId)
 		case 'MatchMap':
-			MatchProteinMap(pp, 50, 0)
+			MatchProteinMap(pp, iconWidth=100)
 		case 'TileAll':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 			AtlasTileAll(pp, aaGroups, using3DInfo=False, waveLen=256, waveCount=32)

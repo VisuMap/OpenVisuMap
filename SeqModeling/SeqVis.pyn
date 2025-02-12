@@ -315,7 +315,7 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 		# using the main chain from the PDB file
 		seqList = []
 		for k, pId in enumerate(pList):
-			if (k>0) and (k%20 == 0):
+			if (k>0) and (k%100 == 0):
 				vv.Title = f'Reading: {k}:{pId}'
 			seqList.append( LoadMainSeq(pId) )
 			vv.DoEvents()
@@ -611,7 +611,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 		ma = mapStore.atlas
 		ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 		ma.Description = info.ToStr()
-		MatchProteinMap(ma, 75, 0)
+		MatchProteinMap(ma, 75)
 		ma.Show()
 
 def Scanning(pMap, stride=100, stepSize=20, broadcasting=False):
@@ -729,7 +729,7 @@ def ShowProteinSeq(pMap):
 	tb = New.TextPanel(f'{pId}: {pSym}, {pLen}', pSeq)
 	tb.Show()
 
-def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=False):
+def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75, gOpacity=0.5, hiddenSize=7, reset=False):
 	itemList = atlas.GetSelectedItems()
 	for it in itemList:
 		mp = it.Open()
@@ -760,13 +760,15 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, gOpacity=0.5,
 		it.LabelStyle = 2
 		it.Name = info.pId
 		it.IconHeight = 0
+		if iconWidth != None:
+			it.IconWidth = iconWidth
 		it.ShowBorder = True
 		it.BorderColor = New.Color(28, 28, 28)
 		mp.Close()
 
 
 # arrange the map items to match the positions in the main map
-def MatchProteinMap(pAtlas, iconWidth=50, iconHeight=0):
+def MatchProteinMap(pAtlas, iconWidth=50):
 	pAtlas.BackgroundColor = New.Color(255, 0, 0, 64)	
 	pAtlas.SelectorColor = New.Color('DimGray')
 	info = MapInfo(pAtlas.Description)
@@ -794,8 +796,8 @@ def MatchProteinMap(pAtlas, iconWidth=50, iconHeight=0):
 			continue
 		item.Left = int(scale*(b.X - minX)) + 20
 		item.Top = int(scale*(b.Y - minY)) + 20
-		item.IconHeight = iconHeight
-		item.IconWidth = iconWidth
+		if iconWidth != None:
+			item.IconWidth = iconWidth
 		item.LabelStyle = 0
 		item.Transparent = True
 		item.Opacity = 0.7
