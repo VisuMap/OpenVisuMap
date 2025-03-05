@@ -147,11 +147,12 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		if vv.ModifierKeys.ControlPressed:
 			vv.SelectedItems = pList
 			return
+
 	
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=1.0, ppl=ppl, 
 		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
-	mds.RefreshFreq = 250
+	mds.RefreshFreq = epochs//2
 	mds.GlyphSize = 0.75 if atName==None else 2.0
 	mds.GlyphOpacity = 1.0
 	if vv.Dataset.IndexOfColumn('ChainName')>=0:
@@ -166,13 +167,16 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 				localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain, chainNames=chainNames)
 			seqLen = bList.Count
 
-			bList = Interporlate(bList, rp=3, eps=eps, smtRatio=smtRatio)
+			bList = Interporlate(bList, rp=3, eps=eps, smtRatio=smtRatio)			
 
 			if includeHA:
 				bList.AddRange(bList2)
 
 			nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
-			
+
+			if nt.Rows < 8:
+				continue	
+
 			info = MapInfo()
 			info.SF = stretch
 			info.CF = expandFactor
@@ -262,7 +266,9 @@ def Augment2Table(bList, stretch, clusterStretch=1.0, expandFactor=1.0):
 
 	if stretch == 0 and clusterStretch == 0:
 		return nt
-	
+	if nt.Rows <= 1:
+		return nt	
+
 	if clusterStretch == 0:
 		nt.AddColumns(1)
 	else:
@@ -270,11 +276,14 @@ def Augment2Table(bList, stretch, clusterStretch=1.0, expandFactor=1.0):
 
 	M = nt.Matrix
 	rsList = nt.RowSpecList
-	# get the number of interpolation points which is normally 8
-	for ipp in range(1, 128):  
+	# get the number of interpolation points, ipp, which is normally 8
+	dx = 0
+	for ipp in range(1, min(64, rsList.Count)):		
 		if rsList[ipp].Id[0] == 'A':
+			dx = 0.1*stretch/ipp
 			break
-	dx = 0.1*stretch/ipp
+	if dx == 0:
+		return nt
 
 	meanV = {}
 	meanCnt = {}

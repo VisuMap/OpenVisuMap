@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-3D P-3Dx HideIPO MarkHelix MarkBeta UniChains MainChain 'RNA/DNA' 
+#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-ChmX P-3D P-3Dx HideIPO MarkHelix MarkBeta UniChains MainChain 'RNA/DNA' 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -22,6 +22,9 @@ match vv.EventSource.Item:
 	case 'P-Web':
 		pId = MapInfo(pp.Description).pId
 		ShowWeb(pId)
+	case 'P-ChmX':
+		pId = MapInfo(pp.Description).pId
+		ShowChimeraX(pId)
 	case 'P-3D':		
 		info = MapInfo(pp.Description)
 		pId = info.pId
