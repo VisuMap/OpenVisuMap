@@ -302,32 +302,24 @@ def GetFourier(waveLen, waveCount):
 	coList = list(range(tm.Columns))[0:waveCount]
 	return tm.SelectColumns(coList)
 
-def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, 
-		ppl=0.05, staged=False, repeats=0, using3DInfo=False, aaGroups='A', waveLen=1024, waveCount=17):
+def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, from3D=False,
+		ppl=0.05, staged=False, repeats=0, aaGroups='A', waveLen=1024, waveCount=17):
 	pTable = AssertProteinTable()	
-	tm = GetFourier(waveLen, waveCount)
 
-	#Scaling base vectors to reduce dominance of the first base that reflect the seq-length.
-	for R in tm.Matrix:
-		for k, f in enumerate([1.0, 4.0, 4.0, 2.0, 2.0]): R[k] *= f
-
-	if using3DInfo:
-		# using the main chain from the PDB file
-		seqList = []
-		for k, pId in enumerate(pList):
-			if (k>0) and (k%100 == 0):
-				vv.Title = f'Reading: {k}:{pId}'
-			seqList.append( LoadMainSeq(pId) )
-			vv.DoEvents()
-		dt = cs.VectorizeProtein(seqList, aaGroups, tm)		
-	else:
-		# using the sequence in the current dataset 2-th column
+	if from3D:
+		dt = GetFourierTrans(pList, waveLen, waveCount)
+	else: 
+		tm = GetFourier(waveLen, waveCount)	
+		#Scaling base vectors to reduce dominance of the first base that reflect the seq-length.
+		for R in tm.Matrix:
+			for k, f in enumerate([1.0, 4.0, 4.0, 2.0, 2.0]): R[k] *= f
 		seqList = []
 		for pId in pList:
 			rowIdx = pTable.IndexOfRow(pId)
 			if rowIdx >= 0:
 				seqList.append( pTable.GetDataAt(rowIdx, 2) )
 		dt = cs.VectorizeProtein(seqList, aaGroups, tm)
+
 	for k, b in enumerate(pTable.BodyListForId(pList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 
@@ -338,6 +330,8 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	info.Set('aaG', aaGroups)
 	info.Set('wvL', waveLen)
 	info.Set('wvCnt', waveCount)
+	info.Set('from3D', from3D)
+
 	RunMds(mds, repeats=repeats, info=info)
 	if repeats>=1:
 		mds.Close()
@@ -357,17 +351,6 @@ def GetFourierTrans(pList, waveLen, waveCount):
 		ss.FourierTrans(tm, nt, pD.Matrix[k])
 	return pD
 
-def CreateProteinMap3(pList, epochs=2000, is3D=False, initExag=10.0,  finalExag=1.0, repeats=0, ppl=0.1, waveLen=128, waveCount=16):
-	pD = GetFourierTrans(pList, waveLen, waveCount)
-	mds = NewMds(pD, epochs=epochs, is3D=is3D, glyphSize=0.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
-	mds.StagedTraining = True
-	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	info.Mtd = 'FrT'  # for 
-	info.Set('wvL', waveLen)
-	info.Set('wvCnt', waveCount)
-	RunMds(mds, repeats=repeats, info=info)
-	if repeats>=1:
-		mds.Close()
 
 #-----------------------------------------------------------------------------
 

@@ -45,16 +45,6 @@ def GetAAGroup(idx=0):
 		case 9:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE')
 
-def CreateProteinMapList(gList, pList, epochs=2500, clearStore=False):
-	mStore = AtlasMapStore(f'P-Atlas-{len(pList)}', 'MdsCluster', clearStore)
-	for k, aaGroups in enumerate(gList):
-		vv.Title = f'Protein Map: {k}-th of {len(gList)}...'
-		CreateProteinMap2(pList, epochs=epochs, repeats=0, ppl=0.25, staged=True, 
-			initExag=6.0, finalExag=1.0, using3DInfo=False, aaGroups=aaGroups)
-		mStore.AddMap().Close()
-		mStore.atlas.SaveAtlas()
-	mStore.atlas.Show()
-
 def MainProc(menuKey):
 	selected = list(pp.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None
@@ -66,7 +56,7 @@ def MainProc(menuKey):
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
-			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=10.0,
+			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=2.0,
 				initExag=5.0, ppl=0.15, atName=atlasName, stretch=1.0, clusterStretch=0.0, iconWidth=100, smtRatio=0.0)
 		case 'P-2Dx':
 			if atlasName != None: 
@@ -95,7 +85,7 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
-			CreateProteinMap2(pList, repeats=0, using3DInfo=False, aaGroups=GetAAGroup(0), epochs=2500, ppl=0.1, initExag=10.0, waveCount=100)
+			CreateProteinMap2(pList, repeats=0, from3D=True, aaGroups=GetAAGroup(0), epochs=2500, ppl=0.1, initExag=10.0, waveCount=100)
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
