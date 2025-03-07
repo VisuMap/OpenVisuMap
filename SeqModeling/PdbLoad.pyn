@@ -480,37 +480,49 @@ def LoadAllChains(aaChains=True, rnaChains=False, dnaChains=False):
 	vv.Dataset.CommitChanges()
 	pTable.ShowAsTable()	
 
+def SaveChain(chId, chain):
+	cacheFile = f'c:/temp/MainChain/{chId}.pmc'
+	with open(cacheFile, 'w') as outFile:
+		for b in chain:
+			outFile.write(f'{b.Id}|{b.Name}|{b.Type}|{b.X:.2f}|{b.Y:.2f}|{b.Z:.2f}\n')
+
 def UnpackChains():
 	import os
 	pList = [f[:4] for f in os.listdir('c:/temp/PDBCache') if f.endswith('.cif')]	
 	chainsCount = 0
-	registered = set([b.Id for b in vv.Dataset.BodyList])
+	nm2id = {}
+	ds = vv.Dataset
+	for b in ds.BodyList:
+		nm = ds.GetDataAt(ds.IndexOfRow(b.Id), 4)
+		nm2id[b.Id[:4]+'_'+nm] = b.Id
 	for k, pId in enumerate(pList):
 		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=False)
-		chName = None
-		chIdx = -1
+		preChName = None
 		chain = []
 		if k % 50 == 0:
 			vv.Title =  f'{k}: {chainsCount}'
 		vv.DoEvents()
 		for b in bList:
-			cN = b.Name.split('.')[2]
-			if cN == chName:
+			chNm = b.Name.split('.')[2]
+			if chNm == preChName:
 				chain.append(b)
 			else:
-				if chName != None:
-					pId2 = f'{pId}_{chIdx}'
-					if pId2 in registered:
-						cacheFile = f'c:/temp/MainChain/{pId2}.pmc'
+				if preChName != None:
+					id_nm = pId + '_' + preChName
+					if id_nm in nm2id:
 						chainsCount += 1
-						with open(cacheFile, 'w') as outFile:
-							for b in bList:
-								outFile.write(f'{b.Id}|{b.Name}|{b.Type}|{b.X:.2f}|{b.Y:.2f}|{b.Z:.2f}\n')
-				chName = cN
-				chIdx += 1
+						SaveChain(nm2id[id_nm], chain)
+				# start a new chain with chName and b as first point
+				preChName = chNm
 				chain = [ b ]
+		# The last chain
+		if len(chain) > 0:
+			id_nm = pId + '_' + preChName
+			if id_nm in nm2id:
+				SaveChain(nm2id[id_nm], chain)
 
 '''
+
 UnpackChains()
 
 LoadAllChains(True, True, True)
