@@ -322,7 +322,6 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 
 	for k, b in enumerate(pTable.BodyListForId(pList)):
 		dt.RowSpecList[k].CopyFromBody(b)
-
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=0.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.StagedTraining = staged
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
@@ -344,10 +343,11 @@ def GetFourierTrans(pList, waveLen, waveCount):
 	for k, pId in enumerate(pList):
 		if (k>0) and (k%200 == 0):
 			vv.Title = f'Reading: {k}:{pId}'
-		vv.DoEvents()
+			vv.DoEvents()
 		nt = LoadMainChain(pId)
 		cs.LocalSmoothen2(nt.Matrix, 0.1, 8)
-		nt = cs.PcaNormalize(nt, waveLen)
+		if nt.Rows > 3:
+			nt = cs.PcaNormalize(nt, waveLen)
 		ss.FourierTrans(tm, nt, pD.Matrix[k])
 	return pD
 
