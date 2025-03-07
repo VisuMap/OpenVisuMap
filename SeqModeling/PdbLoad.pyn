@@ -350,7 +350,9 @@ def LoadMainChain(pId):
 	if exists(cacheFile):
 		bList = csLoad.LoadMainChain(cacheFile)
 	else:
-		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=True)
+		ds = vv.Dataset
+		chName = ds.GetDataAt(ds.IndexOfRow(pId), 4)
+		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=False, chainNames=[chName])
 		with open(cacheFile, 'w') as outFile:
 			for b in bList:
 				outFile.write(f'{b.Id}|{b.Name}|{b.Type}|{b.X:.2f}|{b.Y:.2f}|{b.Z:.2f}\n')
@@ -478,7 +480,38 @@ def LoadAllChains(aaChains=True, rnaChains=False, dnaChains=False):
 	vv.Dataset.CommitChanges()
 	pTable.ShowAsTable()	
 
+def UnpackChains():
+	import os
+	pList = [f[:4] for f in os.listdir('c:/temp/PDBCache') if f.endswith('.cif')]	
+	chainsCount = 0
+	registered = set([b.Id for b in vv.Dataset.BodyList])
+	for k, pId in enumerate(pList):
+		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=False)
+		chName = None
+		chIdx = -1
+		chain = []
+		if k % 50 == 0:
+			vv.Title =  f'{k}: {chainsCount}'
+		vv.DoEvents()
+		for b in bList:
+			cN = b.Name.split('.')[2]
+			if cN == chName:
+				chain.append(b)
+			else:
+				if chName != None:
+					pId2 = f'{pId}_{chIdx}'
+					if pId2 in registered:
+						cacheFile = f'c:/temp/MainChain/{pId2}.pmc'
+						chainsCount += 1
+						with open(cacheFile, 'w') as outFile:
+							for b in bList:
+								outFile.write(f'{b.Id}|{b.Name}|{b.Type}|{b.X:.2f}|{b.Y:.2f}|{b.Z:.2f}\n')
+				chName = cN
+				chIdx += 1
+				chain = [ b ]
+
 '''
+UnpackChains()
 
 LoadAllChains(True, True, True)
 
