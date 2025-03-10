@@ -149,15 +149,33 @@ namespace VisuMap {
             nt = nt.DoPcaReduction(3);
 
             // shifting origine to the first point
+            /*
             double x0 = nt.Matrix[0][0];
             double y0 = nt.Matrix[0][1];
             double z0 = nt.Matrix[0][2];
-            for (int k = 0; k < nt.Rows; k++) {
-                var R = nt.Matrix[k];
+            */
+
+            // shifting origine to the chain's center
+            double x0 = 0;
+            double y0 = 0;
+            double z0 = 0;
+            foreach(var R in nt.Matrix){
+                x0 += R[0];
+                y0 += R[1];
+                z0 += R[2];
+            }
+            if (nt.Rows > 0) {
+                x0 /= nt.Rows;
+                y0 /= nt.Rows;
+                z0 /= nt.Rows;
+            }
+
+            foreach (var R in nt.Matrix) {
                 R[0] -= x0;
                 R[1] -= y0;
                 R[2] -= z0;
             }
+
             // collapsing nt to {waveLen} rows
             if (nt.Rows > waveLen) {
                 for(int row=waveLen; row<nt.Rows; row++) {
