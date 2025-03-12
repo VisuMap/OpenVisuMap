@@ -16,11 +16,12 @@ def PidToMainChain(pId):
 
 csLoad = New.CsObject('''
 public List<IBody> LoadMainChain(string cacheFile) {
-	List<IBody> bList = new List<IBody>();
-	using( TextReader tr = new StreamReader(cacheFile) ) {
-		while(true) {
-			string line = tr.ReadLine();
-			if (line == null) break;
+	string[] lines = File.ReadAllLines(cacheFile);	
+	IBody[] bList = new IBody[lines.Length];	
+	MT.Loop(0, lines.Length, lineIdx=>{
+			string line = lines[lineIdx];
+			if (line == null) 
+				return;
 			string[] fs = line.Split('|');
 			Body b = new Body(fs[0]);
 			b.Name = fs[1];
@@ -28,10 +29,9 @@ public List<IBody> LoadMainChain(string cacheFile) {
 			b.X = float.Parse(fs[3]);
 			b.Y = float.Parse(fs[4]);
 			b.Z = float.Parse(fs[5]);
-			bList.Add(b);
-		}		
-	}
-	return bList;
+			bList[lineIdx] = b;
+	});
+	return bList.ToList();
 }
 
 public string LoadMainSeq(string cacheFile) {
@@ -353,9 +353,7 @@ def LoadMainChain(pId):
 		ds = vv.Dataset
 		chName = ds.GetDataAt(ds.IndexOfRow(pId), 4)
 		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=False, chainNames=[chName])
-		with open(cacheFile, 'w') as outFile:
-			for b in bList:
-				outFile.write(f'{b.Id}|{b.Name}|{b.Type}|{b.X:.2f}|{b.Y:.2f}|{b.Z:.2f}\n')
+		SaveChain(pId, bList)
 	return New.NumberTable(bList, 3)
 
 def LoadMainSeq(pId):

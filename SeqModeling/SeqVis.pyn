@@ -779,8 +779,7 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 			continue
 		item.Left = int(scale*(b.X - minX)) + 20
 		item.Top = int(scale*(b.Y - minY)) + 20
-		if iconWidth != None:
-			item.IconWidth = iconWidth
+		item.IconWidth = iconWidth
 		item.LabelStyle = 0
 		item.Transparent = True
 		item.Opacity = 0.7
