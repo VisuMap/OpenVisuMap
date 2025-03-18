@@ -193,7 +193,7 @@ namespace VisuMap {
             return nt;
         }
 
-        public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0) {
+        public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
             if ((bList.Count <= 1) || (repeats == 0))
                 return bList;
 
@@ -233,7 +233,7 @@ namespace VisuMap {
                     if (i == k) {
                         bs.Add(b0);
                     } else if ((i >= 0) && (i < D.Length)) {
-                        Body b = new Body("i" + b0.Type + '.' + i);
+                        Body b = new Body("i" + chIdx + '.' + i);
                         b.Name = b0.Name;
                         b.Type = b0.Type;
                         b.Flags = b0.Flags;

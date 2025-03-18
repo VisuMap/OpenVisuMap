@@ -372,12 +372,14 @@ def Interporlate(bsList, rp, eps, smtRatio=0):
 	bs = New.BodyList()
 	k0 = 0
 	t0 = bsList[k0].Type
+	chIdx  = 0
 	for k in range(bsList.Count+1):
 		if (k == bsList.Count) or (bsList[k].Type != t0):
 			D = bsList.GetRange(k0, k-k0)
 			if smtRatio != 0:
 				cs.LocalSmoothen(D, smtRatio, 8)
-			D = cs.Interpolate3D(D, rp, eps, bs.Count)
+			D = cs.Interpolate3D(D, rp, eps, bs.Count, chIdx)
+			chIdx+=1
 			bs.AddRange(D)
 			if k < bsList.Count:
 				k0 = k
