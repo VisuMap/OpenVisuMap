@@ -60,27 +60,6 @@ public IList<string> SelectByAA(IList<IBody> bList, string pAA) {
 	return bList.Where(b=>pAA.Contains(b.Name[0])).Select(b=>b.Id).ToList();
 }
 
-public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
-	// DO matrix multiplication dt * tm where dt and tm are 
-	// both column-set potentially with different number of rows.
-	double[][] dtM = dt.Matrix as double[][];
-	double[][] tmM = tm.Matrix as double[][];
-	int L = dtM.Length;
-	int Columns1 = dtM[0].Length;
-	int Columns2 = tmM[0].Length;
-	MT.Loop(0, Columns1, c1=>{
-		for(int c2=0; c2<Columns2; c2++) {
-			double v = 0.0;
-			for(int k=0; k<2*L; k++) {
-				int k1 = (k<L) ? k : (2*L - 1 - k);
-				int k2 = k % tmM.Length;
-				v += dtM[k1][c1] * tmM[k2][c2];
-			}
-			ret[c1*Columns2 + c2] = v;
-		}
-	});
-}
-
 public void SwapHiddenBodies(List<IBody> bsList) {
     foreach(var b in bsList)
 		b.Hidden = !b.Hidden;
@@ -316,24 +295,25 @@ def GetFourierTrans(pList, waveLen, waveCount):
 			vv.Title = f'Reading: {k}:{pId}'
 			vv.DoEvents()
 		nt = LoadMainChain(pId)
-		cs.LocalSmoothen2(nt.Matrix, 0.1, 8)
+		#cs.LocalSmoothen2(nt.Matrix, 0.1, 8)
 		if nt.Rows > 3:
 			nt = cs.PcaNormalize(nt, waveLen)
-		ss.FourierTrans(tm, nt, pD.Matrix[k])
+		cs.FourierTrans(tm, nt, pD.Matrix[k])
 	return pD
 
-def GetFourierTransSeq(pList, waveLen, waveCount):
+def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount):
 	tm = GetFourier(waveLen, waveCount)	
 	#Scaling base vectors to reduce dominance of the first base that reflect the seq-length.
 	for R in tm.Matrix:
 		for k, f in enumerate([1.0, 4.0, 4.0, 2.0, 2.0]): 
 			R[k] *= f
 	seqList = []
+	pTable = vv.Dataset
 	for pId in pList:
 		rowIdx = pTable.IndexOfRow(pId)
 		if rowIdx >= 0:
 			seqList.append( pTable.GetDataAt(rowIdx, 2) )
-	dt = cs.VectorizeProtein(seqList, aaGroups, tm)
+	return cs.VectorizeProtein(seqList, aaGroups, tm)
 
 def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, from3D=False,
 		ppl=0.05, staged=False, repeats=0, aaGroups='A', waveLen=1024, waveCount=17):
@@ -342,7 +322,7 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	if from3D:
 		dt = GetFourierTrans(pList, waveLen, waveCount)
 	else: 
-		dt = GetFourierTransSeq(pList, waveLen, waveCount)
+		dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
 
 	for k, b in enumerate(pTable.BodyListForId(pList)):
 		dt.RowSpecList[k].CopyFromBody(b)

@@ -381,6 +381,27 @@ namespace VisuMap {
             return New.NumberTable(vList);
         }
 
+        public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
+            // DO matrix multiplication dt * tm where dt and tm are 
+            // both column-set potentially with different number of rows.
+            double[][] dtM = dt.Matrix as double[][];
+            double[][] tmM = tm.Matrix as double[][];
+            int L = dtM.Length;
+            int Columns1 = dtM[0].Length;
+            int Columns2 = tmM[0].Length;
+            MT.Loop(0, Columns1, c1 => {
+                for (int c2 = 0; c2 < Columns2; c2++) {
+                    double v = 0.0;
+                    for (int k = 0; k < 2 * L; k++) {
+                        int k1 = (k < L) ? k : (2 * L - 1 - k);
+                        int k2 = k % tmM.Length;
+                        v += dtM[k1][c1] * tmM[k2][c2];
+                    }
+                    ret[c1 * Columns2 + c2] = v;
+                }
+            });
+        }
+
         public void SmoothenBodyList(IList<IBody> bs) {
             var B = New.NumberTable(bs, 3).Matrix;
             for (int k = 1; k < (bs.Count - 1); k++) {
