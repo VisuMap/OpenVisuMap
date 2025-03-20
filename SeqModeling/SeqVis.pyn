@@ -287,7 +287,11 @@ def GetFourier(waveLen, waveCount):
 
 
 def GetFourierTrans(pList, waveLen, waveCount):
-	tm = GetFourier(waveLen, waveCount)
+	# The first component of the FT is the sume of all components which
+	# will be zero because of the centerization before apply FT. Thus, we remove
+	# the useless first FT component.
+	tm = GetFourier(waveLen, waveCount+1)
+	tm = tm.RemoveColumns(New.IntArray(0))
 	L = 3*waveCount
 	pD = New.NumberTable(vv.Dataset.BodyListForId(pList), L)
 	for k, pId in enumerate(pList):
