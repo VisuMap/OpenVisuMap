@@ -145,51 +145,32 @@ namespace VisuMap {
         }
 
         public INumberTable PcaNormalize(INumberTable nt, int waveLen) {
-            // perform PCA rotation
-            nt = nt.DoPcaReduction(3);
+            nt.Matrix = MathUtil.Centering(nt.Matrix as double[][]);
+            double[][] E = MathUtil.DoPca(nt.Matrix as double[][], 3);
 
-            // shifting origine to the first point
             /*
-            double x0 = nt.Matrix[0][0];
-            double y0 = nt.Matrix[0][1];
-            double z0 = nt.Matrix[0][2];
+            double dt = E[0][0] * E[1][1] * E[2][2] + E[1][0] * E[2][1] * E[0][2] + E[0][1] * E[1][2] * E[2][0]
+                - E[0][2] * E[1][1] * E[2][0] - E[0][1] * E[1][0] * E[2][2] - E[0][0] * E[2][1] * E[1][2];
             */
 
-            // shifting origine to the chain's center
-            double x0 = 0;
-            double y0 = 0;
-            double z0 = 0;
-            foreach(var R in nt.Matrix){
-                x0 += R[0];
-                y0 += R[1];
-                z0 += R[2];
-            }
-            if (nt.Rows > 0) {
-                x0 /= nt.Rows;
-                y0 /= nt.Rows;
-                z0 /= nt.Rows;
-            }
+            MT.ForEach(nt.Matrix, R => {
+                double x = R[0] * E[0][0] + R[1] * E[0][1] + R[2] * E[0][2];
+                double y = R[0] * E[1][0] + R[1] * E[1][1] + R[2] * E[1][2];
+                double z = R[0] * E[2][0] + R[1] * E[2][1] + R[2] * E[2][2];
+                R[0] = x;
+                R[1] = y;
+                R[2] = z;
+            });
 
-            foreach (var R in nt.Matrix) {
-                R[0] -= x0;
-                R[1] -= y0;
-                R[2] -= z0;
-            }
-
-            // collapsing nt to {waveLen} rows
-            if (nt.Rows > waveLen) {
-                for(int row=waveLen; row<nt.Rows; row++) {
-                    var R1 = nt.Matrix[row];
-                    int cirIdx = row % waveLen;
-                    if ((row / waveLen) % 2 == 1)
-                        cirIdx = waveLen - 1 - cirIdx;
-                    var R2 = nt.Matrix[cirIdx];
-                    R2[0] += R1[0];
-                    R2[1] += R1[1];
-                    R2[2] += R1[2];
-                }
-                nt.RemoveRows(Enumerable.Range(waveLen, nt.Rows).ToList());
-            }
+            int N = Math.Min(100, nt.Rows / 2);
+            bool[] flip = new bool[3];
+            for (int col = 0; col < 3; col++)
+                flip[col] = nt.Matrix.Take(N).Select(R => R[col]).Sum() > 0;
+            MT.ForEach(nt.Matrix, R => {
+                for(int col = 0; col < 3; col++)
+                    if (flip[col])
+                        R[col] = -R[col];
+            });
             return nt;
         }
 

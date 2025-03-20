@@ -57,12 +57,12 @@ def MainProc(menuKey):
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
 			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=0.5,
-				initExag=5.0, ppl=0.15, atName=atlasName, stretch=1.0, clusterStretch=0.0, iconWidth=100, smtRatio=0.0)
+				initExag=5.0, ppl=0.15, atName=atlasName, stretch=1.0, clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
 		case 'P-2Dx':
 			if atlasName != None: 
 				atlasName += 'x'
 			UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False,  wholeComplex=True, samplingDist=2.0,
-				initExag=5.0, ppl=0.15, atName=atlasName, stretch=2.0, clusterStretch=1.0, iconWidth=100, smtRatio=0.0)
+				initExag=5.0, ppl=0.15, atName=atlasName, stretch=2.0, clusterStretch=1.0, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
 			if atlasName != None: atlasName += '-3D'
 			SortByPosX(pList)
@@ -85,8 +85,8 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
-			CreateProteinMap2(pList, repeats=0, from3D=True, staged=False,
-				aaGroups=GetAAGroup(0), epochs=2500, ppl=0.01, initExag=4.0, waveCount=80)
+			CreateProteinMap2(pList, repeats=2, from3D=True, staged=False,
+				aaGroups=GetAAGroup(0), epochs=2500, ppl=0.05, initExag=4.0, waveCount=40)
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
