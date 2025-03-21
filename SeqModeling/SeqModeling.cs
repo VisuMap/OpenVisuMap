@@ -145,13 +145,18 @@ namespace VisuMap {
         }
 
         public INumberTable PcaNormalize(INumberTable nt, int waveLen) {
+            if (nt.Rows <= 3) {
+                nt.Tag = false;
+                return nt;
+            }
+
             nt.Matrix = MathUtil.Centering(nt.Matrix as double[][]);
             double[][] E = MathUtil.DoPca(nt.Matrix as double[][], 3);
 
-            /*
             double dt = E[0][0] * E[1][1] * E[2][2] + E[1][0] * E[2][1] * E[0][2] + E[0][1] * E[1][2] * E[2][0]
                 - E[0][2] * E[1][1] * E[2][0] - E[0][1] * E[1][0] * E[2][2] - E[0][0] * E[2][1] * E[1][2];
-            */
+
+            bool flipped = (dt < 0);
 
             MT.ForEach(nt.Matrix, R => {
                 double x = R[0] * E[0][0] + R[1] * E[0][1] + R[2] * E[0][2];
@@ -164,13 +169,17 @@ namespace VisuMap {
 
             int N = Math.Min(100, nt.Rows / 2);
             bool[] flip = new bool[3];
-            for (int col = 0; col < 3; col++)
+            for (int col = 0; col < 3; col++) {
                 flip[col] = nt.Matrix.Take(N).Select(R => R[col]).Sum() > 0;
+                if (flip[col])
+                    flipped = !flipped;
+            }
             MT.ForEach(nt.Matrix, R => {
                 for(int col = 0; col < 3; col++)
                     if (flip[col])
                         R[col] = -R[col];
             });
+            nt.Tag = flipped;
             return nt;
         }
 
@@ -373,7 +382,7 @@ namespace VisuMap {
             MT.Loop(0, Columns1, c1 => {
                 for (int c2 = 0; c2 < Columns2; c2++) {
                     double v = 0.0;
-                    for (int k = 0; k < 2 * L; k++) {
+                    for (int k = 0; k < L; k++) {
                         int k1 = (k < L) ? k : (2 * L - 1 - k);
                         int k2 = k % tmM.Length;
                         v += dtM[k1][c1] * tmM[k2][c2];
