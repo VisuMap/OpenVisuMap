@@ -150,7 +150,10 @@ class AtlasMapStore():
 		fmList = vv.FindFormList(self.viewName)
 		if fmList.Count > 0:
 			fm = fmList[0]
+			info = MapInfo(fm.Description)
 			item = self.atlas.CaptureItem(fm)
+			item.Name = info.pId
+			item.Id = info.pId
 			item.CacheImage = True
 			return fm
 		else:
@@ -710,6 +713,8 @@ def ShowProteinSeq(pMap):
 
 def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75, gOpacity=0.5, hiddenSize=7, reset=False):
 	itemList = atlas.GetSelectedItems()
+	if itemList.Count == 0:
+		itemList = atlas.Items
 	for it in itemList:
 		mp = it.Open()
 		if reset:
@@ -732,9 +737,14 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75,
 				break
 		if allHidden:
 			for b in mp.BodyList: b.Hidden = False
-										
-		mp.ResetSize()
-		mp.NormalizeView()
+
+		try:										
+			mp.ResetSize()
+			mp.NormalizeView()
+		except:
+			mp.Close()
+			continue
+
 		info = MapInfo(mp.Description)
 		it.LabelStyle = 2
 		it.Name = info.pId
@@ -743,6 +753,7 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75,
 			it.IconWidth = iconWidth
 		it.ShowBorder = True
 		it.BorderColor = New.Color(28, 28, 28)
+
 		mp.Close()
 
 

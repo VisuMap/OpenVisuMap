@@ -154,7 +154,9 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
 	mds.RefreshFreq = epochs//2
 	mds.GlyphSize = 0.75 if atName==None else 2.0
-	mds.GlyphOpacity = 1.0
+	mds.GlyphOpacity = 1.0	
+	mds.GlyphSet = vv.Map.GlyphSet
+
 	if vv.Dataset.IndexOfColumn('ChainName')>=0:
 		mainChain = False
 	try:
@@ -166,6 +168,12 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			else:
 				localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain, chainNames=chainNames)
 			seqLen = bList.Count
+
+			if not wholeComplex:
+				bb = vv.Dataset.BodyForId(pId)
+				for b in bList:
+					b.Type = bb.Type
+					b.Hidden = False
 
 			bList = Interporlate(bList, rp=3, eps=eps, smtRatio=smtRatio)			
 
@@ -194,6 +202,14 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			mds.SetTrainingData(nt)
 			vv.Title = f'Unfolding {pId}/{seqLen:,}: {k+1}-th of {len(pList)}'
 			vv.DoEvents()
+
+			if len(bList) < 800:
+				mds.PerplexityRatio = 0.9
+				mds.InitialExaggeration = 1.0
+			else:
+				mds.PerplexityRatio = ppl
+				mds.InitialExaggeration = initExag
+
 			RunMds(mds, info=info, repeats=0)
 
 			if mapStore != None:
