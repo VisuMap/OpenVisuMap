@@ -203,12 +203,8 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			vv.Title = f'Unfolding {pId}/{seqLen:,}: {k+1}-th of {len(pList)}'
 			vv.DoEvents()
 
-			if len(bList) < 800:
-				mds.PerplexityRatio = 0.9
-				mds.InitialExaggeration = 1.0
-			else:
-				mds.PerplexityRatio = ppl
-				mds.InitialExaggeration = initExag
+			# for short sequences (<200) we used fixed the perlexity instead of ratio
+			mds.PerplexityRatio = ppl*1600/nt.Rows if nt.Rows < 1600 else ppl
 
 			RunMds(mds, info=info, repeats=0)
 
