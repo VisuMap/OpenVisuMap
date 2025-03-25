@@ -305,7 +305,6 @@ def GetFourierTrans(pList, waveLen, waveCount):
 		#cs.LocalSmoothen2(nt.Matrix, 0.1, 8)
 		nt = cs.PcaNormalize(nt, waveLen)
 		cs.FourierTrans(tm, nt, pD.Matrix[k])
-		pD.RowSpecList[k].Highlighted = nt.Tag  # marker flipped chains as highlighted.
 	return pD
 
 def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount):
@@ -332,9 +331,7 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 		dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
 
 	for k, b in enumerate(pTable.BodyListForId(pList)):
-		#flipped = dt.RowSpecList[k].Highlighted
 		dt.RowSpecList[k].CopyFromBody(b)
-		#dt.RowSpecList[k].Highlighted = flipped
 
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=0.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.StagedTraining = staged
