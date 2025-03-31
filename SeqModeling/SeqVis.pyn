@@ -70,17 +70,19 @@ public IList<IBody> FlatSampling(List<IBody> bsList, double minDist) {
 	double limit = minDist * minDist;
 	foreach(IBody b in bsList) {
 		bool isSampled = false;
+		double bX = b.X;
+		double bY = b.Y;
 		for(int k=0; k<sampling.Count; k++){
 			IBody a = sampling[k];
-			double dx = a.X - b.X;
-			double dy = a.Y - b.Y;
+			double dx = a.X - bX;
+			double dy = a.Y - bY;
 			if ( (dx*dx + dy*dy) < limit ) {
 				isSampled = true;
 				break;
-			}				
+			}
 		}
-		if ( ! isSampled ) 
-			sampling.Add(b);		
+		if ( ! isSampled )
+			sampling.Add(b);
 	}
 	return sampling;
 }
@@ -139,6 +141,7 @@ class AtlasMapStore():
 		self.viewName = tgtViewName
 	def AddMaps(self):
 		for fm in vv.FindFormList(self.viewName):
+			fm.MapZoomFactor = 0.9
 			info = MapInfo(fm.Description)
 			item = self.atlas.CaptureItem(fm)
 			item.Name = info.pId
@@ -321,9 +324,17 @@ def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount):
 			seqList.append( pTable.GetDataAt(rowIdx, 2) )
 	return cs.VectorizeProtein(seqList, aaGroups, tm)
 
-def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, from3D=False,
+def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, from3D=False, samplingDist=0,
 		ppl=0.05, staged=False, repeats=0, aaGroups='A', waveLen=1024, waveCount=17):
 	pTable = AssertProteinTable()	
+
+	if samplingDist > 0:
+		pList = ss.FlatSampling(vv.Dataset.BodyListForId(pList), samplingDist)
+		pList = [b.Id for b in pList]
+		vv.Title = f'Sampled {len(pList)} chains!'
+		if vv.ModifierKeys.ControlPressed:
+			vv.SelectedItems = pList
+			return
 
 	if from3D:
 		dt = GetFourierTrans(pList, waveLen, waveCount)
