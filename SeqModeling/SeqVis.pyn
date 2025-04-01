@@ -749,6 +749,7 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75,
 		try:										
 			mp.ResetSize()
 			mp.NormalizeView()
+			mp.ZoomingFactor = 0.95
 		except:
 			mp.Close()
 			continue

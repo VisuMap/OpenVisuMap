@@ -24,7 +24,7 @@ def MainProc(menuKey):
 
 	match vv.EventSource.Item:
 		case 'ConfigMaps':
-			ConfigAtlasMaps(pp, 1000, 700, gSize=1.5, gOpacity=0.5, iconWidth=None, hiddenSize=4, reset=False)			
+			ConfigAtlasMaps(pp, 1000, 700, gSize=2.0, gOpacity=1.0, iconWidth=None, hiddenSize=4, reset=False)			
 		case 'P-3D':
 			justMainChain = vv.ModifierKeys.ControlPressed			
 			for e in pSelected:

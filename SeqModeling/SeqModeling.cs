@@ -31,7 +31,7 @@ namespace VisuMap {
             for (int k = 0; k < length; k++)
                 vn[k] = new VectorN(vDim);
             return vn;
-        }
+        }        
     }
 
 
