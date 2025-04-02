@@ -306,9 +306,21 @@ def GetFourierTrans(pList, waveLen, waveCount):
 			vv.DoEvents()
 		nt = LoadMainChain(pId)
 		#cs.LocalSmoothen2(nt.Matrix, 0.1, 8)
-		nt = cs.PcaNormalize(nt, waveLen)
+		nt = cs.PcaNormalize(nt)
 		cs.FourierTrans(tm, nt, pD.Matrix[k])
 	return pD
+
+def GetMeanFieldTrans(pList, L=20):
+	bList = vv.Dataset.BodyListForId(pList)
+	D = New.NumberTable(bList, L*3)
+	for k, pId in enumerate(pList):
+		if (k>0) and (k%200 == 0):
+			vv.Title = f'Reading: {k}:{pId}'
+			vv.DoEvents()
+		nt = LoadMainChain(pId)
+		nt = cs.PcaNormalize(nt)
+		cs.MeanFieldTrans(nt, D.Matrix[k])
+	return D
 
 def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount):
 	tm = GetFourier(waveLen, waveCount)	
@@ -337,7 +349,8 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 			return
 
 	if from3D:
-		dt = GetFourierTrans(pList, waveLen, waveCount)
+		#dt = GetFourierTrans(pList, waveLen, waveCount)
+		dt = GetMeanFieldTrans(pList, L=100)
 	else: 
 		dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
 

@@ -144,7 +144,7 @@ namespace VisuMap {
             }
         }
 
-        public INumberTable PcaNormalize(INumberTable nt, int waveLen) {
+        public INumberTable PcaNormalize(INumberTable nt) {
             if (nt.Rows <= 3) 
                 return nt;
 
@@ -371,7 +371,7 @@ namespace VisuMap {
             return New.NumberTable(vList);
         }
 
-        public void FourierTrans(INumberTable tm, INumberTable dt, double[] ret) {
+        public void FourierTrans(INumberTable tm, INumberTable dt, double[] R) {
             // DO matrix multiplication dt * tm where dt and tm are 
             // both column-set potentially with different number of rows.
             double[][] dtM = dt.Matrix as double[][];
@@ -387,9 +387,26 @@ namespace VisuMap {
                         int k2 = k % tmM.Length;
                         v += dtM[k1][c1] * tmM[k2][c2];
                     }
-                    ret[c1 * Columns2 + c2] = v;
+                    R[c1 * Columns2 + c2] = v;
                 }
             });
+        }
+        public void MeanFieldTrans(INumberTable dt, double[] R) {
+            int L = R.Length / 3; // number of sections
+            int secL = dt.Rows / L;  // section length
+            int tailIdx = (secL==0) ? secL : dt.Rows % secL;   // where the tail sections begins. Tail sections are shorter by one point.
+            int row = 0;
+            for(int k=0; k<L; k++) {
+                int i = 3 * k;
+                int SL = (k < tailIdx) ? (secL+1) : secL;
+                for (int s=0; s< SL; s++) {
+                    double[] Mrow = dt.Matrix[row] as double[];
+                    R[i] += Mrow[0];
+                    R[i+1] += Mrow[1];
+                    R[i+2] += Mrow[2];
+                    row++;
+                }
+            }
         }
 
         public void SmoothenBodyList(IList<IBody> bs) {
