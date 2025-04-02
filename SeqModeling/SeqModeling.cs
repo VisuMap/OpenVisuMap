@@ -394,7 +394,7 @@ namespace VisuMap {
         public void MeanFieldTrans(INumberTable dt, double[] R) {
             int L = R.Length / 3; // number of sections
             int secL = dt.Rows / L;  // section length
-            int tailIdx = (secL==0) ? secL : dt.Rows % secL;   // where the tail sections begins. Tail sections are shorter by one point.
+            int tailIdx = (dt.Rows < L) ? dt.Rows : dt.Rows % secL;   // where the tail sections begins. Tail sections are shorter by one point.
             int row = 0;
             for(int k=0; k<L; k++) {
                 int i = 3 * k;
