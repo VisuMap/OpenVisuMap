@@ -310,7 +310,7 @@ def GetFourierTrans(pList, waveLen, waveCount):
 		cs.FourierTrans(tm, nt, pD.Matrix[k])
 	return pD
 
-def GetMeanFieldTrans(pList, L=20):
+def GetMeanFieldTrans(pList, L=20, minL=5):
 	bList = vv.Dataset.BodyListForId(pList)
 	D = New.NumberTable(bList, L*3)
 	for k, pId in enumerate(pList):
@@ -319,7 +319,7 @@ def GetMeanFieldTrans(pList, L=20):
 			vv.DoEvents()
 		nt = LoadMainChain(pId)
 		nt = cs.PcaNormalize(nt)
-		cs.MeanFieldTrans(nt, D.Matrix[k])
+		cs.MeanFieldTrans(nt, D.Matrix[k], minL)
 	return D
 
 def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount):
@@ -336,8 +336,9 @@ def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount):
 			seqList.append( pTable.GetDataAt(rowIdx, 2) )
 	return cs.VectorizeProtein(seqList, aaGroups, tm)
 
-def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, from3D=False, samplingDist=0,
-		ppl=0.05, staged=False, repeats=0, aaGroups='A', waveLen=1024, waveCount=17):
+def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, ppl=0.05,
+		dataSrc=0, mfL=100, mfMinL=25,  aaGroups='A', waveLen=1024, waveCount=17, 
+		staged=False, repeats=0, samplingDist=0):
 	pTable = AssertProteinTable()	
 
 	if samplingDist > 0:
@@ -348,9 +349,10 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 			vv.SelectedItems = pList
 			return
 
-	if from3D:
-		#dt = GetFourierTrans(pList, waveLen, waveCount)
-		dt = GetMeanFieldTrans(pList, L=100)
+	if dataSrc == 0:
+		dt = GetMeanFieldTrans(pList, L=mfL, minL=mfMinL)
+	elif dataSrc == 1:
+		dt = GetFourierTrans(pList, waveLen, waveCount)
 	else: 
 		dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
 
@@ -364,7 +366,9 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	info.Set('aaG', aaGroups)
 	info.Set('wvL', waveLen)
 	info.Set('wvCnt', waveCount)
-	info.Set('from3D', from3D)
+	info.Set('dtSrc', dataSrc)
+	info.Set('mfL', mfL)
+	info.Set('mfMinL', mfMinL)
 
 	RunMds(mds, repeats=repeats, info=info)
 	if repeats>=1:
