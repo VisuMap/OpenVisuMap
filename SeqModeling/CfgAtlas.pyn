@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps MatchMap P-3D P-3Dx P-Web P-ChmX P-Open TileAll P-Seq
+#MenuLabels ConfigMaps MatchMap P-3D P-3Dx P-Web P-2D P-ChmX P-Open TileAll P-Seq
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -38,6 +38,10 @@ def MainProc(menuKey):
 				if ctrPressed:
 					mp.ClickMenu('SeqVis/P-2D')
 					mp.Close()
+		case 'P-2D':
+			pList = [item.Id for item in pSelected]
+			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=0.0,
+				initExag=4.0, ppl=0.1, stretch=0.1, clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
 		case 'P-Web':
 			ShowWeb(pId)
 		case 'P-ChmX':

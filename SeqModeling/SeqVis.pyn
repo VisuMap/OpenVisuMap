@@ -337,7 +337,7 @@ def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount):
 	return cs.VectorizeProtein(seqList, aaGroups, tm)
 
 def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, ppl=0.05,
-		dataSrc=0, mfL=100, mfMinL=25,  aaGroups='A', waveLen=1024, waveCount=17, 
+		dataSrc=0, mfL=100, mfMinL=0,  aaGroups='A', waveLen=1024, waveCount=17, 
 		staged=False, repeats=0, samplingDist=0):
 	pTable = AssertProteinTable()	
 
@@ -557,7 +557,8 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
 def RunMds(mds, repeats=1, info=None):
 	mds.Repeats = repeats
 	if info != None:
-		info.DDM = mds.DataDim		
+		info.DDM = mds.DataDim
+		info.SetMds(mds)
 		mds.Description = info.ToStr()
 	mds.Reset().Start()
 	if not mds.Completed: 
@@ -772,8 +773,10 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75,
 			continue
 
 		info = MapInfo(mp.Description)
-		it.LabelStyle = 2
-		it.Name = info.pId
+		it.LabelStyle = 0
+		#it.Name = info.pId + ': ' + str(info.pLen)
+		#it.Name = info.pId
+		it.Name = str(info.pLen)
 		it.IconHeight = 0
 		if iconWidth != None:
 			it.IconWidth = iconWidth
@@ -794,7 +797,7 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 		raise Exception('Empty atlas!')
 	minX, minY, maxX, maxY = 10000, 10000, 0, 0
 	for item in pAtlas.Items:
-		b = vv.Dataset.BodyForId(item.Name)
+		b = vv.Dataset.BodyForId(item.Id)
 		if b == None: 
 			continue
 		minX, minY = min(minX, b.X), min(minY, b.Y)
@@ -807,7 +810,7 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 	scale = min(scaleX, scaleY)
 
 	for item in pAtlas.Items:
-		b = vv.Dataset.BodyForId(item.Name)
+		b = vv.Dataset.BodyForId(item.Id)
 		if b == None: 
 			continue
 		item.Left = int(scale*(b.X - minX)) + 20

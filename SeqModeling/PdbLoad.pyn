@@ -204,20 +204,22 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			vv.DoEvents()
 
 			# for short sequences (<200) we used fixed the perlexity instead of ratio
-			# mds.PerplexityRatio = ppl*1600/nt.Rows if nt.Rows < 1600 else ppl
+			#mds.PerplexityRatio = ppl*1600/nt.Rows if nt.Rows < 1600 else ppl
 
 			RunMds(mds, info=info, repeats=0)
 
 			if mapStore != None:
 				mapStore.AddMaps()
-		if mapStore != None:
-			mds.Close()
+			else:
+				mds.ShowSnapshot().NormalizeView()
+		mds.Close()
 	except Exception as e:
 		vv.Message(str(e))
 	if mapStore != None:
 		ma = mapStore.atlas
 		MatchProteinMap(ma, iconWidth)
 		ma.EventEnabled = True
+		ma.OnItemsSelected = '@if pp.SelectedItems.Count>4: pp.ResetView()'
 		ma.HiddenItemSize = 3
 		ma.Description = info.ToStr()
 		ma.Show()

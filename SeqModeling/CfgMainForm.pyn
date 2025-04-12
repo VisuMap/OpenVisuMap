@@ -56,8 +56,8 @@ def MainProc(menuKey):
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
-			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=1.0,
-				initExag=4.0, ppl=0.05, atName=atlasName, stretch=1.0, clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
+			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=0.0,
+				initExag=4.0, ppl=0.075, atName=atlasName, stretch=0.1, clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
 		case 'P-2Dx':
 			if atlasName != None: 
 				atlasName += 'x'
@@ -85,8 +85,7 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
-			CreateProteinMap2(pList, repeats=0, dataSrc=0, mfL=100, mfMinL=0, aaGroups=GetAAGroup(0), waveCount=40,
-				epochs=5000, staged=False, ppl=0.1, initExag=5.0, samplingDist=0.0)
+			CreateProteinMap2(pList, repeats=0, dataSrc=0, mfL=100, mfMinL=4,	epochs=2000, ppl=0.1, initExag=5.0, samplingDist=0.0)
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
@@ -99,25 +98,6 @@ MainProc(vv.EventSource.Item)
 
 '''
 
-sb = {}
-sb2 = {}
-ds = vv.Dataset
-for k, b in enumerate(ds.BodyList):
-	id = b.Id[:4]
-	nr = ds.GetValueAt(k,1)	
-	if id in sb:
-		sb[id] += nr
-		sb2[id] += 1
-	else:
-		sb[id] = nr
-		sb2[id] = 1
-for k, b in enumerate(ds.BodyList):
-	id = b.Id[:4]
-	ds.SetValueAt(k, 5, sb[id])
-	ds.SetValueAt(k, 6, sb2[id])
-ds.CommitChanges()		
-
-print(f'{12345678:,}'.replace(',', ' '))
 
 hasRNA = set([b.Id[:4] for b in vv.Folder.ReadDataset('RnaChains').BodyList])
 hasDNA = set([b.Id[:4] for b in vv.Folder.ReadDataset('DnaChains').BodyList])
@@ -126,19 +106,16 @@ hasRD = hasDNA.intersection(hasRNA)
 print(len(hasRNA), len(hasDNA), len(hasNT), len(hasRD))
 vv.SelectedItems = [ b.Id for b in vv.Dataset.BodyList if b.Id[:4] in hasDNA ]
 
-ds = vv.Dataset
-pSize = {}
-for k, b in enumerate(ds.BodyList):
-	pId = b.Id[:4]
-	rp = ds.GetValueAt(k, 1)
-	pLen = ds.GetValueAt(k, 3)
-	sz = rp * pLen
-	if pId in pSize:
-		pSize[pId] += sz
-	else:
-		pSize[pId] = sz
 
-for k, b in enumerate(ds.BodyList):
-	ds.SetValueAt(k, 5, pSize[b.Id[:4]])
+ds = vv.Dataset
+for k in range(ds.Rows):
+	ds.BodyList[k].Name = ds.GetDataAt(k,3)
+
+import numpy as np
+from sklearn.datasets import fetch_openml
+x = fetch_openml("mnist_784")
+y = np.ascontiguousarray(x.data.to_numpy()).astype('float32')
+x2 = mm.ToTable(y, None)
+x2.ShowHeatMap()
 
 '''
