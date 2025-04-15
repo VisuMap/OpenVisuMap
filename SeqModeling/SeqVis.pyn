@@ -305,7 +305,7 @@ def GetFourierTrans(pList, waveLen, waveCount):
 			vv.Title = f'Reading: {k}:{pId}'
 			vv.DoEvents()
 		nt = LoadMainChain(pId)
-		#cs.LocalSmoothen2(nt.Matrix, 0.1, 8)
+		#cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=8)
 		nt = cs.PcaNormalize(nt)
 		cs.FourierTrans(tm, nt, pD.Matrix[k])
 	return pD
@@ -319,6 +319,7 @@ def GetMeanFieldTrans(pList, L=20, minL=5):
 			vv.DoEvents()
 		nt = LoadMainChain(pId)
 		nt = cs.PcaNormalize(nt)
+		#cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.5, repeats=8)
 		cs.MeanFieldTrans(nt, D.Matrix[k], minL)
 	return D
 

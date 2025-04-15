@@ -115,9 +115,9 @@ namespace VisuMap {
                 bList[k].SetXYZ(P[k].X, P[k].Y, P[k].Z);
         }
 
-        public void LocalSmoothen2(double[][] M, double smoothenRatio, int repeats = 8) {
+        public bool LocalSmoothen2(double[][] M, double smoothenRatio, int repeats = 8) {
             if ((M == null) || (M.Length < 3) || (M[0].Length != 3) || (repeats <= 0))
-                return;
+                return false;
 
             int N = M.Length;
             Vector3[] P = new Vector3[N];
@@ -142,6 +142,7 @@ namespace VisuMap {
                 R[1] = P[k].Y;
                 R[2] = P[k].Z;
             }
+            return true;
         }
 
         public INumberTable PcaNormalize(INumberTable nt) {
