@@ -367,7 +367,7 @@ def ShowHelix():
 def ShowBetaSheet():
 	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.b')]
 
-def LoadMainChain(pId):
+def LoadMainChain0(pId):
 	from os.path import exists
 	cacheFile = PidToMainChain(pId)
 	bList = New.BodyList()
@@ -378,6 +378,10 @@ def LoadMainChain(pId):
 		chName = ds.GetDataAt(ds.IndexOfRow(pId), 4)
 		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=False, chainNames=[chName])
 		SaveChain(pId, bList)
+	return bList
+
+def LoadMainChain(pId):
+	bList = LoadMainChain(pId)
 	return New.NumberTable(bList, 3)
 
 def LoadMainSeq(pId):

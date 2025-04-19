@@ -1036,8 +1036,7 @@ def Merge3DList(pList):
 	bs = New.BodyList()
 	ds = vv.Dataset
 	for k, pId in enumerate(pList):
-		chName = [ ds.GetDataAt(ds.IndexOfRow(pId), 4) ]
-		_, bsList, _, _ = LoadCifData(pId[:4], mainChain=False, chainNames=chName)	
+		bsList = LoadMainChain0(pId)
 		cs.PcaNormalize2(bsList)
 		bsList = Interporlate(bsList, 4, 0.1, smtRatio=0.0)
 		bsList = ss.SetBodyType(bsList, k)
