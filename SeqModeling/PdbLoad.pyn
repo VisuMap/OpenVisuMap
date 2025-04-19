@@ -381,7 +381,7 @@ def LoadMainChain0(pId):
 	return bList
 
 def LoadMainChain(pId):
-	bList = LoadMainChain(pId)
+	bList = LoadMainChain0(pId)
 	return New.NumberTable(bList, 3)
 
 def LoadMainSeq(pId):
