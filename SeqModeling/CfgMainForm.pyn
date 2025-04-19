@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx  
+#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds  
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 import time
@@ -72,6 +72,8 @@ def MainProc(menuKey):
 			for pId in pList:
 				mp = ShowPDB(pId, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0)
 				mp.ClickMenu('SeqVis/Flipping')
+		case 'P-3Ds':
+			Merge3DList(pList)
 		case 'SeqMap':
 			aaGroups = GetAAGroup(idx=0)
 			if atlasName != None: atlasName += '-Seq'

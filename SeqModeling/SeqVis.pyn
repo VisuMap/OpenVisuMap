@@ -87,6 +87,13 @@ public IList<IBody> FlatSampling(List<IBody> bsList, double minDist) {
 	return sampling;
 }
 
+public List<IBody> SetBodyType(List<IBody> bsList, int type) {
+	for(int k=0; k<bsList.Count; k++){
+		bsList[k].Id += "_" + type;
+		bsList[k].Type = (short)type;
+	}
+	return bsList;
+}
 ''')
 
 # protein embedding map information
@@ -1024,6 +1031,21 @@ def FlippingChains(pMap, loopSize=60, loops=5):
 	pMap.HiddenBodySize = 4
 	ss.SwapHiddenBodies(pMap.BodyList)
 	pMap.Redraw()	
+
+def Merge3DList(pList):
+	bs = New.BodyList()
+	ds = vv.Dataset
+	for k, pId in enumerate(pList):
+		chName = [ ds.GetDataAt(ds.IndexOfRow(pId), 4) ]
+		_, bsList, _, _ = LoadCifData(pId[:4], mainChain=False, chainNames=chName)	
+		cs.PcaNormalize2(bsList)
+		bsList = Interporlate(bsList, 4, 0.1, smtRatio=0.0)
+		bsList = ss.SetBodyType(bsList, k)
+		bs.AddRange(bsList)
+	mp = New.Map3DView(bs).Show()
+	mp.GlyphSet = '36 Clusters|||'
+	mp.NormalizeView()
+	mp.NormalizeView()
 
 '''
 
