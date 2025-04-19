@@ -145,6 +145,18 @@ namespace VisuMap {
             return true;
         }
 
+        public void PcaNormalize2(List<IBody> bodyList) {
+            var nt = New.NumberTable(bodyList, 3);
+            PcaNormalize(nt);
+            var M = nt.Matrix;
+            for (int k = 0; k < bodyList.Count; k++) {
+                var b = bodyList[k];
+                b.X = M[k][0];
+                b.Y = M[k][1];
+                b.Z = M[k][2];
+            }
+        }
+
         public INumberTable PcaNormalize(INumberTable nt) {
             if (nt.Rows <= 3) 
                 return nt;
