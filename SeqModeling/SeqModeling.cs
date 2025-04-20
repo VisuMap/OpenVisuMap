@@ -159,17 +159,28 @@ namespace VisuMap {
 
         public INumberTable PcaNormalize(INumberTable nt) {
             if (nt.Rows <= 3) 
-                return nt;
+                return nt;        
+            double[][] M = nt.Matrix as double[][];
+            int rows = M.Length;
 
-            nt.Matrix = MathUtil.Centering(nt.Matrix as double[][]);
-            double[][] E = MathUtil.DoPca(nt.Matrix as double[][], 3);
+            MathUtil.CenteringInPlace(M);
 
+            // Since the helix AA's position have less flactuation, we try to give them large weight
+            // in the pca-normalization steps.
+            double[] weights = nt.RowSpecList.Select(s => s.Name.EndsWith("h") ? 5.0 : 1.0).ToArray();
+            for (int row = 1; row < rows; row++)
+                weights[row] = 0.25 * weights[row] + 0.75 * weights[row - 1];
+            for (int row = 0; row < rows; row++) 
+            for (int col = 0; col < 3; col++)
+                M[row][col] *= weights[row];
+
+            double[][] E = MathUtil.DoPca(M, 3);
             double dt = E[0][0] * E[1][1] * E[2][2] + E[1][0] * E[2][1] * E[0][2] + E[0][1] * E[1][2] * E[2][0]
                 - E[0][2] * E[1][1] * E[2][0] - E[0][1] * E[1][0] * E[2][2] - E[0][0] * E[2][1] * E[1][2];
 
             bool flipped = (dt < 0);  // Does the PCA transformation include a flipping/mirroring?
 
-            MT.ForEach(nt.Matrix, R => {
+            MT.ForEach(M, R => {
                 double x = R[0] * E[0][0] + R[1] * E[0][1] + R[2] * E[0][2];
                 double y = R[0] * E[1][0] + R[1] * E[1][1] + R[2] * E[1][2];
                 double z = R[0] * E[2][0] + R[1] * E[2][1] + R[2] * E[2][2];
@@ -178,21 +189,25 @@ namespace VisuMap {
                 R[2] = z;
             });
 
-            int N = Math.Min(100, nt.Rows / 2);
+            int N = Math.Min(100, rows / 2);
             bool[] flip = new bool[3];
             for (int col = 0; col < 3; col++) {
-                flip[col] = nt.Matrix.Take(N).Select(R => R[col]).Sum() > 0;
+                flip[col] = M.Take(N).Select(R => R[col]).Sum() > 0;
                 if (flip[col])
                     flipped = !flipped;
             }
 
             if (flipped) flip[2] = !flip[2];
-
-            MT.ForEach(nt.Matrix, R => {
+            MT.ForEach(M, R => {
                 for(int col = 0; col < 3; col++)
                     if (flip[col])
                         R[col] = -R[col];
             });
+
+            for (int row = 0; row < rows; row++)
+            for (int col = 0; col < 3; col++)
+                M[row][col] /= weights[row];
+
             return nt;
         }
 
