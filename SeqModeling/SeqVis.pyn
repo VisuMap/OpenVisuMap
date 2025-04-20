@@ -33,10 +33,6 @@ def AssertSeqMap(pMap):
 		vv.Message('The view is not a protein seq map')
 		vv.Return()
 
-def GetProteinSeq(pTable, pId):
-	rowIdx = pTable.IndexOfRow(pId)
-	return pTable.GetDataAt(rowIdx, 2)
-
 def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling'):
 	from shutil import copy
 	from os.path import exists
@@ -262,7 +258,7 @@ def AddRandomSeq():
 	import random
 	ds = vv.Dataset
 	idList = ['3G7T', '3LPX', '4AVZ', '1U5I']
-	pList = [ ds.GetDataAt(ds.IndexOfRow(pId), 2) for pId in idList]
+	pList = [ ds.StringAt(pId, 2) for pId in idList]
 	rType = 53
 	N = 1000
 	mpc = 50    # mutation percentage
@@ -610,7 +606,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 			aaClusters[aa] = k
 	
 	for k, pId in enumerate(pList):
-		pSeq = GetProteinSeq(pTable, pId)
+		pSeq = pTable.StringAt(pId, 2)
 		if pSeq is None:
 			vv.Message("Cannot get protein seq of: " + pId)
 			vv.Return()
@@ -1042,7 +1038,11 @@ def Merge3DList(pList):
 		bsList = ss.SetBodyType(bsList, k)
 		bs.AddRange(bsList)
 	mp = New.Map3DView(bs).Show()
+	mp.ReadOnly = True
 	mp.GlyphSet = '36 Clusters|||'
+	mp.ShowBoundingBox = False
+	mp.GlyphSize = 1.0
+	mp.GlyphOpacity = 0.75
 	mp.NormalizeView()
 	mp.NormalizeView()
 
@@ -1065,6 +1065,5 @@ def TransSeq(aaGroups):
 		ds.SetDataAt(k, 4, seq2)
 	ds.CommitChanges()
 TransSeq(aaGroups)
-
 
 '''

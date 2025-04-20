@@ -375,7 +375,7 @@ def LoadMainChain0(pId):
 		bList = csLoad.LoadMainChain(cacheFile)
 	else:
 		ds = vv.Dataset
-		chName = ds.GetDataAt(ds.IndexOfRow(pId), 4)
+		chName = ds.StringAt(pId, 4)
 		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=False, chainNames=[chName])
 		SaveChain(pId, bList)
 	return bList
@@ -537,7 +537,7 @@ def UnpackChains(pList=None):
 	nm2id = {}
 	ds = vv.Dataset
 	for b in ds.BodyList:
-		nm = ds.GetDataAt(ds.IndexOfRow(b.Id), 4)
+		nm = ds.StringAt(b.Id, 4)
 		nm2id[b.Id[:4]+'_'+nm] = b.Id
 	for k, pId in enumerate(pList):
 		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=False)
