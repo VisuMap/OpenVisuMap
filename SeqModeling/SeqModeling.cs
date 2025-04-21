@@ -428,14 +428,13 @@ namespace VisuMap {
             int tailIdx = dt.Rows % L;   // where the tail sections begins. Tail sections are shorter by one point.
             int row = 0;
 
-            for(int r=1; r<dt.Rows; r++) {
-                double[] Row = dt.Matrix[r] as double[];
-                double[] pRow = dt.Matrix[r - 1] as double[];
-                for(int c=0; c<3; c++) 
-                    Row[c] = Row[c] - pRow[c];
-            }
-            for (int c = 0; c < 3; c++) 
-                dt.Matrix[dt.Rows-1][c] = 0;
+            // Apply the differentiation
+            double[][] M = dt.Matrix as double[][];
+            for (int r=1; r<dt.Rows; r++)
+                for(int c=0; c<3; c++)
+                    M[r - 1][c] = M[r][c] - M[r - 1][c];
+            for (int c = 0; c < 3; c++)
+                M[dt.Rows-1][c] = 0;
 
             for (int k=0; k<L; k++) {
                 int i = 3 * k;
