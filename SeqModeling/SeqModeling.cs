@@ -204,6 +204,9 @@ namespace VisuMap {
                         R[col] = -R[col];
             });
 
+            // Weighted centering
+            //MathUtil.CenteringInPlace(M);
+
             for (int row = 0; row < rows; row++)
             for (int col = 0; col < 3; col++)
                 M[row][col] /= weights[row];
@@ -424,7 +427,17 @@ namespace VisuMap {
             int secL = dt.Rows / L;  // section length
             int tailIdx = dt.Rows % L;   // where the tail sections begins. Tail sections are shorter by one point.
             int row = 0;
-            for(int k=0; k<L; k++) {
+
+            for(int r=1; r<dt.Rows; r++) {
+                double[] Row = dt.Matrix[r] as double[];
+                double[] pRow = dt.Matrix[r - 1] as double[];
+                for(int c=0; c<3; c++) 
+                    Row[c] = Row[c] - pRow[c];
+            }
+            for (int c = 0; c < 3; c++) 
+                dt.Matrix[dt.Rows-1][c] = 0;
+
+            for (int k=0; k<L; k++) {
                 int i = 3 * k;
                 int SL = (k < tailIdx) ? (secL+1) : secL;
                 SL = Math.Max(minL, SL);

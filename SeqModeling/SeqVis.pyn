@@ -83,9 +83,9 @@ public IList<IBody> FlatSampling(List<IBody> bsList, double minDist) {
 	return sampling;
 }
 
-public List<IBody> SetBodyType(List<IBody> bsList, int type) {
+public List<IBody> SetBodyType(List<IBody> bsList, string pId, int type) {
 	for(int k=0; k<bsList.Count; k++){
-		bsList[k].Id += "_" + type;
+		bsList[k].Id = pId ;
 		bsList[k].Type = (short)type;
 	}
 	return bsList;
@@ -322,7 +322,7 @@ def GetMeanFieldTrans(pList, L=20, minL=5):
 			vv.DoEvents()
 		nt = LoadMainChain(pId)
 		nt = cs.PcaNormalize(nt)
-		#cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.5, repeats=8)
+		cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
 		cs.MeanFieldTrans(nt, D.Matrix[k], minL)
 	return D
 
@@ -1035,7 +1035,7 @@ def Merge3DList(pList):
 		bsList = LoadMainChain0(pId)
 		cs.PcaNormalize2(bsList)
 		bsList = Interporlate(bsList, 4, 0.1, smtRatio=0.0)
-		bsList = ss.SetBodyType(bsList, k)
+		bsList = ss.SetBodyType(bsList, pId, k)
 		bs.AddRange(bsList)
 	mp = New.Map3DView(bs).Show()
 	mp.ReadOnly = True
