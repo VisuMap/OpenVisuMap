@@ -90,7 +90,34 @@ public List<IBody> SetBodyType(List<IBody> bsList, string pId, int type) {
 	}
 	return bsList;
 }
+public void LoopSection(IMap3DView mp, int len=25) {
+	var bs = mp.BodyList;
+
+	int L;
+	for(L=0; L<bs.Count; L++) 
+		if (bs[L].Id != bs[0].Id)
+			break;
+
+	for(int idx = 0; idx<L; idx+=2) {
+	   string cId = "";
+		int k = 0;
+		int idx2 = idx + len;
+		foreach(IBody b in bs) {
+			if (b.Id != cId) {
+				k = 0;
+				cId = b.Id;
+			} else 
+				k++;
+			b.Hidden = ! ( (k>=idx) && (k<idx2) );
+		}
+		mp.Redraw();
+		vv.Sleep(10);
+		if ( vv.ModifierKeys.ControlPressed )
+			break;
+	}
+}
 ''')
+
 
 # protein embedding map information
 class MapInfo():
@@ -308,8 +335,9 @@ def GetFourierTrans(pList, waveLen, waveCount):
 			vv.Title = f'Reading: {k}:{pId}'
 			vv.DoEvents()
 		nt = LoadMainChain(pId)
-		#cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=8)
 		nt = cs.PcaNormalize(nt)
+		cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
+		cs.RowDifferentiation(nt)
 		cs.FourierTrans(tm, nt, pD.Matrix[k])
 	return pD
 
@@ -323,6 +351,7 @@ def GetMeanFieldTrans(pList, L=20, minL=5):
 		nt = LoadMainChain(pId)
 		nt = cs.PcaNormalize(nt)
 		cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
+		cs.RowDifferentiation(nt)
 		cs.MeanFieldTrans(nt, D.Matrix[k], minL)
 	return D
 
@@ -341,7 +370,7 @@ def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount):
 	return cs.VectorizeProtein(seqList, aaGroups, tm)
 
 def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, ppl=0.05,
-		dataSrc=0, mfL=100, mfMinL=0,  aaGroups='A', waveLen=1024, waveCount=17, 
+		vType=0, mfL=100, mfMinL=0,  aaGroups='A', waveLen=1024, waveCount=17, 
 		staged=False, repeats=0, samplingDist=0):
 	pTable = AssertProteinTable()	
 
@@ -353,9 +382,10 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 			vv.SelectedItems = pList
 			return
 
-	if dataSrc == 0:
+	# vectorizing the sequence to a table.
+	if vType == 0:
 		dt = GetMeanFieldTrans(pList, L=mfL, minL=mfMinL)
-	elif dataSrc == 1:
+	elif vType == 1:
 		dt = GetFourierTrans(pList, waveLen, waveCount)
 	else: 
 		dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
@@ -370,14 +400,13 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	info.Set('aaG', aaGroups)
 	info.Set('wvL', waveLen)
 	info.Set('wvCnt', waveCount)
-	info.Set('dtSrc', dataSrc)
+	info.Set('vType', vType)
 	info.Set('mfL', mfL)
 	info.Set('mfMinL', mfMinL)
 
 	RunMds(mds, repeats=repeats, info=info)
 	if repeats>=1:
 		mds.Close()
-		vv.LastView.NormalizeView()
 
 #-----------------------------------------------------------------------------
 
@@ -555,6 +584,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
 	mds.StagedTraining = staged
 	mds.ExaggerationSmoothen = True
 	mds.MapZoomFactor = 10.0
+	mds.AutoNormalizing = True
 	mds.GlyphSet = vv.Map.GlyphType if glyphSet==None else glyphSet
 	return mds
 
@@ -571,6 +601,7 @@ def RunMds(mds, repeats=1, info=None):
 		info.Set('MSz', mds.GlyphSpan)
 		mds.Description = info.ToStr()
 	if repeats == 1:
+		mds.SelectedItems = None
 		mds.ShowSnapshot()
 	return mds
 

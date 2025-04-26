@@ -422,19 +422,22 @@ namespace VisuMap {
                 }
             });
         }
+
+        public void RowDifferentiation(INumberTable dt) {
+            double[][] M = dt.Matrix as double[][];
+            int rows = M.Length;
+            for (int r = 1; r < rows; r++)
+                for (int c = 0; c < 3; c++)
+                    M[r - 1][c] = M[r][c] - M[r - 1][c];
+            Array.Resize(ref M, M.Length - 1);
+            dt.RowSpecList.RemoveAt(M.Length - 1);
+        }
+
         public void MeanFieldTrans(INumberTable dt, double[] R, int minL=5) {
             int L = R.Length / 3; // number of sections
             int secL = dt.Rows / L;  // section length
             int tailIdx = dt.Rows % L;   // where the tail sections begins. Tail sections are shorter by one point.
             int row = 0;
-
-            // Apply the differentiation
-            double[][] M = dt.Matrix as double[][];
-            for (int r=1; r<dt.Rows; r++)
-                for(int c=0; c<3; c++)
-                    M[r - 1][c] = M[r][c] - M[r - 1][c];
-            for (int c = 0; c < 3; c++)
-                M[dt.Rows-1][c] = 0;
 
             for (int k=0; k<L; k++) {
                 int i = 3 * k;
