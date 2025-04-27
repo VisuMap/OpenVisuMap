@@ -424,6 +424,11 @@ namespace VisuMap {
         }
 
         public void RowDifferentiation(INumberTable dt) {
+            if (dt.Rows == 1) {
+                var R = dt.Matrix[0];
+                R[0] = R[1] = R[2] = 0;
+                return;
+            }
             double[][] M = dt.Matrix as double[][];
             int rows = M.Length;
             for (int r = 1; r < rows; r++)

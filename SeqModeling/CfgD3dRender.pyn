@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen P-2D P-Seq P-Web P-ChmX HideIPO MarkHelix MarkBeta MainChain RnaChain 'Open PDB' UniChains Flipping
+#MenuLabels ShowData Scanning ReCreateMap Smoothen P-2D P-Seq P-Web P-ChmX HideIPO MarkHelix MarkBeta MainChain RnaChain 'Open PDB' UniChains Flipping Looping
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -45,6 +45,7 @@ match vv.EventSource.Item:
 		UnifyChains(pp)
 	case 'Flipping':		
 		FlippingChains(pp)
-					
+	case 'Looping':
+		LoopingChains(pp, secLen=25)
 
 

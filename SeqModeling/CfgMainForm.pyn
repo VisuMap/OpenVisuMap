@@ -87,7 +87,7 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
-			CreateProteinMap2(pList, repeats=0, vType=0, mfL=50, mfMinL=0, waveLen=1024, waveCount=65, epochs=2000, ppl=0.1, initExag=4.0, finalExag=1.0, samplingDist=0.0)
+			CreateProteinMap2(pList, repeats=0, vType=0, mfL=50, mfMinL=0, waveLen=1024, waveCount=33, epochs=2000, ppl=0.15, initExag=4.0, finalExag=1.0, samplingDist=0.0)
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':

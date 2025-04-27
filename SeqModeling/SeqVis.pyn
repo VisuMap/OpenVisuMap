@@ -90,18 +90,17 @@ public List<IBody> SetBodyType(List<IBody> bsList, string pId, int type) {
 	}
 	return bsList;
 }
-public void LoopSection(IMap3DView mp, int len=25) {
+public void LoopSection(IMap3DView mp, int selLen=25) {
 	var bs = mp.BodyList;
 
 	int L;
 	for(L=0; L<bs.Count; L++) 
 		if (bs[L].Id != bs[0].Id)
 			break;
-
 	for(int idx = 0; idx<L; idx+=2) {
 	   string cId = "";
 		int k = 0;
-		int idx2 = idx + len;
+		int idx2 = idx + selLen;
 		foreach(IBody b in bs) {
 			if (b.Id != cId) {
 				k = 0;
@@ -111,10 +110,21 @@ public void LoopSection(IMap3DView mp, int len=25) {
 			b.Hidden = ! ( (k>=idx) && (k<idx2) );
 		}
 		mp.Redraw();
-		vv.Sleep(10);
+		vv.Sleep(20);
 		if ( vv.ModifierKeys.ControlPressed )
 			break;
 	}
+	vv.Sleep(500);
+	int maxType = bs.Select(b=>b.Type).Max();
+	for(int t=0; t<=maxType; t++) {
+		foreach(var b in bs)
+			b.Hidden = (b.Type != t);
+		mp.Redraw();
+		vv.Sleep(500);
+		if ( vv.ModifierKeys.ControlPressed )
+			break;
+	}
+		
 }
 ''')
 
@@ -1076,6 +1086,10 @@ def Merge3DList(pList):
 	mp.GlyphOpacity = 0.75
 	mp.NormalizeView()
 	mp.NormalizeView()
+
+
+def LoopingChains(m3dView, secLen):
+	ss.LoopSection(m3dView, secLen)
 
 '''
 
