@@ -345,9 +345,9 @@ def GetFourierTrans(pList, waveLen, waveCount):
 			vv.Title = f'Reading: {k}:{pId}'
 			vv.DoEvents()
 		nt = LoadMainChain(pId)
-		nt = cs.PcaNormalize(nt)
 		cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
-		cs.RowDifferentiation(nt)
+		cs.PcaNormalize(nt)
+		#cs.RowDifferentiation(nt)
 		cs.FourierTrans(tm, nt, pD.Matrix[k])
 	return pD
 
@@ -359,8 +359,8 @@ def GetMeanFieldTrans(pList, L=20, minL=5):
 			vv.Title = f'Reading: {k}:{pId}'
 			vv.DoEvents()
 		nt = LoadMainChain(pId)
-		nt = cs.PcaNormalize(nt)
 		cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
+		cs.PcaNormalize(nt)
 		cs.RowDifferentiation(nt)
 		cs.MeanFieldTrans(nt, D.Matrix[k], minL)
 	return D
@@ -403,7 +403,7 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	for k, b in enumerate(pTable.BodyListForId(pList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 
-	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=0.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=1.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.StagedTraining = staged
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'Hrm'  

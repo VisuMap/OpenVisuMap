@@ -157,9 +157,9 @@ namespace VisuMap {
             }
         }
 
-        public INumberTable PcaNormalize(INumberTable nt) {
+        public void PcaNormalize(INumberTable nt) {
             if (nt.Rows <= 3) 
-                return nt;        
+                return;        
             double[][] M = nt.Matrix as double[][];
             int rows = M.Length;
 
@@ -210,8 +210,6 @@ namespace VisuMap {
             for (int row = 0; row < rows; row++)
             for (int col = 0; col < 3; col++)
                 M[row][col] /= weights[row];
-
-            return nt;
         }
 
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
