@@ -56,7 +56,7 @@ def MainProc(menuKey):
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
-			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=0.5,
+			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=1.5,
 				initExag=6.0, ppl=0.1, atName=atlasName, stretch=0.1, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 		case 'P-2Dx':
 			if atlasName != None: 
@@ -87,8 +87,7 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
-			CreateProteinMap2(pList, repeats=0, vType=1, mfL=50, mfMinL=0,   waveLen=1024, waveCount=33,
-				 epochs=1000, ppl=0.15, initExag=4.0, finalExag=1.0, samplingDist=0.0)
+			CreateProteinMap2(pList, repeats=0, vType=0, mfL=30, waveCount=33, epochs=2000, ppl=0.15, staged=True, initExag=4.0, finalExag=0.8, samplingDist=0.0)
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':

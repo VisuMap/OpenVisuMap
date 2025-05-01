@@ -90,9 +90,9 @@ public List<IBody> SetBodyType(List<IBody> bsList, string pId, int type) {
 	}
 	return bsList;
 }
+
 public void LoopSection(IMap3DView mp, int selLen=25) {
 	var bs = mp.BodyList;
-
 	int L;
 	for(L=0; L<bs.Count; L++) 
 		if (bs[L].Id != bs[0].Id)
@@ -114,15 +114,16 @@ public void LoopSection(IMap3DView mp, int selLen=25) {
 		if ( vv.ModifierKeys.ControlPressed )
 			break;
 	}
+
 	vv.Sleep(500);
 	int maxType = bs.Select(b=>b.Type).Max();
 	for(int t=0; t<=maxType; t++) {
+		if ( vv.ModifierKeys.ControlPressed )
+			break;
 		foreach(var b in bs)
 			b.Hidden = (b.Type != t);
 		mp.Redraw();
 		vv.Sleep(500);
-		if ( vv.ModifierKeys.ControlPressed )
-			break;
 	}
 		
 }
@@ -331,6 +332,28 @@ def GetFourier(waveLen, waveCount):
 	coList = list(range(tm.Columns))[0:waveCount]
 	return tm.SelectColumns(coList)
 
+def SelectHelixAA(nt):
+	rsList = nt.RowSpecList
+	idxList = [ k for k in range(nt.Rows) if rsList[k].Name[-1] in set(['h', 'b']) ]
+	#idxList = [ k for k in range(nt.Rows) if rsList[k].Name[-1] == 'h' ]
+	if len(idxList) > 20:
+		nt = nt.SelectRows(idxList)
+	return nt
+
+def GetMeanFieldTrans(pList, L=20, minL=0):
+	bList = vv.Dataset.BodyListForId(pList)
+	D = New.NumberTable(bList, L*3)
+	for k, pId in enumerate(pList):
+		if (k>0) and (k%200 == 0):
+			vv.Title = f'Reading: {k}:{pId}'
+			vv.DoEvents()
+		nt = LoadMainChain(pId)
+		#nt = SelectHelixAA(nt)
+		#cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
+		cs.PcaNormalize(nt)
+		cs.RowDifferentiation(nt)
+		cs.MeanFieldTrans(nt, D.Matrix[k], minL)
+	return D
 
 def GetFourierTrans(pList, waveLen, waveCount):
 	# The first component of the FT is the sume of all components which
@@ -345,25 +368,12 @@ def GetFourierTrans(pList, waveLen, waveCount):
 			vv.Title = f'Reading: {k}:{pId}'
 			vv.DoEvents()
 		nt = LoadMainChain(pId)
-		cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
+		#nt = SelectHelixAA(nt)
+		#cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
 		cs.PcaNormalize(nt)
 		#cs.RowDifferentiation(nt)
 		cs.FourierTrans(tm, nt, pD.Matrix[k])
 	return pD
-
-def GetMeanFieldTrans(pList, L=20, minL=5):
-	bList = vv.Dataset.BodyListForId(pList)
-	D = New.NumberTable(bList, L*3)
-	for k, pId in enumerate(pList):
-		if (k>0) and (k%200 == 0):
-			vv.Title = f'Reading: {k}:{pId}'
-			vv.DoEvents()
-		nt = LoadMainChain(pId)
-		cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
-		cs.PcaNormalize(nt)
-		cs.RowDifferentiation(nt)
-		cs.MeanFieldTrans(nt, D.Matrix[k], minL)
-	return D
 
 def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount):
 	tm = GetFourier(waveLen, waveCount)	
@@ -380,7 +390,7 @@ def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount):
 	return cs.VectorizeProtein(seqList, aaGroups, tm)
 
 def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, ppl=0.05,
-		vType=0, mfL=100, mfMinL=0,  aaGroups='A', waveLen=1024, waveCount=17, 
+		vType=0, mfL=50, mfMinL=0,  aaGroups='A', waveLen=1024, waveCount=33, 
 		staged=False, repeats=0, samplingDist=0):
 	pTable = AssertProteinTable()	
 
@@ -403,7 +413,7 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	for k, b in enumerate(pTable.BodyListForId(pList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 
-	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=1.6, initExag=initExag, finalExag=finalExag, ppl=ppl)
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=0.75, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.StagedTraining = staged
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'Hrm'  
