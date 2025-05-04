@@ -389,6 +389,16 @@ def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount):
 			seqList.append( pTable.GetDataAt(rowIdx, 2) )
 	return cs.VectorizeProtein(seqList, aaGroups, tm)
 
+def GetMFSeq(pList, aaGroups, mfL):
+	seqList = []
+	ds = vv.Dataset
+	for pId in pList:
+		rowIdx = ds.IndexOfRow(pId)
+		if rowIdx >= 0:
+			seqList.append( ds.GetDataAt(rowIdx, 2) )
+	return cs.MFVectorize(seqList, aaGroups, mfL)
+
+
 def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, ppl=0.05,
 		vType=0, mfL=50, mfMinL=0,  aaGroups='A', waveLen=1024, waveCount=33, 
 		staged=False, repeats=0, samplingDist=0):
@@ -407,8 +417,13 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 		dt = GetMeanFieldTrans(pList, L=mfL, minL=mfMinL)
 	elif vType == 1:
 		dt = GetFourierTrans(pList, waveLen, waveCount)
-	else: 
+	elif vType == 2: 
 		dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
+	elif vType == 3: 
+		dt = GetMFSeq(pList, aaGroups, mfL)
+	else:
+		vv.Message('Invalid vectorization type: ' + str(vType))
+		return
 
 	for k, b in enumerate(pTable.BodyListForId(pList)):
 		dt.RowSpecList[k].CopyFromBody(b)

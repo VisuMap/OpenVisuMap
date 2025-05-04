@@ -304,48 +304,6 @@ namespace VisuMap {
         }
 
 
-        static double[] ToVector(string pSeq, Dictionary<char, int> P, int[] aaPos, int[][] aaSize, 
-                double[] clusterWeight, double[] waveWeight, int secLen, int secCount) {
-            int clusters = aaPos.Length;
-            int wLen = waveWeight.Length;
-            List<double[]> vSec = new List<double[]>();
-            for (int s = 0; s < pSeq.Length; s += secLen) {
-                for (int k = 0; k < clusters; k++) {
-                    aaPos[k] = -1;
-                    for (int i = 0; i < wLen; i++)
-                        aaSize[k][i] = 0;
-                }
-
-                int secEnd = Math.Min(s + secLen, pSeq.Length);
-                if (vSec.Count == (secCount - 1))  // The last section will include all the rest.
-                    secEnd = pSeq.Length;
-
-                for (int k = s; k < secEnd; k++) {
-                    if (P.ContainsKey(pSeq[k])) {
-                        int aaIdx = P[pSeq[k]];
-                        int sz = Math.Min(wLen, k - aaPos[aaIdx]);
-                        aaSize[aaIdx][sz - 1] += 1;
-                        aaPos[aaIdx] = k;
-                    }
-                }
-                double[] pV = new double[clusters];
-                for (int k = 0; k < clusters; k++) {
-                    double cw = clusterWeight[k];
-                    for (int i = 0; i < wLen; i++)
-                        pV[k] += cw * aaSize[k][i] * waveWeight[i];
-                }
-                vSec.Add(pV);
-
-                if (vSec.Count == secCount)
-                    break;
-            }
-
-            double[] pRow = new double[secCount * clusters];
-            for (int k = 0; k < vSec.Count; k++)
-                Array.Copy(vSec[k], 0, pRow, k * clusters, clusters);
-            return pRow;
-        }
-
         // Returns a dictionary that maps aa to their aa-cluster indexes.
         Dictionary<char, int> Cluster2Index(string aaGroups) {
             string[] cList = aaGroups.Split('|');
@@ -399,6 +357,32 @@ namespace VisuMap {
             }
             return New.NumberTable(vList);
         }
+
+        public INumberTable MFVectorize(IList<string> seqList, string aaGroups, int L) {
+            var P = Cluster2IdxList(aaGroups);
+            int clusters = P.Values.Max(vs => vs.Max()) + 1;
+            double[][] vList = new double[seqList.Count][];
+            for (int pIdx = 0; pIdx < seqList.Count; pIdx++) {
+                string pSeq = seqList[pIdx];
+                double[] pVector = vList[pIdx] = new double[clusters * L];
+                int secLen = pSeq.Length / L;
+                int tailIdx = pSeq.Length % L;   // where the tail sections begins. Tail sections are shorter by one point.
+                int headSize = tailIdx * L;      // The size in aa of the head section, where section size is L+1.
+                if ( pSeq.Length < L) 
+                    headSize = pSeq.Length;
+                for (int k = 0; k < pSeq.Length; k++) {
+                    char c = pSeq[k];
+                    if (!P.ContainsKey(c)) continue;
+                    // secIdx is the index of section where k-th aa is in.
+                    int secIdx = (k < headSize) ? k / (secLen + 1) : (k - tailIdx) / secLen;
+                    int idx0 = secIdx * clusters;
+                    foreach (int cIdx in P[c])
+                        pVector[idx0 + cIdx] += 1.0;
+                }
+            }
+            return New.NumberTable(vList);
+        }
+
 
         public void FourierTrans(INumberTable tm, INumberTable dt, double[] R) {
             // DO matrix multiplication dt * tm where dt and tm are 
