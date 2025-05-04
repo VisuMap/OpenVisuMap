@@ -424,9 +424,10 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	info.Set('mfL', mfL)
 	info.Set('mfMinL', mfMinL)
 
-	RunMds(mds, repeats=repeats, info=info)
+	snMap = RunMds(mds, repeats=repeats, info=info)
 	if repeats>=1:
 		mds.Close()
+	return snMap
 
 #-----------------------------------------------------------------------------
 
@@ -622,7 +623,7 @@ def RunMds(mds, repeats=1, info=None):
 		mds.Description = info.ToStr()
 	if repeats == 1:
 		mds.SelectedItems = None
-		mds.ShowSnapshot()
+		return mds.ShowSnapshot()
 	return mds
 
 #-------------------------------------------------------------------
@@ -1101,7 +1102,21 @@ def Merge3DList(pList):
 def LoopingChains(m3dView, secLen):
 	ss.LoopSection(m3dView, secLen)
 
+def NormalizeBodyTypes():
+	for b in vv.Dataset.BodyList:
+		bs = LoadMainChain0(b.Id)
+		n = bs.Count
+		match bs[0].Name[0]:
+			case 'd':
+				b.Type = 97
+			case 'r':
+				b.Type = 99
+			case _:
+				b.Type = 2 if n < 250 else ( 4 if n < 500 else 84 )
+	vv.Map.Redraw()
+
 '''
+NormalizeBodyTypes()
 
 pp.GlyphOpacity = 0.125
 

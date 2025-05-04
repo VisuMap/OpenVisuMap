@@ -223,7 +223,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		ma = mapStore.atlas
 		MatchProteinMap(ma, iconWidth)
 		ma.EventEnabled = True
-		ma.OnItemsSelected = "@if vv.EventSource.Form.Name != 'Atlas': pp.ResetView()"
+		ma.OnItemsSelected = "@vv.ModifierKeys.AltPressed or pp.ResetView()"
 		ma.HiddenItemSize = 3
 		ma.Description = info.ToStr()
 		ma.Show()
@@ -370,7 +370,6 @@ def ShowBetaSheet():
 def LoadMainChain0(pId):
 	from os.path import exists
 	cacheFile = PidToMainChain(pId)
-	bList = New.BodyList()
 	if exists(cacheFile):
 		bList = csLoad.LoadMainChain(cacheFile)
 	else:
@@ -663,5 +662,6 @@ Steps to import a list of PDB id into VisuMap:
 sList = ''
 sList = ','.join(vv.AllItems)
 ImportPDBList(sList, 'LSymmetry')
+
 
 '''
