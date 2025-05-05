@@ -362,24 +362,25 @@ namespace VisuMap {
             var P = Cluster2IdxList(aaGroups);
             int clusters = P.Values.Max(vs => vs.Max()) + 1;
             double[][] vList = new double[seqList.Count][];
-            for (int pIdx = 0; pIdx < seqList.Count; pIdx++) {
+            MT.Loop(0, seqList.Count, pIdx => {
                 string pSeq = seqList[pIdx];
                 double[] pVector = vList[pIdx] = new double[clusters * L];
                 int secLen = pSeq.Length / L;
                 int tailIdx = pSeq.Length % L;   // where the tail sections begins. Tail sections are shorter by one point.
                 int headSize = tailIdx * L;      // The size in aa of the head section, where section size is L+1.
-                if ( pSeq.Length < L) 
+                if (pSeq.Length < L)
                     headSize = pSeq.Length;
                 for (int k = 0; k < pSeq.Length; k++) {
                     char c = pSeq[k];
-                    if (!P.ContainsKey(c)) continue;
-                    // secIdx is the index of section where k-th aa is in.
-                    int secIdx = (k < headSize) ? k / (secLen + 1) : (k - tailIdx) / secLen;
-                    int idx0 = secIdx * clusters;
-                    foreach (int cIdx in P[c])
-                        pVector[idx0 + cIdx] += 1.0;
+                    if (P.ContainsKey(c)) {
+                        // secIdx is the index of section where k-th aa is in.
+                        int secIdx = (k < headSize) ? k / (secLen + 1) : (k - tailIdx) / secLen;
+                        int idx0 = secIdx * clusters;
+                        foreach (int cIdx in P[c])
+                            pVector[idx0 + cIdx] += 1.0;
+                    }
                 }
-            }
+            });
             return New.NumberTable(vList);
         }
 

@@ -92,11 +92,10 @@ def MainProc(menuKey):
 			#CreateProteinMap2(pList, repeats=0, vType=0, mfL=30, epochs=2000, ppl=0.2, staged=True, initExag=2.0, finalExag=0.8, samplingDist=0.0)
 			#CreateProteinMap2(pList, repeats=0, vType=1, waveCount=33, epochs=2000, ppl=0.1, staged=True, initExag=4.0, finalExag=1.0, samplingDist=0.0)	
 			#CreateProteinMap2(pList, repeats=1, vType=2, aaGroups=GetAAGroup(0), epochs=1000, ppl=0.15, staged=True, initExag=8.0, finalExag=0.8, samplingDist=0.0)
-			CreateProteinMap2(pList, repeats=1, vType=3, aaGroups=GetAAGroup('A'), mfL = 30, epochs=1000, ppl=0.15, staged=True, initExag=8.0, finalExag=0.8, samplingDist=0)
+			CreateProteinMap2(pList, repeats=2, vType=3, aaGroups=GetAAGroup('A'), mfL=10, epochs=5000, ppl=0.025, staged=True, initExag=6.0, finalExag=1.0, samplingDist=0)
 			'''
-			for aaG in aaList:
-				snMap = CreateProteinMap2(pList, repeats=1, vType=2, aaGroups=aaG, epochs=1000, ppl=0.05, staged=False, initExag=6.0, finalExag=1.0, samplingDist=0.0)
-				snMap.Title = snMap.Title + f'; AA: {aaG}'
+			for ppl in [0.025, 0.25]:
+				CreateProteinMap2(pList, repeats=1, vType=3, aaGroups=GetAAGroup('A'), mfL=10, epochs=2500, ppl=ppl, staged=True, initExag=6.0, finalExag=1.0, samplingDist=0)
 			'''
 		case 'TypeProtein':
 			TypeProteinList(pList)
