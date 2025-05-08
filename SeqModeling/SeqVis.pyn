@@ -340,7 +340,7 @@ def SelectHelixAA(nt):
 		nt = nt.SelectRows(idxList)
 	return nt
 
-def GetMeanFieldTrans(pList, L=20, minL=0):
+def GetMeanFieldTrans(pList, L=20):
 	bList = vv.Dataset.BodyListForId(pList)
 	D = New.NumberTable(bList, L*3)
 	for k, pId in enumerate(pList):
@@ -352,7 +352,7 @@ def GetMeanFieldTrans(pList, L=20, minL=0):
 		#cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
 		cs.PcaNormalize(nt)
 		cs.RowDifferentiation(nt)
-		cs.MeanFieldTrans(nt, D.Matrix[k], minL)
+		cs.MeanFieldTrans(nt, D.Matrix[k])
 	return D
 
 def GetFourierTrans(pList, waveLen, waveCount):
@@ -400,8 +400,8 @@ def GetMFSeq(pList, aaGroups, mfL):
 
 
 def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, ppl=0.05,
-		vType='sMF', mfL=50, mfMinL=0,  aaGroups='A', waveLen=1024, waveCount=33, 
-		staged=True, repeats=0, samplingDist=0):
+		vType='sMF', mfL=50, aaGroups='A', waveLen=1024, waveCount=33, 
+		staged=False, repeats=0, samplingDist=0):
 	pTable = AssertProteinTable()	
 
 	if samplingDist > 0:
@@ -414,7 +414,7 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 
 	# vectorizing the sequence to a table.
 	if vType == 'pMF':
-		dt = GetMeanFieldTrans(pList, L=mfL, minL=mfMinL)
+		dt = GetMeanFieldTrans(pList, L=mfL)
 	elif vType == 'pFT':
 		dt = GetFourierTrans(pList, waveLen, waveCount)
 	elif vType == 'sFT': 
@@ -437,7 +437,6 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	info.Set('wvCnt', waveCount)
 	info.Set('vType', vType)
 	info.Set('mfL', mfL)
-	info.Set('mfMinL', mfMinL)
 
 	snMap = RunMds(mds, repeats=repeats, info=info)
 	if repeats>=1:

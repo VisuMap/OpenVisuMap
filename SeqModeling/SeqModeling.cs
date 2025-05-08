@@ -358,32 +358,6 @@ namespace VisuMap {
             return New.NumberTable(vList);
         }
 
-        public INumberTable MFVectorize(IList<string> seqList, string aaGroups, int L) {
-            var P = Cluster2IdxList(aaGroups);
-            int clusters = P.Values.Max(vs => vs.Max()) + 1;
-            double[][] vList = new double[seqList.Count][];
-            MT.Loop(0, seqList.Count, pIdx => {
-                string pSeq = seqList[pIdx];
-                double[] pVector = vList[pIdx] = new double[clusters * L];
-                int secLen = pSeq.Length / L;
-                int tailIdx = pSeq.Length % L;   // where the tail sections begins. Tail sections are shorter by one point.
-                int headSize = tailIdx * L;      // The size in aa of the head section, where section size is L+1.
-                if (pSeq.Length < L)
-                    headSize = pSeq.Length;
-                for (int k = 0; k < pSeq.Length; k++) {
-                    char c = pSeq[k];
-                    if (P.ContainsKey(c)) {
-                        // secIdx is the index of section where k-th aa is in.
-                        int secIdx = (k < headSize) ? k / (secLen + 1) : (k - tailIdx) / secLen;
-                        int idx0 = secIdx * clusters;
-                        foreach (int cIdx in P[c])
-                            pVector[idx0 + cIdx] += 1.0;
-                    }
-                }
-            });
-            return New.NumberTable(vList);
-        }
-
 
         public void FourierTrans(INumberTable tm, INumberTable dt, double[] R) {
             // DO matrix multiplication dt * tm where dt and tm are 
@@ -421,24 +395,47 @@ namespace VisuMap {
             dt.RowSpecList.RemoveAt(M.Length - 1);
         }
 
-        public void MeanFieldTrans(INumberTable dt, double[] R, int minL=5) {
-            int L = R.Length / 3; // number of sections
-            int secL = dt.Rows / L;  // section length
-            int tailIdx = dt.Rows % L;   // where the tail sections begins. Tail sections are shorter by one point.
-            int row = 0;
-
-            for (int k=0; k<L; k++) {
-                int i = 3 * k;
-                int SL = (k < tailIdx) ? (secL+1) : secL;
-                SL = Math.Max(minL, SL);
-                for (int s=0; s<SL; s++) {
-                    if (row >= dt.Rows) break;
-                    double[] Mrow = dt.Matrix[row++] as double[];
-                    R[i] += Mrow[0];
-                    R[i+1] += Mrow[1];
-                    R[i+2] += Mrow[2];
+        public INumberTable MFVectorize(IList<string> seqList, string aaGroups, int L) {
+            var P = Cluster2IdxList(aaGroups);
+            int clusters = P.Values.Max(vs => vs.Max()) + 1;
+            double[][] vList = new double[seqList.Count][];
+            MT.Loop(0, seqList.Count, pIdx => {
+                string pSeq = seqList[pIdx];
+                double[] pVector = vList[pIdx] = new double[clusters * L];
+                int secLen = pSeq.Length / L;
+                int tailIdx = pSeq.Length % L;   // where the tail sections begins. Tail sections are shorter by one point.
+                int headSize = tailIdx * L;      // The size in aa of the head section, where section size is L+1.
+                if (pSeq.Length < L)
+                    headSize = pSeq.Length;
+                for (int k = 0; k < pSeq.Length; k++) {
+                    char c = pSeq[k];
+                    if (P.ContainsKey(c)) {
+                        // secIdx is the index of section where k-th aa is in.
+                        int secIdx = (k < headSize) ? k / (secLen + 1) : (k - tailIdx) / secLen;
+                        secIdx *= clusters;
+                        foreach (int cIdx in P[c])
+                            pVector[secIdx + cIdx] += 1.0;
+                    }
                 }
-                if (row >= dt.Rows) break;
+            });
+            return New.NumberTable(vList);
+        }
+
+        public void MeanFieldTrans(INumberTable dt, double[] R) {
+            int L = R.Length / 3; // number of sections
+            int secLen = dt.Rows / L;  // section length
+            int tailIdx = dt.Rows % L;   // where the tail sections begins. Tail sections are shorter by one point.
+            int headSize = tailIdx * L;      // The size in aa of the head section, where section size is L+1.
+            if (dt.Rows < L)
+                headSize = dt.Rows;
+            for (int k=0; k<dt.Rows; k++) {
+                double[] Mrow = dt.Matrix[k] as double[];
+                // secIdx is the index of section where k-th aa is in.
+                int secIdx = (k < headSize) ? k / (secLen + 1) : (k - tailIdx) / secLen;
+                secIdx *= 3;
+                R[secIdx]     += Mrow[0];
+                R[secIdx + 1] += Mrow[1];
+                R[secIdx + 2] += Mrow[2];
             }
         }
 
