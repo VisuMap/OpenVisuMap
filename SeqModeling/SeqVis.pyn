@@ -400,8 +400,8 @@ def GetMFSeq(pList, aaGroups, mfL):
 
 
 def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, ppl=0.05,
-		vType=0, mfL=50, mfMinL=0,  aaGroups='A', waveLen=1024, waveCount=33, 
-		staged=False, repeats=0, samplingDist=0):
+		vType='sMF', mfL=50, mfMinL=0,  aaGroups='A', waveLen=1024, waveCount=33, 
+		staged=True, repeats=0, samplingDist=0):
 	pTable = AssertProteinTable()	
 
 	if samplingDist > 0:
@@ -413,16 +413,16 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 			return
 
 	# vectorizing the sequence to a table.
-	if vType == 0:
+	if vType == 'pMF':
 		dt = GetMeanFieldTrans(pList, L=mfL, minL=mfMinL)
-	elif vType == 1:
+	elif vType == 'pFT':
 		dt = GetFourierTrans(pList, waveLen, waveCount)
-	elif vType == 2: 
+	elif vType == 'sFT': 
 		dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
-	elif vType == 3: 
+	elif vType == 'sMF': 
 		dt = GetMFSeq(pList, aaGroups, mfL)
 	else:
-		vv.Message('Invalid vectorization type: ' + str(vType))
+		vv.Message('Invalid vectorization type: ' + vType)
 		return
 
 	for k, b in enumerate(pTable.BodyListForId(pList)):
