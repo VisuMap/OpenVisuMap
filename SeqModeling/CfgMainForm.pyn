@@ -105,8 +105,8 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
-			CreatePMap(pList, 'pMF')
-			#for vType in ['pMF', 'pFT', 'sMF', 'sFT']: CreatePMap(pList, vType)
+			#CreatePMap(pList, 'pMF')
+			for vType in ['pMF', 'pFT', 'sMF', 'sFT']: CreatePMap(pList, vType)
 			'''
 			for ppl in [0.01, 0.025, 0.05, 0.1, 0.20]:
 				CreateProteinMap2(pList, repeats=1, vType='pMF', aaGroups=GetAAGroup(0), mfL=10, epochs=2500, ppl=ppl, staged=True, initExag=6.0, finalExag=1.0, samplingDist=0)

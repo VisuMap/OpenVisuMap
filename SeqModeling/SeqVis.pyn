@@ -850,7 +850,7 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75,
 		it.IconHeight = 0
 		if iconWidth != None:
 			it.IconWidth = iconWidth
-		it.ShowBorder = True
+		it.ShowBorder = False
 		it.BorderColor = New.Color(28, 28, 28)
 
 		mp.Close()
@@ -889,7 +889,7 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 		item.LabelStyle = 0
 		item.Transparent = True
 		item.Opacity = 0.7
-		item.ShowBorder = True
+		item.ShowBorder = False
 		item.BorderColor = New.Color(32, 32, 32)
 	pAtlas.Redraw()
 	pAtlas.DataChanged = True

@@ -223,7 +223,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		ma = mapStore.atlas
 		MatchProteinMap(ma, iconWidth)
 		ma.EventEnabled = True
-		ma.OnItemsSelected = "@vv.ModifierKeys.AltPressed or pp.ResetView()"
+		ma.OnItemsSelected = "@vv.ModifierKeys.AltPressed or vv.ModifierKeys.ControlPressed or pp.ResetView()"
 		ma.HiddenItemSize = 3
 		ma.Description = info.ToStr()
 		ma.Show()
@@ -348,11 +348,6 @@ def Download3DInfo(pId):
 				f.write(chunk)
 	return localPath
 
-def CheckForPDB(pMap):
-	info = MapInfo(pMap.Description)
-	if info.Mtd != 'PDB':
-		vv.Message('The parent map is not created from PDB file')
-		vv.Return()
 
 def HideInterpolates():
 	for b in pp.BodyList:
@@ -624,38 +619,6 @@ def ImportPDBList(sList, dsName, dsDescription=''):
 	MergeTableToDataset(infoTable, "P-Info")
 
 '''
-
-
-vv.SelectedItems = vv.FindItems('ProteinSeq', 'RGAFGKPQGTVARVHIGQVIMSIRTKLQ')
-
-aa = 'NLRKNNRQPYAVSELAGHQTSAESWGTGRAVARIPRVRGGGTHRSGQGAFGNMCRGGRMFAPTKTWRRWHRRVNTTQKRYAICSA'[:40]
-bb = 'RGAFGKPQGTVARVHIGQVIMSIRTKLQ'[:20]
-L = len(aa)//2
-a1 = aa[:L]
-a2 = aa[L:]
-s1 = set(vv.FindItems('ProteinSeq', a1)) 
-s2 = set(vv.FindItems('ProteinSeq', a2)) 
-s12 = s1.union(s2)
-print(len(s1), len(s2), len(s12))
-
-
-d = cs.NWDistance('MRGAFGKPQGTVARVHG', 'mRGAFGKPQGTVARVHIG')
-print(d)
-
-pSet = set(vv.SelectedItems)
-vv.SelectedItems = [p for p in vv.AllItems if p[:4] in pSet]
-
-ds = vv.Dataset
-for k, b in enumerate(ds.BodyList):
-	if b.Type != 0:
-		seq = ds.GetValueAt(k, 2)
-		ds.SetStringAt(k, 2, seq.lower())
-
-isLarge = set(vv.SelectedItems)
-for b in vv.Dataset.BodyList:
-	if b.Id[:4] in isLarge:
-		b.Disabled = True
-vv.Map.Redraw()
 
 Steps to import a list of PDB id into VisuMap:
 
