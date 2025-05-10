@@ -50,17 +50,21 @@ def GetAAGroup(idx=0):
 def CreatePMap(pList, vType):
 	match vType:
 		case 'pMF':  # position-mena-field
-			mp = CreateProteinMap2(pList, repeats=1, vType=vType, samplingDist=0.0, epochs=1000,
+			mp = CreateProteinMap2(pList, repeats=1, vType='pMF', samplingDist=0.0, epochs=1000,
 				mfL=15, ppl=0.15, initExag=8.0)
 		case 'pFT':
-			mp = CreateProteinMap2(pList, repeats=1, vType=vType, samplingDist=0.0, epochs=1000,
-				waveCount=33, ppl=0.1, initExag=6.0)	
+			mp = CreateProteinMap2(pList, repeats=1, vType='pFT', samplingDist=0.0, epochs=1000,
+				waveCount=33, ppl=0.05, initExag=4.0)	
 		case 'sFT': 
-			mp = CreateProteinMap2(pList, repeats=1, vType=vType, samplingDist=0.0, epochs=1000,
+			mp = CreateProteinMap2(pList, repeats=1, vType='sFT', samplingDist=0.0, epochs=1000,
 				aaGroups=GetAAGroup(20), ppl=0.025, initExag=6.0)
 		case 'sMF':
-			mp = CreateProteinMap2(pList, repeats=1, vType=vType, samplingDist=0.0, epochs=1000,
+			mp = CreateProteinMap2(pList, repeats=1, vType='sMF', samplingDist=0.0, epochs=1000,
 				aaGroups=GetAAGroup(20), mfL=10, ppl=0.025, initExag=6.0, finalExag=0.8)
+		case 'x':
+			for aaG in GetAAGroup(0).split('|'):
+				mp = CreateProteinMap2(pList, repeats=1, vType='sMF', samplingDist=0.0, epochs=2500,
+					aaGroups=aaG, mfL=10, ppl=0.25, staged=True, initExag=6.0, finalExag=0.8)
 	mp.Title = mp.Title + f':  {vType}'
 
 def MainProc(menuKey):
@@ -105,12 +109,10 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
-			#CreatePMap(pList, 'pMF')
-			for vType in ['pMF', 'pFT', 'sMF', 'sFT']: CreatePMap(pList, vType)
-			'''
-			for ppl in [0.01, 0.025, 0.05, 0.1, 0.20]:
-				CreateProteinMap2(pList, repeats=1, vType='pMF', aaGroups=GetAAGroup(0), mfL=10, epochs=2500, ppl=ppl, staged=True, initExag=6.0, finalExag=1.0, samplingDist=0)
-			'''
+			for vt in ['sMF', 'sFT', 'pMF', 'pFT']:
+				CreatePMap(pList, vt)			
+			#CreatePMap(pList, 'pFT')
+			#CreatePMap(pList, 'x')
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
