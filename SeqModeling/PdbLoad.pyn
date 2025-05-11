@@ -223,37 +223,15 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		ma = mapStore.atlas
 		MatchProteinMap(ma, iconWidth)
 		ma.EventEnabled = True
-		ma.OnItemsSelected = "@vv.ModifierKeys.AltPressed or vv.ModifierKeys.ControlPressed or pp.ResetView()"
+		ma.OnItemsSelected = "@vv.ModifierKeys.AltPressed or vv.ModifierKeys.ControlPressed or pp.SelectedItems.Count==1 or pp.ResetView()"
 		ma.HiddenItemSize = 3
 		ma.Description = info.ToStr()
 		ma.Show()
 		ma.DataChanged = True # since the Show() clears the DataChanged flag.
 
-def GetTitleString(L, fPDB):
-	idx = L.find('\'')
-	if idx < 0:
-		L = fPDB.readline()
-		if L[0] == ';':
-			return L[1:].strip()
-		elif L[0] == '\'':
-			return L.strip().strip('\'')
-		else:
-			return ''
-	return L[idx:].strip().strip('\'')
 
 def SimplifyTitle(title):
 	return title.replace(':', '..').replace(';', '.,')
-
-
-def GetAcc2Chain(fPDB):
-	dict = {}
-	for L in fPDB:
-		if L[0] == '#': break
-		if L[0] == '_': continue
-		fs = L.split()
-		if fs[8] not in dict:
-			dict[fs[8]] = fs[3]
-	return dict	
 
 def LoadCifData(pId, mainChain=False, chainNames=None):
 	localPath = pId if pId.endswith('.cif') else Download3DInfo(pId[:4])
@@ -622,9 +600,10 @@ def ImportPDBList(sList, dsName, dsDescription=''):
 
 Steps to import a list of PDB id into VisuMap:
 
-sList = ''
+sList = vv.GuiManager.GetClipboard()
+sList = '4WSX,4QY1,4N5Z,2FK0,4N5Y,4JUL,6ID2,4MHI,1RU7,4WST,3M6S'
 sList = ','.join(vv.AllItems)
-ImportPDBList(sList, 'LSymmetry')
+ImportPDBList(sList, 'Hemagglutinin')
 
 
 '''

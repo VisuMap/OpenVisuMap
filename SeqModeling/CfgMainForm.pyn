@@ -66,6 +66,8 @@ def CreatePMap(pList, vType):
 				mp = CreateProteinMap2(pList, repeats=1, vType='sMF', samplingDist=0.0, epochs=2500,
 					aaGroups=aaG, mfL=10, ppl=0.25, staged=True, initExag=6.0, finalExag=0.8)
 	mp.Title = mp.Title + f':  {vType}'
+	mp.NormalizeView()
+
 
 def MainProc(menuKey):
 	selected = list(pp.SelectedItems)
