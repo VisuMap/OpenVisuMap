@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds  
+#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds  
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 import time
@@ -47,27 +47,27 @@ def GetAAGroup(idx=0):
 		case 20:
 			return 'AVILMFYW|STNQ|CGP|RHK|DE|ctu'
 
-def CreatePMap(pList, vType):
+def CreatePMap(pList, vType, epochs=2000):
 	match vType:
 		case 'pMF':  # position-mena-field
-			mp = CreateProteinMap2(pList, repeats=1, vType='pMF', samplingDist=0.0, epochs=1000,
-				mfL=15, ppl=0.15, initExag=8.0)
+			mp = CreateProteinMap2(pList, repeats=1, vType='pMF', samplingDist=0.0, epochs=epochs,
+				mfL=30, ppl=0.25, staged=True, initExag=6.0, finalExag=0.8)
 		case 'pFT':
-			mp = CreateProteinMap2(pList, repeats=1, vType='pFT', samplingDist=0.0, epochs=1000,
+			mp = CreateProteinMap2(pList, repeats=1, vType='pFT', samplingDist=0.0, epochs=epochs,
 				waveCount=33, ppl=0.05, initExag=4.0)	
 		case 'sFT': 
-			mp = CreateProteinMap2(pList, repeats=1, vType='sFT', samplingDist=0.0, epochs=1000,
+			mp = CreateProteinMap2(pList, repeats=1, vType='sFT', samplingDist=0.0, epochs=epochs,
 				aaGroups=GetAAGroup(20), ppl=0.025, initExag=6.0)
 		case 'sMF':
-			mp = CreateProteinMap2(pList, repeats=1, vType='sMF', samplingDist=0.0, epochs=1000,
-				aaGroups=GetAAGroup(20), mfL=10, ppl=0.025, initExag=6.0, finalExag=0.8)
+			mp = CreateProteinMap2(pList, repeats=1, vType='sMF', samplingDist=0.0, epochs=epochs,
+				aaGroups=GetAAGroup(20), mfL=10, ppl=0.25, staged=True, initExag=6.0, finalExag=0.8)
 		case 'x':
 			for aaG in GetAAGroup(0).split('|'):
-				mp = CreateProteinMap2(pList, repeats=1, vType='sMF', samplingDist=0.0, epochs=2500,
+				mp = CreateProteinMap2(pList, repeats=1, vType='sMF', samplingDist=0.0, epochs=epochs,
 					aaGroups=aaG, mfL=10, ppl=0.25, staged=True, initExag=6.0, finalExag=0.8)
 	mp.Title = mp.Title + f':  {vType}'
 	mp.NormalizeView()
-
+	return mp
 
 def MainProc(menuKey):
 	selected = list(pp.SelectedItems)
@@ -111,16 +111,22 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
+			'''
+			nm = vv.Map.Name
 			for vt in ['sMF', 'sFT', 'pMF', 'pFT']:
-				CreatePMap(pList, vt)			
-			#CreatePMap(pList, 'pFT')
-			#CreatePMap(pList, 'x')
+				mp = CreatePMap(pList, vt)
+				vv.Dataset.AddMap(nm+vt)
+				mp.CopyMap().Close()
+			'''
+			CreatePMap(pList, 'sMF')
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
 			pId = pId[:4]
 			bsList = vv.Dataset.BodyListEnabled()
 			vv.SelectedItems = [b.Id for b in bsList if b.Id[:4] == pId]
+		case 'Select-UniqSeq':
+			SelectUniqSeq()
 	#vv.Message(f'Time: {time.time() - t0:.1f}')
 
 MainProc(vv.EventSource.Item)

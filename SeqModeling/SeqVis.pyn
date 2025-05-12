@@ -428,7 +428,7 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 	for k, b in enumerate(pTable.BodyListForId(pList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 
-	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=0.75, initExag=initExag, finalExag=finalExag, ppl=ppl)
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=1.5, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.StagedTraining = staged
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'Hrm'  
@@ -1128,6 +1128,16 @@ def NormalizeBodyTypes():
 			case _:
 				b.Type = 2 if n < 250 else ( 4 if n < 500 else 84 )
 	vv.Map.Redraw()
+
+def SelectUniqSeq():
+	idSet = set()
+	seqSet = set()
+	for id in pp.AllItems:
+		seq = vv.Dataset.StringAt(id, 2)
+		if seq not in seqSet:
+			idSet.add(id)
+			seqSet.add(seq)
+	vv.SelectedItems = list(idSet)
 
 '''
 NormalizeBodyTypes()

@@ -412,7 +412,8 @@ namespace VisuMap {
                     if (P.ContainsKey(c)) {
                         // secIdx is the index of section where k-th aa is in.
                         int secIdx = (k < headSize) ? k / (secLen + 1) : (k - tailIdx) / secLen;
-                        //int secIdx = secIdx % L;
+                        //int secIdx = (7919*k) % L;
+                        //int secIdx = k % L;
                         secIdx *= clusters;
                         foreach (int cIdx in P[c])
                             pVector[secIdx + cIdx] += 1.0;
@@ -433,7 +434,7 @@ namespace VisuMap {
                 double[] Mrow = dt.Matrix[k] as double[];
                 // secIdx is the index of section where k-th aa is in.
                 int secIdx = (k < headSize) ? k / (secLen + 1) : (k - tailIdx) / secLen;
-                //int secIdx = secIdx % L;
+                //int secIdx = k % L;
                 secIdx *= 3;
                 R[secIdx]     += Mrow[0];
                 R[secIdx + 1] += Mrow[1];
