@@ -1139,6 +1139,25 @@ def SelectUniqSeq():
 			seqSet.add(seq)
 	vv.SelectedItems = list(idSet)
 
+def AlignSeqPair(pId0, pId1):
+	import Bio.pairwise2 as pa
+	s0 = vv.Dataset.StringAt(pId0, 2)
+	s1 = vv.Dataset.StringAt(pId1, 2)
+	ag = pa.align.globalxx(s0, s1)
+	ret =  str( pa.format_alignment(*ag[0]) )
+	R = ret.split('\n')
+	L0 = R[0]
+	Lm = R[1]
+	L1 = R[2]
+	Len = len(Lm)
+	S = ''
+	sLen = 100
+	for k in range(0, Len, sLen):
+		K = k+sLen
+		S += L0[k:K] + '\n' + Lm[k:K] + '\n' + L1[k:K] + '\n\n'
+	ratio = float(R[3].split('=')[1])/Len
+	New.TextPanel(f'Alignment: {pId0}:{pId1}; {R[3]}; Len={Len}; Ratio={ratio:.3g}', S).Show()
+
 '''
 NormalizeBodyTypes()
 

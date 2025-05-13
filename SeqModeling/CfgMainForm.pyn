@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds  
+#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB Select-UniqSeq TypeProtein Align P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds  
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 import time
@@ -46,6 +46,8 @@ def GetAAGroup(idx=0):
 			return '|'.join('AVILMFYWSTNQCGPRHKDE')
 		case 20:
 			return 'AVILMFYW|STNQ|CGP|RHK|DE|ctu'
+		case 21:
+			return 'AVILMFYW|STNQ|CGP|RHK|DE|c|g|u|a'
 
 def CreatePMap(pList, vType, epochs=2000):
 	match vType:
@@ -57,7 +59,7 @@ def CreatePMap(pList, vType, epochs=2000):
 				waveCount=33, ppl=0.05, initExag=4.0)	
 		case 'sFT': 
 			mp = CreateProteinMap2(pList, repeats=1, vType='sFT', samplingDist=0.0, epochs=epochs,
-				aaGroups=GetAAGroup(20), ppl=0.025, initExag=6.0)
+				aaGroups=GetAAGroup(20), ppl=0.25, staged=True, initExag=6.0, finalExag=0.9)
 		case 'sMF':
 			mp = CreateProteinMap2(pList, repeats=1, vType='sMF', samplingDist=0.0, epochs=epochs,
 				aaGroups=GetAAGroup(20), mfL=10, ppl=0.25, staged=True, initExag=6.0, finalExag=0.8)
@@ -118,7 +120,7 @@ def MainProc(menuKey):
 				vv.Dataset.AddMap(nm+vt)
 				mp.CopyMap().Close()
 			'''
-			CreatePMap(pList, 'sMF')
+			CreatePMap(pList, 'sFT')
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
@@ -127,10 +129,19 @@ def MainProc(menuKey):
 			vv.SelectedItems = [b.Id for b in bsList if b.Id[:4] == pId]
 		case 'Select-UniqSeq':
 			SelectUniqSeq()
+		case 'Align':
+			if len(pList) != 2:
+				vv.Message('Please select a pair of proteins')
+				return
+			AlignSeqPair(pList[0], pList[1])
+
 	#vv.Message(f'Time: {time.time() - t0:.1f}')
 
 MainProc(vv.EventSource.Item)
 
 '''
+
+ttt.DoKGResizeTest()
+
 
 '''

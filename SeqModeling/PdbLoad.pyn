@@ -603,7 +603,7 @@ Steps to import a list of PDB id into VisuMap:
 sList = vv.GuiManager.GetClipboard()
 sList = '4WSX,4QY1,4N5Z,2FK0,4N5Y,4JUL,6ID2,4MHI,1RU7,4WST,3M6S'
 sList = ','.join(vv.AllItems)
-ImportPDBList(sList, 'Hemagglutinin')
+ImportPDBList(sList, 'Influenza')
 
 
 '''
