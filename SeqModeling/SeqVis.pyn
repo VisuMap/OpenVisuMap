@@ -1140,23 +1140,21 @@ def SelectUniqSeq():
 	vv.SelectedItems = list(idSet)
 
 def AlignSeqPair(pId0, pId1):
-	import Bio.pairwise2 as pa
-	s0 = vv.Dataset.StringAt(pId0, 2)
-	s1 = vv.Dataset.StringAt(pId1, 2)
-	ag = pa.align.globalxx(s0, s1)
-	ret =  str( pa.format_alignment(*ag[0]) )
-	R = ret.split('\n')
-	L0 = R[0]
-	Lm = R[1]
-	L1 = R[2]
-	Len = len(Lm)
+	from Bio.Align import PairwiseAligner
+	from Bio.Seq import Seq
+	s0 = Seq(vv.Dataset.StringAt(pId0, 2))
+	s1 = Seq(vv.Dataset.StringAt(pId1, 2))
+	aligner = PairwiseAligner()
+	ag = aligner.align(s0, s1)[0]
+	Ls = str(ag).split('\n')
 	S = ''
-	sLen = 100
-	for k in range(0, Len, sLen):
-		K = k+sLen
-		S += L0[k:K] + '\n' + Lm[k:K] + '\n' + L1[k:K] + '\n\n'
-	ratio = float(R[3].split('=')[1])/Len
-	New.TextPanel(f'Alignment: {pId0}:{pId1}; {R[3]}; Len={Len}; Ratio={ratio:.3g}', S).Show()
+	for k in range(0, len(Ls), 4):
+		L0 = Ls[k].split()[2]
+		Lm = Ls[k+1].split()[1]
+		L1 = Ls[k+2].split()[2]
+		S += L0+'\n'+Lm+'\n'+L1+'\n\n'
+	ratio = ag.score/max(len(s0), len(s1))
+	New.TextPanel(f'Alignment: {pId0}:{pId1}; Score={int(ag.score)}; Ratio={ratio:.3g}', S).Show()
 
 '''
 NormalizeBodyTypes()
