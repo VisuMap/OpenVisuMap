@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB Select-UniqSeq TypeProtein Align P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds  
+#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds Align
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 import time
@@ -132,10 +132,7 @@ def MainProc(menuKey):
 		case 'Select-UniqSeq':
 			SelectUniqSeq()
 		case 'Align':
-			if len(pList) != 2:
-				vv.Message(f'Please select a pair of proteins ({len(pList)})')
-				return
-			AlignSeqPair(pList[0], pList[1])
+			AlignSeqPair(vv.Map)
 
 	#vv.Message(f'Time: {time.time() - t0:.1f}')
 

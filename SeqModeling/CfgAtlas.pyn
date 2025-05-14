@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps MatchMap P-3D P-3Dx P-Web P-2D P-ChmX P-Open TileAll P-Seq
+#MenuLabels ConfigMaps MatchMap P-3D P-3Dx P-Web P-2D P-ChmX P-Open TileAll P-Seq Align
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -58,9 +58,8 @@ def MainProc(menuKey):
 				mp = item.Open()
 				ShowAASeq(mp)
 				mp.Close()
-
-
-
+		case 'Align':
+			AlignSeqPair(pp)
 
 MainProc(vv.EventSource.Item)
 

@@ -1139,24 +1139,23 @@ def SelectUniqSeq():
 			seqSet.add(seq)
 	vv.SelectedItems = list(idSet)
 
-def AlignSeqPair(pId0, pId1):
+def AlignSeqPair(parentWin):
 	from Bio.Align import PairwiseAligner
-	s0 = vv.Dataset.StringAt(pId0, 2)
-	s1 = vv.Dataset.StringAt(pId1, 2)
-	aligner = PairwiseAligner()
+	if parentWin.Name == 'Atlas':
+		pIds = [item.Id for item in parentWin.SelectedItems]
+	else:
+		pIds = parentWin.SelectedItems
+	if len(pIds) != 2:
+		vv.Message(f'Please select a pair of proteins!')
+		return
+	s0 = vv.Dataset.StringAt(pIds[0], 2)
+	s1 = vv.Dataset.StringAt(pIds[1], 2)
+	isAASeq = s0[0].isupper()
+	scType = 'blastp' if isAASeq else 'blastn'
+	aligner = PairwiseAligner(scoring=scType)
 	ag = aligner.align(s0, s1)[0]
-	lines = str(ag).splitlines()
-	S = ''
-	for k in range(0, len(lines), 4):
-		L0 = lines[k].split()
-		if len(L0) < 3:
-			break
-		L0 = L0[2]
-		Lm = lines[k+1].split()[1]
-		L1 = lines[k+2].split()[2]
-		S += f'{L0}\n{Lm}\n{L1}\n\n'
-	ratio = ag.score/max(len(s0), len(s1))
-	New.TextPanel(f'Alignment: {pId0}:{pId1}; Score={int(ag.score)}; Ratio={ratio:.3g}', S).Show()
+	ratio = -ag.score/max(len(s0), len(s1))
+	New.TextPanel(f'Alignment: {pIds[0]}:{pIds[1]}; Score={int(ag.score)}; Ratio={ratio:.3g}', str(ag)).Show()
 
 '''
 NormalizeBodyTypes()
