@@ -48,6 +48,8 @@ def GetAAGroup(idx=0):
 			return 'AVILMFYW|STNQ|CGP|RHK|DE|ctu'
 		case 21:
 			return 'AVILMFYW|STNQ|CGP|RHK|DE|c|g|u|a'
+		case 22:
+			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
 
 def CreatePMap(pList, vType, epochs=2000):
 	match vType:
@@ -72,7 +74,7 @@ def CreatePMap(pList, vType, epochs=2000):
 	return mp
 
 def MainProc(menuKey):
-	selected = list(pp.SelectedItems)
+	selected = list(vv.Map.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None
 	pList = selected if len(selected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
 	atlasName = None if len(pList) == 1 else f'{vv.Dataset.Name}/{vv.Map.Name}.{len(pList)}'
@@ -120,7 +122,7 @@ def MainProc(menuKey):
 				vv.Dataset.AddMap(nm+vt)
 				mp.CopyMap().Close()
 			'''
-			CreatePMap(pList, 'sFT')
+			CreatePMap(pList, 'pFT')
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
@@ -131,7 +133,7 @@ def MainProc(menuKey):
 			SelectUniqSeq()
 		case 'Align':
 			if len(pList) != 2:
-				vv.Message('Please select a pair of proteins')
+				vv.Message(f'Please select a pair of proteins ({len(pList)})')
 				return
 			AlignSeqPair(pList[0], pList[1])
 

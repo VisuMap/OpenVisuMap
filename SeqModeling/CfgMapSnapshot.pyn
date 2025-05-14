@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-ChmX P-3D P-3Dx HideIPO MarkHelix MarkBeta UniChains MainChain 'RNA/DNA' 
+#MenuLabels ShowData Scanning ReCreateMap Smoothen Align P-Seq P-Open P-Web P-ChmX P-3D P-3Dx HideIPO MarkHelix MarkBeta UniChains MainChain 'RNA/DNA' 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -45,6 +45,13 @@ match vv.EventSource.Item:
 		if vv.ModifierKeys.ControlPressed:
 			key2type = {}		
 		UnifyChains(pp)
+	case 'Align':
+		pList = pp.SelectedItems
+		if len(pList) == 2:
+			AlignSeqPair(pList[0], pList[1])
+		else:
+			vv.Message('Please select a pair of proteins')
+
 
 
 
