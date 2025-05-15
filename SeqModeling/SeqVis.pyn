@@ -1161,9 +1161,18 @@ def AlignSeqPair(parentWin):
 
 	aligner = PairwiseAligner(scoring=scType)
 	for k, ag in enumerate(aligner.align(s0, s1)):
-		ratio = -ag.score/max(len(s0), len(s1))
+		ratio = ag.score/max(len(s0), len(s1))
 		New.TextPanel(f'Alignment-{k+1}: {pIds[0]}:{pIds[1]}; Score={int(ag.score)}; Ratio={ratio:.3g}', str(ag)).Show()
-		if k >= 3: break
+		if k >= 0: break
+
+def ResetAtlas():
+	if vv.EventSource.Form.Name == 'D3dRender': 
+		return
+	mk = vv.ModifierKeys
+	sn=pp.SelectedItems.Count
+	if mk.AltPressed or mk.ControlPressed or (sn>0 and sn<6):
+		return
+	pp.ResetView()
 
 '''
 

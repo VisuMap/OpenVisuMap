@@ -223,21 +223,11 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		ma = mapStore.atlas
 		MatchProteinMap(ma, iconWidth)
 		ma.EventEnabled = True
-		ma.OnAtlasShown = "@vv.Import('PdbLoad.pyn')"
 		ma.OnItemsSelected = "@ResetAtlas()"
 		ma.HiddenItemSize = 3
 		ma.Description = info.ToStr()
 		ma.Show()
 		ma.DataChanged = True # since the Show() clears the DataChanged flag.
-
-def ResetAtlas():
-	if vv.EventSource.Form.Name == 'D3dRender': 
-		return
-	mk = vv.ModifierKeys
-	sn=pp.SelectedItems.Count
-	if mk.AltPressed or mk.ControlPressed or (sn>0 and sn<6):
-		return
-	pp.ResetView()
 
 def SimplifyTitle(title):
 	return title.replace(':', '..').replace(';', '.,')
@@ -612,7 +602,8 @@ Steps to import a list of PDB id into VisuMap:
 sList = vv.GuiManager.GetClipboard()
 sList = '4WSX,4QY1,4N5Z,2FK0,4N5Y,4JUL,6ID2,4MHI,1RU7,4WST,3M6S'
 sList = ','.join(vv.AllItems)
-ImportPDBList(sList, 'Influenza')
+print(len(sList.split(',')))
+ImportPDBList(sList, 'CATH Ribbon')
 
 
 '''

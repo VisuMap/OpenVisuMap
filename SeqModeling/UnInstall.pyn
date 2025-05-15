@@ -1,5 +1,7 @@
 vv.GuiManager.RemoveCustomMenu("SeqVis/");
 vv.GuiManager.RemoveCustomButton("SeqVis/");
 
+vv.RemovePlugin('SeqVisInit')
+
 if vv.ScriptDirectories.find( vv.CurrentScriptDirectory ) >= 0:
 	vv.ScriptDirectories = vv.ScriptDirectories.replace(";"+vv.CurrentScriptDirectory, "")

@@ -115,7 +115,6 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
-			'''
 			nm = vv.Map.Name
 			for vt in ['sMF', 'sFT', 'pMF', 'pFT']:
 				mp = CreatePMap(pList, vt)
@@ -123,6 +122,7 @@ def MainProc(menuKey):
 				mp.CopyMap().Close()
 			'''
 			CreatePMap(pList, 'pFT')
+			'''
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
@@ -139,8 +139,6 @@ def MainProc(menuKey):
 MainProc(vv.EventSource.Item)
 
 '''
-
-ttt.DoKGResizeTest()
 
 
 '''

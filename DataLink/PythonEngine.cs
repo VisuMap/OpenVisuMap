@@ -9,7 +9,7 @@ using VisuMap.Lib;
 
 namespace VisuMap.DataLink {
     public class PythonEngine : IScriptPlugin, IDisposable {
-        const string scriptPrefix = "@";
+        const string scriptPrefix = "$";
         string scriptEditor = "notepad" ;
         string pythonProgamm;
 
