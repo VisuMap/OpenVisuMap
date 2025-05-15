@@ -1145,37 +1145,27 @@ def AlignSeqPair(parentWin):
 		pIds = [item.Id for item in parentWin.SelectedItems]
 	else:
 		pIds = parentWin.SelectedItems
-	if len(pIds) != 2:
+	if len(pIds) < 2:
 		vv.Message(f'Please select a pair of proteins!')
 		return
 	s0 = vv.Dataset.StringAt(pIds[0], 2)
 	s1 = vv.Dataset.StringAt(pIds[1], 2)
+
 	isAASeq = s0[0].isupper()
+	if s0[0].islower(): s0 = s0.upper()
+	if s1[0].islower(): s1 = s1.upper()
+	if not isAASeq:
+		s0 = s0.replace('U', 'T')
+		s1 = s1.replace('U', 'T')
 	scType = 'blastp' if isAASeq else 'blastn'
+
 	aligner = PairwiseAligner(scoring=scType)
-	ag = aligner.align(s0, s1)[0]
-	ratio = -ag.score/max(len(s0), len(s1))
-	New.TextPanel(f'Alignment: {pIds[0]}:{pIds[1]}; Score={int(ag.score)}; Ratio={ratio:.3g}', str(ag)).Show()
+	for k, ag in enumerate(aligner.align(s0, s1)):
+		ratio = -ag.score/max(len(s0), len(s1))
+		New.TextPanel(f'Alignment-{k+1}: {pIds[0]}:{pIds[1]}; Score={int(ag.score)}; Ratio={ratio:.3g}', str(ag)).Show()
+		if k >= 3: break
 
 '''
-NormalizeBodyTypes()
 
-pp.GlyphOpacity = 0.125
-
-aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-aaGroups = 'AVILMFYW|STNQCGPRHKDE'
-def TransSeq(aaGroups):
-	aaClusters = {}  # maps aa to cluster indexes.
-	for k, aaG in enumerate(aaGroups.split('|')):
-		for aa in aaG:
-			aaClusters[aa] = chr(ord('a')+k)
-	ds = vv.Dataset
-	ds.ColumnSpecList[4].Name = aaGroups
-	for k in range(ds.Rows):
-		seq = ds.GetDataAt(k, 2)
-		seq2 = ''.join( [aaClusters[c] for c in seq] )
-		ds.SetDataAt(k, 4, seq2)
-	ds.CommitChanges()
-TransSeq(aaGroups)
 
 '''

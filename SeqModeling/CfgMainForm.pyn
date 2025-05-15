@@ -126,9 +126,9 @@ def MainProc(menuKey):
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
-			pId = pId[:4]
+			pSet = set([pId[:4] for pId in vv.Map.SelectedItems])
 			bsList = vv.Dataset.BodyListEnabled()
-			vv.SelectedItems = [b.Id for b in bsList if b.Id[:4] == pId]
+			vv.SelectedItems = [b.Id for b in bsList if b.Id[:4] in pSet]
 		case 'Select-UniqSeq':
 			SelectUniqSeq()
 		case 'Align':
