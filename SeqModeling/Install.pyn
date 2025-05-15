@@ -3,7 +3,7 @@ vv.RunScript('UnInstall.pyn')
 '''
 import os
 if vv.ScriptDirectories.find( vv.CurrentScriptDirectory ) < 0:
-	vv.ScriptDirectories += ";" + vv.CurrentScriptDirectory
+	vv.ScriptDirectories = vv.CurrentScriptDirectory + ";" + vv.ScriptDirectories
 
 for pf in os.listdir(vv.CurrentScriptDirectory):
 	if pf.endswith('.pyn') and pf.startswith('Cfg'):  
