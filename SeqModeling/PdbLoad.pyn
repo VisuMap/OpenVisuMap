@@ -223,7 +223,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		ma = mapStore.atlas
 		MatchProteinMap(ma, iconWidth)
 		ma.EventEnabled = True
-		ma.OnAtlasShown = "PdbLoad.pyn"
+		ma.OnAtlasShown = "@vv.Import('PdbLoad.pyn')"
 		ma.OnItemsSelected = "@ResetAtlas()"
 		ma.HiddenItemSize = 3
 		ma.Description = info.ToStr()
