@@ -826,13 +826,18 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75,
 		info = MapInfo(mp.Description)
 		mp.Title = f'{info.pId}: {info.PT}'
 
+		bList = mp.BodyList
 		allHidden = True
-		for b in mp.BodyList:
+		for b in bList:
 			if not b.Hidden:
 				allHidden = False
 				break
 		if allHidden:
-			for b in mp.BodyList: b.Hidden = False
+			for b in bList: 
+				b.Hidden = False
+		
+		# Mark the head AA.
+		bList[0].Type = 104
 
 		try:										
 			mp.ResetSize()

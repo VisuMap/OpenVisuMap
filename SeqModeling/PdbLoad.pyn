@@ -183,7 +183,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 
 			if includeHA:
 				bList.AddRange(bList2)
-
+	
 			nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
 
 			if nt.Rows < 8:
@@ -207,8 +207,8 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			vv.Title = f'Unfolding {pId}/{seqLen:,}: {k+1}-th of {len(pList)}'
 			vv.DoEvents()
 
-			# for short sequences (<200) we used fixed the perlexity instead of ratio
-			#mds.PerplexityRatio = ppl*1600/nt.Rows if nt.Rows < 1600 else ppl
+			# Mark the head red.
+			mds.BodyList[0].Type = 104
 
 			RunMds(mds, info=info, repeats=0)
 

@@ -85,7 +85,7 @@ def MainProc(menuKey):
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
 			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=0.5,
-				initExag=6.0, ppl=0.1, atName=atlasName, stretch=0.1, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
+				initExag=6.0, ppl=0.1, atName=atlasName, stretch=2.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 		case 'P-2Dx':
 			if atlasName != None: 
 				atlasName += 'x'
@@ -115,14 +115,14 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
+			'''
 			nm = vv.Map.Name
 			for vt in ['sMF', 'sFT', 'pMF', 'pFT']:
 				mp = CreatePMap(pList, vt)
 				vv.Dataset.AddMap(nm+vt)
 				mp.CopyMap().Close()
 			'''
-			CreatePMap(pList, 'pFT')
-			'''
+			CreatePMap(pList, 'pMF')
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
