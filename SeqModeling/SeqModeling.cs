@@ -423,13 +423,14 @@ namespace VisuMap {
             return New.NumberTable(vList);
         }
 
-        public void MeanFieldTrans(INumberTable dt, double[] R) {
+        public void MeanFieldTrans(INumberTable dt, double[] R, double strech=0) {
             int L = R.Length / 3; // number of sections
             int secLen = dt.Rows / L;  // section length
             int tailIdx = dt.Rows % L;   // where the tail sections begins. Tail sections are shorter by one point.
             int headSize = tailIdx * L;      // The size in aa of the head section, where section size is L+1.
             if (dt.Rows < L)
                 headSize = dt.Rows;
+            Array.Clear(R, 0, R.Length);
             for (int k=0; k<dt.Rows; k++) {
                 double[] Mrow = dt.Matrix[k] as double[];
                 // secIdx is the index of section where k-th aa is in.
@@ -439,6 +440,8 @@ namespace VisuMap {
                 R[secIdx]     += Mrow[0];
                 R[secIdx + 1] += Mrow[1];
                 R[secIdx + 2] += Mrow[2];
+                if (strech != 0)
+                    R[secIdx + 2] += strech * k;
             }
         }
 
