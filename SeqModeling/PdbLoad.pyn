@@ -129,6 +129,10 @@ def GetChainName(pId):
 	else:
 		return None
 
+def GetChainById(cId):	
+	_, bList, _, _ = LoadCifData(cId, chainNames=GetChainName(cId))
+	return bList
+
 def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=False, wholeComplex=False, samplingDist=0, initExag=5.0, ppl=0.1, atName=None, 
 		stretch=0, clusterStretch=0.5, expandFactor=1.0, iconWidth=50, glyphSize=2.0, smtRatio=0):
 

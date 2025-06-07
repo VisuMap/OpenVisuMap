@@ -134,22 +134,28 @@ def MainProc(menuKey):
 		case 'Align':
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
-			_, bList, _, _ = LoadCifData(pId, chainNames=GetChainName(pId))
-			New.Map3DView(bList).Show().NormalizeView()
+			bList = GetChainById(pId)
+
 			for k in range(bList.Count - 1):
 				b = bList[k]
 				b1 = bList[k+1]
 				b.SetXYZ(b1.X - b.X, b1.Y-b.Y, b1.Z-b.Z)
 				b.Mult(1.5)
 			bList.RemoveAt(bList.Count-1)
+
+			bList = Interporlate(bList, 7, 0.1)
+			for b in bList: b.Hidden = b.Id.startswith('i')
+
 			mp = New.Map3DView(bList)
-			mp.ShowBoundingBox
+			
 			mp.ReadOnly = True
 			mp.ShowPerformance = False
 			mp.ShowBoundingBox = False
 			mp.Show().NormalizeView()
+			mp.HiddenBodySize = 1
 
-			
+			#ShowPDB(pId, rp=7, eps=0.1, mainChain=True, includeHA=False)
+
 
 	#vv.Message(f'Time: {time.time() - t0:.1f}')
 
