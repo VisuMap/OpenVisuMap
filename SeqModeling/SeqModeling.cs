@@ -423,7 +423,7 @@ namespace VisuMap {
             return New.NumberTable(vList);
         }
 
-        public void MeanFieldTrans(INumberTable dt, double[] R, double stretch=0) {
+        public void MeanFieldTrans(INumberTable dt, double[] R) {
             int L = R.Length / 3; // number of sections
             int secLen = dt.Rows / L;  // section length
             int tailIdx = dt.Rows % L;   // where the tail sections begins. Tail sections are shorter by one point.
@@ -440,8 +440,6 @@ namespace VisuMap {
                 R[secIdx]     += Mrow[0];
                 R[secIdx + 1] += Mrow[1];
                 R[secIdx + 2] += Mrow[2];
-                if (stretch != 0)
-                    R[secIdx + 2] += stretch * k;
             }
         }
 
