@@ -367,7 +367,7 @@ def LoadMainSeq(pId):
 			seq.append(rs.Name[0])
 		return ''.join(seq)
 
-def Interporlate(bsList, rp, eps, smtRatio=0):
+def Interporlate(bsList, rp=3, eps=0.1, smtRatio=0):
 	bs = New.BodyList()
 	k0 = 0
 	t0 = bsList[k0].Type

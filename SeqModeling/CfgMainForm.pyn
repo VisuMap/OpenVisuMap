@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds Align
+#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds Align P-S2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 import time
@@ -55,7 +55,7 @@ def CreatePMap(pList, vType, epochs=2000):
 	match vType:
 		case 'pMF':  # position-mena-field
 			mp = CreateProteinMap2(pList, repeats=1, vType='pMF', samplingDist=0.0, epochs=epochs,
-				mfL=30, ppl=0.25, staged=True, initExag=6.0, finalExag=0.8)
+				mfL=30, ppl=0.25, staged=True, initExag=4.0, finalExag=1.0)
 		case 'pFT':
 			mp = CreateProteinMap2(pList, repeats=1, vType='pFT', samplingDist=0.0, epochs=epochs,
 				waveCount=33, ppl=0.05, initExag=4.0)	
@@ -133,6 +133,23 @@ def MainProc(menuKey):
 			SelectUniqSeq()
 		case 'Align':
 			AlignSeqPair(vv.Map)
+		case 'P-S2':
+			_, bList, _, _ = LoadCifData(pId, chainNames=GetChainName(pId))
+			New.Map3DView(bList).Show().NormalizeView()
+			for k in range(bList.Count - 1):
+				b = bList[k]
+				b1 = bList[k+1]
+				b.SetXYZ(b1.X - b.X, b1.Y-b.Y, b1.Z-b.Z)
+				b.Mult(1.5)
+			bList.RemoveAt(bList.Count-1)
+			mp = New.Map3DView(bList)
+			mp.ShowBoundingBox
+			mp.ReadOnly = True
+			mp.ShowPerformance = False
+			mp.ShowBoundingBox = False
+			mp.Show().NormalizeView()
+
+			
 
 	#vv.Message(f'Time: {time.time() - t0:.1f}')
 
