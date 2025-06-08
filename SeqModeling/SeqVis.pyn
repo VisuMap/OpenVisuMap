@@ -206,9 +206,7 @@ class AtlasMapStore():
 		else:
 			return None
 	def Close(self):
-		if not self.atlas.TheForm.Visible:
-			self.atlas.Show()
-			self.atlas.DataChanged = True
+		self.atlas.SaveAtlas()
 		self.atlas.Close()
 
 def NewMapStore(atName, is3D=True, clearStore=False):
@@ -605,7 +603,7 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 
 #-----------------------------------------------------------------------------
 
-def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, staged=False,
+def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, staged=False, zoomFactor=10.0,
 		repeats=1, metric='EuclideanMetric', glyphSet=None, glyphSize=0.5, glyphOpacity=0.25, refreshFreq=50):
 	mds = New.MdsCluster(nt)
 	mds.Show()
@@ -624,7 +622,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
 	mds.GlyphSize = glyphSize
 	mds.StagedTraining = staged
 	mds.ExaggerationSmoothen = True
-	mds.MapZoomFactor = 10.0
+	mds.MapZoomFactor = zoomFactor
 	mds.AutoNormalizing = True
 	mds.GlyphSet = vv.Map.GlyphType if glyphSet==None else glyphSet
 	return mds
