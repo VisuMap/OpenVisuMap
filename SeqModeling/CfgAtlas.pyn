@@ -30,6 +30,9 @@ def MainProc(menuKey):
 			for e in pSelected:
 				pId = e.Name
 				chainNames = GetChainName(pId)
+				if chainNames == None:
+					vv.Message(f'Can not find chain {pId} in current dataset')
+					continue
 				mp = ShowPDB(pId, rp=3, eps=0.1, includeHA=False, mainChain=justMainChain, chainNames=chainNames, smtRatio=0.0)
 				mp.NormalizeView()
 		case 'P-3Dx':

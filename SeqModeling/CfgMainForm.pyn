@@ -73,6 +73,29 @@ def CreatePMap(pList, vType, epochs=2000):
 	mp.NormalizeView()
 	return mp
 
+def GetSphareDataset(cId, interRp=0):
+	bList = GetChainById(cId)
+
+	for k in range(bList.Count - 1):
+		b = bList[k]
+		b1 = bList[k+1]
+		b.SetXYZ(b1.X - b.X, b1.Y-b.Y, b1.Z-b.Z)
+	bList.RemoveAt(bList.Count-1)
+
+	if interRp>0:
+		bList = Interporlate(bList, interRp, 0.1)
+		for b in bList: b.Hidden = b.Id.startswith('i')
+	return bList
+
+def ShowSphare(bList):
+	mp = New.Map3DView(bList)
+	mp.ReadOnly = True
+	mp.ShowPerformance = False
+	mp.ShowBoundingBox = False
+	mp.GlyphSize = 3
+	mp.HiddenBodySize = 1
+	mp.Show().NormalizeView()
+
 def MainProc(menuKey):
 	selected = list(vv.Map.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None
@@ -134,28 +157,33 @@ def MainProc(menuKey):
 		case 'Align':
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
-			bList = GetChainById(pId)
+			atName = atlasName + '.2S'
+			mapStore = NewMapStore(atName, is3D=False, clearStore=True)			
+			mds = NewMds(nt=None, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1,
+				repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
+			mds.GlyphSize = 3.5
+			mds.GlyphOpacity = 0.75	
 
-			for k in range(bList.Count - 1):
-				b = bList[k]
-				b1 = bList[k+1]
-				b.SetXYZ(b1.X - b.X, b1.Y-b.Y, b1.Z-b.Z)
-				b.Mult(1.5)
-			bList.RemoveAt(bList.Count-1)
+			for pId in selected:
+				bList = GetSphareDataset(pId, interRp=7)
 
-			bList = Interporlate(bList, 7, 0.1)
-			for b in bList: b.Hidden = b.Id.startswith('i')
+				#ShowPDB(pId, rp=7, eps=0.1, mainChain=True, includeHA=False)
+				#ShowSphare(bList)
+	
+				mds.SetTrainingData(New.NumberTable(bList, 3))
+				info = MapInfo()
+				info.pId = pId
+				info.pLen = bList.Count
+				RunMds(mds, info=info, repeats=0)
+				mapStore.AddMaps()
 
-			mp = New.Map3DView(bList)
-			
-			mp.ReadOnly = True
-			mp.ShowPerformance = False
-			mp.ShowBoundingBox = False
-			mp.Show().NormalizeView()
-			mp.HiddenBodySize = 1
-
-			#ShowPDB(pId, rp=7, eps=0.1, mainChain=True, includeHA=False)
-
+			ma = mapStore.atlas
+			MatchProteinMap(ma, 70)
+			ma.EventEnabled = True
+			ma.OnItemsSelected = "@ResetAtlas()"
+			ma.HiddenItemSize = 3
+			mapStore.Close()
+			mds.Close()
 
 	#vv.Message(f'Time: {time.time() - t0:.1f}')
 

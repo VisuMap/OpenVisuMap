@@ -203,6 +203,9 @@ class AtlasMapStore():
 		else:
 			return None
 	def Close(self):
+		if not self.atlas.TheForm.Visible:
+			self.atlas.Show()
+			self.atlas.DataChanged = True
 		self.atlas.Close()
 
 def NewMapStore(atName, is3D=True, clearStore=False):
