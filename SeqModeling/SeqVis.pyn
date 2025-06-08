@@ -177,6 +177,9 @@ class MapInfo():
 class AtlasMapStore():	
 	def __init__(self, atName, tgtViewName, clearAtlas):
 		self.atlas = New.Atlas(atName)
+		self.atlas.EventEnabled = True
+		self.atlas.OnItemsSelected = "@ResetAtlas()"
+		self.atlas.HiddenItemSize = 3
 		if clearAtlas:
 			self.atlas.Clear()
 		self.viewName = tgtViewName
@@ -603,12 +606,12 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 #-----------------------------------------------------------------------------
 
 def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, staged=False,
-		repeats=1, metric='EuclideanMetric', glyphSet=None, glyphSize=0.5):
+		repeats=1, metric='EuclideanMetric', glyphSet=None, glyphSize=0.5, glyphOpacity=0.25, refreshFreq=50):
 	mds = New.MdsCluster(nt)
 	mds.Show()
 	mds.MdsAlgorithm = 2
 	mds.MaxLoops = epochs
-	mds.RefreshFreq = 50
+	mds.RefreshFreq = refreshFreq
 	mds.InitialExaggeration = initExag
 	mds.FinalExaggeration = finalExag
 	mds.PerplexityRatio = ppl
@@ -617,7 +620,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
 	mds.ReadOnly = True
 	mds.Is3D = is3D
 	mds.AutoNormalizing =True
-	mds.GlyphOpacity = 0.25
+	mds.GlyphOpacity = glyphOpacity
 	mds.GlyphSize = glyphSize
 	mds.StagedTraining = staged
 	mds.ExaggerationSmoothen = True

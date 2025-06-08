@@ -209,7 +209,6 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 				info.Set('CNs', '|'.join(chainNames) )
 			mds.SetTrainingData(nt)
 			vv.Title = f'Unfolding {pId}/{seqLen:,}: {k+1}-th of {len(pList)}'
-			vv.DoEvents()
 
 			# Mark the head red.
 			mds.BodyList[0].Type = 104
@@ -226,9 +225,6 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 	if mapStore != None:
 		ma = mapStore.atlas
 		MatchProteinMap(ma, iconWidth)
-		ma.EventEnabled = True
-		ma.OnItemsSelected = "@ResetAtlas()"
-		ma.HiddenItemSize = 3
 		ma.Description = info.ToStr()
 		ma.Show()
 		ma.DataChanged = True # since the Show() clears the DataChanged flag.

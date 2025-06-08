@@ -155,35 +155,27 @@ def MainProc(menuKey):
 		case 'Align':
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
-			mds = NewMds(nt=None, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1,
-				repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
-			mds.GlyphSize = 3.5
-			mds.GlyphOpacity = 0.75	
+			mds = NewMds(nt=None, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=100,
+				metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls', glyphSize = 3.5, glyphOpacity = 0.75)
 
 			if len(selected) == 1:
-				bList = GetSphareDataset(pId, interRp=7)
-				#ShowPDB(pId, rp=7, eps=0.1, mainChain=True, includeHA=False)
+				bList = GetSphareDataset(pId, interRp=6)
+				#ShowPDB(pId, rp=6, eps=0.1, mainChain=True, includeHA=False)
 				ShowSphare(bList)
 				mds.SetTrainingData(New.NumberTable(bList, 3))
+				mds.Reset().Start()
 			else:
-				atName = atlasName + '.2S'
-				mapStore = NewMapStore(atName, is3D=False, clearStore=True)			
-	
-				for pId in selected:
-					bList = GetSphareDataset(pId, interRp=7)
-	
+				mapStore = NewMapStore(atlasName+'.2S', is3D=False, clearStore=True)			
+				for k, pId in enumerate(selected):
+					bList = GetSphareDataset(pId, interRp=6)
 					mds.SetTrainingData(New.NumberTable(bList, 3))
 					info = MapInfo()
 					info.pId = pId
 					info.pLen = bList.Count
+					vv.Title = f'Unfolding {pId}/{bList.Count:,}: {k+1}-th of {len(selected)}'
 					RunMds(mds, info=info, repeats=0)
-					mapStore.AddMaps()
-	
-				ma = mapStore.atlas
-				MatchProteinMap(ma, 70)
-				ma.EventEnabled = True
-				ma.OnItemsSelected = "@ResetAtlas()"
-				ma.HiddenItemSize = 3
+					mapStore.AddMap()
+				MatchProteinMap(mapStore.atlas, 70)
 				mapStore.Close()
 				mds.Close()
 
