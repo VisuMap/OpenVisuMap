@@ -1,7 +1,6 @@
 #MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds Align P-S2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
-import time
 
 def SortByPosX(idList):
 	idList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
@@ -101,7 +100,6 @@ def MainProc(menuKey):
 	pId = selected[0] if len(selected) > 0 else None
 	pList = selected if len(selected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
 	atlasName = None if len(pList) == 1 else f'{vv.Dataset.Name}/{vv.Map.Name}.{len(pList)}'
-	t0 = time.time()
 
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
@@ -157,35 +155,37 @@ def MainProc(menuKey):
 		case 'Align':
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
-			atName = atlasName + '.2S'
-			mapStore = NewMapStore(atName, is3D=False, clearStore=True)			
 			mds = NewMds(nt=None, epochs=2000, is3D=False, initExag=4.0, finalExag=1.0, ppl=0.1,
 				repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
 			mds.GlyphSize = 3.5
 			mds.GlyphOpacity = 0.75	
 
-			for pId in selected:
+			if len(selected) == 1:
 				bList = GetSphareDataset(pId, interRp=7)
-
 				#ShowPDB(pId, rp=7, eps=0.1, mainChain=True, includeHA=False)
-				#ShowSphare(bList)
-	
+				ShowSphare(bList)
 				mds.SetTrainingData(New.NumberTable(bList, 3))
-				info = MapInfo()
-				info.pId = pId
-				info.pLen = bList.Count
-				RunMds(mds, info=info, repeats=0)
-				mapStore.AddMaps()
-
-			ma = mapStore.atlas
-			MatchProteinMap(ma, 70)
-			ma.EventEnabled = True
-			ma.OnItemsSelected = "@ResetAtlas()"
-			ma.HiddenItemSize = 3
-			mapStore.Close()
-			mds.Close()
-
-	#vv.Message(f'Time: {time.time() - t0:.1f}')
+			else:
+				atName = atlasName + '.2S'
+				mapStore = NewMapStore(atName, is3D=False, clearStore=True)			
+	
+				for pId in selected:
+					bList = GetSphareDataset(pId, interRp=7)
+	
+					mds.SetTrainingData(New.NumberTable(bList, 3))
+					info = MapInfo()
+					info.pId = pId
+					info.pLen = bList.Count
+					RunMds(mds, info=info, repeats=0)
+					mapStore.AddMaps()
+	
+				ma = mapStore.atlas
+				MatchProteinMap(ma, 70)
+				ma.EventEnabled = True
+				ma.OnItemsSelected = "@ResetAtlas()"
+				ma.HiddenItemSize = 3
+				mapStore.Close()
+				mds.Close()
 
 MainProc(vv.EventSource.Item)
 
