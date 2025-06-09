@@ -252,13 +252,24 @@ namespace VisuMap {
                     if (i == k) {
                         bs.Add(b0);
                     } else if ((i >= 0) && (i < D.Length)) {
-                        Body b = new Body("i" + chIdx + '.' + i);
-                        b.Name = b0.Name;
-                        b.Type = b0.Type;
+                        Body b = new Body("i", b0.Name, b0.Type);
                         b.Flags = b0.Flags;
                         b.SetXYZ(D[i].X, D[i].Y, D[i].Z);
                         bs.Add(b);
                     }
+                }
+            }
+            string secPrefix = "";
+            int secIdx = 0;
+            for(int k=0; k<bs.Count; k++) {
+                IBody b = bs[k];
+                if ( b.Id[0] == 'i' ) {
+                    b.Id = secPrefix + secIdx;
+                    secIdx++;
+                } else {
+                    int rsIdx = int.Parse(b.Id.Split('.')[0].Substring(1));
+                    secPrefix = "i" + chIdx + "."+ rsIdx + ".";
+                    secIdx = 0;
                 }
             }
             return bs;

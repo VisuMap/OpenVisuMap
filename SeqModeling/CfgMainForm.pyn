@@ -158,12 +158,12 @@ def MainProc(menuKey):
 		case 'Align':
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
-			mds = NewMds(nt=None, epochs=2000, initExag=6.0, finalExag=1.0, ppl=0.02, repeats=0, refreshFreq=100, 
-				zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=5.0, glyphOpacity=1.0)
+			mds = NewMds(nt=None, epochs=2000, initExag=6.0, finalExag=1.0, ppl=0.05, repeats=0, refreshFreq=100, 
+				zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=1.5, glyphOpacity=1.0)
 			if len(selected) == 1:
-				bList = GetSphareDataset(pId, interRp=3)
+				bList = GetSphareDataset(pId, interRp=7)
 				#ShowPDB(pId, rp=3, eps=0.1, mainChain=True, includeHA=False)
-				ShowSphare(bList)
+				#ShowSphare(bList)
 				mds.SetTrainingData(New.NumberTable(bList, 3))
 				mds.Reset().Start()
 			else:
@@ -171,7 +171,7 @@ def MainProc(menuKey):
 				info = MapInfo()
 				info.SetMds(mds)
 				for k, pId in enumerate(selected):
-					bList = GetSphareDataset(pId, interRp=6)
+					bList = GetSphareDataset(pId, interRp=4)
 					mds.SetTrainingData(New.NumberTable(bList, 3))
 					info.pId = pId
 					info.pLen = bList.Count
