@@ -625,6 +625,7 @@ def NewMds(nt, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, 
 	mds.MapZoomFactor = zoomFactor
 	mds.AutoNormalizing = True
 	mds.GlyphSet = vv.Map.GlyphType if glyphSet==None else glyphSet
+	mds.Description = ''
 	return mds
 
 def RunMds(mds, repeats=1, info=None):
@@ -637,7 +638,7 @@ def RunMds(mds, repeats=1, info=None):
 	if not mds.Completed: 
 		raise Exception("MDS aborted")
 	if info != None:
-		info.Set('MSz', mds.GlyphSpan)
+		info.Set('MSz', f'{mds.GlyphSpan:.2f}')
 		mds.Description = info.ToStr()
 	if repeats == 1:
 		mds.SelectedItems = None
