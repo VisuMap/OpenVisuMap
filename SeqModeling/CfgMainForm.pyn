@@ -87,6 +87,8 @@ def GetSphareDataset(cId, interRp=0):
 	if interRp>0:
 		bList = Interporlate(bList, interRp, 0.1)
 		for b in bList: b.Hidden = b.Id.startswith('i')
+	bList[0].Type = 105
+	bList[bList.Count-1].Type = 110
 	return bList
 
 def ShowSphare(bList):
@@ -158,17 +160,23 @@ def MainProc(menuKey):
 		case 'Align':
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
-			mds = NewMds(nt=None, epochs=2000, initExag=6.0, finalExag=1.0, ppl=0.05, repeats=0, refreshFreq=100, 
-				zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=1.5, glyphOpacity=1.0)
 			if len(selected) == 1:
-				bList = GetSphareDataset(pId, interRp=7)
-				#ShowPDB(pId, rp=3, eps=0.1, mainChain=True, includeHA=False)
+				intRp = 7
+				bList = GetSphareDataset(pId, interRp=intRp)
+
+				#ShowPDB(pId, rp=intRp, eps=0.1, chainNames=GetChainName(pId), includeHA=False)
 				#ShowSphare(bList)
+				
+				mds = NewMds(epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
+					zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=6.0, glyphOpacity=1.0)
+				mds.GlyphSize = 1
 				mds.SetTrainingData(New.NumberTable(bList, 3))
 				mds.Reset().Start()
 			else:
+				mds = NewMds(epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
+					zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=6.0, glyphOpacity=1.0)
 				mapStore = NewMapStore(atlasName+'.2S', is3D=False, clearStore=True)			
-				intRp = 3
+				intRp = 0
 				info = MapInfo()
 				info.Mtd = 'S2'
 				info.Set('intRp', intRp)			
