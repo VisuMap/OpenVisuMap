@@ -842,7 +842,8 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75,
 				b.Hidden = False
 		
 		# Mark the head AA.
-		bList[0].Type = 104
+		bList[0].Type = 105
+		bList[bList.Count-1].Type = 110
 
 		try:										
 			mp.ResetSize()

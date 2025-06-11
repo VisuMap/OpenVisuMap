@@ -510,8 +510,8 @@ namespace VisuMap {
             }
 
             Vector3[] D = new Vector3[bList.Count-1];
-            float s = (float)spride;
-            float t = 1.0f - s;
+            float t = (float)spride;
+            float s = 1.0f - t;
             for(int k=0; k<(bList.Count-1); k++) {
                 Vector3 m = s * P[k] + t * P[k + 1];
                 D[k] = (float) Math.Sqrt( P[k + 1].LengthSquared()/m.LengthSquared() ) * m - P[k];
