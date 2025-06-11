@@ -490,7 +490,42 @@ namespace VisuMap {
             return A[cols];
         }
 
-#region LoadCif() method
+        public List<IBody> ToSphere(List<IBody> bList, double spride=1.0) {
+            for (int k = 0; k < (bList.Count - 1); k++) {
+                var b = bList[k];
+                var b1 = bList[k + 1];
+                b.SetXYZ(b1.X - b.X, b1.Y - b.Y, b1.Z - b.Z);
+            }
+            bList.RemoveAt(bList.Count - 1);
+
+            if (spride==1.0)
+                return bList;
+
+            // Implementing the no-full (<1.0) spride
+            Vector3[] P = new Vector3[bList.Count];
+            for(int k=0; k<bList.Count; k++) {
+                P[k].X = (float)bList[k].X;
+                P[k].Y = (float)bList[k].Y;
+                P[k].Z = (float)bList[k].Z;
+            }
+
+            Vector3[] D = new Vector3[bList.Count-1];
+            float s = (float)spride;
+            float t = 1.0f - s;
+            for(int k=0; k<(bList.Count-1); k++) {
+                Vector3 m = s * P[k] + t * P[k + 1];
+                D[k] = (float) Math.Sqrt( P[k + 1].LengthSquared()/m.LengthSquared() ) * m - P[k];
+            }
+
+            for (int k = 1; k < bList.Count; k++) {
+                P[k] = P[k - 1] + D[k-1];
+                bList[k].SetXYZ(P[k].X, P[k].Y, P[k].Z);
+            }
+
+            return bList;
+        }
+
+        #region LoadCif() method
         string pdbTitle = null;
         List<IBody> heteroChains = null;
         Dictionary<string, string> acc2chain = null;

@@ -74,21 +74,22 @@ def CreatePMap(pList, vType, epochs=2000):
 
 def GetSphareDataset(cId, interRp=0):
 	bList = GetChainById(cId)
+	if bList.Count < 3:
+		return None
 
 	bType = vv.Dataset.BodyForId(cId).Type
-	for b in bList: b.Type = bType
+	for b in bList: 
+		b.Type = bType
 
-	for k in range(bList.Count - 1):
-		b = bList[k]
-		b1 = bList[k+1]
-		b.SetXYZ(b1.X - b.X, b1.Y-b.Y, b1.Z-b.Z)
-	bList.RemoveAt(bList.Count-1)
-
+	bList = cs.ToSphere(bList, 1.0)
+	
 	if interRp>0:
 		bList = Interporlate(bList, interRp, 0.1)
-		for b in bList: b.Hidden = b.Id.startswith('i')
+		for b in bList: 
+			b.Hidden = b.Id.startswith('i')
 	bList[0].Type = 105
 	bList[bList.Count-1].Type = 110
+
 	return bList
 
 def ShowSphare(bList):
@@ -161,17 +162,18 @@ def MainProc(menuKey):
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
 			if len(selected) == 1:
-				intRp = 7
+				intRp = 0
 				bList = GetSphareDataset(pId, interRp=intRp)
 
 				#ShowPDB(pId, rp=intRp, eps=0.1, chainNames=GetChainName(pId), includeHA=False)
-				#ShowSphare(bList)
-				
+				ShowSphare(bList)
+				'''
 				mds = NewMds(epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
 					zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=6.0, glyphOpacity=1.0)
 				mds.GlyphSize = 1
 				mds.SetTrainingData(New.NumberTable(bList, 3))
 				mds.Reset().Start()
+				'''
 			else:
 				mds = NewMds(epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
 					zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=6.0, glyphOpacity=1.0)
@@ -179,9 +181,11 @@ def MainProc(menuKey):
 				intRp = 0
 				info = MapInfo()
 				info.Mtd = 'S2'
-				info.Set('intRp', intRp)			
-				for k, pId in enumerate(selected):
+				info.Set('intRp', intRp)
+				for k, pId in enumerate(selected):				
 					bList = GetSphareDataset(pId, interRp=intRp)
+					if bList == None:
+						continue
 					mds.SetTrainingData(New.NumberTable(bList, 3))
 					info.pId = pId
 					info.pLen = bList.Count
