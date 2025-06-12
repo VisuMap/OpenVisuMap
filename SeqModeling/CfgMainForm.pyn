@@ -162,18 +162,16 @@ def MainProc(menuKey):
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
 			if len(selected) == 1:
-				intRp = 0
+				intRp = 5
 				bList = GetSphareDataset(pId, interRp=intRp)
-
 				#ShowPDB(pId, rp=intRp, eps=0.1, chainNames=GetChainName(pId), includeHA=False)
-				ShowSphare(bList)
-				'''
-				mds = NewMds(epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
-					zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=6.0, glyphOpacity=1.0)
-				mds.GlyphSize = 1
-				mds.SetTrainingData(New.NumberTable(bList, 3))
-				mds.Reset().Start()
-				'''
+				#ShowSphare(bList)
+				mds = NewMds(New.NumberTable(bList, 3), 
+					epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
+					zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=1.0, glyphOpacity=1.0)
+				info = MapInfo()
+				info.pId = pId
+				RunMds(mds, info=info, repeats=0)
 			else:
 				mds = NewMds(epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
 					zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=6.0, glyphOpacity=1.0)

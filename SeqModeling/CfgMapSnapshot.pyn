@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-ChmX P-3D P-3Dx HideIPO MarkHelix MarkBeta UniChains MainChain 'RNA/DNA' Align
+#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-ChmX P-3D P-3Dx HideIPO MarkHelix MarkBeta UniChains MainChain 'RNA/DNA' Align SelectPID
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -47,6 +47,9 @@ match vv.EventSource.Item:
 		UnifyChains(pp)
 	case 'Align':
 		AlignSeqPair(pp)
+	case 'SelectPID':
+		vv.SelectedItems = [MapInfo(pp.Description).pId]
+
 
 
 
