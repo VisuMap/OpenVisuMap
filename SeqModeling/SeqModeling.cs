@@ -2,10 +2,20 @@
 using System.Linq;
 using System.Collections.Generic;
 using VisuMap.Script;
-using Vector3 = System.Numerics.Vector3;
+using Vector3 = SharpDX.Vector3;
+using RMatrix = SharpDX.Matrix3x3;
 using System.IO;
 
 namespace VisuMap {
+    public static class MyExtensions {
+        public static Vector3 ToV3(this IBody b) {
+            return new Vector3((float)b.X, (float)b.Y, (float)b.Z);
+        }
+
+        public static void SetXYZ(this IBody b, Vector3 p) {
+            b.SetXYZ(p.X, p.Y, p.Z);
+        }
+    }
 
     public class VectorN {
         float[] v;
@@ -490,7 +500,7 @@ namespace VisuMap {
             return A[cols];
         }
 
-        public List<IBody> ToSphere(List<IBody> bList, double spride=1.0) {
+        public List<IBody> ToSphere(List<IBody> bList, double fct=1.0) {
             for (int k = 0; k < (bList.Count - 1); k++) {
                 var b = bList[k];
                 var b1 = bList[k + 1];
@@ -498,32 +508,54 @@ namespace VisuMap {
             }
             bList.RemoveAt(bList.Count - 1);
 
-            if (spride==1.0)
-                return bList;
-
-            // Implementing the no-full (<1.0) spride
-            Vector3[] P = new Vector3[bList.Count];
-            for(int k=0; k<bList.Count; k++) {
-                P[k].X = (float)bList[k].X;
-                P[k].Y = (float)bList[k].Y;
-                P[k].Z = (float)bList[k].Z;
-            }
-
-            Vector3[] D = new Vector3[bList.Count-1];
-            float t = (float)spride;
-            float s = 1.0f - t;
-            for(int k=0; k<(bList.Count-1); k++) {
-                Vector3 m = s * P[k] + t * P[k + 1];
-                D[k] = (float) Math.Sqrt( P[k + 1].LengthSquared()/m.LengthSquared() ) * m - P[k];
-            }
-
-            for (int k = 1; k < bList.Count; k++) {
-                P[k] = P[k - 1] + D[k-1];
-                bList[k].SetXYZ(P[k].X, P[k].Y, P[k].Z);
-            }
+            if (fct != 0)
+                ToSphere2(bList, (float)fct);
 
             return bList;
         }
+
+        public void ToSphere2(List<IBody> bList, float fct) {
+            Vector3[] P = new Vector3[bList.Count];
+            for (int k = 0; k < bList.Count; k++) {
+                P[k] = bList[k].ToV3();
+                P[k].Normalize();
+            }
+
+            int N = bList.Count - 1;
+            RMatrix[] R = new RMatrix[N];
+            for (int k = 0; k < N; k++) {
+                Vector3 axis = Vector3.Cross(P[k+1], P[k]);
+                float cosA = Vector3.Dot(P[k], P[k + 1]);
+                double angle = (float)Math.Acos(Math.Max(-1, Math.Min(1, cosA)));
+                R[k] = RMatrix.RotationAxis(axis, (float)(fct * angle));
+            }
+
+            RMatrix T = RMatrix.Identity;
+            for (int k = 0; k < N; k++) {
+                T = T * R[k];
+                var b = bList[k + 1];
+                var p = Vector3.Transform(b.ToV3(), T);
+                b.SetXYZ(p);
+            }
+        }
+
+
+        public double[] ToSphere3(List<IBody> bList, float fct) {
+            Vector3[] P = new Vector3[bList.Count];
+            for (int k = 0; k < bList.Count; k++) {
+                P[k] = bList[k].ToV3();
+                P[k].Normalize();
+            }
+
+            int N = bList.Count - 1;
+            double[] A = new double[N];
+            for (int k = 0; k < N; k++) {
+                float cosA = Vector3.Dot(P[k], P[k + 1]);
+                A[k] = Math.Acos(Math.Max(-1, Math.Min(1, cosA)))/Math.PI*180;
+            }
+            return A;
+        }
+
 
         #region LoadCif() method
         string pdbTitle = null;

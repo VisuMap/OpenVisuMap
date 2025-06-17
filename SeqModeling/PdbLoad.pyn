@@ -211,7 +211,9 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			vv.Title = f'Unfolding {pId}/{seqLen:,}: {k+1}-th of {len(pList)}'
 
 			# Mark the head red.
-			mds.BodyList[0].Type = 104
+			bList = mds.BodyList
+			bList[0].Type = 105
+			bList[bList.Count-1].Type = 110
 
 			RunMds(mds, info=info, repeats=0)
 
