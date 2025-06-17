@@ -42,8 +42,8 @@ def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling
 	if not exists(dllFile) or stat(dllFile).st_mtime < stat(srcFile).st_mtime:
     	#msbuild = '"C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/MSBuild.exe"'
 		#vv.StartProcess(msbuild, 'SeqModeling.csproj /p:Configuration=Release', False).WaitForExit(1000)
-		#copy(vv.CurrentScriptDirectory + '/bin/Release/' + seqdll, vv.CurrentScriptDirectory)
-		copy(vv.CurrentScriptDirectory + '/bin/Debug/' + seqdll, vv.CurrentScriptDirectory)
+		copy(vv.CurrentScriptDirectory + '/bin/Release/' + seqdll, vv.CurrentScriptDirectory)
+		#copy(vv.CurrentScriptDirectory + '/bin/Debug/' + seqdll, vv.CurrentScriptDirectory)
 	vv.LoadLibrary(dllFile)
 	return New.Instance(className)
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using VisuMap.Script;
 using Vector3 = SharpDX.Vector3;
 using RMatrix = SharpDX.Matrix3x3;
+using Quaternion = SharpDX.Quaternion;
 using System.IO;
 
 namespace VisuMap {
@@ -521,21 +522,15 @@ namespace VisuMap {
                 P[k].Normalize();
             }
 
-            int N = bList.Count - 1;
-            RMatrix[] R = new RMatrix[N];
-            for (int k = 0; k < N; k++) {
-                Vector3 axis = Vector3.Cross(P[k+1], P[k]);
-                float cosA = Vector3.Dot(P[k], P[k + 1]);
-                double angle = (float)Math.Acos(Math.Max(-1, Math.Min(1, cosA)));
-                R[k] = RMatrix.RotationAxis(axis, (float)(fct * angle));
-            }
-
-            RMatrix T = RMatrix.Identity;
-            for (int k = 0; k < N; k++) {
-                T = T * R[k];
-                var b = bList[k + 1];
-                var p = Vector3.Transform(b.ToV3(), T);
-                b.SetXYZ(p);
+            Quaternion T = Quaternion.Identity;
+            for (int k = 1; k < bList.Count; k++) {
+                Vector3 axis = Vector3.Cross(P[k], P[k-1]);
+                double cosA = P[k-1].X * P[k].X + P[k - 1].Y * P[k].Y + P[k - 1].Z * P[k].Z ;
+                double angle = Math.Acos(Math.Max(-1, Math.Min(1, cosA)));
+                var Q = Quaternion.RotationAxis(axis, (float)(fct * angle));
+                T = T * Q;
+                var p = bList[k].ToV3();
+                bList[k].SetXYZ(Vector3.Transform(p, T));
             }
         }
 
