@@ -525,8 +525,7 @@ namespace VisuMap {
             Quaternion T = Quaternion.Identity;
             for (int k = 1; k < bList.Count; k++) {
                 Vector3 axis = Vector3.Cross(P[k], P[k-1]);
-                double cosA = P[k-1].X * P[k].X + P[k - 1].Y * P[k].Y + P[k - 1].Z * P[k].Z ;
-                double angle = Math.Acos(Math.Max(-1, Math.Min(1, cosA)));
+                double angle = Math.Acos(Vector3.Dot(P[k - 1], P[k]));
                 var Q = Quaternion.RotationAxis(axis, (float)(fct * angle));
                 T = T * Q;
                 var p = bList[k].ToV3();

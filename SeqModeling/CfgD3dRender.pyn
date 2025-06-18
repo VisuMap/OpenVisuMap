@@ -1,5 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen P-2D P-Seq P-Web P-ChmX HideIPO MarkHelix MarkBeta MainChain RnaChain 'Open PDB' UniChains Flipping Looping SelectPID S2
-
+#MenuLabels ShowData Scanning ReCreateMap Smoothen P-2D P-Seq P-Web P-ChmX HideIPO MarkHelix MarkBeta MainChain RnaChain 'Open PDB' UniChains Flipping Looping SelectPID
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -49,10 +48,5 @@ match vv.EventSource.Item:
 		LoopingChains(pp, secLen=25)
 	case 'SelectPID':
 		vv.SelectedItems = [MapInfo(pp.Description).pId]
-	case 'S2':
-		for k in range(10):
-			cs.ToSphere2(pp.BodyList, 0.25)
-			pp.RedrawAll()
-			vv.Sleep(500)
 
 

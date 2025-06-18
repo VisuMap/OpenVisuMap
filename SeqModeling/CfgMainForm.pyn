@@ -50,11 +50,11 @@ def GetAAGroup(idx=0):
 		case 22:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
 
-def CreatePMap(pList, vType, epochs=2000):
+def CreatePMap(pList, vType, epochs=2000, exag=4.0):
 	match vType:
 		case 'pMF':  # position-mena-field
 			mp = CreateProteinMap2(pList, repeats=1, vType='pMF', samplingDist=0.0, epochs=epochs,
-				mfL=30, ppl=0.25, staged=True, initExag=4.0, finalExag=1.0)
+				mfL=30, ppl=0.25, staged=True, initExag=exag, finalExag=1.0)
 		case 'pFT':
 			mp = CreateProteinMap2(pList, repeats=1, vType='pFT', samplingDist=0.0, epochs=epochs,
 				waveCount=33, ppl=0.05, initExag=4.0)	
@@ -152,7 +152,7 @@ def MainProc(menuKey):
 				vv.Dataset.AddMap(nm+vt)
 				mp.CopyMap().Close()
 			'''
-			CreatePMap(pList, 'pMF')
+			CreatePMap(pList, 'pMF', exag=2.0)
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
@@ -171,7 +171,9 @@ def MainProc(menuKey):
 				bList = GetSphareDataset(pId, interRp=intRp)
 				#ShowPDB(pId, rp=intRp, eps=0.1, chainNames=GetChainName(pId), includeHA=False)
 				mp = ShowSphare(bList)
-				mp.Description = info.ToStr()				
+				mp.Description = info.ToStr()
+				cs.ToSphere2(mp.BodyList, 0.95)
+				mp.NormalizeView()
 				'''
 				mds = NewMds(New.NumberTable(bList, 3), 
 					epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
