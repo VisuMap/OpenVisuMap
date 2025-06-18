@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps MatchMap P-3D P-3Dx P-3Ds P-Web P-2D P-ChmX P-Open TileAll P-Seq Align
+#MenuLabels ConfigMaps MatchMap IntMaps P-3D P-3Dx P-3Ds P-Web P-2D P-ChmX P-Open TileAll P-Seq Align
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -10,6 +10,13 @@ def HighlightItems():
 		sIds = set(vv.SelectedItems)
 		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])	
 
+def InterpolateAllMaps(atlas, intRp):
+	for item in atlas.Items:
+		mp = item.Open()
+		bList = Interporlate(bsList=mp.BodyList, rp=intRp, eps=0.1)
+		mp.BodyList.Clear()
+		mp.BodyList.AddRange(bList)
+		mp.Close()
 
 def MainProc(menuKey):
 
@@ -23,6 +30,8 @@ def MainProc(menuKey):
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
 	match vv.EventSource.Item:
+		case 'IntMaps':
+			InterpolateAllMaps(pp, 3)
 		case 'ConfigMaps':
 			ConfigAtlasMaps(pp, 1000, 700, gSize=5.0, gOpacity=1.0, iconWidth=None, hiddenSize=4, reset=False)			
 		case 'P-3D':

@@ -72,7 +72,7 @@ def CreatePMap(pList, vType, epochs=2000, exag=4.0):
 	mp.NormalizeView()
 	return mp
 
-def GetSphareDataset(cId, interRp=0):
+def GetSphareDataset(cId, interRp=0, contracting=0):
 	bList = GetChainById(cId)
 	if bList.Count < 3:
 		return None
@@ -81,7 +81,7 @@ def GetSphareDataset(cId, interRp=0):
 	for b in bList: 
 		b.Type = bType
 
-	bList = cs.ToSphere(bList, 0)
+	bList = cs.ToSphere(bList, contracting)
 	
 	if interRp>0:
 		bList = Interporlate(bList, interRp, 0.1)
@@ -165,31 +165,27 @@ def MainProc(menuKey):
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
 			if len(selected) == 1:
-				intRp = 0
+				intRp = 5
 				info = MapInfo()
 				info.pId = pId
-				bList = GetSphareDataset(pId, interRp=intRp)
+				bList = GetSphareDataset(pId, interRp=intRp, contracting=0.8)
 				#ShowPDB(pId, rp=intRp, eps=0.1, chainNames=GetChainName(pId), includeHA=False)
-				mp = ShowSphare(bList)
-				mp.Description = info.ToStr()
-				cs.ToSphere2(mp.BodyList, 0.95)
-				mp.NormalizeView()
-				'''
+				#mp = ShowSphare(bList)
+				#mp.Description = info.ToStr()
 				mds = NewMds(New.NumberTable(bList, 3), 
 					epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
 					zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=1.0, glyphOpacity=1.0)
 				RunMds(mds, info=info, repeats=0)
-				'''
 			else:
 				mds = NewMds(epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
 					zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=6.0, glyphOpacity=1.0)
 				mapStore = NewMapStore('S2.' + atlasName, is3D=False, clearStore=True)			
-				intRp = 5
+				intRp = 0
 				info = MapInfo()
 				info.Mtd = 'S2'
 				info.Set('intRp', intRp)
 				for k, pId in enumerate(selected):				
-					bList = GetSphareDataset(pId, interRp=intRp)
+					bList = GetSphareDataset(pId, interRp=intRp, contracting=0.8)
 					if bList == None:
 						continue
 					mds.SetTrainingData(New.NumberTable(bList, 3))

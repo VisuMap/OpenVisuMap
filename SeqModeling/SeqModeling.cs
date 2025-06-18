@@ -278,7 +278,9 @@ namespace VisuMap {
                     b.Id = secPrefix + secIdx;
                     secIdx++;
                 } else {
-                    int rsIdx = int.Parse(b.Id.Split('.')[0].Substring(1));
+                    int rsIdx = 0;
+                    if( (b.Id[0] == 'A') && (char.IsDigit(b.Id[1])) )
+                        rsIdx = int.Parse(b.Id.Split('.')[0].Substring(1));
                     secPrefix = "i" + chIdx + "."+ rsIdx + ".";
                     secIdx = 0;
                 }
