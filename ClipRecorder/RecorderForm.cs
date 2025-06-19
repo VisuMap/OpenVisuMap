@@ -85,6 +85,9 @@ namespace ClipRecorder {
             ;
         }
 
+        public void SetMouseWheelHandler(string scriptPath) {
+        }
+
         XmlElement PluginRoot {
             get { return app.GetPluginDataNode(0, "ClipRecorder", propMan.NameSpace, true); }
         }
