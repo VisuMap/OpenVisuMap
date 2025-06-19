@@ -179,16 +179,17 @@ def MainProc(menuKey):
 			else:
 				mds = NewMds(epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
 					zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=6.0, glyphOpacity=1.0)
-				mapStore = NewMapStore('S2.' + atlasName, is3D=False, clearStore=True)			
+				atlasName = 'S2.' + atlasName
+				mapStore = NewMapStore(atlasName, is3D=False, clearStore=True)			
 				intRp = 0
-				samplingDist = 1.0
+				samplingDist = 2.0
 				info = MapInfo()
 				info.Mtd = 'S2'
 				info.Set('intRp', intRp)
 				if samplingDist > 0:
-					selected = ss.FlatSampling(vv.Dataset.BodyListForId(selected), samplingDist)
+					selected = ss.FlatSampling(selected, samplingDist)
 				for k, pId in enumerate(selected):				
-					bList = GetSphareDataset(pId, interRp=intRp, contracting=0.975)
+					bList = GetSphareDataset(pId, interRp=intRp, contracting=0.9)
 					if bList == None:
 						continue
 					mds.SetTrainingData(New.NumberTable(bList, 3))
@@ -200,6 +201,7 @@ def MainProc(menuKey):
 				MatchProteinMap(mapStore.atlas, 70)
 				mapStore.Close()
 				mds.Close()
+				New.Atlas(atlasName).Show()
 
 
 MainProc(vv.EventSource.Item)
