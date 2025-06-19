@@ -31,7 +31,7 @@ def MainProc(menuKey):
 
 	match vv.EventSource.Item:
 		case 'IntMaps':
-			InterpolateAllMaps(pp, 3)
+			InterpolateAllMaps(pp, 5)
 		case 'ConfigMaps':
 			ConfigAtlasMaps(pp, 1000, 700, gSize=5.0, gOpacity=1.0, iconWidth=None, hiddenSize=4, reset=False)			
 		case 'P-3D':

@@ -148,7 +148,6 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 
 	if samplingDist > 0:
 		pList = ss.FlatSampling(vv.Dataset.BodyListForId(pList), samplingDist)
-		pList = [b.Id for b in pList]
 		vv.Title = f'Sampled {len(pList)} chains!'
 	else:
 		vv.Title = 'Sampled all chains'

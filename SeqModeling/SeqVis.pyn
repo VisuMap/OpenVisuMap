@@ -61,7 +61,7 @@ public void SwapHiddenBodies(List<IBody> bsList) {
 		b.Hidden = !b.Hidden;
 }
 
-public IList<IBody> FlatSampling(List<IBody> bsList, double minDist) {
+public List<string> FlatSampling(List<IBody> bsList, double minDist) {
 	List<IBody> sampling = New.BodyList();
 	double limit = minDist * minDist;
 	foreach(IBody b in bsList) {
@@ -80,7 +80,7 @@ public IList<IBody> FlatSampling(List<IBody> bsList, double minDist) {
 		if ( ! isSampled )
 			sampling.Add(b);
 	}
-	return sampling;
+	return sampling.Select(b=>b.Id).ToList();
 }
 
 public List<IBody> SetBodyType(List<IBody> bsList, string pId, int type) {
@@ -410,7 +410,6 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 
 	if samplingDist > 0:
 		pList = ss.FlatSampling(vv.Dataset.BodyListForId(pList), samplingDist)
-		pList = [b.Id for b in pList]
 		vv.Title = f'Sampled {len(pList)} chains!'
 		if vv.ModifierKeys.ControlPressed:
 			vv.SelectedItems = pList
