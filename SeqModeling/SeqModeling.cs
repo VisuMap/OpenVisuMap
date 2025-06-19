@@ -512,12 +512,12 @@ namespace VisuMap {
             bList.RemoveAt(bList.Count - 1);
 
             if (fct != 0)
-                ToSphere2(bList, (float)fct);
+                ShrikSphere(bList, (float)fct);
 
             return bList;
         }
 
-        public void ToSphere2(List<IBody> bList, float fct) {
+        public void ShrikSphere(List<IBody> bList, float fct) {
             Vector3[] P = new Vector3[bList.Count];
             for (int k = 0; k < bList.Count; k++) {
                 P[k] = bList[k].ToV3();
@@ -534,24 +534,6 @@ namespace VisuMap {
                 bList[k].SetXYZ(Vector3.Transform(p, T));
             }
         }
-
-
-        public double[] ToSphere3(List<IBody> bList, float fct) {
-            Vector3[] P = new Vector3[bList.Count];
-            for (int k = 0; k < bList.Count; k++) {
-                P[k] = bList[k].ToV3();
-                P[k].Normalize();
-            }
-
-            int N = bList.Count - 1;
-            double[] A = new double[N];
-            for (int k = 0; k < N; k++) {
-                float cosA = Vector3.Dot(P[k], P[k + 1]);
-                A[k] = Math.Acos(Math.Max(-1, Math.Min(1, cosA)))/Math.PI*180;
-            }
-            return A;
-        }
-
 
         #region LoadCif() method
         string pdbTitle = null;
