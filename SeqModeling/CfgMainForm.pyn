@@ -165,31 +165,37 @@ def MainProc(menuKey):
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
 			if len(selected) == 1:
-				intRp = 5
 				info = MapInfo()
 				info.pId = pId
-				bList = GetSphareDataset(pId, interRp=intRp, contracting=0.8)
+				bList = GetSphareDataset(pId, interRp=0, contracting=0.9)
 				#ShowPDB(pId, rp=intRp, eps=0.1, chainNames=GetChainName(pId), includeHA=False)
-				#mp = ShowSphare(bList)
-				#mp.Description = info.ToStr()
+				#ShowSphare(bList)
 				mds = NewMds(New.NumberTable(bList, 3), 
 					epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
 					zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=1.0, glyphOpacity=1.0)
 				RunMds(mds, info=info, repeats=0)
+				bList = Interporlate(mds.BodyList, rp=5, eps=0.1)
+				for b in bList:
+					b.Hidden = True if b.Id[0] == 'i' else False
+				mp = New.MapSnapshot(bList).Show()
+				mp.HiddenBodySize = 3
+				mp.NormalizeView()
+				mp.Description = info.ToStr()
+				mds.Close()
 			else:
 				mds = NewMds(epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
 					zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=6.0, glyphOpacity=1.0)
 				atlasName = 'S2.' + atlasName
 				mapStore = NewMapStore(atlasName, is3D=False, clearStore=True)			
-				intRp = 0
-				samplingDist = 2.0
+				contractingF =0.9
+				samplingDist = 1.0
 				info = MapInfo()
 				info.Mtd = 'S2'
-				info.Set('intRp', intRp)
+				info.Set('cF', contractingF)
 				if samplingDist > 0:
 					selected = ss.FlatSampling(selected, samplingDist)
 				for k, pId in enumerate(selected):				
-					bList = GetSphareDataset(pId, interRp=intRp, contracting=0.9)
+					bList = GetSphareDataset(pId, interRp=0, contracting=contractingF)
 					if bList == None:
 						continue
 					mds.SetTrainingData(New.NumberTable(bList, 3))

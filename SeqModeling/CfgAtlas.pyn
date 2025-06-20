@@ -11,7 +11,8 @@ def HighlightItems():
 		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])	
 
 def InterpolateAllMaps(atlas, intRp):
-	for item in atlas.Items:
+	itemList = atlas.Items if atlas.SelectedItems.Count == 0 else atlas.SelectedItems
+	for item in itemList:
 		mp = item.Open()
 		bList = Interporlate(bsList=mp.BodyList, rp=intRp, eps=0.1)
 		mp.BodyList.Clear()
