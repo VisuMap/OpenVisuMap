@@ -512,12 +512,12 @@ namespace VisuMap {
             bList.RemoveAt(bList.Count - 1);
 
             if (fct != 0)
-                ShrikSphere(bList, (float)fct);
+                ShrinkSphere(bList, (float)fct);
 
             return bList;
         }
 
-        public void ShrikSphere(List<IBody> bList, float fct) {
+        public void ShrinkSphere(List<IBody> bList, float fct) {
             Vector3[] P = new Vector3[bList.Count];
             for (int k = 0; k < bList.Count; k++) {
                 P[k] = bList[k].ToV3();

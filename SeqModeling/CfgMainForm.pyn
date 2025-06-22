@@ -92,7 +92,7 @@ def GetSphareDataset(cId, interRp=0, contracting=0):
 
 	return bList
 
-def ShowSphare(bList):
+def ShowSphere(bList):
 	mp = New.Map3DView(bList)
 	mp.ReadOnly = True
 	mp.ShowPerformance = False
@@ -119,7 +119,7 @@ def MainProc(menuKey):
 		case 'P-2Dx':
 			if atlasName != None: 
 				atlasName += 'x'
-			UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False,  wholeComplex=True, samplingDist=3.0,
+			UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False,  wholeComplex=True, samplingDist=1.0,
 				initExag=5.0, ppl=0.15, atName=atlasName, stretch=2.0, clusterStretch=1.0, iconWidth=50, smtRatio=0.0)
 		case 'P-3D':
 			if atlasName != None: atlasName += '-3D'
@@ -145,14 +145,12 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
-			'''
 			nm = vv.Map.Name
 			for vt in ['sMF', 'sFT', 'pMF', 'pFT']:
 				mp = CreatePMap(pList, vt)
 				vv.Dataset.AddMap(nm+vt)
 				mp.CopyMap().Close()
-			'''
-			CreatePMap(pList, 'pMF', exag=2.0)
+			#CreatePMap(pList, 'pMF', exag=4.0)
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
@@ -169,7 +167,7 @@ def MainProc(menuKey):
 				info.pId = pId
 				bList = GetSphareDataset(pId, interRp=0, contracting=0.9)
 				#ShowPDB(pId, rp=intRp, eps=0.1, chainNames=GetChainName(pId), includeHA=False)
-				#ShowSphare(bList)
+				#ShowSphere(bList)
 				mds = NewMds(New.NumberTable(bList, 3), 
 					epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
 					zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=1.0, glyphOpacity=1.0)

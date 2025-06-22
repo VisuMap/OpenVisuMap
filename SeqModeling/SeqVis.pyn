@@ -179,7 +179,7 @@ class AtlasMapStore():
 	def __init__(self, atName, tgtViewName, clearAtlas):
 		self.atlas = New.Atlas(atName)
 		self.atlas.EventEnabled = True
-		self.atlas.OnItemsSelected = "@ResetAtlas()"
+		self.atlas.OnItemsSelected = "ResetAtlas()"
 		self.atlas.HiddenItemSize = 3
 		if clearAtlas:
 			self.atlas.Clear()
