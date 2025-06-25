@@ -12,9 +12,18 @@ namespace VisuMap {
         public static Vector3 ToV3(this IBody b) {
             return new Vector3((float)b.X, (float)b.Y, (float)b.Z);
         }
+        public static Vector3 ToV3(this IList<double> v) {
+            return new Vector3((float)v[0], (float)v[1], (float)v[2]);
+        }
 
         public static void SetXYZ(this IBody b, Vector3 p) {
             b.SetXYZ(p.X, p.Y, p.Z);
+        }
+
+        public static void SetXYZ(this IList<double> v, Vector3 p) {
+            v[0] = p.X;
+            v[1] = p.Y;
+            v[2] = p.Z;
         }
     }
 
@@ -221,6 +230,33 @@ namespace VisuMap {
             for (int row = 0; row < rows; row++)
             for (int col = 0; col < 3; col++)
                 M[row][col] /= weights[row];
+        }
+
+        public void PcaNormalize2D(INumberTable nt) {
+            if (nt.Rows <= 3)
+                return;
+            double[][] M = nt.Matrix as double[][];
+            int rows = M.Length;
+            MathUtil.CenteringInPlace(M);
+            double[][] E = MathUtil.DoPca(M, 2);
+            MT.ForEach(M, R => {
+                double x = R[0] * E[0][0] + R[1] * E[0][1] + R[2] * E[0][2];
+                double y = R[0] * E[1][0] + R[1] * E[1][1] + R[2] * E[1][2];
+                R[0] = x;
+                R[1] = y;
+            });
+
+            // Remove the last 3-th column
+            M = M.Select(R => new double[] { R[0], R[1] }).ToArray();
+
+            bool[] flip = new bool[2];
+            flip[0] = M.Take(rows).Select(R => R[0]).Sum() > 0;
+            flip[1] = M.Take(rows).Select(R => R[1]).Sum() > 0;
+            MT.ForEach(M, R => {
+                for (int col = 0; col < 2; col++)
+                    if (flip[col])
+                        R[col] = -R[col];
+            });
         }
 
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
@@ -467,6 +503,23 @@ namespace VisuMap {
             }
         }
 
+        public void MeanFieldTrans2D(INumberTable dt, double[] R) {
+            int L = R.Length / 2; // number of sections
+            int secLen = dt.Rows / L;  // section length
+            int tailIdx = dt.Rows % L;   // where the tail sections begins. Tail sections are shorter by one point.
+            int headSize = tailIdx * L;      // The size in aa of the head section, where section size is L+1.
+            if (dt.Rows < L)
+                headSize = dt.Rows;
+            Array.Clear(R, 0, R.Length);
+            for (int k = 0; k < dt.Rows; k++) {
+                double[] Mrow = dt.Matrix[k] as double[];
+                // secIdx is the index of section where k-th aa is in.
+                int secIdx = (k < headSize) ? k / (secLen + 1) : (k - tailIdx) / secLen;
+                R[2*secIdx] += Mrow[0];
+                R[2*secIdx + 1] += Mrow[1];
+            }
+        }
+
         public void SmoothenBodyList(IList<IBody> bs) {
             var B = New.NumberTable(bs, 3).Matrix;
             for (int k = 1; k < (bs.Count - 1); k++) {
@@ -517,13 +570,41 @@ namespace VisuMap {
             return bList;
         }
 
+        public void ToSphere(INumberTable nt, double fct = 0.0) {
+            for (int k = 0; k < (nt.Rows - 1); k++) {
+                double[] R0 = nt.Matrix[k] as double[];
+                double[] R1 = nt.Matrix[k + 1] as double[];
+                for (int col = 0; col < 3; col++)
+                    R0[col] = R1[col] - R0[col];
+            }
+            nt.RemoveRows(new List<int>() { nt.Rows - 1 });
+            if (fct != 0.0)
+                ShrinkSphere(nt, fct);
+        }
+
+        public void ShrinkSphere(INumberTable nt, double fct) {
+            Vector3[] P = new Vector3[nt.Rows];
+            for (int k = 0; k < nt.Rows; k++) {
+                P[k] = nt.Matrix[k].ToV3();
+                P[k].Normalize();
+            }
+            Quaternion T = Quaternion.Identity;
+            for (int k = 1; k < nt.Rows; k++) {
+                Vector3 axis = Vector3.Cross(P[k], P[k - 1]);
+                double angle = Math.Acos(Vector3.Dot(P[k - 1], P[k]));
+                var Q = Quaternion.RotationAxis(axis, (float)(fct * angle));
+                T = T * Q;
+                var p = nt.Matrix[k].ToV3();
+                nt.Matrix[k].SetXYZ(Vector3.Transform(p, T));
+            }
+        }
+
         public void ShrinkSphere(List<IBody> bList, float fct) {
             Vector3[] P = new Vector3[bList.Count];
             for (int k = 0; k < bList.Count; k++) {
                 P[k] = bList[k].ToV3();
                 P[k].Normalize();
             }
-
             Quaternion T = Quaternion.Identity;
             for (int k = 1; k < bList.Count; k++) {
                 Vector3 axis = Vector3.Cross(P[k], P[k-1]);

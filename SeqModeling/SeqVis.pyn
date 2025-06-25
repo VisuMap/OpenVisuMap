@@ -360,6 +360,19 @@ def GetMeanFieldTrans(pList, L=20):
 		cs.MeanFieldTrans(nt, D.Matrix[k])
 	return D
 
+def GetS2MF(pList, L=20):
+	bList = vv.Dataset.BodyListForId(pList)
+	D = New.NumberTable(bList, L*2)
+	for k, pId in enumerate(pList):
+		if (k>0) and (k%200 == 0):
+			vv.Title = f'Reading: {k}:{pId}'
+			vv.DoEvents()
+		nt = LoadMainChain(pId)
+		cs.ToSphere(nt, 0.9)
+		cs.PcaNormalize2D(nt)
+		cs.MeanFieldTrans2D(nt, D.Matrix[k])
+	return D	
+
 def GetFourierTrans(pList, waveLen, waveCount):
 	# The first component of the FT is the sume of all components which
 	# will be zero because of the centerization before apply FT. Thus, we remove
@@ -405,7 +418,7 @@ def GetMFSeq(pList, aaGroups, mfL):
 
 
 def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, ppl=0.05,
-		vType='sMF', mfL=50, aaGroups='A', waveLen=1024, waveCount=33, 
+		vType='sMF', mfL=50, s2L= 50, aaGroups='A', waveLen=1024, waveCount=33, 
 		staged=False, repeats=0, samplingDist=0):
 	pTable = AssertProteinTable()	
 
@@ -425,6 +438,8 @@ def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.
 		dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
 	elif vType == 'sMF': 
 		dt = GetMFSeq(pList, aaGroups, mfL)
+	elif vType == 'rMF':
+		dt = GetS2MF(pList, L=s2L)
 	else:
 		vv.Message('Invalid vectorization type: ' + vType)
 		return

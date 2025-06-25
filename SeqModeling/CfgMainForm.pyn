@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds Align P-S2
+#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds Align P-S2 P-Map2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -52,22 +52,25 @@ def GetAAGroup(idx=0):
 
 def CreatePMap(pList, vType, epochs=2000, exag=4.0):
 	match vType:
-		case 'pMF':  # position-mena-field
+		case 'pMF':  # position-mean-field
 			mp = CreateProteinMap2(pList, repeats=1, vType='pMF', samplingDist=0.0, epochs=epochs,
-				mfL=30, ppl=0.25, staged=True, initExag=exag, finalExag=1.0)
+				mfL=30, ppl=0.05, initExag=exag, finalExag=1.0)
 		case 'pFT':
 			mp = CreateProteinMap2(pList, repeats=1, vType='pFT', samplingDist=0.0, epochs=epochs,
 				waveCount=33, ppl=0.05, initExag=4.0)	
 		case 'sFT': 
 			mp = CreateProteinMap2(pList, repeats=1, vType='sFT', samplingDist=0.0, epochs=epochs,
-				aaGroups=GetAAGroup(20), ppl=0.25, staged=True, initExag=6.0, finalExag=0.9)
+				aaGroups=GetAAGroup(20), ppl=0.05, initExag=6.0, finalExag=0.9)
 		case 'sMF':
 			mp = CreateProteinMap2(pList, repeats=1, vType='sMF', samplingDist=0.0, epochs=epochs,
-				aaGroups=GetAAGroup(20), mfL=10, ppl=0.25, staged=True, initExag=6.0, finalExag=0.8)
+				aaGroups=GetAAGroup(20), mfL=10, ppl=0.05, initExag=6.0, finalExag=0.8)
+		case 'rMF':  # position-mean-field
+			mp = CreateProteinMap2(pList, repeats=1, vType='rMF', samplingDist=0.0, epochs=epochs,
+				mfL=30, ppl=0.05, initExag=exag, finalExag=1.0)
 		case 'x':
 			for aaG in GetAAGroup(0).split('|'):
 				mp = CreateProteinMap2(pList, repeats=1, vType='sMF', samplingDist=0.0, epochs=epochs,
-					aaGroups=aaG, mfL=10, ppl=0.25, staged=True, initExag=6.0, finalExag=0.8)
+					aaGroups=aaG, mfL=10, ppl=0.05, initExag=6.0, finalExag=0.8)
 	mp.Title = mp.Title + f':  {vType}'
 	mp.NormalizeView()
 	return mp
@@ -76,20 +79,16 @@ def GetSphareDataset(cId, interRp=0, contracting=0):
 	bList = GetChainById(cId)
 	if bList.Count < 3:
 		return None
-
 	bType = vv.Dataset.BodyForId(cId).Type
 	for b in bList: 
 		b.Type = bType
-
 	bList = cs.ToSphere(bList, contracting)
-	
 	if interRp>0:
 		bList = Interporlate(bList, interRp, 0.1)
 		for b in bList: 
 			b.Hidden = b.Id.startswith('i')
 	bList[0].Type = 105
 	bList[bList.Count-1].Type = 110
-
 	return bList
 
 def ShowSphere(bList):
@@ -146,11 +145,11 @@ def MainProc(menuKey):
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
 			nm = vv.Map.Name
-			for vt in ['sMF', 'sFT', 'pMF', 'pFT']:
-				mp = CreatePMap(pList, vt)
+			vList = np.array(['pMF', 'pFT', 'sMF', 'sFT', 'rMF'])
+			for vt in vList[[4]]:
+				mp = CreatePMap(pList, vt, exag=4.0, epochs=4000)
 				vv.Dataset.AddMap(nm+vt)
 				mp.CopyMap().Close()
-			#CreatePMap(pList, 'pMF', exag=4.0)
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
@@ -206,7 +205,13 @@ def MainProc(menuKey):
 				mapStore.Close()
 				mds.Close()
 				New.Atlas(atlasName).Show()
-
+		case 'P-Map2':
+			nt = LoadMainChain(pId)
+			cs.ToSphere(nt, 0.9)
+			cs.PcaNormalize2D(nt)
+			mp = New.Map3DView(New.BodyList(nt))
+			mp.Show().CentralizeView(True)
+	
 
 MainProc(vv.EventSource.Item)
 
