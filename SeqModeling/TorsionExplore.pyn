@@ -1,0 +1,66 @@
+vv.Import('CfgMainForm.pyn')
+
+def NotExits(vw):
+	return (vw == None) or vw.TheForm.IsDisposed
+
+def SphereUnfold(spView, cf):
+	global tgtView
+	cf = max(0, min(1, cf))
+	bList = New.BodyListClone(spView.BodyList)
+	cs.ShrinkSphere(bList, cf)
+	bs = New.BodyList()
+	bx = New.Body('A999.0')
+	bx.Name = bList[0].Name
+	bx.Type = 0
+	bs.Add(bx.Clone())
+	for b in bList:
+		bx.Add(b.X, b.Y, b.Z)
+		bx.Name = b.Name
+		bx.Id = b.Id
+		bx.Type = 0
+		bs.Add(bx.Clone())
+	bs = Interporlate(bs, rp=5, eps=0.1)
+	bs[0].Type = 105
+	bs[bs.Count-1].Type = 110
+	if NotExits(tgtView):
+		tgtView = New.Map3DView(New.BodyListClone(bs)).Show()
+		tgtView.CentralizeView()
+		tgtView.ShowBoundingBox = False
+	tgtView.MoveBodiesTo(bs, 15, 50, 0, 0)
+
+def ShrinkSphere(spView, cf):
+	global tgtView	
+	cf = max(0, min(1, cf))
+	bList = New.BodyListClone(spView.BodyList)
+	cs.ShrinkSphere(bList, cf)
+	if NotExits(tgtView):
+		tgtView = spView.NewWindow()
+		tgtView.ShowBoundingBox = False
+	tgtView.MoveBodiesTo(bList, 10, 50, 0, 0)
+
+def DisplaySphere():
+	global tgtView
+	tgtView = None
+	pId = vv.Map.SelectedItems[0]
+	bList = GetSphareDataset(pId, interRp=0, contracting=0)
+	return ShowSphere(bList), pId
+
+if pp.Name == 'MainForm':
+	spView, pId = DisplaySphere()
+
+K = 100
+tstFct = ShrinkSphere if vv.ModifierKeys.ControlPressed else SphereUnfold
+for k in range(2*K+1):
+	cf = 0.01*(k if k<K else 2*K-k)
+	tstFct(spView, cf)
+	vv.DoEvents()
+	tgtView.Title = f'CF: {k}: {cf}'
+	if (k % 17 == 0) and (tstFct == SphereUnfold):
+		tgtView.CentralizeView(False)
+	if vv.ModifierKeys.AltPressed: 
+		break
+
+info = MapInfo()
+info.pId = pId
+info.Set('cF', cf)
+tgtView.Description = info.ToStr()	

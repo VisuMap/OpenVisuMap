@@ -249,14 +249,17 @@ namespace VisuMap {
             // Remove the last 3-th column
             M = M.Select(R => new double[] { R[0], R[1] }).ToArray();
 
-            bool[] flip = new bool[2];
-            flip[0] = M.Take(rows).Select(R => R[0]).Sum() > 0;
-            flip[1] = M.Take(rows).Select(R => R[1]).Sum() > 0;
-            MT.ForEach(M, R => {
-                for (int col = 0; col < 2; col++)
-                    if (flip[col])
-                        R[col] = -R[col];
-            });
+            int N = Math.Min(100, rows / 2);
+            if (N > 1) {
+                bool[] flip = new bool[2];
+                flip[0] = M.Take(N).Select(R => R[0]).Sum() > 0;
+                flip[1] = M.Take(N).Select(R => R[1]).Sum() > 0;
+                MT.ForEach(M, R => {
+                    for (int col = 0; col < 2; col++)
+                        if (flip[col])
+                            R[col] = -R[col];
+                });
+            }
         }
 
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
