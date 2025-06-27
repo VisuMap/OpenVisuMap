@@ -369,8 +369,8 @@ def GetS2MF(pList, L, sf):
 			vv.DoEvents()
 		nt = LoadMainChain(pId)
 		cs.ToSphere(nt, sf)
-		cs.PcaNormalize(nt)
-		cs.MeanFieldTrans(nt, D.Matrix[k])
+		cs.PcaNormalize2D(nt)
+		cs.MeanFieldTrans2D(nt, D.Matrix[k])
 	return D	
 
 def GetFourierTrans(pList, waveLen, waveCount):

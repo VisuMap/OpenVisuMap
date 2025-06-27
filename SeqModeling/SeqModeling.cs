@@ -250,7 +250,7 @@ namespace VisuMap {
             M = M.Select(R => new double[] { R[0], R[1] }).ToArray();
 
             int N = Math.Min(100, rows / 2);
-            if (N > 1) {
+            if (N >= 1) {
                 bool[] flip = new bool[2];
                 flip[0] = M.Take(N).Select(R => R[0]).Sum() > 0;
                 flip[1] = M.Take(N).Select(R => R[1]).Sum() > 0;

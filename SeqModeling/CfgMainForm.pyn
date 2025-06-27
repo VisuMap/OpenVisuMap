@@ -66,7 +66,7 @@ def CreatePMap(pList, vType, epochs=2000, exag=4.0):
 				aaGroups=GetAAGroup(20), mfL=10, ppl=0.05, initExag=6.0, finalExag=0.8)
 		case 'rMF':  # position-mean-field
 			mp = CreateProteinMap2(pList, repeats=1, vType='rMF', samplingDist=0.0, epochs=epochs,
-				mfL=30, ppl=0.05, initExag=exag, finalExag=1.0)
+				mfL=30, ppl=0.05, initExag=exag, finalExag=1.0, shrinkF=0.5)
 		case 'x':
 			for aaG in GetAAGroup(0).split('|'):
 				mp = CreateProteinMap2(pList, repeats=1, vType='sMF', samplingDist=0.0, epochs=epochs,
@@ -147,7 +147,7 @@ def MainProc(menuKey):
 			nm = vv.Map.Name
 			vList = np.array(['pMF', 'pFT', 'sMF', 'sFT', 'rMF'])
 			for vt in vList[[4]]:
-				mp = CreatePMap(pList, vt, exag=4.0, epochs=4000)
+				mp = CreatePMap(pList, vt, exag=3.0, epochs=4000)
 				vv.Dataset.AddMap(nm+vt)
 				mp.CopyMap().Close()
 		case 'TypeProtein':
