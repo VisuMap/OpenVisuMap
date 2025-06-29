@@ -120,8 +120,8 @@ def MainProc(menuKey):
 		case 'P-Map':
 			nm = vv.Map.Name
 			vList = np.array(['pMF', 'pFT', 'sMF', 'sFT', 'rMF'])
-			for vt in vList:
-				mp = CreatePMap(pList, vt, exag=5.0, epochs=2000)
+			for vt in vList[[0]]:
+				mp = CreatePMap(pList, vt, exag=5.0, epochs=4000)
 				vv.Dataset.AddMap(nm+vt)
 				mp.CopyMap().Close()
 		case 'TypeProtein':

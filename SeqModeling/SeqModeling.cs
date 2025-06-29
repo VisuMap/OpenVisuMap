@@ -235,6 +235,7 @@ namespace VisuMap {
             int rows = M.Length;
             MathUtil.CenteringInPlace(M);
             double[][] E = MathUtil.DoPca(M, 2);
+
             MT.ForEach(M, R => {
                 double x = R[0] * E[0][0] + R[1] * E[0][1] + R[2] * E[0][2];
                 double y = R[0] * E[1][0] + R[1] * E[1][1] + R[2] * E[1][2];
@@ -244,20 +245,13 @@ namespace VisuMap {
 
             // Remove the last 3-th column
             M = M.Select(R => new double[] { R[0], R[1] }).ToArray();
-
-            int N = Math.Min(100, rows / 2);
-            if (N >= 1) {
-                bool[] flip = new bool[2];
-                flip[0] = M.Take(N).Select(R => R[0]).Sum() > 0;
-                flip[1] = M.Take(N).Select(R => R[1]).Sum() > 0;
-                MT.ForEach(M, R => {
-                    for (int col = 0; col < 2; col++)
-                        if (flip[col])
+            int N = M.Length / 2;
+            if (N>0)
+                for (int col=0; col<2; col++)
+                    if (M.Take(N).Select(R => R[col]*Math.Abs(R[col])).Sum() < 0) 
+                        foreach (var R in M)
                             R[col] = -R[col];
-                });
-            }
         }
-
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
             if ((bList.Count <= 1) || (repeats == 0))
                 return bList;
@@ -497,23 +491,32 @@ namespace VisuMap {
                 R[secIdx + 1] += Mrow[1];
                 R[secIdx + 2] += Mrow[2];
             }
+            /*
+            double s = R.Take(3*L/2).Select(v => v * Math.Abs(v)).Sum();
+            if (s < 0)
+                for (int k = 0; k < R.Length; k++)
+                    R[k] = -R[k];
+             */
         }
 
         public void MeanFieldTrans2D(INumberTable dt, double[] R) {
             int L = R.Length / 2; // number of sections
             int secLen = dt.Rows / L;  // section length
-            int tailIdx = dt.Rows % L;   // where the tail sections begins. Tail sections are shorter by one point.
-            int headSize = tailIdx * L;      // The size in aa of the head section, where section size is L+1.
-            if (dt.Rows < L)
-                headSize = dt.Rows;
+            if (dt.Rows % L != 0)
+                secLen++;
             Array.Clear(R, 0, R.Length);
             for (int k = 0; k < dt.Rows; k++) {
                 double[] Mrow = dt.Matrix[k] as double[];
-                // secIdx is the index of section where k-th aa is in.
-                int secIdx = (k < headSize) ? k / (secLen + 1) : (k - tailIdx) / secLen;
+                int secIdx = k / secLen;
                 R[2*secIdx] += Mrow[0];
                 R[2*secIdx + 1] += Mrow[1];
             }
+
+            // Normalizing
+            double s = R.Take(L).Select(v=>v*Math.Abs(v)).Sum();
+            if (s < 0)
+                for (int k = 0; k < R.Length; k++)
+                    R[k] = -R[k];
         }
 
         public void SmoothenBodyList(IList<IBody> bs) {
