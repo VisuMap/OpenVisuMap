@@ -54,7 +54,6 @@ namespace VisuMap {
         }        
     }
 
-
     public class SeqModeling {
         IVisuMap vv;
         INew New;
@@ -118,11 +117,8 @@ namespace VisuMap {
                 return;
             int N = bList.Count;
             Vector3[] P = new Vector3[N];
-            for (int k = 0; k < N; k++) {
-                P[k].X = (float)bList[k].X;
-                P[k].Y = (float)bList[k].Y;
-                P[k].Z = (float)bList[k].Z;
-            }
+            for (int k = 0; k < N; k++)
+                P[k] = bList[k].ToV3();
             Vector3[] Mean = new Vector3[N - 2];
             float c = -(float)smoothenRatio;
             for (int rp=0; rp<repeats; rp++) {
@@ -132,7 +128,7 @@ namespace VisuMap {
                     P[k+1] += c * (P[k+1] - Mean[k]);
             }
             for(int k=1; k<(N-1); k++)
-                bList[k].SetXYZ(P[k].X, P[k].Y, P[k].Z);
+                bList[k].SetXYZ(P[k]);
         }
 
         public bool LocalSmoothen2(double[][] M, double smoothenRatio, int repeats = 8) {
@@ -366,7 +362,6 @@ namespace VisuMap {
             return New.NumberTable(D.Select(v => v.Vector).ToArray());            
         }
 
-
         // Returns a dictionary that maps aa to their aa-cluster indexes.
         Dictionary<char, int> Cluster2Index(string aaGroups) {
             string[] cList = aaGroups.Split('|');
@@ -377,7 +372,6 @@ namespace VisuMap {
             return P;
         }
 
- 
         Dictionary<char, List<int>> Cluster2IdxList(string aaGroups) {
             string[] cList = aaGroups.Split('|');
             var P = new Dictionary<char, List<int>>();
@@ -420,7 +414,6 @@ namespace VisuMap {
             }
             return New.NumberTable(vList);
         }
-
 
         public void FourierTrans(INumberTable tm, INumberTable dt, double[] R) {
             // DO matrix multiplication dt * tm where dt and tm are 

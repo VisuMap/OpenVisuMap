@@ -1197,7 +1197,7 @@ def ResetAtlas():
 		return
 	mk = vv.ModifierKeys
 	sn=pp.SelectedItems.Count
-	if mk.AltPressed or mk.ControlPressed or (sn>0 and sn<6):
+	if mk.AltPressed or mk.ControlPressed or (sn<6):
 		return
 	pp.ResetView()
 

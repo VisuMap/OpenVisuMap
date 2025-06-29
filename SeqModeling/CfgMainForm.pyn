@@ -1,6 +1,7 @@
-#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds Align P-S2 P-Map2
+#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds Align P-S2 S2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
+vv.Import('SphericalProj.pyn')
 
 def SortByPosX(idList):
 	idList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
@@ -66,7 +67,7 @@ def CreatePMap(pList, vType, epochs=2000, exag=4.0):
 				aaGroups=GetAAGroup(20), mfL=10, ppl=0.05, initExag=6.0, finalExag=0.8)
 		case 'rMF':  # position-mean-field
 			mp = CreateProteinMap2(pList, repeats=1, vType='rMF', samplingDist=0.0, epochs=epochs,
-				mfL=30, ppl=0.05, initExag=exag, finalExag=1.0, shrinkF=0.5)
+				mfL=30, ppl=0.05, initExag=exag, finalExag=1.0, shrinkF=0.9)
 		case 'x':
 			for aaG in GetAAGroup(0).split('|'):
 				mp = CreateProteinMap2(pList, repeats=1, vType='sMF', samplingDist=0.0, epochs=epochs,
@@ -75,33 +76,6 @@ def CreatePMap(pList, vType, epochs=2000, exag=4.0):
 	mp.NormalizeView()
 	return mp
 
-def GetSphareDataset(cId, interRp=0, contracting=0):
-	bList = GetChainById(cId)
-	if bList.Count < 3:
-		return None
-	bType = vv.Dataset.BodyForId(cId).Type
-	for b in bList: 
-		b.Type = bType
-	bList = cs.ToSphere(bList, contracting)
-	if interRp>0:
-		bList = Interporlate(bList, interRp, 0.1)
-		for b in bList: 
-			b.Hidden = b.Id.startswith('i')
-	bList[0].Type = 105
-	bList[bList.Count-1].Type = 110
-	return bList
-
-def ShowSphere(bList):
-	mp = New.Map3DView(bList)
-	mp.ReadOnly = True
-	mp.ShowPerformance = False
-	mp.ShowBoundingBox = True
-	mp.MapDepth = 0.5*(mp.Width+mp.Height)
-	mp.GlyphSize = 3
-	mp.HiddenBodySize = 1
-	mp.Show()
-	mp.CentralizeView()
-	return mp
 
 def MainProc(menuKey):
 	selected = list(vv.Map.SelectedItems)
@@ -124,7 +98,7 @@ def MainProc(menuKey):
 			if atlasName != None: atlasName += '-3D'
 			SortByPosX(pList)
 			justMainChain = vv.ModifierKeys.ControlPressed
-			ShowProteinList(pList, mainChain=justMainChain, includeHA=False, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
+			ShowProteinList(pList, mainChain=justMainChain, includeHA=False, rp=5, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
 		case 'P-3Dx':
 			for pId in pList:
 				mp = ShowPDB(pId, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0)
@@ -146,8 +120,8 @@ def MainProc(menuKey):
 		case 'P-Map':
 			nm = vv.Map.Name
 			vList = np.array(['pMF', 'pFT', 'sMF', 'sFT', 'rMF'])
-			for vt in vList[[4]]:
-				mp = CreatePMap(pList, vt, exag=3.0, epochs=4000)
+			for vt in vList:
+				mp = CreatePMap(pList, vt, exag=5.0, epochs=2000)
 				vv.Dataset.AddMap(nm+vt)
 				mp.CopyMap().Close()
 		case 'TypeProtein':
@@ -164,7 +138,7 @@ def MainProc(menuKey):
 			if len(selected) == 1:
 				info = MapInfo()
 				info.pId = pId
-				bList = GetSphareDataset(pId, interRp=0, contracting=0.9)
+				bList = GetSphereDataset(pId, interRp=0, contracting=0.9)
 				#ShowPDB(pId, rp=intRp, eps=0.1, chainNames=GetChainName(pId), includeHA=False)
 				#ShowSphere(bList)
 				mds = NewMds(New.NumberTable(bList, 3), 
@@ -192,7 +166,7 @@ def MainProc(menuKey):
 				if samplingDist > 0:
 					selected = ss.FlatSampling(selected, samplingDist)
 				for k, pId in enumerate(selected):				
-					bList = GetSphareDataset(pId, interRp=0, contracting=contractingF)
+					bList = GetSphereDataset(pId, interRp=0, contracting=contractingF)
 					if bList == None:
 						continue
 					mds.SetTrainingData(New.NumberTable(bList, 3))
@@ -205,17 +179,32 @@ def MainProc(menuKey):
 				mapStore.Close()
 				mds.Close()
 				New.Atlas(atlasName).Show()
-		case 'P-Map2':
-			nt = LoadMainChain(pId)
-			cs.ToSphere(nt, 0.9)
-			cs.PcaNormalize2D(nt)
-			mp = New.Map3DView(New.BodyList(nt))
-			mp.Show().CentralizeView(True)
-	
+		case 'S2':
+			sf = 0.8
+			bList = GetSphereDataset(pId, interRp=5, contracting=sf, eps=0.075)
+
+			'''
+			bList2 = [b for b in bList if not b.Hidden]
+			vList = New.NumberArray(len(bList2)-1)
+			for i in range(vList.Count):
+				a = bList2[i]
+				b = bList2[i+1]
+				vList[i] = 180*math.acos( (a.X*b.X + a.Y*b.Y + a.Z*b.Z)/(a.Length * b.Length) )/math.pi
+			New.BarView(vList).Show()
+
+			bList2 = [b for b in bList if not b.Hidden]
+			vList = New.NumberArray([b.Length for b in bList2])
+			bv = New.BarView(vList)
+			for k, b in enumerate(bList2):
+				bv.ItemList[k].Id = b.Id
+			bv.Show()
+			'''
+			
+			mp = ShowSphere(bList, MapInfo(f'pId:{pId};sf:{sf}'))
 
 MainProc(vv.EventSource.Item)
 
 '''
-
+vv.ModifierKeys.AltPressed
 
 '''

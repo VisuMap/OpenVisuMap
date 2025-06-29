@@ -72,6 +72,8 @@
     <None Include="PDBimport.pyn" />
     <None Include="PdbLoad.pyn" />
     <None Include="SeqVis.pyn" />
+    <None Include="SphericalProj.pyn" />
+    <None Include="TorsionExplore.pyn" />
     <None Include="UnInstall.pyn" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

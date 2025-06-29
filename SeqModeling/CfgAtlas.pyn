@@ -43,11 +43,11 @@ def MainProc(menuKey):
 				if chainNames == None:
 					vv.Message(f'Can not find chain {pId} in current dataset')
 					continue
-				mp = ShowPDB(pId, rp=3, eps=0.1, includeHA=False, mainChain=justMainChain, chainNames=chainNames, smtRatio=0.0)
+				mp = ShowPDB(pId, rp=5, eps=0.1, includeHA=False, mainChain=justMainChain, chainNames=chainNames, smtRatio=0.0)
 				mp.NormalizeView()
 		case 'P-3Dx':
 			for e in pSelected:
-				mp = ShowPDB(e.Name, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0)
+				mp = ShowPDB(e.Name, rp=5, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0)
 				if ctrPressed:
 					mp.ClickMenu('SeqVis/P-2D')
 					mp.Close()

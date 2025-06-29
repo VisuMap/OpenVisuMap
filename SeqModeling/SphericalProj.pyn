@@ -1,0 +1,76 @@
+#SphericalProj.pyn
+
+def GetSphereDataset(cId, interRp=0, contracting=0, eps=0.1):
+	bList = GetChainById(cId)
+	if bList.Count < 3:
+		return None
+	bType = vv.Dataset.BodyForId(cId).Type
+	for b in bList: 
+		b.Type = bType
+	bList = cs.ToSphere(bList, contracting)
+	if interRp>0:
+		bList = Interporlate(bList, interRp, eps)
+		for b in bList: 
+			b.Hidden = b.Id.startswith('i')
+	bList[0].Type = 105
+	bList[bList.Count-1].Type = 110
+	return bList
+
+def ShowSphere(bList, info=None):
+	mp = New.Map3DView(bList)
+	mp.ReadOnly = True
+	mp.ShowPerformance = False
+	mp.ShowBoundingBox = True
+	mp.MapDepth = 0.5*(mp.Width+mp.Height)
+	mp.GlyphSize = 3
+	mp.HiddenBodySize = 1
+	mp.Show()
+	mp.CentralizeView()
+	if info != None:
+		mp.Description = info.ToStr()
+	return mp
+
+def NotExits(vw):
+	return (vw == None) or vw.TheForm.IsDisposed
+
+def SphereUnfold(spView, cf):
+	global tgtView
+	cf = max(0, min(1, cf))
+	bList = New.BodyListClone(spView.BodyList)
+	cs.ShrinkSphere(bList, cf)
+	bs = New.BodyList()
+	bx = New.Body('A999.0')
+	bx.Name = bList[0].Name
+	bx.Type = 0
+	bs.Add(bx.Clone())
+	for b in bList:
+		bx.Add(b.X, b.Y, b.Z)
+		bx.Name = b.Name
+		bx.Id = b.Id
+		bx.Type = 0
+		bs.Add(bx.Clone())
+	bs = Interporlate(bs, rp=5, eps=0.1)
+	bs[0].Type = 105
+	bs[bs.Count-1].Type = 110
+	if NotExits(tgtView):
+		tgtView = New.Map3DView(New.BodyListClone(bs)).Show()
+		tgtView.CentralizeView()
+		tgtView.ShowBoundingBox = False
+	tgtView.MoveBodiesTo(bs, 15, 50, 0, 0)
+
+def ShrinkSphere(spView, cf):
+	global tgtView	
+	cf = max(0, min(1, cf))
+	bList = New.BodyListClone(spView.BodyList)
+	cs.ShrinkSphere(bList, cf)
+	if NotExits(tgtView):
+		tgtView = spView.NewWindow()
+		tgtView.ShowBoundingBox = False
+	tgtView.MoveBodiesTo(bList, 10, 50, 0, 0)
+
+def DisplaySphere():
+	global tgtView
+	tgtView = None
+	pId = vv.Map.SelectedItems[0]
+	bList = GetSphereDataset(pId, interRp=0, contracting=0)
+	return ShowSphere(bList), pId
