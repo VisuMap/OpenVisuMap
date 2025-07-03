@@ -16,14 +16,14 @@ def GetSphereDataset(cId, interRp=0, contracting=0, eps=0.1):
 	bList[bList.Count-1].Type = 110
 	return bList
 
-def ShowSphere(bList, info=None):
+def ShowSphere(bList, info=None, hsize=1, gsize=3.0):
 	mp = New.Map3DView(bList)
 	mp.ReadOnly = True
 	mp.ShowPerformance = False
 	mp.ShowBoundingBox = True
 	mp.MapDepth = 0.5*(mp.Width+mp.Height)
-	mp.GlyphSize = 3
-	mp.HiddenBodySize = 1
+	mp.GlyphSize = gsize
+	mp.HiddenBodySize = hsize
 	mp.Show()
 	mp.CentralizeView()
 	if info != None:

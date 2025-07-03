@@ -51,26 +51,26 @@ def GetAAGroup(idx=0):
 		case 22:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
 
-def CreatePMap(pList, vType, epochs=2000, exag=4.0):
+def CreatePMap(pList, vType, epochs):
 	match vType:
 		case 'pMF':  # position-mean-field
-			mp = CreateProteinMap2(pList, repeats=1, vType='pMF', samplingDist=0.0, epochs=epochs,
-				mfL=30, ppl=0.05, initExag=exag, finalExag=1.0)
+			mp = CreateProteinMap2(pList, repeats=1, vType='pMF', epochs=epochs,
+				mfL=20, ppl=0.05, initExag=4.0, finalExag=1.0)
 		case 'pFT':
-			mp = CreateProteinMap2(pList, repeats=1, vType='pFT', samplingDist=0.0, epochs=epochs,
+			mp = CreateProteinMap2(pList, repeats=1, vType='pFT', epochs=epochs,
 				waveCount=33, ppl=0.05, initExag=4.0)	
 		case 'sFT': 
-			mp = CreateProteinMap2(pList, repeats=1, vType='sFT', samplingDist=0.0, epochs=epochs,
+			mp = CreateProteinMap2(pList, repeats=1, vType='sFT', epochs=epochs,
 				aaGroups=GetAAGroup(20), ppl=0.05, initExag=6.0, finalExag=0.9)
 		case 'sMF':
-			mp = CreateProteinMap2(pList, repeats=1, vType='sMF', samplingDist=0.0, epochs=epochs,
+			mp = CreateProteinMap2(pList, repeats=1, vType='sMF', epochs=epochs,
 				aaGroups=GetAAGroup(20), mfL=10, ppl=0.05, initExag=6.0, finalExag=0.8)
 		case 'rMF':  # position-mean-field
-			mp = CreateProteinMap2(pList, repeats=1, vType='rMF', samplingDist=0.0, epochs=epochs,
-				mfL=30, ppl=0.05, initExag=exag, finalExag=1.0, shrinkF=0.9)
+			mp = CreateProteinMap2(pList, repeats=1, vType='rMF', epochs=epochs,
+				s2L=20, ppl=0.0075, initExag=8.0, finalExag=1.0, shrinkF=0.9)
 		case 'x':
 			for aaG in GetAAGroup(0).split('|'):
-				mp = CreateProteinMap2(pList, repeats=1, vType='sMF', samplingDist=0.0, epochs=epochs,
+				mp = CreateProteinMap2(pList, repeats=1, vType='sMF', epochs=epochs,
 					aaGroups=aaG, mfL=10, ppl=0.05, initExag=6.0, finalExag=0.8)
 	mp.Title = mp.Title + f':  {vType}'
 	mp.NormalizeView()
@@ -88,7 +88,7 @@ def MainProc(menuKey):
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
 			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=0.5,
-				initExag=6.0, ppl=0.1, atName=atlasName, stretch=2.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
+				initExag=6.0, ppl=0.1, atName=atlasName, stretch=1.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 		case 'P-2Dx':
 			if atlasName != None: 
 				atlasName += 'x'
@@ -119,10 +119,11 @@ def MainProc(menuKey):
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
 			nm = vv.Map.Name
-			vList = np.array(['pMF', 'pFT', 'sMF', 'sFT', 'rMF'])
-			for vt in vList[[0]]:
-				mp = CreatePMap(pList, vt, exag=5.0, epochs=4000)
-				vv.Dataset.AddMap(nm+vt)
+			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF']
+			vList = ['rMF']
+			for vt in vList:
+				mp = CreatePMap(pList, vt, epochs=2000)
+				vv.Dataset.AddMap(vt)
 				mp.CopyMap().Close()
 		case 'TypeProtein':
 			TypeProteinList(pList)
@@ -200,7 +201,7 @@ def MainProc(menuKey):
 			bv.Show()
 			'''
 			
-			mp = ShowSphere(bList, MapInfo(f'pId:{pId};sf:{sf}'))
+			mp = ShowSphere(bList, MapInfo(f'pId:{pId};sf:{sf}'), hsize=4, gsize=1.8)
 
 MainProc(vv.EventSource.Item)
 

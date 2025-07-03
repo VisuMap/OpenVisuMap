@@ -245,13 +245,34 @@ namespace VisuMap {
 
             // Remove the last 3-th column
             M = M.Select(R => new double[] { R[0], R[1] }).ToArray();
+            /*
             int N = M.Length / 2;
             if (N>0)
                 for (int col=0; col<2; col++)
                     if (M.Take(N).Select(R => R[col]*Math.Abs(R[col])).Sum() < 0) 
                         foreach (var R in M)
                             R[col] = -R[col];
+            */
         }
+
+        public void MeanFieldTrans2D(INumberTable dt, double[] R) {
+            int L = R.Length / 2; // number of sections
+            int secLen = dt.Rows / L;  // section length
+            if (dt.Rows % L != 0)
+                secLen++;
+            Array.Clear(R, 0, R.Length);
+            for (int k = 0; k < dt.Rows; k++) {
+                double[] Mrow = dt.Matrix[k] as double[];
+                int secIdx = k / secLen;
+                R[2 * secIdx] += Mrow[0];
+                R[2 * secIdx + 1] += Mrow[1];
+            }
+
+            if (R.Take(L).Select(v => v * Math.Abs(v)).Sum() < 0)
+                for (int k = 0; k < R.Length; k++)
+                    R[k] = -R[k];
+        }
+
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
             if ((bList.Count <= 1) || (repeats == 0))
                 return bList;
@@ -497,26 +518,6 @@ namespace VisuMap {
                 for (int k = 0; k < R.Length; k++)
                     R[k] = -R[k];
              */
-        }
-
-        public void MeanFieldTrans2D(INumberTable dt, double[] R) {
-            int L = R.Length / 2; // number of sections
-            int secLen = dt.Rows / L;  // section length
-            if (dt.Rows % L != 0)
-                secLen++;
-            Array.Clear(R, 0, R.Length);
-            for (int k = 0; k < dt.Rows; k++) {
-                double[] Mrow = dt.Matrix[k] as double[];
-                int secIdx = k / secLen;
-                R[2*secIdx] += Mrow[0];
-                R[2*secIdx + 1] += Mrow[1];
-            }
-
-            // Normalizing
-            double s = R.Take(L).Select(v=>v*Math.Abs(v)).Sum();
-            if (s < 0)
-                for (int k = 0; k < R.Length; k++)
-                    R[k] = -R[k];
         }
 
         public void SmoothenBodyList(IList<IBody> bs) {
