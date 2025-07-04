@@ -19,3 +19,10 @@ info = MapInfo()
 info.pId = pId
 info.Set('cF', cf)
 tgtView.Description = info.ToStr()	
+
+'''
+ShrinkSphere(spView, 0.77662*0.5)
+SphereUnfold(spView, 0.64651);tgtView.CentralizeView(False)
+
+
+'''

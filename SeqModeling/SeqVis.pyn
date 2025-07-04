@@ -714,7 +714,6 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 	mds.Close()
 	if mapStore != None: 
 		ma = mapStore.atlas
-		ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 		ma.Description = info.ToStr()
 		MatchProteinMap(ma, 50)
 		ma.Show()
@@ -912,6 +911,7 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 	scaleY = (pAtlas.Height - 80)/(maxY-minY)	
 	scale = min(scaleX, scaleY)
 
+	itemChanged = False
 	for item in pAtlas.Items:
 		b = vv.Dataset.BodyForId(item.Id)
 		if b == None: 
@@ -921,13 +921,18 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 		item.IconWidth = iconWidth
 		item.LabelStyle = 0
 		item.Transparent = True
-		item.Opacity = 0.7
+		if abs(item.Opacity - 0.7) > 0.0001:
+			item.Opacity = 0.7
+			itemChanged = True
 		item.ShowBorder = False
 		item.BorderColor = New.Color(32, 32, 32)
 	info = MapInfo()
 	info.Set('Mnm', vv.Map.Name)
 	pAtlas.Description = info.ToStr()
-	pAtlas.Redraw()
+	if itemChanged:
+		pAtlas.Redraw()
+	else:
+		pAtlas.Refresh()
 	pAtlas.DataChanged = True
 
 def ReCreateMap(pMap):
@@ -955,26 +960,6 @@ def SmoothenCurve(pMap, repeats):
 		cs.SmoothenBodyList(bsList)
 	pMap.Description = info.ToStr()
 	pMap.RedrawAll()
-
-def UnfoldAtlasMaps(atlas, mapItems, atName=None, stretch=0, clusterStretch=1.0, expandFactor=1.0):
-	mapStore = NewMapStore(atName, is3D=False, clearStore=True)
-	mapStore.atlas.Description = atlas.Description
-	mapStore.atlas.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
-	for k, m in enumerate(mapItems):
-		mp = m.Open()
-		mp.TheForm.Hide()
-		atlas.SetSelectedItems([m])
-		UnFoldMap(mp, epochs=1000, repeats=1, is3D=False,
-			finalExag=1.0, ppl=0.1, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
-		mp.Close()
-		if mapStore != None:
-			mapStore.AddMaps()
-	if mapStore != None:
-		ma = mapStore.atlas
-		ma.Width = atlas.Width
-		ma.ArrangeItems()
-		ma.TheForm.Show()
-
 
 def ScanningForAA(pMap, pAA, progressive=False):
 	aaList = ss.SelectByAA(pMap.BodyList, pAA)

@@ -105,7 +105,6 @@ def ShowProteinList(pList, mainChain, includeHA, atName, smtRatio=0, glyphSize=1
 	mapStore = NewMapStore(atName, is3D=True, clearStore=True)
 	if mapStore != None:
 		mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
-		mapStore.atlas.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
 	for k, pId in enumerate(pList):
 		vv.Title = f'Loading {pId}: {k+1}-th of {len(pList)}'
 		chainNames = GetChainName(pId)
@@ -114,12 +113,11 @@ def ShowProteinList(pList, mainChain, includeHA, atName, smtRatio=0, glyphSize=1
 			mapStore.AddMaps()
 	if mapStore != None:
 		ma = mapStore.atlas
-		ma.OnItemsSelected = '@vv.SelectedItems = [item.Name for item in pp.SelectedItems]'
-		ma.OnAtlasShown = 'ShowSelectedProteins.pyn'
 		for item in ma.Items: 
 			item.IconWidth = 250
 		ma.Show()
 		ma.ArrangeItems(False)
+		ma.OnItemsSelected = ''
 
 def GetChainName(pId):
 	ds = vv.Dataset

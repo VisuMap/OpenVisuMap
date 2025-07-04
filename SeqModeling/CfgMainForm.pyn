@@ -206,6 +206,5 @@ def MainProc(menuKey):
 MainProc(vv.EventSource.Item)
 
 '''
-vv.ModifierKeys.AltPressed
 
 '''
