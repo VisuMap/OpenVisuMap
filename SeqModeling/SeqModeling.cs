@@ -712,7 +712,7 @@ namespace VisuMap {
                 if (L[0] == '_')
                     continue;
                 string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                if (!dict.ContainsKey(fs[8]))
+                if ((fs.Length>=9) && !dict.ContainsKey(fs[8]))
                     dict[fs[8]] = fs[3];
             }
             return dict;
