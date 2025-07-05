@@ -74,3 +74,32 @@ def DisplaySphere():
 	pId = vv.Map.SelectedItems[0]
 	bList = GetSphereDataset(pId, interRp=0, contracting=0)
 	return ShowSphere(bList), pId
+
+def SphereView():
+	if pp.Name == 'MainForm':
+		spView, pId = DisplaySphere()
+	
+	K = 100
+	tstFct = ShrinkSphere if vv.ModifierKeys.ControlPressed else SphereUnfold
+	for k in range(2*K+1):
+		cf = 0.01*(k if k<K else 2*K-k)
+		tstFct(spView, cf)
+		vv.DoEvents()
+		tgtView.Title = f'CF: {k}: {cf}'
+		if (k % 17 == 0) and (tstFct == SphereUnfold):
+			tgtView.CentralizeView(False)
+		if vv.ModifierKeys.AltPressed: 
+			break
+	
+	info = MapInfo()
+	info.pId = pId
+	info.Set('cF', cf)
+	tgtView.Description = info.ToStr()	
+
+'''
+ShrinkSphere(spView, 0.77662*0.5)
+SphereUnfold(spView, 0.64651);tgtView.CentralizeView(False)
+
+
+'''
+
