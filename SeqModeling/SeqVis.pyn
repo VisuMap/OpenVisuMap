@@ -419,9 +419,8 @@ def GetMFSeq(pList, aaGroups, mfL):
 	return cs.MFVectorize(seqList, aaGroups, mfL)
 
 
-def CreateProteinMap2(pList, epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, ppl=0.05,
-		vType='sMF', mfL=20, s2L=20, aaGroups='A', waveLen=1024, waveCount=33, shrinkF=0.9,
-		staged=False, repeats=0, samplingDist=0):
+def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, ppl=0.05,
+		mfL=20, s2L=20, aaGroups='A', waveLen=1024, waveCount=33, shrinkF=0.9,	staged=False, repeats=1, samplingDist=0):
 	pTable = AssertProteinTable()	
 
 	if samplingDist > 0:

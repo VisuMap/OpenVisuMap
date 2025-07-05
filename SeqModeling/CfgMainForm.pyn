@@ -51,34 +51,6 @@ def GetAAGroup(idx=0):
 		case 22:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
 
-def CreatePMap(pList, vType, epochs):
-	match vType:
-		case 'pMF':  # position-mean-field
-			mp = CreateProteinMap2(pList, repeats=1, vType='pMF', epochs=epochs,
-				mfL=20, ppl=0.05, initExag=4.0, finalExag=1.0)
-		case 'pFT':
-			mp = CreateProteinMap2(pList, repeats=1, vType='pFT', epochs=epochs,
-				waveCount=33, ppl=0.05, initExag=4.0)	
-		case 'sFT': 
-			mp = CreateProteinMap2(pList, repeats=1, vType='sFT', epochs=epochs,
-				aaGroups=GetAAGroup(20), ppl=0.05, initExag=6.0, finalExag=0.9)
-		case 'sMF':
-			mp = CreateProteinMap2(pList, repeats=1, vType='sMF', epochs=epochs,
-				aaGroups=GetAAGroup(20), mfL=10, ppl=0.05, initExag=6.0, finalExag=0.8)
-		case 'rMF':  # position-mean-field
-			mp = CreateProteinMap2(pList, repeats=1, vType='rMF', epochs=epochs,
-				s2L=20, ppl=0.0075, initExag=8.0, finalExag=1.0, shrinkF=0.9)
-		case 'x':
-			for aaG in GetAAGroup(0).split('|'):
-				mp = CreateProteinMap2(pList, repeats=1, vType='sMF', epochs=epochs,
-					aaGroups=aaG, mfL=10, ppl=0.05, initExag=6.0, finalExag=0.8)
-	mp.Title = mp.Title + f':  {vType}'
-	mp.NormalizeView()
-	vv.Dataset.AddMap(vType)
-	mp.CopyMap().Close()
-	return mp
-
-
 def MainProc(menuKey):
 	selected = list(vv.Map.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None
@@ -120,10 +92,23 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
+			epochs = 2000
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF']
-			vList = ['sFT']
+			#vList = ['rMF']
 			for vt in vList:
-				CreatePMap(pList, vt, epochs=2000)
+				match vt:
+					case 'pMF':
+						mp = ProteinMap2(pList, vt, epochs, mfL=20, ppl=0.05, initExag=4.0)
+					case 'pFT':
+						mp = ProteinMap2(pList, vt, epochs, waveCount=33, ppl=0.05, initExag=4.0)	
+					case 'sFT': 
+						mp = ProteinMap2(pList, vt, epochs, aaGroups=GetAAGroup(20), ppl=0.05, initExag=6.0, finalExag=0.9)
+					case 'sMF':
+						mp = ProteinMap2(pList, vt, epochs, aaGroups=GetAAGroup(20), mfL=10, ppl=0.05, initExag=6.0, finalExag=0.8)
+					case 'rMF':
+						mp = ProteinMap2(pList, vt, epochs, s2L=20, ppl=0.1, initExag=8.0, shrinkF=0.9)
+				vv.Dataset.AddMap(vt)
+				mp.NormalizeView().CopyMap().Close()
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
@@ -205,5 +190,6 @@ def MainProc(menuKey):
 MainProc(vv.EventSource.Item)
 
 '''
+
 
 '''
