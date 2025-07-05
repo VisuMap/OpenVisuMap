@@ -74,6 +74,8 @@ def CreatePMap(pList, vType, epochs):
 					aaGroups=aaG, mfL=10, ppl=0.05, initExag=6.0, finalExag=0.8)
 	mp.Title = mp.Title + f':  {vType}'
 	mp.NormalizeView()
+	vv.Dataset.AddMap(vType)
+	mp.CopyMap().Close()
 	return mp
 
 
@@ -118,13 +120,10 @@ def MainProc(menuKey):
 			from os.path import exists
 			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
-			nm = vv.Map.Name
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF']
-			vList = ['rMF']
+			vList = ['sFT']
 			for vt in vList:
-				mp = CreatePMap(pList, vt, epochs=2000)
-				vv.Dataset.AddMap(vt)
-				mp.CopyMap().Close()
+				CreatePMap(pList, vt, epochs=2000)
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
