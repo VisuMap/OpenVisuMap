@@ -67,13 +67,13 @@
     <None Include="CfgGroupManager.pyn" />
     <None Include="CfgMainForm.pyn" />
     <None Include="CfgMapSnapshot.pyn" />
+    <None Include="CfgMdsCluster.pyn" />
     <None Include="Install.pyn" />
     <None Include="Package.bat" />
     <None Include="PDBimport.pyn" />
     <None Include="PdbLoad.pyn" />
     <None Include="SeqVis.pyn" />
     <None Include="SphericalProj.pyn" />
-    <None Include="TorsionExplore.pyn" />
     <None Include="UnInstall.pyn" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

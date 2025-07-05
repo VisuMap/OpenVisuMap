@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen P-2D P-Seq P-Web P-ChmX HideIPO MarkHelix MarkBeta MainChain RnaChain 'Open PDB' UniChains Flipping Looping SelectPID Tr
+#MenuLabels ShowData Scanning ReCreateMap Smoothen P-2D P-Seq P-Web P-ChmX HideIPO MarkHelix MarkBeta RnaChain 'Open PDB' UniChains Flipping Looping SelectPID Tr
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -26,8 +26,6 @@ match vv.EventSource.Item:
 		ShowHelix()
 	case 'MarkBeta':
 		ShowBetaSheet()
-	case 'MainChain':
-		ShowMainChain(pp)
 	case 'RnaChain':
 		pp.SelectedItems = [b.Id for b in pp.BodyList if b.Name[0] == 'r']
 	case 'Open PDB':

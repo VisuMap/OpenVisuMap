@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Sh-LocPDB Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds Align P-S2 S2
+#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds Align P-S2 S2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -74,8 +74,9 @@ def MainProc(menuKey):
 			justMainChain = vv.ModifierKeys.ControlPressed
 			ShowProteinList(pList, mainChain=justMainChain, includeHA=False, rp=5, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
 		case 'P-3Dx':
-			for pId in pList:
-				mp = ShowPDB(pId, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0)
+			mp = ShowPDB(pId, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0)
+			npp = [b for b in mp.BodyList if b.Name[0] == 'd' or b.Name[0] == 'r' ]
+			if len(npp) > 0:
 				mp.ClickMenu('SeqVis/Flipping')
 		case 'P-3Ds':
 			Merge3DList(pList)
@@ -88,9 +89,6 @@ def MainProc(menuKey):
 				vv.Message('No protein selected')
 				vv.Return()
 			OpenCifFile(pId)
-		case 'Sh-LocPDB':
-			from os.path import exists
-			vv.SelectedItems = [b.Id for b in vv.Map.BodyList if exists(PidToPath(b.Id))]
 		case 'P-Map':
 			PM2 = lambda *args, **kwargs:	ProteinMap2(pList, vt, 2000, *args, **kwargs).NormalizeView().CopyMap().Close()
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF']

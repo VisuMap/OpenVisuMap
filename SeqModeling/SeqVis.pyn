@@ -477,13 +477,6 @@ def ShowWeb(pId):
 	else:
 		vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/protein/{pId}')
 
-def ShowMainChain(pMap):
-	bList = pMap.BodyList
-	mchName = bList[0].Name.split('.')[2]
-	pMap.SelectedItems = [b.Id for b in bList if b.Name.split('.')[2] == mchName]
-	pMap.ClickMenu('3D Animation View...')
-	vv.LastView.NormalizeView()
-
 def ShowChimeraX(pId):
 	localPath = Download3DInfo(pId[:4])
 	progPath = "C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe"
