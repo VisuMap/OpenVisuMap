@@ -340,17 +340,13 @@ def ShowHelix():
 def ShowBetaSheet():
 	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.b')]
 
+
 def LoadMainChain0(pId):
 	from os.path import exists
 	cacheFile = PidToMainChain(pId)
-	if exists(cacheFile):
-		bList = csLoad.LoadMainChain(cacheFile)
-	else:
-		ds = vv.Dataset
-		chName = ds.StringAt(pId, 4)
-		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=False, chainNames=[chName])
-		SaveChain(pId, bList)
-	return bList
+	if not exists(cacheFile):
+		UnpackChains([pId[:4]])
+	return csLoad.LoadMainChain(cacheFile)
 
 def LoadMainChain(pId):
 	bList = LoadMainChain0(pId)
@@ -505,7 +501,7 @@ def SaveChain(chId, chain):
 
 def UnpackChains(pList=None):
 	import os
-	if pList == None:
+	if pList == None:   # Unpack all cif files.
 		pList = [f[:4] for f in os.listdir('c:/temp/PDBCache') if f.endswith('.cif')]	
 	chainsCount = 0
 	nm2id = {}
@@ -608,22 +604,12 @@ Steps to import a list of PDB id into VisuMap:
 
 sList = vv.GuiManager.GetClipboard()
 pList = sList.split(',')
-for k, pId in enumerate(pList):
-	print(k, pId)
-	_, _, _ = LoadChains(pId, True, True, True)
-
-_, _, _ = LoadChains('8ZZK', True, True, True)
-cs.LoadCif(String, List<String>)
 
 sList = '4WSX,4QY1,4N5Z,2FK0,4N5Y,4JUL,6ID2,4MHI,1RU7,4WST,3M6S'
 sList = ','.join(vv.AllItems)
 print(len(sList.split(',')))
-ImportPDBList(sList, 'Dynein')
+ImportPDBList(sList, 'Ribosome')
 
-dsName = 'Dynein'
-dsDescription = ''
-print(len(pList))
-print(sList)
-print('hi')
+
 
 '''
