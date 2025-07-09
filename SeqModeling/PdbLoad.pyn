@@ -5,16 +5,16 @@ import math
 vv.Import('SeqVis.pyn')
 
 # get the path for the cached (PDB) CIF file.
-def PidToPath(pId):
+def PdbCacheFile(pId):
 	if len(pId)<4:
-		raise Exception('invalid protein ID')
+		raise Exception('Invalid protein ID')
 	return f'c:/temp/PdbCache/{pId[:4]}.cif'
 
-# get cache npy file for the main chain.
-def PidToMainChain(pId):
-	if len(pId)<4:
-		raise Exception('invalid protein ID')
-	return f'c:/temp/MainChain/{pId}.pmc'
+# get cache file path for a poliptide chain.
+def ChainCacheFile(chId):
+	if len(chId)<4:
+		raise Exception(f'Invalid protein chain id {chId}')
+	return f'c:/temp/ChainCache/{chId}.pmc'
 
 csLoad = New.CsObject('''
 public List<IBody> LoadMainChain(string cacheFile) {
@@ -251,7 +251,7 @@ def OpenPDBFile(pMap):
 	OpenCifFile(info.pId)
 
 def OpenCifFile(pId):
-	vv.StartProcess("vi", PidToPath(pId))
+	vv.StartProcess("vi", PdbCacheFile(pId))
 
 def Augment2Table(bList, stretch, clusterStretch=1.0, expandFactor=1.0):
 
@@ -316,7 +316,7 @@ def Download3DInfo(pId):
 	from os.path import exists
 	#from urllib.request import urlretrieve
 	import requests
-	localPath = PidToPath(pId)	
+	localPath = PdbCacheFile(pId)	
 	if not exists(localPath):
 		remotePath = f'https://files.rcsb.org/download/{pId[:4]}.cif'
 		#urlretrieve(remotePath, localPath)
@@ -343,7 +343,7 @@ def ShowBetaSheet():
 
 def LoadMainChain0(pId):
 	from os.path import exists
-	cacheFile = PidToMainChain(pId)
+	cacheFile = ChainCacheFile(pId)
 	if not exists(cacheFile):
 		UnpackChains([pId[:4]])
 	return csLoad.LoadMainChain(cacheFile)
@@ -354,7 +354,7 @@ def LoadMainChain(pId):
 
 def LoadMainSeq(pId):
 	from os.path import exists
-	cacheFile = PidToMainChain(pId)
+	cacheFile = ChainCacheFile(pId)
 	if exists(cacheFile):
 		return csLoad.LoadMainSeq(cacheFile)
 	else:
@@ -494,7 +494,7 @@ def LoadAllChains(pList=None, aaChains=True, rnaChains=False, dnaChains=False):
 	return pTable
 
 def SaveChain(chId, chain):
-	cacheFile = f'c:/temp/MainChain/{chId}.pmc'
+	cacheFile = ChainCacheFile(chId)
 	with open(cacheFile, 'w') as outFile:
 		for b in chain:
 			outFile.write(f'{b.Id}|{b.Name}|{b.Type}|{b.X:.2f}|{b.Y:.2f}|{b.Z:.2f}\n')
@@ -545,7 +545,7 @@ def PreloadPDB(sList):
 	for k, pId in enumerate(pList):
 		if k%50 == 0: 
 			print(k)
-		if not exists(PidToPath(pId)):
+		if not exists(PdbCacheFile(pId)):
 			try:
 				Download3DInfo(pId)
 				vv.DoEvents()
