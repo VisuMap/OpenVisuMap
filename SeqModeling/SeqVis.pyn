@@ -12,13 +12,6 @@ P3 = {'ALA':'A', 'ARG':'R', 'ASN':'N', 'ASP':'D', 'CYS':'C',
 def FilterSeq(D, P):
 	return ''.join([ c for c in D.upper() if c in P ])
 
-def GetProteinTable(dsName):
-	if vv.Dataset.Name != dsName:
-		pTable = vv.Folder.ReadDataset(dsName)
-	else:
-		pTable = vv.Dataset
-	return pTable
-
 def AssertProteinTable():
 	if (vv.Dataset.Columns < 4) or ( vv.Dataset.ColumnSpecList[2].Id != 'ProteinSeq'):
 		vv.Message('The current dataset is not a protein table')
@@ -221,13 +214,6 @@ def NewMapStore(atName, is3D=True, clearStore=False):
 # Code to maintain the protein table.
 #-----------------------------------------------------------
 
-def Sym2Id(ds, gSymbol):
-	for row in range(ds.Rows):
-		if ds.GetDataAt(row, 5) == gSymbol:
-			return ds.BodyList[row].Id
-	print('Cannot find gene ' + gSymbol)
-	return None
-
 def Id2Sym(ds, gId):
 	rowIdx = ds.IndexOfRow(gId)
 	if rowIdx >= 0:
@@ -262,63 +248,6 @@ def ParseXml(pList, maxCount, minLen, maxLen):
 		if len(infoList) >= maxCount:
 			break
 	return infoList
-
-def AddProteins(ds, gId, maxCount=20, minLen=400, maxLen=1000_000):
-	import urllib.request
-	getUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&rettype=fasta&retmode=text&api_key=f415a83f720db9a3ed1693cfd833cef27208&id='
-	gSymbol = Id2Sym(ds, gId)
-	pList = GetProteinIds(ds, gId)
-	if len(pList) == 0 or pList[0] == "-":
-		return gSymbol, 0
-	random.shuffle(pList)
-	infoList = ParseXml(pList, maxCount, minLen, maxLen)
-	if len(infoList) == 0:
-		return gSymbol, 0
-
-	typeIdx = max([b.Type for b in vv.Dataset.BodyList]) + 1 if vv.Dataset.BodyCount > 0 else 0
-	pIds = ','.join([ pId for (pId, _) in infoList ])
-	sFastaList = urllib.request.urlopen(getUrl+pIds).read().decode('utf-8')
-	fastaList = sFastaList.split('>')
-	vv.DoEvents()
-	if vv.GuiManager.StopFlag:
-		vv.Return()
-
-	for s in fastaList:
-		sFasta = s.strip()
-		if len(sFasta) == 0:
-			continue
-		idx = sFasta.index('\n')
-		desc = gId + ': ' + sFasta[0:idx]
-		idx2 = sFasta.index(' ')
-		pId = sFasta[:idx2]
-		pSeq = FilterSeq(sFasta[idx:], P)
-		pLen = len(pSeq)
-		vv.Dataset.AddRow(pId, gSymbol, typeIdx, [desc,gSymbol,pSeq,str(pLen)])
-	vv.Dataset.CommitChanges()
-	return gSymbol, len(infoList)
-
-def AddRandomSeq():
-	import random
-	ds = vv.Dataset
-	idList = ['3G7T', '3LPX', '4AVZ', '1U5I']
-	pList = [ ds.StringAt(pId, 2) for pId in idList]
-	rType = 53
-	N = 1000
-	mpc = 50    # mutation percentage
-	idx = ds.Rows
-	for pSeq in pList:
-		pLen = len(pSeq)
-		for n in range(N):
-			rList = []
-			for k in range(pLen):
-				p = random.randrange(10000)
-				c = pSeq[k] if p > mpc * 100 else ALPHABET[random.randrange(20)]
-				rList.append(c)
-			rSeq = ''.join(rList)
-			rLen = str(len(rSeq))
-			ds.AddRow(f'R{idx}', '', rType, ['', '', rSeq, rLen, '0.0'])
-			idx += 1
-	ds.CommitChanges()
 
 def GetFourier(waveLen, waveCount):
 	ft = vv.FindPluginObject('WaveTransforms')
@@ -370,9 +299,7 @@ def GetS2MF(pList, L, sf):
 		nt = LoadMainChain(pId)
 		cs.ToSphere(nt, sf)
 		cs.PcaNormalize2D(nt)
-		#New.MapSnapshot(New.BodyList(nt)).Show().NormalizeView()
 		cs.MeanFieldTrans2D(nt, D.Matrix[k])
-	#vv.Return()
 	return D	
 
 def GetFourierTrans(pList, waveLen, waveCount):
@@ -481,31 +408,6 @@ def ShowChimeraX(pId):
 	localPath = Download3DInfo(pId[:4])
 	progPath = "C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe"
 	vv.StartProcess(progPath, localPath)
-
-def UpdateBv(bv, pSeq, filterIdx, filterList):
-		bv.Tag = (pSeq, filterIdx, filterList)
-		a2 = filterList[filterIdx]
-		for k, item in enumerate(bv.ItemList):
-			item.Value = 1.0 if pSeq[k:k+2].startswith(a2) else 0.0
-		bv.Title = f'AA key: #{filterIdx}:{a2} of {len(filterList)}'
-		bv.Redraw()
-
-def SetFilterIdx():
-	if vv.EventSource.Item.Name == 'HeatMap':
-		hm = pp
-		if hm.SelectionMode != 0 : return
-		if hm.SelectedItems.Count == 0: return
-		bv = hm.Tag
-		(pSeq, filterIdx, filterList) = bv.Tag
-		filterIdx = filterList.index(hm.SelectedItems[0])
-		UpdateBv(bv, pSeq, filterIdx, filterList)
-
-def FilterSq2(bv):
-	(pSeq, filterIdx, filterList) = bv.Tag
-	L = len(filterList)
-	filterIdx = (filterIdx + vv.EventSource.Argument + L) % L
-	UpdateBv(bv, pSeq, filterIdx, filterList)
-	vv.SelectedItems = [ filterList[filterIdx] ]
 
 #-----------------------------------------------------------------------------
 
@@ -724,21 +626,6 @@ def Scanning(pMap, stride=100, stepSize=20, broadcasting=False):
 				return
 		vv.Sleep(1000)
 
-def SeqLabeling(dt, pSeq):
-	aaIdx, aaNr = {}, {ch:0 for ch in ALPHABET}
-	for n, rs in enumerate(dt.RowSpecList):
-		ch = pSeq[n]
-		rs.Name, rs.Type = ch, P[ch]
-		if ch not in aaIdx:
-			rs.ShowName = True
-		aaIdx[ch] = n
-		rs.Id = ch + str(aaNr[ch])
-		aaNr[ch] += 1
-	for n in aaIdx.values():
-		rs = dt.RowSpecList[n]
-		rs.ShowName = True
-		rs.Name = rs.Name.lower()
-
 #-------------------------------------------------------------------
 
 def ShowAASeq(pMap):
@@ -815,15 +702,6 @@ def OnSeqSelected():
 		if j == N:
 			MarkSeq(tb, L[i], L[j-1]+1)
 		i = j
-
-def ShowProteinSeq(pMap):
-	pId = pMap.SelectedItems[0]
-	rowIdx = vv.Dataset.IndexOfRow(pId)
-	pSeq = vv.Dataset.GetDataAt(rowIdx, 2)
-	pSym = vv.Dataset.GetDataAt(rowIdx, 1)
-	pLen = int(vv.Dataset.GetDataAt(rowIdx, 3))
-	tb = New.TextPanel(f'{pId}: {pSym}, {pLen}', pSeq)
-	tb.Show()
 
 def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75, gOpacity=0.5, hiddenSize=7, reset=False):
 	itemList = atlas.GetSelectedItems()
@@ -1011,13 +889,6 @@ def TypeProteinList(pList):
 	tb.ClusterData()
 	tb.Close()
 
-def NewModuleOp(aaGroups):
-	aaClusters = {}
-	for k, aaG in enumerate(aaGroups.split('|')):
-		for aa in aaG:
-			aaClusters[aa] = chr(ord('a')+k)
-	return aaClusters
-
 def SeqMod(op, seq):
 	return ''.join( [modOp[c] for c in seq] )
 
@@ -1128,19 +999,6 @@ def Merge3DList(pList):
 
 def LoopingChains(m3dView, secLen):
 	ss.LoopSection(m3dView, secLen)
-
-def NormalizeBodyTypes():
-	for b in vv.Dataset.BodyList:
-		bs = LoadMainChain0(b.Id)
-		n = bs.Count
-		match bs[0].Name[0]:
-			case 'd':
-				b.Type = 97
-			case 'r':
-				b.Type = 99
-			case _:
-				b.Type = 2 if n < 250 else ( 4 if n < 500 else 84 )
-	vv.Map.Redraw()
 
 def SelectUniqSeq():
 	idSet = set()

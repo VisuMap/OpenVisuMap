@@ -61,7 +61,7 @@ def MainProc(menuKey):
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
-			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=0.5,
+			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=0.1,
 				initExag=6.0, ppl=0.1, atName=atlasName, stretch=1.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 		case 'P-2Dx':
 			if atlasName != None: 
@@ -90,17 +90,22 @@ def MainProc(menuKey):
 				vv.Return()
 			OpenCifFile(pId)
 		case 'P-Map':
-			PM2 = lambda *args, **kwargs:	ProteinMap2(pList, vt, 2000, *args, **kwargs).NormalizeView().CopyMap().Close()
+			def PM2(*args, **kwargs):
+				mp = ProteinMap2(pList, vt, 2000, *args, **kwargs)
+				vv.Dataset.AddMap(vt)
+				mp.NormalizeView().CopyMap().Close()
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF']
 			vList = ['rMF']
+			vList = ['tst']
 			for vt in vList:
-				vv.Dataset.AddMap(vt)
 				match vt:
 					case 'pMF':	PM2(mfL=20, ppl=0.05, initExag=4.0)
 					case 'pFT':	PM2(waveCount=33, ppl=0.05, initExag=4.0)	
 					case 'sFT':	PM2(aaGroups=GetAAGroup(20), ppl=0.05, initExag=6.0, finalExag=0.9)
 					case 'sMF':	PM2(aaGroups=GetAAGroup(20), mfL=20, ppl=0.05, initExag=6.0, finalExag=0.8)
-					case 'rMF':	PM2(s2L=20, ppl=0.05, initExag=8.0, shrinkF=0.9)
+					case 'rMF':	PM2(s2L=20, ppl=0.05, initExag=8.0, shrinkF=0.985)
+					case 'tst': 
+						GetS2MF(pList, L=20, sf=0.95).ShowValueDiagram()
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
@@ -135,8 +140,8 @@ def MainProc(menuKey):
 					zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=6.0, glyphOpacity=1.0)
 				atlasName = 'S2.' + atlasName
 				mapStore = NewMapStore(atlasName, is3D=False, clearStore=True)			
-				contractingF =0.9
-				samplingDist = 1.0
+				contractingF = 0.9
+				samplingDist = 0.1
 				info = MapInfo()
 				info.Mtd = 'S2'
 				info.Set('cF', contractingF)

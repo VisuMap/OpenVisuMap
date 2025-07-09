@@ -610,6 +610,4 @@ sList = ','.join(vv.AllItems)
 print(len(sList.split(',')))
 ImportPDBList(sList, 'Ribosome')
 
-
-
 '''
