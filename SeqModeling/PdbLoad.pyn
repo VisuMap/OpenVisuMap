@@ -1,7 +1,4 @@
 # functions to import and process pdb/cif files.
-import time
-import math
-
 vv.Import('SeqVis.pyn')
 
 # get the path for the cached (PDB) CIF file.
@@ -608,6 +605,9 @@ pList = sList.split(',')
 sList = '4WSX,4QY1,4N5Z,2FK0,4N5Y,4JUL,6ID2,4MHI,1RU7,4WST,3M6S'
 sList = ','.join(vv.AllItems)
 print(len(sList.split(',')))
-ImportPDBList(sList, 'Ribosome')
+ImportPDBList(sList, 'Archaea')
+
+infoTable = LoadAllChains(['9A1Z'], True, True, True)
+
 
 '''
