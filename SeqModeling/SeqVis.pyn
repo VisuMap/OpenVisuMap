@@ -996,6 +996,22 @@ def Merge3DList(pList):
 	mp.NormalizeView()
 	mp.NormalizeView()
 
+def Merge2DList(atlas):
+	bs = New.BodyList()
+	ds = vv.Dataset
+	for k, item in enumerate(atlas.SelectedItems):
+		mp = item.Load()
+		bsList = mp.BodyList
+		bsList = ss.SetBodyType(bsList, item.Id, k)
+		bs.AddRange(bsList)
+		mp.Close()
+	mp = New.MapSnapshot(bs)
+	mp.ReadOnly = True
+	mp.GlyphSet = '36 Clusters|||'
+	mp.GlyphSize = 0.35
+	mp.GlyphOpacity = 0.5
+	mp.Show()
+
 
 def LoopingChains(m3dView, secLen):
 	ss.LoopSection(m3dView, secLen)
