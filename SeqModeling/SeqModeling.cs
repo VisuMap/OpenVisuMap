@@ -209,6 +209,27 @@ namespace VisuMap {
                 foreach (var b in bodyList) b.Z = -b.Z;
         }
 
+        public void FlipNormalize2D(INumberTable nt) {
+            if (nt.Rows < 2)
+                return;
+
+            double x = 0;
+            double y = 0;
+            x = y = 0;
+            for(int k=0; k< nt.Rows / 2; k++) {
+                var R = nt.Matrix[k];
+                x += R[0];
+                y += R[1];
+            }
+
+            if (x > 0)
+                foreach (var R in nt.Matrix)
+                    R[0] = -R[0];
+            if (y > 0)
+                foreach (var R in nt.Matrix)
+                    R[1] = -R[1];
+        }
+
 
         public void PcaNormalize(INumberTable nt) {
             if (nt.Rows <= 3) 
@@ -282,14 +303,7 @@ namespace VisuMap {
 
             // Remove the last 3-th column
             M = M.Select(R => new double[] { R[0], R[1] }).ToArray();
-            /*
-            int N = M.Length / 2;
-            if (N>0)
-                for (int col=0; col<2; col++)
-                    if (M.Take(N).Select(R => R[col]*Math.Abs(R[col])).Sum() < 0) 
-                        foreach (var R in M)
-                            R[col] = -R[col];
-            */
+            FlipNormalize2D(nt);
         }
 
         public void MeanFieldTrans2D(INumberTable dt, double[] R) {
@@ -304,10 +318,6 @@ namespace VisuMap {
                 R[2 * secIdx] += Mrow[0];
                 R[2 * secIdx + 1] += Mrow[1];
             }
-
-            if (R.Take(L).Select(v => v * Math.Abs(v)).Sum() < 0)
-                for (int k = 0; k < R.Length; k++)
-                    R[k] = -R[k];
         }
 
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
