@@ -982,14 +982,16 @@ def Merge3DList(pList):
 	bs = New.BodyList()
 	ds = vv.Dataset
 	for k, pId in enumerate(pList):
-		bsList = LoadMainChain0(pId)
-		cs.PcaNormalize2(bsList)
-		bsList = Interporlate(bsList, 4, 0.1, smtRatio=0.0)
-		bsList = ss.SetBodyType(bsList, pId, k)
-		bs.AddRange(bsList)
+		bList = LoadMainChain0(pId)
+		cs.PcaNormalize2(bList)
+		bList = Interporlate(bList, 4, 0.1, smtRatio=0.0)
+		bList = ss.SetBodyType(bList, pId, k)
+		bList[0].Type = 146
+		bList[bList.Count-1].Type = 159
+		bs.AddRange(bList)
 	mp = New.Map3DView(bs).Show()
 	mp.ReadOnly = True
-	mp.GlyphSet = '36 Clusters|||'
+	mp.GlyphSet = '36 Clusters||||Red Green'
 	mp.ShowBoundingBox = False
 	mp.GlyphSize = 1.0
 	mp.GlyphOpacity = 0.75
@@ -1001,15 +1003,19 @@ def Merge2DList(atlas):
 	ds = vv.Dataset
 	for k, item in enumerate(atlas.SelectedItems):
 		mp = item.Load()
-		bsList = mp.BodyList
-		bsList = ss.SetBodyType(bsList, item.Id, k)
-		bs.AddRange(bsList)
+		bList = New.BodyListClone(mp.BodyList)
+		cs.FlipNormalize(bList)
+		bList = ss.SetBodyType(bList, item.Id, k)
+		bList[0].Type = 146
+		bList[bList.Count-1].Type = 159
+		bs.AddRange(bList)
 		mp.Close()
 	mp = New.MapSnapshot(bs)
 	mp.ReadOnly = True
-	mp.GlyphSet = '36 Clusters|||'
+	mp.GlyphSet = '36 Clusters||||Red Green'
 	mp.GlyphSize = 0.35
 	mp.GlyphOpacity = 0.5
+	mp.CentralizeView()
 	mp.Show()
 
 

@@ -173,6 +173,43 @@ namespace VisuMap {
             }
         }
 
+        public void FlipNormalize(List<IBody> bodyList) {
+            int N = bodyList.Count;
+            if ( N < 2 )
+                return;
+            double x = 0;
+            double y = 0;
+            double z = 0;
+            foreach(var b in bodyList) {
+                x += b.X;
+                y += b.Y;
+                z += b.Z;
+            }
+            x /= N;
+            y /= N;
+            z /= N;
+            foreach (var b in bodyList) {
+                b.X -= x;
+                b.Y -= y;
+                b.Z -= z;
+            }
+
+            x = y = z = 0;
+            foreach (var b in bodyList.Take(N / 2)) {
+                x += b.X;
+                y += b.Y;
+                z += b.Z;
+            }
+
+            if (x > 0)
+                foreach (var b in bodyList) b.X = -b.X;
+            if (y > 0)
+                foreach (var b in bodyList) b.Y = -b.Y;
+            if (z > 0)
+                foreach (var b in bodyList) b.Z = -b.Z;
+        }
+
+
         public void PcaNormalize(INumberTable nt) {
             if (nt.Rows <= 3) 
                 return;        
