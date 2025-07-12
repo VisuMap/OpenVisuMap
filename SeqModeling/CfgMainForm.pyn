@@ -93,9 +93,9 @@ def MainProc(menuKey):
 			def PM2(*args, **kwargs):
 				mp = ProteinMap2(pList, vt, 2000, *args, **kwargs)
 				vv.Dataset.AddMap(vt)
-				mp.NormalizeView().CopyMap().Close()
+				mp.NormalizeView().CaptureMap()
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF']
-			#vList = ['rMF']
+			vList = ['rMF']
 			vList = ['tMF']
 			#vList = ['tst']
 			for vt in vList:
@@ -105,7 +105,7 @@ def MainProc(menuKey):
 					case 'sFT':	PM2(aaGroups=GetAAGroup(20), ppl=0.05, initExag=6.0, finalExag=0.9)
 					case 'sMF':	PM2(aaGroups=GetAAGroup(20), mfL=20, ppl=0.05, initExag=6.0, finalExag=0.8)
 					case 'rMF':	PM2(s2L=20, ppl=0.05, initExag=8.0, shrinkF=0.9)
-					case 'tMF':	PM2(mfL=20, ppl=0.05, initExag=4.0)
+					case 'tMF':	PM2(mfL=20, repeats=0, ppl=0.05, initExag=4.0)
 					case 'tst': 
 						GetS2MF(pList, L=20, sf=0.95).ShowValueDiagram()
 		case 'TypeProtein':

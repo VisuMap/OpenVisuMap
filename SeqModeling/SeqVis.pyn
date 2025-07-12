@@ -290,13 +290,54 @@ def GetMeanFieldTrans(pList, L=20):
 	return D
 
 def GetTsneMF(pList, L=20):
-	bList = vv.Dataset.BodyListForId(pList)
-	D = New.NumberTable(bList, L*2)
-	for k, pId in enumerate(pList):
-		if (k>0) and (k%200 == 0):
-			vv.Title = f'Reading: {k}:{pId}'
-			vv.DoEvents()
+	bodyList = vv.Dataset.BodyListForId(pList)
+	D = New.NumberTable(bodyList, L*2)
+	epochs = 2000
+	stretch = 1.0
+	clusterStretch = 0.0
+	expandFactor = 1.0
+	initExag = 8.0
+	ppl = 0.25
 
+	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=1.0, ppl=ppl, 
+		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
+	mds.RefreshFreq = epochs//2
+	mds.GlyphSize = 0.75 
+	mds.GlyphOpacity = 1.0	
+	mds.GlyphSet = vv.Map.GlyphSet
+
+	errList = []
+	for k, pId in enumerate(pList):
+		try:
+			if (k>0) and (k%20 == 0):
+				vv.Title = f'Calculating: {k}:{pId} of {len(pList)}'
+				vv.DoEvents()
+			#localPath, bList, bList2, pdbTitle = LoadCifData(pId, chainNames=GetChainName(pId))
+			bList = LoadMainChain0(pId)
+			if bList.Count < 2:
+				errList.append(k)
+				continue
+	
+			bb = vv.Dataset.BodyForId(pId)
+			for b in bList:
+				b.Type = bb.Type
+				b.Hidden = False
+	
+			bList = Interporlate(bList, rp=3, eps=0.1, smtRatio=0)
+			nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
+
+			mds.SetTrainingData(nt)
+			RunMds(mds, repeats=0)
+
+			nt = New.NumberTable(mds.BodyList)
+			cs.PcaNormalize2D(nt)
+			cs.MeanFieldTrans2D(nt, D.Matrix[k])
+		except:
+			raise Exception(f'Exception: {k}, {pId}')			
+	if len(errList)>0:
+		vv.Message(f'Failed to create vectors for {len(errList)} chains')
+		D.RemoveRows(errList)
+	mds.Close()
 	return D
 
 def GetS2MF(pList, L, sf):
@@ -310,7 +351,7 @@ def GetS2MF(pList, L, sf):
 		cs.ToSphere(nt, sf)
 		cs.PcaNormalize2D(nt)
 		cs.MeanFieldTrans2D(nt, D.Matrix[k])
-	return D	
+	return D
 
 def GetFourierTrans(pList, waveLen, waveCount):
 	# The first component of the FT is the sume of all components which
@@ -1030,7 +1071,6 @@ def Merge2DList(atlas):
 	mp.GlyphOpacity = 0.5
 	mp.CentralizeView()
 	mp.Show()
-
 
 def LoopingChains(m3dView, secLen):
 	ss.LoopSection(m3dView, secLen)
