@@ -296,15 +296,17 @@ def GetTsneMF(pList, L=20):
 	stretch = 1.0
 	clusterStretch = 0.0
 	expandFactor = 1.0
-	initExag = 8.0
+	initExag = 4.0
+	finalExag = 1.0
 	ppl = 0.25
 
-	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=1.0, ppl=ppl, 
-		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
-	mds.RefreshFreq = epochs//2
+	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=finalExag, ppl=ppl, 
+		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls', refreshFreq=50)
+	mds.RefreshFreq = epochs + 5
 	mds.GlyphSize = 0.75 
 	mds.GlyphOpacity = 1.0	
 	mds.GlyphSet = vv.Map.GlyphSet
+	mds.AutoNormalizing = False
 
 	errList = []
 	for k, pId in enumerate(pList):
@@ -317,13 +319,12 @@ def GetTsneMF(pList, L=20):
 			if bList.Count < 2:
 				errList.append(k)
 				continue
-	
 			bb = vv.Dataset.BodyForId(pId)
 			for b in bList:
 				b.Type = bb.Type
 				b.Hidden = False
 	
-			bList = Interporlate(bList, rp=3, eps=0.1, smtRatio=0)
+			bList = Interporlate(bList, rp=2, eps=0.1, smtRatio=0)
 			nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
 
 			mds.SetTrainingData(nt)
@@ -333,10 +334,9 @@ def GetTsneMF(pList, L=20):
 			cs.PcaNormalize2D(nt)
 			cs.MeanFieldTrans2D(nt, D.Matrix[k])
 		except:
-			raise Exception(f'Exception: {k}, {pId}')			
+			errList.append(k)	
 	if len(errList)>0:
-		vv.Message(f'Failed to create vectors for {len(errList)} chains')
-		D.RemoveRows(errList)
+		vv.Message(f'Failed to create vectors for {len(errList)} chains: {errList}')
 	mds.Close()
 	return D
 
@@ -593,7 +593,6 @@ def NewMds(nt=None, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=
 	mds.StagedTraining = staged
 	mds.ExaggerationSmoothen = True
 	mds.MapZoomFactor = zoomFactor
-	mds.AutoNormalizing = True
 	mds.GlyphSet = vv.Map.GlyphType if glyphSet==None else glyphSet
 	mds.Description = ''
 	return mds
