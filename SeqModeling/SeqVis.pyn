@@ -303,10 +303,13 @@ def GetTsneMF(pList, L=20):
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=finalExag, ppl=ppl, 
 		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls', refreshFreq=50)
 	mds.RefreshFreq = epochs + 5
-	mds.GlyphSize = 0.75 
+	mds.GlyphSize = 6.0 
 	mds.GlyphOpacity = 1.0	
 	mds.GlyphSet = vv.Map.GlyphSet
 	mds.AutoNormalizing = False
+
+	mapStore = None
+	#mapStore = AtlasMapStore('tMF_Cache', 'MdsCluster', True)
 
 	errList = []
 	for k, pId in enumerate(pList):
@@ -328,16 +331,24 @@ def GetTsneMF(pList, L=20):
 			nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
 
 			mds.SetTrainingData(nt)
+            mds.Description = f'pId:{pId}'
 			RunMds(mds, repeats=0)
 
 			nt = New.NumberTable(mds.BodyList)
 			cs.PcaNormalize2D(nt)
 			cs.MeanFieldTrans2D(nt, D.Matrix[k])
+
+			if mapStore != None:				
+				mapStore.AddMap()
 		except:
 			errList.append(k)	
 	if len(errList)>0:
 		vv.Message(f'Failed to create vectors for {len(errList)} chains: {errList}')
 	mds.Close()
+
+	if mapStore != None:
+		mapStore.Close()
+
 	return D
 
 def GetS2MF(pList, L, sf):
