@@ -1,5 +1,6 @@
 import numpy as np
 import math, random, time
+vv.Import('PdbLoad.pyn')
 
 GENE_TABLE = 'Gene Features'
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
@@ -199,6 +200,22 @@ class AtlasMapStore():
 			return fm
 		else:
 			return None
+	def AddRawMap(self, id, bList):
+		mp = New.MapSnapshot(bList)
+		mp.NormalizeView()
+		mp.GlyphSize = 4.0
+		ratio = mp.Width/mp.Height
+		mp.Width = int(ratio * 750)
+		mp.Height = 750
+		item = self.atlas.CaptureItem(mp)
+		mp.Close()
+		item.Name = id
+		item.Id = id
+		item.CacheImage = True
+		ratio = mp.Width/mp.Height
+		item.IconWidth = int(0.05*mp.Width)
+		item.IconHeight = 0
+		return None
 	def Close(self):
 		self.atlas.SaveAtlas()
 		self.atlas.Close()
@@ -289,7 +306,7 @@ def GetMeanFieldTrans(pList, L=20):
 		cs.MeanFieldTrans(nt, D.Matrix[k])
 	return D
 
-def GetTsneMF(pList, L=20):
+def GetTsneMF(pList, L=20, saveTMF=False):
 	bodyList = vv.Dataset.BodyListForId(pList)
 	D = New.NumberTable(bodyList, L*2)
 	epochs = 2000
@@ -309,7 +326,7 @@ def GetTsneMF(pList, L=20):
 	mds.AutoNormalizing = False
 
 	mapStore = None
-	#mapStore = AtlasMapStore('tMF_Cache', 'MdsCluster', True)
+    mapStore = AtlasMapStore('tMF_Cache', 'MdsCluster', True) if saveTMF else None
 
 	errList = []
 	for k, pId in enumerate(pList):
@@ -331,7 +348,7 @@ def GetTsneMF(pList, L=20):
 			nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
 
 			mds.SetTrainingData(nt)
-            mds.Description = f'pId:{pId}'
+			mds.Description = f'pId:{pId}'
 			RunMds(mds, repeats=0)
 
 			nt = New.NumberTable(mds.BodyList)
@@ -339,7 +356,7 @@ def GetTsneMF(pList, L=20):
 			cs.MeanFieldTrans2D(nt, D.Matrix[k])
 
 			if mapStore != None:				
-				mapStore.AddMap()
+				mapStore.AddRawMap(pId, mds.BodyList)
 		except:
 			errList.append(k)	
 	if len(errList)>0:
@@ -408,7 +425,7 @@ def GetMFSeq(pList, aaGroups, mfL):
 	return cs.MFVectorize(seqList, aaGroups, mfL)
 
 
-def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, ppl=0.05,
+def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, ppl=0.05, saveTMF=False,
 		mfL=20, s2L=20, aaGroups='A', waveLen=1024, waveCount=33, shrinkF=0.9,	staged=False, repeats=1, samplingDist=0):
 	pTable = AssertProteinTable()	
 
@@ -432,7 +449,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, initExag=6.0, final
 		case 'rMF':
 			dt = GetS2MF(pList, L=s2L, sf=shrinkF)
 		case 'tMF':
-			dt = GetTsneMF(pList, L=mfL)
+			dt = GetTsneMF(pList, L=mfL, saveTMF=saveTMF)
 		case _:
 			vv.Message('Invalid vectorization type: ' + vType)
 			return
@@ -852,7 +869,8 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 			continue
 		item.Left = float(scale*(b.X - minX) + 20.0)
 		item.Top = float(scale*(b.Y - minY) + 20.0)
-		item.IconWidth = iconWidth
+		if iconWidth != None:
+			item.IconWidth = iconWidth
 		item.LabelStyle = 0
 		item.Transparent = True
 		if abs(item.Opacity - 0.7) > 0.0001:
