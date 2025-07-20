@@ -1,7 +1,6 @@
 #MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds Align P-S2 S2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
-vv.Import('SphericalProj.pyn')
 
 def SortByPosX(idList):
 	idList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)

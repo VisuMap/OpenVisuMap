@@ -202,11 +202,13 @@ class AtlasMapStore():
 			return None
 	def AddRawMap(self, id, bList):
 		mp = New.MapSnapshot(bList)
+		if mp == None: 
+			return
 		mp.NormalizeView()
-		mp.GlyphSize = 4.0
-		ratio = mp.Width/mp.Height
-		mp.Width = int(ratio * 750)
-		mp.Height = 750
+		mp.GlyphSize = 3.0
+		ratio = mp.Height/mp.Width
+		mp.Width = 1000
+		mp.Height = int(ratio * mp.Width)
 		item = self.atlas.CaptureItem(mp)
 		mp.Close()
 		item.Name = id
@@ -325,47 +327,39 @@ def GetTsneMF(pList, L=20, saveTMF=False):
 	mds.GlyphSet = vv.Map.GlyphSet
 	mds.AutoNormalizing = False
 
-	mapStore = None
-    mapStore = AtlasMapStore('tMF_Cache', 'MdsCluster', True) if saveTMF else None
-
-	errList = []
 	for k, pId in enumerate(pList):
-		try:
-			if (k>0) and (k%20 == 0):
-				vv.Title = f'Calculating: {k}:{pId} of {len(pList)}'
-				vv.DoEvents()
-			#localPath, bList, bList2, pdbTitle = LoadCifData(pId, chainNames=GetChainName(pId))
-			bList = LoadMainChain0(pId)
-			if bList.Count < 2:
-				errList.append(k)
-				continue
-			bb = vv.Dataset.BodyForId(pId)
-			for b in bList:
-				b.Type = bb.Type
-				b.Hidden = False
-	
-			bList = Interporlate(bList, rp=2, eps=0.1, smtRatio=0)
-			nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
+		if (k>0) and (k%20 == 0):
+			vv.Title = f'Calculating: {k}:{pId} of {len(pList)}'
+			vv.DoEvents()
+		#localPath, bList, bList2, pdbTitle = LoadCifData(pId, chainNames=GetChainName(pId))
+		bList = LoadMainChain0(pId)
+		if bList.Count < 2:
+			continue
+		bb = vv.Dataset.BodyForId(pId)
+		for b in bList:
+			b.Type = bb.Type
+			b.Hidden = False
 
-			mds.SetTrainingData(nt)
-			mds.Description = f'pId:{pId}'
-			RunMds(mds, repeats=0)
+		bList = Interporlate(bList, rp=2, eps=0.1, smtRatio=0)
+		nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
 
-			nt = New.NumberTable(mds.BodyList)
-			cs.PcaNormalize2D(nt)
-			cs.MeanFieldTrans2D(nt, D.Matrix[k])
+		mds.SetTrainingData(nt)
+		mds.Description = f'pId:{pId}'
+		RunMds(mds, repeats=0)
 
-			if mapStore != None:				
-				mapStore.AddRawMap(pId, mds.BodyList)
-		except:
-			errList.append(k)	
-	if len(errList)>0:
-		vv.Message(f'Failed to create vectors for {len(errList)} chains: {errList}')
+		nt = New.NumberTable(mds.BodyList)
+		cs.PcaNormalize2D(nt)
+		cs.MeanFieldTrans2D(nt, D.Matrix[k])
+
+		if saveTMF:
+			if k == 0:
+				mapStore = AtlasMapStore('tMF_Cache', 'MdsCluster', True) if saveTMF else None
+			mapStore.AddRawMap(pId, mds.BodyList)
+			if (k+1) == len(pList):
+				mapStore.Close()
+				mapStore = None
+
 	mds.Close()
-
-	if mapStore != None:
-		mapStore.Close()
-
 	return D
 
 def GetS2MF(pList, L, sf):
