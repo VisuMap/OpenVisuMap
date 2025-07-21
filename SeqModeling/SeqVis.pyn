@@ -204,7 +204,7 @@ class AtlasMapStore():
 		mp = New.MapSnapshot(bList)
 		if mp == None: 
 			return
-		mp.GlyphSize = 3.0
+		ConfigSeqMap(mp, id)
 		cs.FitByPCA(mp, 0.75)
 		item = self.atlas.CaptureItem(mp)
 		mp.Close()
@@ -217,6 +217,21 @@ class AtlasMapStore():
 		return None
 	def Close(self):
 		self.atlas.Close()
+
+def ConfigSeqMap(map, pId, redrawMap=False):
+	map.GlyphSet = 'Ordered 64|36 Clusters|Red Green'
+	map.GlyphSize = 6.0
+	map.Description = f'pId:{pId}'
+	bList = map.BodyListEnabled()
+	bList[0].Type = 105
+	bList[bList.Count-1].Type = 110
+	type0 = vv.Dataset.BodyForId(pId).Type
+	for k in range(1, bList.Count-1):
+		bList[k].Type = type0
+	if redrawMap:
+		map.ReloadGlyphSet()
+		map.RedrawAll()
+
 
 def NewMapStore(atName, is3D=True, clearStore=False):
 	if atName is None:
@@ -323,11 +338,9 @@ def GetTsneMF(pList, L=20, saveTMF=False):
 	mds.GlyphSet = vv.Map.GlyphSet
 	mds.AutoNormalizing = False
 
+	L = len(pList)
 	for k, pId in enumerate(pList):
-		if (k>0) and (k%20 == 0):
-			vv.Title = f'Calculating: {k}:{pId} of {len(pList)}'
-			vv.DoEvents()
-		#localPath, bList, bList2, pdbTitle = LoadCifData(pId, chainNames=GetChainName(pId))
+		vv.Title = f'Calculating: {k+1}-th/{pId} of {L}'
 		bList = LoadMainChain0(pId)
 		if bList.Count < 2:
 			continue
@@ -351,7 +364,7 @@ def GetTsneMF(pList, L=20, saveTMF=False):
 			if k == 0:
 				mapStore = AtlasMapStore('tMF_Cache', 'MdsCluster', True) if saveTMF else None
 			mapStore.AddRawMap(pId, mds.BodyList)
-			if (k+1) == len(pList):
+			if (k+1) == L:
 				mapStore.Close()
 
 	mds.Close()

@@ -96,7 +96,7 @@ def MainProc(menuKey):
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF']
 			vList = ['rMF']
 			vList = ['tMF']
-			svTMF = True
+			svTMF = False
 			#vList = ['tst']
 			for vt in vList:
 				match vt:
