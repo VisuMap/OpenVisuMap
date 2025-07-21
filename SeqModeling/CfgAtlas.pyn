@@ -62,7 +62,7 @@ def MainProc(menuKey):
 		case 'P-Open':  
 			OpenCifFile(pId)
 		case 'MatchMap':
-			MatchProteinMap(pp, iconWidth=50)
+			MatchProteinMap(pp, iconWidth=None)
 		case 'TileAll':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 			AtlasTileAll(pp, aaGroups, using3DInfo=False, waveLen=256, waveCount=32)

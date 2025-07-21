@@ -219,7 +219,6 @@ class AtlasMapStore():
 		item.IconHeight = 0
 		return None
 	def Close(self):
-		self.atlas.SaveAtlas()
 		self.atlas.Close()
 
 def NewMapStore(atName, is3D=True, clearStore=False):
@@ -357,7 +356,6 @@ def GetTsneMF(pList, L=20, saveTMF=False):
 			mapStore.AddRawMap(pId, mds.BodyList)
 			if (k+1) == len(pList):
 				mapStore.Close()
-				mapStore = None
 
 	mds.Close()
 	return D
@@ -1143,6 +1141,6 @@ def ResetAtlas():
 	pp.ResetView()
 
 '''
-
-
+at = New.Atlas().Show()
+at.Close()
 '''
