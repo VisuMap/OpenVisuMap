@@ -212,21 +212,24 @@ namespace VisuMap {
         public void FlipNormalize2D(INumberTable nt) {
             if (nt.Rows < 2)
                 return;
+            FlipNormalize2D(nt.Matrix as double[][]);
+        }
 
+        public void FlipNormalize2D(double[][] M) { 
             double x = 0;
             double y = 0;
             x = y = 0;
-            for(int k=0; k< nt.Rows / 2; k++) {
-                var R = nt.Matrix[k];
+            for(int k=0; k< M.Length / 2; k++) {
+                var R = M[k];
                 x += R[0];
                 y += R[1];
             }
 
             if (x > 0)
-                foreach (var R in nt.Matrix)
+                foreach (var R in M)
                     R[0] = -R[0];
             if (y > 0)
-                foreach (var R in nt.Matrix)
+                foreach (var R in M)
                     R[1] = -R[1];
         }
 
@@ -304,6 +307,49 @@ namespace VisuMap {
             // Remove the last 3-th column
             M = M.Select(R => new double[] { R[0], R[1] }).ToArray();
             FlipNormalize2D(nt);
+        }
+
+        public void FitByPCA(IMapSnapshot map, double scale) {
+            if (map == null)
+                return;
+            List<IBody> bs = map.BodyListEnabled() as List<IBody>;
+            if (bs.Count <= 1)
+                return;
+
+            double[][] M = bs.Select(b => new double[] { b.X, b.Y }).ToArray();
+            MathUtil.CenteringInPlace(M);
+            double[][] E = MathUtil.DoPca(M, 2);
+            MT.ForEach(M, R => {
+                double x = R[0] * E[0][0] + R[1] * E[0][1];
+                double y = R[0] * E[1][0] + R[1] * E[1][1];
+                R[0] = x;
+                R[1] = y;
+            });
+
+            FlipNormalize2D(M);
+
+            double minX = double.MaxValue;
+            double minY = double.MaxValue;
+            double maxX = -minX;
+            double maxY = -minY;
+            for (int k = 0; k < bs.Count; k++) {
+                var b = bs[k];
+                b.X = M[k][0];
+                b.Y = M[k][1];
+                minX = Math.Min(minX, b.X);
+                maxX = Math.Max(maxX, b.X);
+                minY = Math.Min(minY, b.Y);
+                maxY = Math.Max(maxY, b.Y);
+            }
+            const int margin = 5;
+            foreach(var b in bs) {
+                b.X = scale * (b.X - minX) + margin;
+                b.Y = scale * (b.Y - minY) + margin;
+            }
+            map.Width  = (int)( scale * (maxX - minX) + 2 * margin );
+            map.Height = (int)( scale * (maxY - minY) + 2 * margin );
+            map.MapLayout.Width = map.Width;
+            map.MapLayout.Height = map.Height;
         }
 
         public void MeanFieldTrans2D(INumberTable dt, double[] R) {

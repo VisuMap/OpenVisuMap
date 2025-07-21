@@ -204,11 +204,8 @@ class AtlasMapStore():
 		mp = New.MapSnapshot(bList)
 		if mp == None: 
 			return
-		mp.NormalizeView()
 		mp.GlyphSize = 3.0
-		ratio = mp.Height/mp.Width
-		mp.Width = 1000
-		mp.Height = int(ratio * mp.Width)
+		cs.FitByPCA(mp, 0.75)
 		item = self.atlas.CaptureItem(mp)
 		mp.Close()
 		item.Name = id
