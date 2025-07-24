@@ -205,7 +205,7 @@ class AtlasMapStore():
 		if mp == None: 
 			return
 		ConfigSeqMap(mp, id)
-		cs.FitByPCA(mp, 0.75)
+		cs.FitByPCA(mp, 15.0)
 		item = self.atlas.CaptureItem(mp)
 		mp.Close()
 		item.Name = id
@@ -222,6 +222,7 @@ def ConfigSeqMap(map, pId, redrawMap=False):
 	map.GlyphSet = 'Ordered 64|36 Clusters|Red Green'
 	map.GlyphSize = 6.0
 	map.Description = f'pId:{pId}'
+	map.GlyphOpacity = 1.0
 	bList = map.BodyListEnabled()
 	bList[0].Type = 105
 	bList[bList.Count-1].Type = 110
@@ -320,8 +321,7 @@ def GetMeanFieldTrans(pList, L=20):
 	return D
 
 def GetTsneMF(pList, tP):
-	epochs = 2000
-	saveTMF, L, stretch, ppl, initExag, finalExag = tP
+	saveTMF, epochs, L, stretch, ppl, initExag, finalExag = tP
 	bodyList = vv.Dataset.BodyListForId(pList)
 	D = New.NumberTable(bodyList, L*2)
 
@@ -331,6 +331,7 @@ def GetTsneMF(pList, tP):
 	mds.GlyphSize = 6.0 
 	mds.GlyphOpacity = 1.0	
 	mds.GlyphSet = vv.Map.GlyphSet
+	mds.GlyphScale = 5.0
 	mds.AutoNormalizing = False
 
 	L = len(pList)
@@ -349,8 +350,8 @@ def GetTsneMF(pList, tP):
 
 		mds.SetTrainingData(nt)
 		mds.Description = f'pId:{pId}'
-		RunMds(mds, repeats=0)
 
+		RunMds(mds, repeats=0)		
 		nt = New.NumberTable(mds.BodyList)
 		cs.PcaNormalize2D(nt)
 		cs.MeanFieldTrans2D(nt, D.Matrix[k])
@@ -422,7 +423,7 @@ def GetMFSeq(pList, aaGroups, mfL):
 	return cs.MFVectorize(seqList, aaGroups, mfL)
 
 
-def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, ppl=0.05, saveTMF=False, mfL=20, tP=(False, 20, 1.0, 0.25, 4.0, 1.0),
+def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, initExag=6.0, finalExag=1.0, ppl=0.05, saveTMF=False, mfL=20, tP=None,
 		s2L=20, aaGroups='A', waveLen=1024, waveCount=33, shrinkF=0.9,	staged=False, repeats=1, samplingDist=0):
 	pTable = AssertProteinTable()	
 
@@ -457,7 +458,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, initExag=6.0, final
 	#dt.ShowHeatMap()
 	#vv.Return()
 
-	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=1.5, initExag=initExag, finalExag=finalExag, ppl=ppl)
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=1.5, glyphOpacity=1.0, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	mds.StagedTraining = staged
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'Hrm'  
@@ -600,7 +601,7 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 #-----------------------------------------------------------------------------
 
 def NewMds(nt=None, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, staged=False, zoomFactor=10.0,
-		repeats=1, metric='EuclideanMetric', glyphSet=None, glyphSize=0.5, glyphOpacity=0.25, refreshFreq=50):
+		repeats=1, metric='EuclideanMetric', glyphSet=None, glyphSize=0.5, glyphOpacity=1.0, refreshFreq=50):
 	mds = New.MdsCluster(nt)
 	mds.Show()
 	mds.MdsAlgorithm = 2
@@ -619,6 +620,7 @@ def NewMds(nt=None, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=
 	mds.StagedTraining = staged
 	mds.ExaggerationSmoothen = True
 	mds.MapZoomFactor = zoomFactor
+	mds.GlyphScale = 10.0
 	mds.GlyphSet = vv.Map.GlyphType if glyphSet==None else glyphSet
 	mds.Description = ''
 	return mds
