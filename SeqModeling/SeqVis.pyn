@@ -122,6 +122,17 @@ public void LoopSection(IMap3DView mp, int selLen=25) {
 	}
 		
 }
+
+public void ScaleMatrix(double[][] M, double scale) {
+	int Rows = M.Length;
+	int Cols = M[0].Length;
+	for(int row=0; row<Rows; row++) {
+        double[] R = M[row];
+	    for(int col=0; col<Cols; col++)
+		    R[col] *= scale;
+    }
+}
+
 ''')
 
 
@@ -345,8 +356,11 @@ def GetTsneMF(pList, tP):
 			b.Type = bb.Type
 			b.Hidden = False
 
-		bList = Interporlate(bList, rp=2, eps=0.1, smtRatio=0)
+		K = bList.Count
+		RP = 4 if K < 50 else 3 if K < 200 else 2 if K < 500 else 1
+		bList = Interporlate(bList, rp=RP, eps=0.1, smtRatio=0)
 		nt = Augment2Table(bList, stretch=stretch, clusterStretch=0.0, expandFactor=1.0)
+		ss.ScaleMatrix(nt.Matrix, 1.0/(2.0**RP))
 
 		mds.SetTrainingData(nt)
 		mds.Description = f'pId:{pId}'

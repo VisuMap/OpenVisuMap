@@ -73,7 +73,7 @@ def MainProc(menuKey):
 			justMainChain = vv.ModifierKeys.ControlPressed
 			ShowProteinList(pList, mainChain=justMainChain, includeHA=False, rp=5, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
 		case 'P-3Dx':
-			mp = ShowPDB(pId, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0)
+			mp = ShowPDB(pId, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, setChainId=True, smtRatio=0.0)
 			npp = [b for b in mp.BodyList if b.Name[0] == 'd' or b.Name[0] == 'r' ]
 			if len(npp) > 0:
 				mp.ClickMenu('SeqVis/Flipping')
@@ -103,7 +103,8 @@ def MainProc(menuKey):
 					case 'sMF':	PM2(aaGroups=GetAAGroup(20), mfL=20, ppl=0.05, initExag=6.0, finalExag=0.8)
 					case 'rMF':	PM2(s2L=20, ppl=0.05, initExag=8.0, shrinkF=0.9)
 					case 'tMF':	
-						svTMF = vv.ModifierKeys.ControlPressed
+						svTMF = vv.ModifierKeys.ControlPressed						
+						PM2(repeats=0, ppl=0.1, initExag=6.0, finalExag=1.0, tP=(svTMF, 2000, 20, 1.0, 0.25, 6.0, 1.0))
 						PM2(repeats=0, ppl=0.1, initExag=6.0, finalExag=1.0, tP=(svTMF, 2000, 20, 1.0, 0.25, 6.0, 1.0))
 						if svTMF:
 							atlas = New.Atlas().Show()

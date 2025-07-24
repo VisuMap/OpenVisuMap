@@ -48,13 +48,36 @@ public string LoadMainSeq(string cacheFile) {
 }
 ''')
 
-def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, chainNames=None, includeHA=True, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75):
+def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, chainNames=None, includeHA=True, 
+		setChainId=False,	smtRatio=0, glyphSize=1.0, glyphOpacity=0.75):
 	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, mainChain=mainChain, chainNames=chainNames)
 	bsList = Interporlate(bsList, rp, eps, smtRatio=smtRatio)
-	bsList[0].Type = 169
-	bsList[bsList.Count-1].Type = 153
+
+	bsList[0].Type = 171
+	for k in range(1, bsList.Count-1):		
+		if bsList[k].Name.split('.')[2] != bsList[k+1].Name.split('.')[2]:
+			bsList[k].Type = 155
+			bsList[k+1].Type = 171
+	bsList[bsList.Count-1].Type = 155
+
 	if includeHA:
 		bsList.AddRange(bsList2)
+
+	if setChainId:
+		ds = vv.Dataset
+		ch2pId = {}
+		pId4 = pId[:4]
+		for k in range(ds.Rows):
+			id = ds.BodyList[k].Id
+			if id.startswith( pId4 ):
+				ch2pId[ds.GetDataAt(k, 4)] = id
+		for b in bsList:
+			chId = b.Name.split('.')[2]
+			if chId in ch2pId:
+				b.Id = ch2pId[chId]
+			else:
+				b.Id = chId
+
 	mp = New.Map3DView(bsList)
 	info = MapInfo()
 	info.pId = pId
@@ -209,6 +232,10 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			# Mark the head red.
 			bList = mds.BodyList
 			bList[0].Type = 105
+			for k in range(1, bList.Count-1):		
+				if bList[k].Name.split('.')[2] != bList[k+1].Name.split('.')[2]:
+					bList[k].Type = 110
+					bList[k+1].Type = 105
 			bList[bList.Count-1].Type = 110
 
 			RunMds(mds, info=info, repeats=0)
