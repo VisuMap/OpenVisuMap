@@ -341,27 +341,23 @@ def GetMeanFieldTrans(pList, L=20):
 
 def GetTsneMF(pList, tP):
 	saveTMF, epochs, L, intRp, stretch, ppl, initExag, finalExag = tP
-	bodyList = vv.Dataset.BodyListForId(pList)
-	D = New.NumberTable(bodyList, L*2)
-
-	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=finalExag, ppl=ppl, 
-		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls', refreshFreq=50)
-	mds.RefreshFreq = epochs + 5
-	mds.GlyphSize = 6.0 
-	mds.GlyphOpacity = 1.0	
-	mds.GlyphSet = vv.Map.GlyphSet
+	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=finalExag, 
+		ppl=ppl, repeats=0, metric='EuclideanMetric', refreshFreq=epochs+5, glyphSet=vv.Map.GlyphSet, 
+		glyphSize=6.0, glyphOpacity=1.0)
 	mds.GlyphScale = 5.0
 	mds.AutoNormalizing = False
 
+	bodyList = vv.Dataset.BodyListForId(pList)
+	D = New.NumberTable(bodyList, L*2)
 	L = len(pList)
 	for k, pId in enumerate(pList):
 		bList = LoadMainChain0(pId)
 		if bList.Count <= 2:	continue
-		vv.Title = f'Calculating: {k+1}-th:{pId}/{bList.Count} of {L}'
+		vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
 		ss.SetBodyType2(bList, vv.Dataset.BodyForId(pId).Type)
-
 		bList = Interporlate(bList, rp=intRp, eps=0.1, smtRatio=0)
 		nt = Augment2Table(bList, stretch=stretch, clusterStretch=0.0, expandFactor=1.0)
+
 		mds.SetTrainingData(nt)
 		mds.Description = f'pId:{pId}'
 
@@ -376,7 +372,6 @@ def GetTsneMF(pList, tP):
 			mapStore.AddRawMap(pId, mds.BodyList)
 			if (k+1) == L:
 				mapStore.Close()
-
 	mds.Close()
 	return D
 
@@ -473,8 +468,8 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, initExag=6.0, final
 	#dt.ShowHeatMap()
 	#vv.Return()
 
-	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=1.5, glyphOpacity=1.0, initExag=initExag, finalExag=finalExag, ppl=ppl)
-	mds.StagedTraining = staged
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=1.5, glyphOpacity=1.0, staged=staged, 
+		initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'Hrm'  
 	info.Set('aaG', aaGroups)
@@ -1084,6 +1079,7 @@ def Merge3DList(pList):
 		bList = LoadMainChain0(pId)
 		cs.PcaNormalize2(bList)
 		bList = Interporlate(bList, 4, 0.1, smtRatio=0.0)
+		cs.NormalizeByFlipping(bList)
 		bList = ss.SetBodyType(bList, pId, k)
 		bList[0].Type = 146
 		bList[bList.Count-1].Type = 159
@@ -1103,7 +1099,7 @@ def Merge2DList(atlas):
 	for k, item in enumerate(atlas.SelectedItems):
 		mp = item.Load()
 		bList = New.BodyListClone(mp.BodyList)
-		cs.FlipNormalize(bList)
+		cs.NormalizeByFlipping(bList)
 		bList = ss.SetBodyType(bList, item.Id, k)
 		bList[0].Type = 146
 		bList[bList.Count-1].Type = 159

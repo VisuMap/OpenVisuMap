@@ -173,52 +173,48 @@ namespace VisuMap {
             }
         }
 
-        public void FlipNormalize(List<IBody> bodyList) {
+        public void NormalizeByFlipping(List<IBody> bodyList) {
             int N = bodyList.Count;
-            if ( N < 2 )
+            if (N < 2)
                 return;
+            double xm = 0;
+            double ym = 0;
+            double zm = 0;
+            foreach (var b in bodyList) {
+                xm += b.X;
+                ym += b.Y;
+                zm += b.Z;
+            }
+            xm /= N;
+            ym /= N;
+            zm /= N;
+
             double x = 0;
             double y = 0;
             double z = 0;
-            foreach(var b in bodyList) {
-                x += b.X;
-                y += b.Y;
-                z += b.Z;
-            }
-            x /= N;
-            y /= N;
-            z /= N;
-            foreach (var b in bodyList) {
-                b.X -= x;
-                b.Y -= y;
-                b.Z -= z;
-            }
-
-            x = y = z = 0;
             foreach (var b in bodyList.Take(N / 2)) {
-                x += b.X;
-                y += b.Y;
-                z += b.Z;
+                x += b.X - xm;
+                y += b.Y - ym;
+                z += b.Z - zm;
             }
+            bool flipX = (x > 0);
+            bool flipY = (y > 0);
+            bool flipZ = (z > 0);
 
-            if (x > 0)
-                foreach (var b in bodyList) b.X = -b.X;
-            if (y > 0)
-                foreach (var b in bodyList) b.Y = -b.Y;
-            if (z > 0)
-                foreach (var b in bodyList) b.Z = -b.Z;
+            foreach (var b in bodyList) {
+                if (flipX)
+                    b.X = 2 * xm - b.X;
+                if (flipY)
+                    b.Y = 2 * ym - b.Y;
+                if (flipZ)
+                    b.Z = 2 * zm - b.Z;
+            }
         }
 
-        public void FlipNormalize2D(INumberTable nt) {
-            if (nt.Rows < 2)
-                return;
-            FlipNormalize2D(nt.Matrix as double[][]);
-        }
-
-        public void FlipNormalize2D(double[][] M) { 
+        // Flipping centralized matrix.
+        void FlipNormalize2D(double[][] M) { 
             double x = 0;
             double y = 0;
-            x = y = 0;
             for(int k=0; k< M.Length / 2; k++) {
                 var R = M[k];
                 x += R[0];
@@ -306,7 +302,9 @@ namespace VisuMap {
 
             // Remove the last 3-th column
             M = M.Select(R => new double[] { R[0], R[1] }).ToArray();
-            FlipNormalize2D(nt);
+
+            if (nt.Rows >= 2)
+                FlipNormalize2D(nt.Matrix as double[][]);
         }
 
         public void FitByPCA(IMapSnapshot map, double scale) {
