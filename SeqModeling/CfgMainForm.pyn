@@ -103,14 +103,14 @@ def MainProc(menuKey):
 					case 'sMF':	PM2(aaGroups=GetAAGroup(20), mfL=20, ppl=0.05, initExag=6.0, finalExag=0.8)
 					case 'rMF':	PM2(s2L=20, ppl=0.05, initExag=8.0, shrinkF=0.9)
 					case 'tMF':	
-						svTMF = vv.ModifierKeys.ControlPressed						
-						PM2(repeats=0, ppl=0.1, initExag=6.0, finalExag=1.0, tP=(svTMF, 2000, 20, 1.0, 0.25, 6.0, 1.0))
-						PM2(repeats=0, ppl=0.1, initExag=6.0, finalExag=1.0, tP=(svTMF, 2000, 20, 1.0, 0.25, 6.0, 1.0))
+						svTMF = vv.ModifierKeys.ControlPressed				
+						# saveTMF, epochs, L, intRp, stretch, ppl, initExag, finalExag = tP		
+						PM2(ppl=0.1, initExag=6.0, finalExag=1.0, tP=(svTMF, 2000, 20, 2, 1.0, 0.25, 6.0, 1.0))
 						if svTMF:
 							atlas = New.Atlas().Show()
 							atlas.AtlasName = 'tMF-' + vv.Dataset.Name
 							MatchProteinMap(atlas, None)
-					case 'tst': GetTsneMF(pList, tP=(False, 2000, 20, 1.0, 0.25, 6.0, 1.0)).ShowHeatMap()
+					case 'tst': GetTsneMF(pList, tP=(False, 2000, 20, 2, 1.0, 0.25, 6.0, 1.0)).ShowHeatMap()
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
