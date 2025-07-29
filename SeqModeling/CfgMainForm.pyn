@@ -105,14 +105,14 @@ def MainProc(menuKey):
 					case 'rMF':	PM2(s2L=20, ppl=0.05, initExag=8.0, shrinkF=0.9)
 					case 'tMF' | 'tFT':	
 						svTMF = ctrPressed	
-						secN = 20 if vt=='tMF' else 33
-						# saveTMF, epochs, secN, intRp, stretch, ppl, initExag, finalExag = tP
-						PM2(ppl=0.1, initExag=6.0, finalExag=1.0, tP=(svTMF, 2000, secN, 2, 1.0, 0.25, 4.0, 1.0))
+						waveN = 20 if vt=='tMF' else 33
+						# saveTMF, epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
+						PM2(ppl=0.1, initExag=6.0, finalExag=1.0, tP=(svTMF, 2000, waveN, 2, 0.5, 0.25, 4.0, 1.0))
 						if svTMF:
 							atlas = New.Atlas().Show()
 							atlas.AtlasName = vt + '-' + vv.Dataset.Name
 							MatchProteinMap(atlas, None)
-					case 'tst': GetTsneRD(pList, vType='tFT', tP=(False, 2000, secN, 2, 0.5, 0.25, 4.0, 1.0)).ShowHeatMap()
+					case 'tst': GetTsneRD(pList, vType='tFT', tP=(False, 2000, waveN, 2, 0.5, 0.25, 4.0, 1.0)).ShowHeatMap()
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':

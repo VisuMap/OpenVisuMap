@@ -342,7 +342,7 @@ def GetMeanFieldTrans(pList, L=20):
 # t-SNE reduced data
 
 def GetTsneRD(pList, vType, tP):
-	saveTMF, epochs, secN, intRp, stretch, ppl, initExag, finalExag = tP
+	saveTMF, epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=finalExag, 
 		ppl=ppl, repeats=0, metric='EuclideanMetric', refreshFreq=epochs+5, glyphSet=vv.Map.GlyphSet, 
 		glyphSize=6.0, glyphOpacity=1.0)
@@ -352,10 +352,9 @@ def GetTsneRD(pList, vType, tP):
 	mds.AutoNormalizing = False
 
 	if vType == 'tFT':
-		waveLen, waveCount = 1024, secN
-		tm = GetFourier(waveLen, waveCount+1)
+		tm = GetFourier(1024, waveN+1)
 		tm = tm.RemoveColumns(New.IntArray(0))
-	D = New.NumberTable(vv.Dataset.BodyListForId(pList), secN*2)
+	D = New.NumberTable(vv.Dataset.BodyListForId(pList), waveN*2)
 	L = len(pList)
 
 	for k, pId in enumerate(pList):
