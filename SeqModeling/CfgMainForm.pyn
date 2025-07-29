@@ -55,13 +55,14 @@ def MainProc(menuKey):
 	pId = selected[0] if len(selected) > 0 else None
 	pList = selected if len(selected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
 	atlasName = None if len(pList) == 1 else f'{vv.Dataset.Name}/{vv.Map.Name}.{len(pList)}'
+	ctrPressed = vv.ModifierKeys.ControlPressed				
 
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
-			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=0.1,
-				initExag=8.0, ppl=0.25, atName=atlasName, stretch=1.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
+			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=1.0, atName=atlasName, 
+				ppl=0.25, initExag=4.0, finalExag=1.0, stretch=1.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 		case 'P-2Dx':
 			if atlasName != None: 
 				atlasName += 'x'
@@ -93,8 +94,8 @@ def MainProc(menuKey):
 				mp = ProteinMap2(pList, vt, 4000, *args, **kwargs)
 				vv.Dataset.AddMap(vt)
 				mp.NormalizeView().CopyMap().Close()
-			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF']
-			vList = ['tMF']
+			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT']
+			vList = ['tFT']
 			for vt in vList:
 				match vt:
 					case 'pMF':	PM2(mfL=20, ppl=0.05, initExag=4.0)
@@ -102,15 +103,16 @@ def MainProc(menuKey):
 					case 'sFT':	PM2(aaGroups=GetAAGroup(20), ppl=0.05, initExag=6.0, finalExag=0.9)
 					case 'sMF':	PM2(aaGroups=GetAAGroup(20), mfL=20, ppl=0.05, initExag=6.0, finalExag=0.8)
 					case 'rMF':	PM2(s2L=20, ppl=0.05, initExag=8.0, shrinkF=0.9)
-					case 'tMF':	
-						svTMF = vv.ModifierKeys.ControlPressed				
-						# saveTMF, epochs, L, intRp, stretch, ppl, initExag, finalExag = tP		
-						PM2(ppl=0.1, initExag=6.0, finalExag=1.0, tP=(svTMF, 2000, 20, 2, 1.0, 0.25, 6.0, 1.0))
+					case 'tMF' | 'tFT':	
+						svTMF = ctrPressed	
+						secN = 20 if vt=='tMF' else 33
+						# saveTMF, epochs, secN, intRp, stretch, ppl, initExag, finalExag = tP
+						PM2(ppl=0.1, initExag=6.0, finalExag=1.0, tP=(svTMF, 2000, secN, 2, 1.0, 0.25, 4.0, 1.0))
 						if svTMF:
 							atlas = New.Atlas().Show()
-							atlas.AtlasName = 'tMF-' + vv.Dataset.Name
+							atlas.AtlasName = vt + '-' + vv.Dataset.Name
 							MatchProteinMap(atlas, None)
-					case 'tst': GetTsneMF(pList, tP=(False, 2000, 20, 2, 1.0, 0.25, 6.0, 1.0)).ShowHeatMap()
+					case 'tst': GetTsneRD(pList, vType='tFT', tP=(False, 2000, secN, 2, 0.5, 0.25, 4.0, 1.0)).ShowHeatMap()
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':

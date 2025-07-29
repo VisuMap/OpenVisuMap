@@ -285,7 +285,7 @@ namespace VisuMap {
                 M[row][col] /= weights[row];
         }
 
-        public void PcaNormalize2D(INumberTable nt) {
+        public void PcaNormalize32D(INumberTable nt) {
             if (nt.Rows <= 3)
                 return;
             double[][] M = nt.Matrix as double[][];
@@ -306,6 +306,26 @@ namespace VisuMap {
             if (nt.Rows >= 2)
                 FlipNormalize2D(nt.Matrix as double[][]);
         }
+
+        public void PcaNormalize22D(INumberTable nt) {
+            if (nt.Rows <= 3)
+                return;
+            double[][] M = nt.Matrix as double[][];
+            int rows = M.Length;
+            MathUtil.CenteringInPlace(M);
+            double[][] E = MathUtil.DoPca(M, 2);
+
+            MT.ForEach(M, R => {
+                double x = R[0] * E[0][0] + R[1] * E[0][1];
+                double y = R[0] * E[1][0] + R[1] * E[1][1];
+                R[0] = x;
+                R[1] = y;
+            });
+
+            if (nt.Rows >= 2)
+                FlipNormalize2D(nt.Matrix as double[][]);
+        }
+
 
         public void FitByPCA(IMapSnapshot map, double scale) {
             if (map == null)

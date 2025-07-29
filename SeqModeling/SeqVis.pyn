@@ -339,17 +339,25 @@ def GetMeanFieldTrans(pList, L=20):
 		cs.MeanFieldTrans(nt, D.Matrix[k])
 	return D
 
-def GetTsneMF(pList, tP):
-	saveTMF, epochs, L, intRp, stretch, ppl, initExag, finalExag = tP
+# t-SNE reduced data
+
+def GetTsneRD(pList, vType, tP):
+	saveTMF, epochs, secN, intRp, stretch, ppl, initExag, finalExag = tP
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=finalExag, 
 		ppl=ppl, repeats=0, metric='EuclideanMetric', refreshFreq=epochs+5, glyphSet=vv.Map.GlyphSet, 
 		glyphSize=6.0, glyphOpacity=1.0)
 	mds.GlyphScale = 5.0
+	mds.Width = 800
+	mds.Height = 800
 	mds.AutoNormalizing = False
 
-	bodyList = vv.Dataset.BodyListForId(pList)
-	D = New.NumberTable(bodyList, L*2)
+	if vType == 'tFT':
+		waveLen, waveCount = 1024, secN
+		tm = GetFourier(waveLen, waveCount+1)
+		tm = tm.RemoveColumns(New.IntArray(0))
+	D = New.NumberTable(vv.Dataset.BodyListForId(pList), secN*2)
 	L = len(pList)
+
 	for k, pId in enumerate(pList):
 		bList = LoadMainChain0(pId)
 		if bList.Count <= 2:	continue
@@ -361,10 +369,14 @@ def GetTsneMF(pList, tP):
 		mds.SetTrainingData(nt)
 		mds.Description = f'pId:{pId}'
 
-		RunMds(mds, repeats=0)		
-		nt = New.NumberTable(mds.BodyList)
-		cs.PcaNormalize2D(nt)
-		cs.MeanFieldTrans2D(nt, D.Matrix[k])
+		RunMds(mds, repeats=0)	
+	
+		nt = New.NumberTable(mds.BodyList, 2)
+		cs.PcaNormalize22D(nt)
+		if vType == 'tMF':
+			cs.MeanFieldTrans2D(nt, D.Matrix[k])
+		else:
+			cs.FourierTrans(tm, nt, D.Matrix[k])
 
 		if saveTMF:
 			if k == 0:
@@ -384,7 +396,7 @@ def GetS2MF(pList, L, sf):
 			vv.DoEvents()
 		nt = LoadMainChain(pId)
 		cs.ToSphere(nt, sf)
-		cs.PcaNormalize2D(nt)
+		cs.PcaNormalize32D(nt)
 		cs.MeanFieldTrans2D(nt, D.Matrix[k])
 	return D
 
@@ -456,8 +468,8 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, initExag=6.0, final
 			dt = GetMFSeq(pList, aaGroups, mfL)
 		case 'rMF':
 			dt = GetS2MF(pList, L=s2L, sf=shrinkF)
-		case 'tMF':
-			dt = GetTsneMF(pList, tP=tP)
+		case 'tMF'|'tFT':
+			dt = GetTsneRD(pList, vType, tP=tP)
 		case _:
 			vv.Message('Invalid vectorization type: ' + vType)
 			return
@@ -625,6 +637,8 @@ def NewMds(nt=None, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=
 	mds.Metric = metric
 	mds.Repeats = repeats
 	mds.ReadOnly = True
+	mds.Width = 1500
+	mds.Height = 900
 	mds.Is3D = is3D
 	mds.AutoNormalizing =True
 	mds.GlyphOpacity = glyphOpacity
