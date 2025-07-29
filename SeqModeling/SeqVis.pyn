@@ -1097,8 +1097,8 @@ def Merge3DList(pList):
 			xc = np.average([b.X for b in bList])
 			yc = np.average([b.Y for b in bList])
 			zc = np.average([b.Z for b in bList])
-        else:
-		    cs.CenteringBodyList(bList, xc, yc, zc)
+		else:
+			cs.CenteringBodyList(bList, xc, yc, zc)
 		bList = ss.SetBodyType(bList, pId, k)
 		bList[0].Type = 146
 		bList[bList.Count-1].Type = 159
@@ -1122,8 +1122,8 @@ def Merge2DList(atlas):
 		if k == 0:
 			xc = np.average([b.X for b in bList])
 			yc = np.average([b.Y for b in bList])
-        else:
-		    cs.CenteringBodyList(bList, xc, yc, 0)
+		else:
+			cs.CenteringBodyList(bList, xc, yc, 0)
 		bList = ss.SetBodyType(bList, item.Id, k)
 		bList[0].Type = 146
 		bList[bList.Count-1].Type = 159
