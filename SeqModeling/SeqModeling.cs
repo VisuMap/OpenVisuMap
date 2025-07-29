@@ -211,6 +211,25 @@ namespace VisuMap {
             }
         }
 
+        public void CenteringBodyList(IList<IBody> bList, double cx, double cy, double cz) {
+            if (bList.Count < 1)
+                return;
+            double xm = bList.Select(b => b.X).Average();
+            double ym = bList.Select(b => b.Y).Average();
+            double zm = (cz != 0) ? bList.Select(b => b.Z).Average() : 0;
+                
+            double dx = cx - xm;
+            double dy = cy - ym;
+            double dz = cz - zm;
+
+            foreach (var b in bList) {
+                b.X += dx;
+                b.Y += dy;
+                if (cz != 0)
+                    b.Z += dz;
+            }
+        }
+
         // Flipping centralized matrix.
         void FlipNormalize2D(double[][] M) { 
             double x = 0;
