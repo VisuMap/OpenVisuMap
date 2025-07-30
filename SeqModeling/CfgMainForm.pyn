@@ -95,7 +95,7 @@ def MainProc(menuKey):
 				vv.Dataset.AddMap(vt)
 				mp.NormalizeView().CopyMap().Close()
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT']
-			vList = ['tFT']
+			vList = ['tMF', 'tFT']
 			for vt in vList:
 				match vt:
 					case 'pMF':	PM2(mfL=20, ppl=0.05, initExag=4.0)

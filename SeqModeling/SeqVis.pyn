@@ -1177,11 +1177,14 @@ def AlignSeqPair(parentWin):
 		if k >= 0: break
 
 def ResetAtlas():
-	if vv.EventSource.Form.Name == 'D3dRender': 
-		return
+	srcName = vv.EventSource.Form.Name
 	mk = vv.ModifierKeys
-	sn=pp.SelectedItems.Count
-	if mk.AltPressed or mk.ControlPressed or ((sn!=0) and (sn<6)):
+	n=pp.SelectedItems.Count
+	if srcName == 'D3dRender' or srcName == 'MapSnapshot': 
+		return
+	if mk.AltPressed or mk.ControlPressed:
+		return
+	if n!=0 and n<6:
 		return
 	pp.ResetView()
 
