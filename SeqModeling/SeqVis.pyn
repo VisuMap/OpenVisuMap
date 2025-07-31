@@ -350,6 +350,7 @@ def GetTsneRD(pList, vType, tP):
 	mds.Width = 800
 	mds.Height = 800
 	mds.AutoNormalizing = False
+	#mds.Force1DtSNE()
 
 	if vType == 'tFT':
 		tm = GetFourier(1024, waveN+1)
@@ -371,7 +372,7 @@ def GetTsneRD(pList, vType, tP):
 		RunMds(mds, repeats=0)	
 	
 		nt = New.NumberTable(mds.BodyList, 2)
-		cs.PcaNormalize22D(nt)
+		cs.PcaNormalize2D(nt)
 		if vType == 'tMF':
 			cs.MeanFieldTrans2D(nt, D.Matrix[k])
 		else:
@@ -395,7 +396,7 @@ def GetS2MF(pList, L, sf):
 			vv.DoEvents()
 		nt = LoadMainChain(pId)
 		cs.ToSphere(nt, sf)
-		cs.PcaNormalize32D(nt)
+		cs.PcaNormalize2D(nt)
 		cs.MeanFieldTrans2D(nt, D.Matrix[k])
 	return D
 

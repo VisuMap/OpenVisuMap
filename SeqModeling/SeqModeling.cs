@@ -231,21 +231,21 @@ namespace VisuMap {
         }
 
         // Flipping centralized matrix.
-        void FlipNormalize2D(double[][] M) { 
-            double x = 0;
-            double y = 0;
-            for(int k=0; k< M.Length / 2; k++) {
-                var R = M[k];
-                x += R[0];
-                y += R[1];
+        void FlipNormalize(double[][] M) {
+            int rows = M.Length;
+            int cols = M[0].Length;
+            double[] colSum = new double[cols];
+            for(int row=0; row<(rows/2); row++) {
+                var R = M[row];
+                for(int col=0; col<cols; col++)
+                    colSum[col] += R[col];
             }
 
-            if (x > 0)
-                foreach (var R in M)
-                    R[0] = -R[0];
-            if (y > 0)
-                foreach (var R in M)
-                    R[1] = -R[1];
+            foreach (var R in M) { 
+                for (int col = 0; col < cols; col++)
+                    if (colSum[col] > 0)
+                            R[col] = -R[col];
+            }
         }
 
 
@@ -304,47 +304,34 @@ namespace VisuMap {
                 M[row][col] /= weights[row];
         }
 
-        public void PcaNormalize32D(INumberTable nt) {
-            if (nt.Rows <= 3)
-                return;
+        public void PcaNormalize2D(INumberTable nt) {
+            if (nt.Rows <= 3) return;
             double[][] M = nt.Matrix as double[][];
-            int rows = M.Length;
             MathUtil.CenteringInPlace(M);
             double[][] E = MathUtil.DoPca(M, 2);
 
-            MT.ForEach(M, R => {
-                double x = R[0] * E[0][0] + R[1] * E[0][1] + R[2] * E[0][2];
-                double y = R[0] * E[1][0] + R[1] * E[1][1] + R[2] * E[1][2];
-                R[0] = x;
-                R[1] = y;
-            });
-
-            // Remove the last 3-th column
-            M = M.Select(R => new double[] { R[0], R[1] }).ToArray();
-
-            if (nt.Rows >= 2)
-                FlipNormalize2D(nt.Matrix as double[][]);
-        }
-
-        public void PcaNormalize22D(INumberTable nt) {
-            if (nt.Rows <= 3)
-                return;
-            double[][] M = nt.Matrix as double[][];
-            int rows = M.Length;
-            MathUtil.CenteringInPlace(M);
-            double[][] E = MathUtil.DoPca(M, 2);
-
-            MT.ForEach(M, R => {
-                double x = R[0] * E[0][0] + R[1] * E[0][1];
-                double y = R[0] * E[1][0] + R[1] * E[1][1];
-                R[0] = x;
-                R[1] = y;
-            });
+            if (nt.Columns == 1) {
+                ;
+            } else if (nt.Columns == 2) {
+                MT.ForEach(M, R => {
+                    double x = R[0] * E[0][0] + R[1] * E[0][1];
+                    double y = R[0] * E[1][0] + R[1] * E[1][1];
+                    R[0] = x;
+                    R[1] = y;
+                });
+            } else { // assuming nt.Columns > 2.
+                MT.ForEach(M, R => {
+                    double x = R[0] * E[0][0] + R[1] * E[0][1] + R[2] * E[0][2];
+                    double y = R[0] * E[1][0] + R[1] * E[1][1] + R[2] * E[1][2];
+                    R[0] = x;
+                    R[1] = y;
+                });
+                M = M.Select(R => new double[] { R[0], R[1] }).ToArray();
+            }
 
             if (nt.Rows >= 2)
-                FlipNormalize2D(nt.Matrix as double[][]);
+                FlipNormalize(nt.Matrix as double[][]);
         }
-
 
         public void FitByPCA(IMapSnapshot map, double scale) {
             if (map == null)
@@ -363,7 +350,7 @@ namespace VisuMap {
                 R[1] = y;
             });
 
-            FlipNormalize2D(M);
+            FlipNormalize(M);
 
             double minX = double.MaxValue;
             double minY = double.MaxValue;
@@ -402,6 +389,27 @@ namespace VisuMap {
                 R[2 * secIdx + 1] += Mrow[1];
             }
         }
+
+        public void MeanFieldTrans(INumberTable dt, double[] R) {
+            int L = R.Length / 3; // number of sections
+            int secLen = dt.Rows / L;  // section length
+            int tailIdx = dt.Rows % L;   // where the tail sections begins. Tail sections are shorter by one point.
+            int headSize = tailIdx * L;      // The size in aa of the head section, where section size is L+1.
+            if (dt.Rows < L)
+                headSize = dt.Rows;
+            Array.Clear(R, 0, R.Length);
+            for (int k = 0; k < dt.Rows; k++) {
+                double[] Mrow = dt.Matrix[k] as double[];
+                // secIdx is the index of section where k-th aa is in.
+                int secIdx = (k < headSize) ? k / (secLen + 1) : (k - tailIdx) / secLen;
+                //int secIdx = k % L;
+                secIdx *= 3;
+                R[secIdx] += Mrow[0];
+                R[secIdx + 1] += Mrow[1];
+                R[secIdx + 2] += Mrow[2];
+            }
+        }
+
 
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
             if ((bList.Count <= 1) || (repeats == 0))
@@ -624,31 +632,6 @@ namespace VisuMap {
             return New.NumberTable(vList);
         }
 
-        public void MeanFieldTrans(INumberTable dt, double[] R) {
-            int L = R.Length / 3; // number of sections
-            int secLen = dt.Rows / L;  // section length
-            int tailIdx = dt.Rows % L;   // where the tail sections begins. Tail sections are shorter by one point.
-            int headSize = tailIdx * L;      // The size in aa of the head section, where section size is L+1.
-            if (dt.Rows < L)
-                headSize = dt.Rows;
-            Array.Clear(R, 0, R.Length);
-            for (int k=0; k<dt.Rows; k++) {
-                double[] Mrow = dt.Matrix[k] as double[];
-                // secIdx is the index of section where k-th aa is in.
-                int secIdx = (k < headSize) ? k / (secLen + 1) : (k - tailIdx) / secLen;
-                //int secIdx = k % L;
-                secIdx *= 3;
-                R[secIdx]     += Mrow[0];
-                R[secIdx + 1] += Mrow[1];
-                R[secIdx + 2] += Mrow[2];
-            }
-            /*
-            double s = R.Take(3*L/2).Select(v => v * Math.Abs(v)).Sum();
-            if (s < 0)
-                for (int k = 0; k < R.Length; k++)
-                    R[k] = -R[k];
-             */
-        }
 
         public void SmoothenBodyList(IList<IBody> bs) {
             var B = New.NumberTable(bs, 3).Matrix;

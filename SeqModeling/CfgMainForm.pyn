@@ -107,7 +107,7 @@ def MainProc(menuKey):
 						svTMF = ctrPressed	
 						waveN = 20 if vt=='tMF' else 33
 						# saveTMF, epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
-						PM2(ppl=0.1, initExag=6.0, finalExag=1.0, tP=(svTMF, 2000, waveN, 2, 0.5, 0.25, 4.0, 1.0))
+						PM2(ppl=0.1, initExag=6.0, finalExag=1.0, tP=(svTMF, 2000, waveN, 2, 1.0, 0.25, 4.0, 1.0))
 						if svTMF:
 							atlas = New.Atlas().Show()
 							atlas.AtlasName = vt + '-' + vv.Dataset.Name
