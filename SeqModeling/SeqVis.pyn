@@ -344,18 +344,19 @@ def GetMeanFieldTrans(pList, L=20):
 def GetTsneRD(pList, vType, tP):
 	saveTMF, epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=finalExag, 
-		ppl=ppl, repeats=0, metric='EuclideanMetric', refreshFreq=epochs+5, glyphSet=vv.Map.GlyphSet, 
+		ppl=ppl, repeats=0, metric='EuclideanMetric', refreshFreq=0, glyphSet=vv.Map.GlyphSet, 
 		glyphSize=6.0, glyphOpacity=1.0)
 	mds.GlyphScale = 5.0
 	mds.Width = 800
 	mds.Height = 800
 	mds.AutoNormalizing = False
 	#mds.Force1DtSNE()
+	outDim = 2
 
 	if vType == 'tFT':
 		tm = GetFourier(1024, waveN+1)
 		tm = tm.RemoveColumns(New.IntArray(0))
-	D = New.NumberTable(vv.Dataset.BodyListForId(pList), waveN*2)
+	D = New.NumberTable(vv.Dataset.BodyListForId(pList), waveN*outDim)
 	L = len(pList)
 
 	for k, pId in enumerate(pList):
@@ -371,10 +372,10 @@ def GetTsneRD(pList, vType, tP):
 
 		RunMds(mds, repeats=0)	
 	
-		nt = New.NumberTable(mds.BodyList, 2)
+		nt = New.NumberTable(mds.BodyList, outDim)
 		cs.PcaNormalize2D(nt)
 		if vType == 'tMF':
-			cs.MeanFieldTrans2D(nt, D.Matrix[k])
+			cs.MeanFieldTrans(nt, D.Matrix[k])
 		else:
 			cs.FourierTrans(tm, nt, D.Matrix[k])
 
@@ -397,7 +398,7 @@ def GetS2MF(pList, L, sf):
 		nt = LoadMainChain(pId)
 		cs.ToSphere(nt, sf)
 		cs.PcaNormalize2D(nt)
-		cs.MeanFieldTrans2D(nt, D.Matrix[k])
+		cs.MeanFieldTrans(nt, D.Matrix[k])
 	return D
 
 def GetFourierTrans(pList, waveLen, waveCount):

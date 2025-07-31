@@ -55,6 +55,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SeqLib.cs" />
     <Compile Include="SeqModeling.cs" />
   </ItemGroup>
   <ItemGroup>

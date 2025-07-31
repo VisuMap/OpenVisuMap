@@ -3,57 +3,10 @@ using System.Linq;
 using System.Collections.Generic;
 using VisuMap.Script;
 using Vector3 = SharpDX.Vector3;
-using RMatrix = SharpDX.Matrix3x3;
 using Quaternion = SharpDX.Quaternion;
 using System.IO;
 
 namespace VisuMap {
-    public static class MyExtensions {
-        public static Vector3 ToV3(this IBody b) {
-            return new Vector3((float)b.X, (float)b.Y, (float)b.Z);
-        }
-        public static Vector3 ToV3(this IList<double> v) {
-            return new Vector3((float)v[0], (float)v[1], (float)v[2]);
-        }
-
-        public static void SetXYZ(this IBody b, Vector3 p) {
-            b.SetXYZ(p.X, p.Y, p.Z);
-        }
-
-        public static void SetXYZ(this IList<double> v, Vector3 p) {
-            v[0] = p.X;
-            v[1] = p.Y;
-            v[2] = p.Z;
-        }
-    }
-
-    public class VectorN {
-        float[] v;
-
-        public VectorN(float[] v) : this(v.Length) {
-            Array.Copy(v, this.v, v.Length);
-        }
-
-        public VectorN(int vDim) {
-            this.v = new float[vDim];
-        }
-
-        public float[] Vector { get => v; }
-
-        public float this[int index]
-        {
-            get => this.v[index];
-            set => this.v[index] = value;
-        }
-
-        public static VectorN[] NewVectorN(int length, int vDim) {
-            VectorN[] vn = new VectorN[length];
-            for (int k = 0; k < length; k++)
-                vn[k] = new VectorN(vDim);
-            return vn;
-        }        
-    }
-
     public class SeqModeling {
         IVisuMap vv;
         INew New;
@@ -376,41 +329,21 @@ namespace VisuMap {
             map.MapLayout.Height = map.Height;
         }
 
-        public void MeanFieldTrans2D(INumberTable dt, double[] R) {
-            int L = R.Length / 2; // number of sections
+        public void MeanFieldTrans(INumberTable dt, double[] R) {
+            int DIM = dt.Columns;
+            int L = R.Length / DIM;    // number of sections
             int secLen = dt.Rows / L;  // section length
             if (dt.Rows % L != 0)
                 secLen++;
             Array.Clear(R, 0, R.Length);
             for (int k = 0; k < dt.Rows; k++) {
-                double[] Mrow = dt.Matrix[k] as double[];
-                int secIdx = k / secLen;
-                R[2 * secIdx] += Mrow[0];
-                R[2 * secIdx + 1] += Mrow[1];
+                double[] Mr = dt.Matrix[k] as double[];
+                int i0 = (k / secLen) * DIM;
+                for (int i=0; i<DIM; i++)
+                    R[i0 + i] += Mr[i];
             }
         }
-
-        public void MeanFieldTrans(INumberTable dt, double[] R) {
-            int L = R.Length / 3; // number of sections
-            int secLen = dt.Rows / L;  // section length
-            int tailIdx = dt.Rows % L;   // where the tail sections begins. Tail sections are shorter by one point.
-            int headSize = tailIdx * L;      // The size in aa of the head section, where section size is L+1.
-            if (dt.Rows < L)
-                headSize = dt.Rows;
-            Array.Clear(R, 0, R.Length);
-            for (int k = 0; k < dt.Rows; k++) {
-                double[] Mrow = dt.Matrix[k] as double[];
-                // secIdx is the index of section where k-th aa is in.
-                int secIdx = (k < headSize) ? k / (secLen + 1) : (k - tailIdx) / secLen;
-                //int secIdx = k % L;
-                secIdx *= 3;
-                R[secIdx] += Mrow[0];
-                R[secIdx + 1] += Mrow[1];
-                R[secIdx + 2] += Mrow[2];
-            }
-        }
-
-
+        
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
             if ((bList.Count <= 1) || (repeats == 0))
                 return bList;
