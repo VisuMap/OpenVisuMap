@@ -178,12 +178,9 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 		return
 	
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
-	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=finalExag, ppl=ppl, 
-		repeats=0, metric='EuclideanMetric', glyphSet='36 Clusters||||Colored Balls')
-	mds.RefreshFreq = epochs//2
+	mds = NewMds(nt=None, epochs=epochs, is3D=False, refreshFreq=0, repeats=0, metric='EuclideanMetric',
+		ppl=ppl, initExag=initExag, finalExag=finalExag, glyphSet=vv.Map.GlyphSet, glyphOpacity=1.0)
 	mds.GlyphSize = 0.75 if atName==None else glyphSize
-	mds.GlyphOpacity = 1.0	
-	mds.GlyphSet = vv.Map.GlyphSet
 
 	if vv.Dataset.IndexOfColumn('ChainName')>=0:
 		mainChain = False
@@ -202,14 +199,10 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 				for b in bList:
 					b.Type = bb.Type
 					b.Hidden = False
-
 			bList = Interporlate(bList, rp=3, eps=eps, smtRatio=smtRatio)			
-
 			if includeHA:
 				bList.AddRange(bList2)
-	
 			nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
-
 			if nt.Rows < 8:
 				continue	
 
@@ -242,7 +235,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			RunMds(mds, info=info, repeats=0)
 
 			if mapStore != None:
-				mapStore.AddMaps()
+				mapStore.AddMap()
 			else:
 				mds.ShowSnapshot().NormalizeView()
 		mds.Close()

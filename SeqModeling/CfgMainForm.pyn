@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds Align P-S2 S2
+#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Select-UniqSeq TypeProtein P-Map P-2D P-2Dx  P-3D P-3Dx P-3Ds Align P-S2 S2 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -62,7 +62,7 @@ def MainProc(menuKey):
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
 			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=1.0, atName=atlasName, 
-				ppl=0.25, initExag=4.0, finalExag=1.0, stretch=1.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
+				ppl=0.25, initExag=4.0, finalExag=1.0, stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 		case 'P-2Dx':
 			if atlasName != None: 
 				atlasName += 'x'
@@ -91,11 +91,11 @@ def MainProc(menuKey):
 			OpenCifFile(pId)
 		case 'P-Map':
 			def PM2(*args, **kwargs):
-				mp = ProteinMap2(pList, vt, 4000, *args, **kwargs)
+				mp = ProteinMap2(pList, vt, 4000, samplingDist=1.0, *args, **kwargs)
 				vv.Dataset.AddMap(vt)
 				mp.NormalizeView().CopyMap().Close()
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT']
-			vList = ['tMF', 'tFT']
+			vList = ['tFT']
 			for vt in vList:
 				match vt:
 					case 'pMF':	PM2(mfL=20, ppl=0.05, initExag=4.0)
@@ -107,7 +107,7 @@ def MainProc(menuKey):
 						svTMF = ctrPressed	
 						waveN = 20 if vt=='tMF' else 33
 						# saveTMF, epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
-						PM2(ppl=0.1, initExag=6.0, finalExag=1.0, tP=(svTMF, 2000, waveN, 2, 1.0, 0.25, 4.0, 1.0))
+						PM2(ppl=0.2, initExag=6.0, finalExag=1.0, tP=(svTMF, 2000, waveN, 2, 2.0, 0.25, 6.0, 1.5))
 						if svTMF:
 							atlas = New.Atlas().Show()
 							atlas.AtlasName = vt + '-' + vv.Dataset.Name
@@ -170,9 +170,25 @@ def MainProc(menuKey):
 				New.Atlas(atlasName).Show()
 		case 'S2':
 			SphereView()
+		case 'TT':		
+			bList = Interporlate(GetChainById(pId), 3)
+			mp = New.Map3DView(New.BodyListClone(bList))
+			mp.Show()
+			mp.NormalizeView()
+			mp.FitToWindow()
+			nt = Augment2Table(bList, stretch=1.0)
+			mds = NewMds(nt, is3D=True, epochs=4000, ppl=0.1)
+			RunMds(mds).FitToWindow()
+			mds.Close()
 
 MainProc(vv.EventSource.Item)
 
 '''
+dsList = list(vv.Folder.DatasetNameList)
+for ds  in dsList[10:]:
+	print('Dataset: ', ds)
+	vv.Folder.OpenDataset(ds)
+	vv.Sleep(1000)
+	pp.ClickMenu('SeqVis/P-2D')
 
 '''

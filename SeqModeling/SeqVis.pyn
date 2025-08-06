@@ -362,16 +362,15 @@ def GetTsneRD(pList, vType, tP):
 	for k, pId in enumerate(pList):
 		bList = LoadMainChain0(pId)
 		if bList.Count <= 2:	continue
-		vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
+		if (k+1) % 10 == 0:
+			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
 		ss.SetBodyType2(bList, vv.Dataset.BodyForId(pId).Type)
 		bList = Interporlate(bList, rp=intRp, eps=0.1, smtRatio=0)
 		nt = Augment2Table(bList, stretch=stretch, clusterStretch=0.0, expandFactor=1.0)
-
-		mds.SetTrainingData(nt)
 		mds.Description = f'pId:{pId}'
-
+		mds.SetTrainingData(nt)
 		RunMds(mds, repeats=0)	
-	
+
 		nt = New.NumberTable(mds.BodyList, outDim)
 		cs.PcaNormalize2D(nt)
 		if vType == 'tMF':
@@ -625,7 +624,7 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 
 #-----------------------------------------------------------------------------
 
-def NewMds(nt=None, epochs=10000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, staged=False, zoomFactor=10.0,
+def NewMds(nt=None, epochs=1000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, staged=False, zoomFactor=10.0,
 		repeats=1, metric='EuclideanMetric', glyphSet=None, glyphSize=0.5, glyphOpacity=1.0, refreshFreq=50):
 	mds = New.MdsCluster(nt)
 	mds.Show()
