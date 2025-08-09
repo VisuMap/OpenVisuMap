@@ -72,6 +72,8 @@ def ShrinkSphere(bList, cf):
 
 
 def SphereView(pId):
+	global tgtView
+	tgtView = None
 	tstFct = ShrinkSphere if vv.ModifierKeys.ControlPressed else SphereUnfold	
 	bList = GetSphereDataset(pId, interRp=0)
 	if bList.Count > 1:
