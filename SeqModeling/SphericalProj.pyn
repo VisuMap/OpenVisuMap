@@ -33,10 +33,10 @@ def ShowSphere(bList, info=None, hsize=1, gsize=3.0):
 def NotExits(vw):
 	return (vw == None) or vw.TheForm.IsDisposed
 
-def SphereUnfold(spView, cf):
+def SphereUnfold(bList, cf):
 	global tgtView
 	cf = max(0, min(1, cf))
-	bList = New.BodyListClone(spView.BodyList)
+	bList = New.BodyListClone(bList)
 	cs.ShrinkSphere(bList, cf)
 	bs = New.BodyList()
 	bx = New.Body('A999.0')
@@ -58,49 +58,34 @@ def SphereUnfold(spView, cf):
 		tgtView.ShowBoundingBox = False
 	tgtView.MoveBodiesTo(bs, 5, 50, 0, 0)
 
-def ShrinkSphere(spView, cf):
+def ShrinkSphere(bList, cf):
 	global tgtView	
 	cf = max(0, min(1, cf))
-	bList = New.BodyListClone(spView.BodyList)
+	bList = New.BodyListClone(bList)
 	cs.ShrinkSphere(bList, cf)
 	bList = Interpolate(bList, rp=5, eps=0.1)
 	if NotExits(tgtView):
-		tgtView = spView.NewWindow()
-		tgtView.BodyList.Clear()
-		tgtView.BodyList.AddRange(bList)
-		tgtView.Redraw()
+		tgtView = New.Map3DView(bList)
 		tgtView.ShowBoundingBox = False
+		tgtView.Show()
 	tgtView.MoveBodiesTo(bList, 5, 50, 0, 0)
 
-def DisplaySphere():
-	global tgtView
-	tgtView = None
-	pId = vv.Map.SelectedItems[0]
-	bList = GetSphereDataset(pId, interRp=0, contracting=0)
+
+def SphereView(pId):
+	tstFct = ShrinkSphere if vv.ModifierKeys.ControlPressed else SphereUnfold	
+	bList = GetSphereDataset(pId, interRp=0)
 	if bList.Count > 1:
 		maxSz = 0.75*(bList[0].Length + bList[1].Length)
 		bList = New.BodyList([b for b in bList if b.Length<maxSz])
-	return ShowSphere(bList), pId
-
-def SphereView():
-	if pp.Name == 'MainForm':
-		spView, pId = DisplaySphere()
-	cfList = [0.01 * k for k in range(1, 100)]
-	cfList = 3*(cfList + cfList[::-1])
-	tstFct = ShrinkSphere if vv.ModifierKeys.ControlPressed else SphereUnfold	
+	#ShowSphere(bList)
+	cfList = [0.01 * k for k in range(100)]
+	cfList = 9*(cfList + cfList[::-1])
 	for k, cf in enumerate(cfList):
-		tstFct(spView, cf)
-		vv.DoEvents()
+		tstFct(bList, cf)
 		tgtView.Title = f'CF: {k}: {cf}'
-		if (k % 17 == 0) and (tstFct == SphereUnfold):
-			tgtView.CentralizeView(False)
-		if vv.ModifierKeys.AltPressed: 
-			break
-	
-	info = MapInfo()
-	info.pId = pId
-	info.Set('cF', cf)
-	tgtView.Description = info.ToStr()	
+		vv.DoEvents()
+		if k % 19 == 0: tgtView.CentralizeView(False)
+		if vv.ModifierKeys.AltPressed: break	
 
 def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 	if len(pList) == 1:
@@ -151,9 +136,6 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 	New.Atlas(atlasName).Show()
 
 '''
-ShrinkSphere(spView, 0.77662*0.5)
-SphereUnfold(spView, 0.64651);tgtView.CentralizeView(False)
-
 
 '''
 
