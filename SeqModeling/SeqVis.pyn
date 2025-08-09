@@ -365,7 +365,7 @@ def GetTsneRD(pList, vType, tP):
 		if (k+1) % 10 == 0:
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
 		ss.SetBodyType2(bList, vv.Dataset.BodyForId(pId).Type)
-		bList = Interporlate(bList, rp=intRp, eps=0.1, smtRatio=0)
+		bList = Interpolate(bList, rp=intRp, eps=0.1, smtRatio=0)
 		nt = Augment2Table(bList, stretch=stretch, clusterStretch=0.0, expandFactor=1.0)
 		mds.Description = f'pId:{pId}'
 		mds.SetTrainingData(nt)
@@ -1092,7 +1092,7 @@ def Merge3DList(pList):
 	for k, pId in enumerate(pList):
 		bList = LoadMainChain0(pId)
 		cs.PcaNormalize2(bList)
-		bList = Interporlate(bList, 4, 0.1, smtRatio=0.0)
+		bList = Interpolate(bList, 4, 0.1, smtRatio=0.0)
 		cs.NormalizeByFlipping(bList)
 		if k == 0:
 			xc = np.average([b.X for b in bList])

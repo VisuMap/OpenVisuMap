@@ -9,7 +9,7 @@ def GetSphereDataset(cId, interRp=0, contracting=0, eps=0.1):
 		b.Type = bType
 	bList = cs.ToSphere(bList, contracting)
 	if interRp>0:
-		bList = Interporlate(bList, interRp, eps)
+		bList = Interpolate(bList, interRp, eps)
 		for b in bList: 
 			b.Hidden = b.Id.startswith('i')
 	bList[0].Type = 105
@@ -49,40 +49,46 @@ def SphereUnfold(spView, cf):
 		bx.Id = b.Id
 		bx.Type = 0
 		bs.Add(bx.Clone())
-	bs = Interporlate(bs, rp=5, eps=0.1)
+	bs = Interpolate(bs, rp=5, eps=0.1)
 	bs[0].Type = 105
 	bs[bs.Count-1].Type = 110
 	if NotExits(tgtView):
 		tgtView = New.Map3DView(New.BodyListClone(bs)).Show()
 		tgtView.CentralizeView()
 		tgtView.ShowBoundingBox = False
-	tgtView.MoveBodiesTo(bs, 15, 50, 0, 0)
+	tgtView.MoveBodiesTo(bs, 5, 50, 0, 0)
 
 def ShrinkSphere(spView, cf):
 	global tgtView	
 	cf = max(0, min(1, cf))
 	bList = New.BodyListClone(spView.BodyList)
 	cs.ShrinkSphere(bList, cf)
+	bList = Interpolate(bList, rp=5, eps=0.1)
 	if NotExits(tgtView):
 		tgtView = spView.NewWindow()
+		tgtView.BodyList.Clear()
+		tgtView.BodyList.AddRange(bList)
+		tgtView.Redraw()
 		tgtView.ShowBoundingBox = False
-	tgtView.MoveBodiesTo(bList, 10, 50, 0, 0)
+	tgtView.MoveBodiesTo(bList, 5, 50, 0, 0)
 
 def DisplaySphere():
 	global tgtView
 	tgtView = None
 	pId = vv.Map.SelectedItems[0]
 	bList = GetSphereDataset(pId, interRp=0, contracting=0)
+	if bList.Count > 1:
+		maxSz = 0.75*(bList[0].Length + bList[1].Length)
+		bList = New.BodyList([b for b in bList if b.Length<maxSz])
 	return ShowSphere(bList), pId
 
 def SphereView():
 	if pp.Name == 'MainForm':
 		spView, pId = DisplaySphere()
-	
-	K = 100
-	tstFct = ShrinkSphere if vv.ModifierKeys.ControlPressed else SphereUnfold
-	for k in range(2*K+1):
-		cf = 0.01*(k if k<K else 2*K-k)
+	cfList = [0.01 * k for k in range(1, 100)]
+	cfList = 3*(cfList + cfList[::-1])
+	tstFct = ShrinkSphere if vv.ModifierKeys.ControlPressed else SphereUnfold	
+	for k, cf in enumerate(cfList):
 		tstFct(spView, cf)
 		vv.DoEvents()
 		tgtView.Title = f'CF: {k}: {cf}'
@@ -95,6 +101,54 @@ def SphereView():
 	info.pId = pId
 	info.Set('cF', cf)
 	tgtView.Description = info.ToStr()	
+
+def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
+	if len(pList) == 1:
+		pId = pList[0]
+		info = MapInfo()
+		info.pId = pId
+		bList = GetSphereDataset(pId, interRp=0, contracting=0.9)
+		#ShowPDB(pId, rp=intRp, eps=0.1, chainNames=GetChainName(pId), includeHA=False)
+		#ShowSphere(bList)
+		mds = NewMds(New.NumberTable(bList, 3), 
+			epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
+			zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=1.0, glyphOpacity=1.0)
+		RunMds(mds, info=info, repeats=0)
+		bList = Interpolate(mds.BodyList, rp=5, eps=0.1)
+		for b in bList:
+			b.Hidden = True if b.Id[0] == 'i' else False
+		mp = New.MapSnapshot(bList).Show()
+		mp.HiddenBodySize = 3
+		mp.NormalizeView()
+		mp.Description = info.ToStr()
+		mds.Close()
+		return
+
+	mds = NewMds(epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=0, 
+		zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=6.0, glyphOpacity=1.0)
+	atlasName = 'S2.' + atlasName
+	mapStore = NewMapStore(atlasName, is3D=False, clearStore=True)			
+	contractingF = ctrF
+	samplingDist = 0.1
+	info = MapInfo()
+	info.Mtd = 'S2'
+	info.Set('cF', contractingF)
+	if samplingDist > 0:
+		pList = ss.FlatSampling(pList, samplingDist)
+	for k, pId in enumerate(pList):				
+		bList = GetSphereDataset(pId, interRp=0, contracting=contractingF)
+		if bList == None:
+			continue
+		mds.SetTrainingData(New.NumberTable(bList, 3))
+		info.pId = pId
+		info.pLen = bList.Count
+		vv.Title = f'Embedding S2 {pId}/{bList.Count:,}: {k+1}-th of {len(pList)}'
+		RunMds(mds, info=info, repeats=0)
+		mapStore.AddMap()
+	MatchProteinMap(mapStore.atlas, 70)
+	mapStore.Close()
+	mds.Close()
+	New.Atlas(atlasName).Show()
 
 '''
 ShrinkSphere(spView, 0.77662*0.5)

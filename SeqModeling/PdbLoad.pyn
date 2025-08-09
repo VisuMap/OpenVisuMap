@@ -51,7 +51,7 @@ public string LoadMainSeq(string cacheFile) {
 def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, chainNames=None, includeHA=True, 
 		setChainId=False,	smtRatio=0, glyphSize=1.0, glyphOpacity=0.75):
 	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, mainChain=mainChain, chainNames=chainNames)
-	bsList = Interporlate(bsList, rp, eps, smtRatio=smtRatio)
+	bsList = Interpolate(bsList, rp, eps, smtRatio=smtRatio)
 
 	bsList[0].Type = 171
 	for k in range(1, bsList.Count-1):		
@@ -199,7 +199,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 				for b in bList:
 					b.Type = bb.Type
 					b.Hidden = False
-			bList = Interporlate(bList, rp=3, eps=eps, smtRatio=smtRatio)			
+			bList = Interpolate(bList, rp=3, eps=eps, smtRatio=smtRatio)			
 			if includeHA:
 				bList.AddRange(bList2)
 			nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
@@ -382,7 +382,7 @@ def LoadMainSeq(pId):
 			seq.append(rs.Name[0])
 		return ''.join(seq)
 
-def Interporlate(bsList, rp=3, eps=0.1, smtRatio=0):
+def Interpolate(bsList, rp=3, eps=0.1, smtRatio=0):
 	bs = New.BodyList()
 	k0 = 0
 	t0 = bsList[k0].Type
