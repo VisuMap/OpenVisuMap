@@ -382,23 +382,36 @@ def LoadMainSeq(pId):
 			seq.append(rs.Name[0])
 		return ''.join(seq)
 
-def Interpolate(bsList, rp=3, eps=0.1, smtRatio=0):
+def Interpolate(bList, rp=3, eps=0.1, smtRatio=0):
 	bs = New.BodyList()
 	k0 = 0
-	t0 = bsList[k0].Type
+	t0 = bList[0].Type
 	chIdx  = 0
-	for k in range(bsList.Count+1):
-		if (k == bsList.Count) or (bsList[k].Type != t0):
-			D = bsList.GetRange(k0, k-k0)
+	for k in range(bList.Count+1):
+		if (k == bList.Count) or (bList[k].Type != t0):
+			D = bList.GetRange(k0, k-k0)
 			if smtRatio != 0:
 				cs.LocalSmoothen(D, smtRatio, 8)
 			D = cs.Interpolate3D(D, rp, eps, bs.Count, chIdx)
 			chIdx+=1
 			bs.AddRange(D)
-			if k < bsList.Count:
+			if k < bList.Count:
 				k0 = k
-				t0 = bsList[k0].Type
+				t0 = bList[k0].Type
 	return bs
+
+def Interpolate1Chain(bList, rp=3, eps=0.1, smtRatio=0):
+	marked = bList[0].Type == 105
+	if marked:
+		bList[0].Type = bList[1].Type
+		bList[bList.Count-1].Type = bList[1].Type			
+	if smtRatio != 0:
+		cs.LocalSmoothen(bList, smtRatio, 8)
+	bList = cs.Interpolate3D(bList, rp, eps, bList.Count, 0)
+	if marked:
+		bList[0].Type = 105
+		bList[bList.Count-1].Type = 110
+	return bList
 
 def UnFoldMap(pMap, epochs=1000, ppl=0.1, staged=False, repeats=1, stretch=0, clusterStretch=1.0, expandFactor=1.0, initExag=10.0, finalExag=1.0, is3D=False):
 	bList = pMap.BodyListEnabled()

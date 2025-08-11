@@ -347,8 +347,7 @@ def GetTsneRD(pList, vType, tP):
 		ppl=ppl, repeats=0, metric='EuclideanMetric', refreshFreq=0, glyphSet=vv.Map.GlyphSet, 
 		glyphSize=6.0, glyphOpacity=1.0)
 	mds.GlyphScale = 5.0
-	mds.Width = 800
-	mds.Height = 800
+	mds.Resize(0,0,800,800)
 	mds.AutoNormalizing = False
 	#mds.Force1DtSNE()
 	outDim = 2
@@ -402,21 +401,18 @@ def GetS2MF(pList, tP):
 		mds.AutoNormalizing = False
 
 	for k, pId in enumerate(pList):
-		if (k>0) and (k%200 == 0):
+		if k>0 and k%200==0:
 			vv.Title = f'Reading: {k}:{pId}'
-			vv.DoEvents()
 		nt = LoadMainChain(pId)
 		cs.ToSphere(nt, sf)
-
-		if mds != None:
-			if (k+1) % 10 == 0:	
-				vv.Title = f'tSNE normalizing: {pId}/{bList.Count}: {k+1}-th of {len(pList)}'
+		if mds!=None and nt.Rows>1:
+			if (k+1)%10==0:	
+				vv.Title = f'tSNE normalizing: {pId}/{nt.Rows}: {k+1}-th of {len(pList)}'
 			RunMds(mds, repeats=0, nt=nt)
 			nt = New.NumberTable(mds.BodyList, 2)
-		
+		vv.DoEvents()
 		cs.PcaNormalize2D(nt)
 		cs.MeanFieldTrans(nt, D.Matrix[k])
-
 	if mds != None: 
 		mds.Close()
 	return D

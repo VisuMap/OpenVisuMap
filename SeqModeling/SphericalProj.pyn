@@ -49,7 +49,7 @@ def SphereUnfold(bList, cf):
 		bx.Id = b.Id
 		bx.Type = 0
 		bs.Add(bx.Clone())
-	bs = Interpolate(bs, rp=5, eps=0.1)
+	bs = Interpolate1Chain(bs, rp=5, eps=0.1)
 	bs[0].Type = 105
 	bs[bs.Count-1].Type = 110
 	if NotExits(tgtView):
@@ -63,7 +63,7 @@ def ShrinkSphere(bList, cf):
 	cf = max(0, min(1, cf))
 	bList = New.BodyListClone(bList)
 	cs.ShrinkSphere(bList, cf)
-	bList = Interpolate(bList, rp=5, eps=0.1)
+	bList = Interpolate1Chain(bList, rp=5, eps=0.1)
 	if NotExits(tgtView):
 		tgtView = New.Map3DView(bList)
 		tgtView.ShowBoundingBox = False
