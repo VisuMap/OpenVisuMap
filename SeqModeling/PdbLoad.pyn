@@ -1,17 +1,26 @@
 # functions to import and process pdb/cif files.
 vv.Import('SeqVis.pyn')
 
+PDB_CACHE = 'c:/temp/PdbCache'
+CHAIN_CACHE = 'C:/temp/ChainCache'
+
 # get the path for the cached (PDB) CIF file.
 def PdbCacheFile(pId):
 	if len(pId)<4:
 		raise Exception('Invalid protein ID')
-	return f'c:/temp/PdbCache/{pId[:4]}.cif'
+	return f'{PDB_CACHE}/{pId[:4]}.cif'
 
 # get cache file path for a poliptide chain.
 def ChainCacheFile(chId):
 	if len(chId)<4:
 		raise Exception(f'Invalid protein chain id {chId}')
-	return f'c:/temp/ChainCache/{chId}.pmc'
+	return f'{CHAIN_CACHE}/{chId}.pmc'
+
+def CheckCacheDir():
+	from os.path import exists
+	if not exists(PDB_CACHE) or not exists(CHAIN_CACHE):
+		vv.Message(f'Cache directories not setup: {PDB_CACHE} and {CHAIN_CACHE}')
+		vv.Return()
 
 csLoad = New.CsObject('''
 public List<IBody> LoadMainChain(string cacheFile) {
@@ -336,6 +345,7 @@ def Download3DInfo(pId):
 	import requests
 	localPath = PdbCacheFile(pId)	
 	if not exists(localPath):
+		CheckCacheDir()
 		remotePath = f'https://files.rcsb.org/download/{pId[:4]}.cif'
 		#urlretrieve(remotePath, localPath)
 		request = requests.get(remotePath, timeout=30, stream=True)
@@ -503,7 +513,7 @@ def LoadAllChains(pList=None, aaChains=True, rnaChains=False, dnaChains=False):
 		return
 
 	if pList == None:
-		pList = [f[:4] for f in os.listdir('c:/temp/PDBCache') if f.endswith('.cif')]	
+		pList = [f[:4] for f in os.listdir(PDB_CACHE) if f.endswith('.cif')]	
 
 	chCount = 0
 	pTable = New.FreeTable()
@@ -532,8 +542,9 @@ def SaveChain(chId, chain):
 
 def UnpackChains(pList=None):
 	import os
+	CheckCacheDir()
 	if pList == None:   # Unpack all cif files.
-		pList = [f[:4] for f in os.listdir('c:/temp/PDBCache') if f.endswith('.cif')]	
+		pList = [f[:4] for f in os.listdir(PDB_CACHE) if f.endswith('.cif')]	
 	chainsCount = 0
 	nm2id = {}
 	ds = vv.Dataset
@@ -626,7 +637,7 @@ def ImportPDBList(sList, dsName, dsDescription=''):
 '''
 
 import os
-sList = [f[:4] for f in os.listdir('c:/temp/PDBCache') if f.endswith('.cif')]
+sList = [f[:4] for f in os.listdir(PDB_CACHE) if f.endswith('.cif')]
 print(len(sList))
 sList = ','.join(sList)
 ImportPDBList(sList, 'AllPdb')
