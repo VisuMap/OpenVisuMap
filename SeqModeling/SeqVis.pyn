@@ -341,7 +341,7 @@ def GetMeanFieldTrans(pList, L=20):
 
 # t-SNE reduced data
 
-def GetTsneRD(pList, vType, tP):
+def GetTsneRD_old(pList, vType, tP):
 	saveTMF, epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=finalExag, 
 		ppl=ppl, repeats=0, metric='EuclideanMetric', refreshFreq=0, glyphSet=vv.Map.GlyphSet, 
@@ -383,6 +383,50 @@ def GetTsneRD(pList, vType, tP):
 			if (k+1) == L:
 				mapStore.Close()
 	mds.Close()
+	return D
+
+
+def GetTsneRD(pList, vType, tP):
+	saveTMF, epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
+	outDim = 2
+	ds = vv.Dataset
+
+	maxV = int( max([ds.DoubleAt(p, 3) for p in pList]) )
+	maxPoints = 2**intRp*(maxV - 1) + 1
+	tsne = New.FastTsne(maxPoints, 4, outDim).Configure(epochs, ppl, initExag, finalExag)
+
+	if vType == 'tFT':
+		tm = GetFourier(1024, waveN+1)
+		tm = tm.RemoveColumns(New.IntArray(0))
+	D = New.NumberTable(ds.BodyListForId(pList), waveN*outDim)
+	L = len(pList)
+
+	for k, pId in enumerate(pList):
+		bList = LoadMainChain0(pId)
+		if bList.Count <= 2:	continue
+		if (k+1) % 10 == 0:
+			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
+		ss.SetBodyType2(bList, ds.BodyForId(pId).Type)
+		bList = Interpolate(bList, rp=intRp, eps=0.1, smtRatio=0)
+		nt = Augment2Table(bList, stretch=stretch, clusterStretch=0.0, expandFactor=1.0)
+
+		nt = New.NumberTable(tsne.Run(nt.Matrix), nt.RowSpecList, None)
+		vv.DoEvents()
+
+		cs.PcaNormalize2D(nt)
+		if vType == 'tMF':
+			cs.MeanFieldTrans(nt, D.Matrix[k])
+		else:
+			cs.FourierTrans(tm, nt, D.Matrix[k])
+
+		if saveTMF:
+			if k == 0:
+				mapStore = AtlasMapStore('tMF_Cache', 'MdsCluster', True) if saveTMF else None
+			mapStore.AddRawMap(pId, New.BodyList(nt))
+			if (k+1) == L:
+				mapStore.Close()
+
+	tsne.Dispose()
 	return D
 
 def GetS2MF(pList, tP):

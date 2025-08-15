@@ -95,7 +95,8 @@ def MainProc(menuKey):
 				mp = ProteinMap2(pList, vt, 4000, samplingDist=0.0, *args, **kwargs)
 				vv.Dataset.AddMap(vt)
 				mp.NormalizeView().CopyMap().Close()
-			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT']
+			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
+			#vList = ['rMF', 'tMF', 'tFT']
 			vList = ['tMF']
 			for vt in vList:
 				match vt:
@@ -113,12 +114,13 @@ def MainProc(menuKey):
 						svTMF = ctrPressed	
 						waveN = 15 if vt=='tMF' else 25
 						# saveTMF, epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
-						PM2(tSNE=(0.2, 6.0, 1.0), tP=(svTMF, 2000, waveN, 2, 2.0, 0.25, 6.0, 1.5))
+						PM2(tSNE=(0.2, 6.0, 1.0), tP=(svTMF, 2000, waveN, 3, 2.0, 0.25, 6.0, 1.5))
 						if svTMF:
 							atlas = New.Atlas().Show()
 							atlas.AtlasName = vt + '-' + vv.Dataset.Name
 							MatchProteinMap(atlas, None)
 					case 'tst': GetTsneRD(pList, vType='tFT', tP=(False, 2000, waveN, 2, 0.5, 0.25, 4.0, 1.0)).ShowHeatMap()
+					case '2D': MainProc('P-2D')
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
