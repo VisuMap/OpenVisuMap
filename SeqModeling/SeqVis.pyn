@@ -392,8 +392,9 @@ def GetTsneRD(pList, vType, tP):
 	ds = vv.Dataset
 
 	maxV = int( max([ds.DoubleAt(p, 3) for p in pList]) )
-	maxPoints = 2**intRp*(maxV - 1) + 1
-	tsne = New.FastTsne(maxPoints, 4, outDim).Configure(epochs, ppl, initExag, finalExag)
+	maxPoints = min(vv.GpuCacheLimit, 2**intRp*(maxV - 1) + 1)
+	tsne = New.FastTsne(maxPoints, 4, outDim)
+	tsne.Configure(epochs, ppl, initExag, finalExag)
 
 	if vType == 'tFT':
 		tm = GetFourier(1024, waveN+1)
@@ -402,6 +403,7 @@ def GetTsneRD(pList, vType, tP):
 	L = len(pList)
 
 	for k, pId in enumerate(pList):
+		vv.DoEvents()
 		bList = LoadMainChain0(pId)
 		if bList.Count <= 2:	
 			continue
@@ -410,9 +412,11 @@ def GetTsneRD(pList, vType, tP):
 		ss.SetBodyType2(bList, ds.BodyForId(pId).Type)
 		bList = Interpolate1Chain(bList, rp=intRp, eps=0.1, smtRatio=0)
 		nt = AugmentByStretch(bList, stretch=stretch, intRp=intRp)
-		vv.DoEvents()
 
-		nt = New.NumberTable(tsne.Run(nt.Matrix), nt.RowSpecList, None)
+		posMtx = tsne.Run(nt.Matrix)
+		if posMtx == None:
+			continue
+		nt = New.NumberTable(posMtx, nt.RowSpecList, None)
 
 		cs.PcaNormalize2D(nt)
 		if vType == 'tMF':
