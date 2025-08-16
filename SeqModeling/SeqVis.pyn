@@ -439,31 +439,32 @@ def GetS2MF(pList, tP):
 	bList = vv.Dataset.BodyListForId(pList)
 	D = New.NumberTable(bList, L*2)
 
-	mds = None
+	tsne = None
 	if doTSNE:
-		mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=finalExag, 
-			ppl=ppl, repeats=0, metric='EuclideanMetric', refreshFreq=0, glyphSet=vv.Map.GlyphSet, 
-			glyphSize=6.0, glyphOpacity=1.0)
-		mds.GlyphScale = 5.0
-		mds.Width = 800
-		mds.Height = 800
-		mds.AutoNormalizing = False
+		outDim = 2
+		ds = vv.Dataset
+		maxV = int( max([ds.DoubleAt(p, 3) for p in pList]) )
+		maxPoints = min(vv.GpuCacheLimit, maxV)
+		tsne = New.FastTsne(maxPoints, 3, outDim)
+		tsne.Configure(epochs, ppl, initExag, finalExag)
 
 	for k, pId in enumerate(pList):
 		if k>0 and k%200==0:
 			vv.Title = f'Reading: {k}:{pId}'
 		nt = LoadMainChain(pId)
 		cs.ToSphere(nt, sf)
-		if mds!=None and nt.Rows>1:
+		if tsne!=None and nt.Rows>1:
 			if (k+1)%10==0:	
 				vv.Title = f'tSNE normalizing: {pId}/{nt.Rows}: {k+1}-th of {len(pList)}'
-			RunMds(mds, repeats=0, nt=nt)
-			nt = New.NumberTable(mds.BodyList, 2)
-		vv.DoEvents()
+			posMtx = tsne.Run(nt.Matrix)
+			if posMtx == None:
+				continue
+			nt = New.NumberTable(posMtx, nt.RowSpecList, None)
+		    vv.DoEvents()
 		cs.PcaNormalize2D(nt)
 		cs.MeanFieldTrans(nt, D.Matrix[k])
-	if mds != None: 
-		mds.Close()
+	if tsne != None: 
+		tsne.Dispose()
 	return D
 
 def GetFourierTrans(pList, waveLen, waveCount):
