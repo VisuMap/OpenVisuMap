@@ -364,8 +364,8 @@ def GetTsneRD_old(pList, vType, tP):
 		if (k+1) % 10 == 0:
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
 		ss.SetBodyType2(bList, vv.Dataset.BodyForId(pId).Type)
-		bList = Interpolate(bList, rp=intRp, eps=0.1, smtRatio=0)
-		nt = Augment2Table(bList, stretch=stretch, clusterStretch=0.0, expandFactor=1.0)
+		bList = Interpolate1Chain(bList, rp=intRp, eps=0.1, smtRatio=0)
+		nt = AugmentByStretch(bList, stretch=stretch, intRp=intRp)
 		mds.Description = f'pId:{pId}'
 		RunMds(mds, repeats=0, nt=nt)	
 
@@ -403,22 +403,23 @@ def GetTsneRD(pList, vType, tP):
 
 	for k, pId in enumerate(pList):
 		bList = LoadMainChain0(pId)
-		if bList.Count <= 2:	continue
+		if bList.Count <= 2:	
+			continue
 		if (k+1) % 10 == 0:
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
 		ss.SetBodyType2(bList, ds.BodyForId(pId).Type)
-		bList = Interpolate(bList, rp=intRp, eps=0.1, smtRatio=0)
-		nt = Augment2Table(bList, stretch=stretch, clusterStretch=0.0, expandFactor=1.0)
+		bList = Interpolate1Chain(bList, rp=intRp, eps=0.1, smtRatio=0)
+		nt = AugmentByStretch(bList, stretch=stretch, intRp=intRp)
+		vv.DoEvents()
 
 		nt = New.NumberTable(tsne.Run(nt.Matrix), nt.RowSpecList, None)
-		vv.DoEvents()
 
 		cs.PcaNormalize2D(nt)
 		if vType == 'tMF':
 			cs.MeanFieldTrans(nt, D.Matrix[k])
 		else:
 			cs.FourierTrans(tm, nt, D.Matrix[k])
-
+		
 		if saveTMF:
 			if k == 0:
 				mapStore = AtlasMapStore('tMF_Cache', 'MdsCluster', True) if saveTMF else None

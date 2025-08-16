@@ -141,7 +141,7 @@ def MainProc(menuKey):
 			mp.Show()
 			mp.NormalizeView()
 			mp.FitToWindow()
-			nt = Augment2Table(bList, stretch=1.0)
+			nt = AugmentByStretch(bList, stretch=1.0)
 			mds = NewMds(nt, is3D=True, epochs=4000, ppl=0.1)
 			RunMds(mds).FitToWindow()
 			mds.Close()

@@ -339,6 +339,17 @@ def Augment2Table(bList, stretch, clusterStretch=1.0, expandFactor=1.0):
 				R[4+dim] = V[dim]
 	return nt
 
+def AugmentByStretch(bList, stretch, intRp):
+	if stretch == 0:
+		return New.NumberTable(bList, 3)
+	nt = New.NumberTable(bList, 4)
+	dx = 0.1*stretch/(2**intRp)
+	av = 0
+	for R in nt.Matrix:
+		R[3] = av
+		av += dx
+	return nt	
+
 def Download3DInfo(pId):
 	from os.path import exists
 	#from urllib.request import urlretrieve
