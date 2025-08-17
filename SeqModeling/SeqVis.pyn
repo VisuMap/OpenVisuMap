@@ -141,6 +141,20 @@ public void ScaleMatrix(double[][] M, double scale) {
     }
 }
 
+public INumberTable AugmentByStretch(List<IBody> bList, double strechFactor, int intRp) {
+	if (strechFactor == 0)
+		return New.NumberTable(bList, 3);
+	INumberTable nt = New.NumberTable(bList, 4);
+	int intCnt = 1;
+	for(int k=0; k<intRp; k++)
+		intCnt += intCnt;
+	double dx = 0.1*strechFactor/intCnt;
+	double[][] M = (double[][])nt.Matrix;
+	for(int k=0; k<nt.Rows; k++)
+		M[k][3] = k*dx;
+	return nt;
+}
+
 ''')
 
 
@@ -365,7 +379,7 @@ def GetTsneRD_old(pList, vType, tP):
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
 		ss.SetBodyType2(bList, vv.Dataset.BodyForId(pId).Type)
 		bList = Interpolate1Chain(bList, rp=intRp, eps=0.1, smtRatio=0)
-		nt = AugmentByStretch(bList, stretch=stretch, intRp=intRp)
+		nt = ss.AugmentByStretch(bList, stretch, intRp)
 		mds.Description = f'pId:{pId}'
 		RunMds(mds, repeats=0, nt=nt)	
 
@@ -388,8 +402,7 @@ def GetTsneRD_old(pList, vType, tP):
 
 def GetTsneRD(pList, vType, tP):
 	saveTMF, epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
-	outDim = 2
-	ds = vv.Dataset
+	ds, outDim = vv.Dataset, 2
 
 	maxV = int( max([ds.DoubleAt(p, 3) for p in pList]) )
 	maxPoints = min(vv.GpuCacheLimit, 2**intRp*(maxV - 1) + 1)
@@ -403,7 +416,6 @@ def GetTsneRD(pList, vType, tP):
 	L = len(pList)
 
 	for k, pId in enumerate(pList):
-		vv.DoEvents()
 		bList = LoadMainChain0(pId)
 		if bList.Count <= 2:	
 			continue
@@ -411,7 +423,8 @@ def GetTsneRD(pList, vType, tP):
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
 		ss.SetBodyType2(bList, ds.BodyForId(pId).Type)
 		bList = Interpolate1Chain(bList, rp=intRp, eps=0.1, smtRatio=0)
-		nt = AugmentByStretch(bList, stretch=stretch, intRp=intRp)
+		nt = ss.AugmentByStretch(bList, stretch, intRp)
+		vv.DoEvents()
 
 		posMtx = tsne.Run(nt.Matrix)
 		if posMtx == None:
@@ -423,14 +436,6 @@ def GetTsneRD(pList, vType, tP):
 			cs.MeanFieldTrans(nt, D.Matrix[k])
 		else:
 			cs.FourierTrans(tm, nt, D.Matrix[k])
-		
-		if saveTMF:
-			if k == 0:
-				mapStore = AtlasMapStore('tMF_Cache', 'MdsCluster', True) if saveTMF else None
-			mapStore.AddRawMap(pId, New.BodyList(nt))
-			if (k+1) == L:
-				mapStore.Close()
-
 	tsne.Dispose()
 	return D
 
@@ -460,7 +465,7 @@ def GetS2MF(pList, tP):
 			if posMtx == None:
 				continue
 			nt = New.NumberTable(posMtx, nt.RowSpecList, None)
-		    vv.DoEvents()
+			vv.DoEvents()
 		cs.PcaNormalize2D(nt)
 		cs.MeanFieldTrans(nt, D.Matrix[k])
 	if tsne != None: 

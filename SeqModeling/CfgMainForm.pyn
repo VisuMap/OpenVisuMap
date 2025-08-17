@@ -96,7 +96,7 @@ def MainProc(menuKey):
 				vv.Dataset.AddMap(vt)
 				mp.NormalizeView().CopyMap().Close()
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
-			vList = ['rMF']
+			vList = ['tMF']
 			for vt in vList:
 				match vt:
 					case 'pMF':	
@@ -140,7 +140,7 @@ def MainProc(menuKey):
 			mp.Show()
 			mp.NormalizeView()
 			mp.FitToWindow()
-			nt = AugmentByStretch(bList, stretch=1.0)
+			nt = ss.AugmentByStretch(bList, 1.0, 0)
 			mds = NewMds(nt, is3D=True, epochs=4000, ppl=0.1)
 			RunMds(mds).FitToWindow()
 			mds.Close()
