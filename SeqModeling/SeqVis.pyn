@@ -251,6 +251,15 @@ class AtlasMapStore():
 	def Close(self):
 		self.atlas.Close()
 
+class FastTsne:
+	def __init__(self, maxRows=0, maxColumns=5, outDim=2, epoches=1000, ppl=0.05, initExag=4.0, finalExag=1.0):
+		self.tsne = New.FastTsne(maxRows, maxColumns, outDim)
+		self.tsne.Configure(epoches, ppl, initExag, finalExag)
+	def __del__(self):
+		self.tsne.Dispose()
+	def Fit(self, nt):
+		return self.tsne.Fit(nt)
+
 def ConfigSeqMap(map, pId, redrawMap=False):
 	map.GlyphSet = 'Ordered 64|36 Clusters|Red Green'
 	map.GlyphSize = 6.0
@@ -406,8 +415,7 @@ def GetTsneRD(pList, vType, tP):
 
 	maxV = int( max([ds.DoubleAt(p, 3) for p in pList]) )
 	maxPoints = min(vv.GpuCacheLimit, 2**intRp*(maxV - 1) + 1)
-	tsne = New.FastTsne(maxPoints, 4, outDim)
-	tsne.Configure(epochs, ppl, initExag, finalExag)
+	tsne = FastTsne(maxPoints, 4, outDim, epochs, ppl, initExag, finalExag)
 
 	if vType == 'tFT':
 		tm = GetFourier(1024, waveN+1)
@@ -426,17 +434,15 @@ def GetTsneRD(pList, vType, tP):
 		nt = ss.AugmentByStretch(bList, stretch, intRp)
 		vv.DoEvents()
 
-		posMtx = tsne.Run(nt.Matrix)
-		if posMtx == None:
+		nt = tsne.Fit(nt)
+		if nt == None:
 			continue
-		nt = New.NumberTable(posMtx, nt.RowSpecList, None)
 
 		cs.PcaNormalize2D(nt)
 		if vType == 'tMF':
 			cs.MeanFieldTrans(nt, D.Matrix[k])
 		else:
 			cs.FourierTrans(tm, nt, D.Matrix[k])
-	tsne.Dispose()
 	return D
 
 def GetS2MF(pList, tP):
@@ -450,8 +456,7 @@ def GetS2MF(pList, tP):
 		ds = vv.Dataset
 		maxV = int( max([ds.DoubleAt(p, 3) for p in pList]) )
 		maxPoints = min(vv.GpuCacheLimit, maxV)
-		tsne = New.FastTsne(maxPoints, 3, outDim)
-		tsne.Configure(epochs, ppl, initExag, finalExag)
+		tsne = FastTsne(maxPoints, 3, outDim, epochs, ppl, initExag, finalExag)
 
 	for k, pId in enumerate(pList):
 		if k>0 and k%200==0:
@@ -461,15 +466,12 @@ def GetS2MF(pList, tP):
 		if tsne!=None and nt.Rows>1:
 			if (k+1)%10==0:	
 				vv.Title = f'tSNE normalizing: {pId}/{nt.Rows}: {k+1}-th of {len(pList)}'
-			posMtx = tsne.Run(nt.Matrix)
-			if posMtx == None:
+			nt = tsne.Fit(nt)
+			if nt == None:
 				continue
-			nt = New.NumberTable(posMtx, nt.RowSpecList, None)
 			vv.DoEvents()
 		cs.PcaNormalize2D(nt)
 		cs.MeanFieldTrans(nt, D.Matrix[k])
-	if tsne != None: 
-		tsne.Dispose()
 	return D
 
 def GetFourierTrans(pList, waveLen, waveCount):
