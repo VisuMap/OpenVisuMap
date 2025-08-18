@@ -286,12 +286,12 @@ namespace VisuMap {
                 FlipNormalize(nt.Matrix as double[][]);
         }
 
-        public void FitByPCA(IMapSnapshot map, double scale) {
+        public IMapSnapshot FitByPCA(IMapSnapshot map, double scale) {
             if (map == null)
-                return;
+                return map;
             List<IBody> bs = map.BodyListEnabled() as List<IBody>;
             if (bs.Count <= 1)
-                return;
+                return map;
 
             double[][] M = bs.Select(b => new double[] { b.X, b.Y }).ToArray();
             MathUtil.CenteringInPlace(M);
@@ -327,6 +327,7 @@ namespace VisuMap {
             map.Height = (int)( scale * (maxY - minY) + 2 * margin );
             map.MapLayout.Width = map.Width;
             map.MapLayout.Height = map.Height;
+            return map;
         }
 
         public void MeanFieldTrans(INumberTable dt, double[] R) {

@@ -51,6 +51,31 @@ def GetAAGroup(idx=0):
 		case 22:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
 
+def CreateProteinMaps(pList, atlasName, tP):
+	epochs, ppl, initE, finalE = tP
+	tsne = FastTsne(0, 4, 2, epochs, ppl, initE, finalE)
+	L = len(pList)
+	mapStore = AtlasMapStore(atlasName) if L > 4 else None
+	for k, pId in enumerate(pList):
+		bList = LoadMainChain0(pId)
+		bList = Interpolate1Chain(bList, 3)
+		nt = ss.AugmentByStretch(bList, 0, 3)
+		bList = tsne.Fit(nt).ToBodyList()
+		if mapStore == None:
+			cs.FitByPCA(New.MapSnapshot(bList), 15.0).Show()
+		else:
+			mapStore.AddRawMap(pId, bList)
+			if (k+1)%10==0: 
+				vv.Title = f'Fitted {pId}/{bList.Count}: {k+1}-th of {L}'
+		vv.DoEvents()
+	if mapStore != None:
+		info = MapInfo()
+		info.Set('tP', tP)
+		ma = mapStore.atlas
+		ma.Show()
+		MatchProteinMap(ma, 50)
+		ma.Description = info.ToStr()
+
 def MainProc(menuKey):
 	selected = list(vv.Map.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None
@@ -64,6 +89,7 @@ def MainProc(menuKey):
 		case 'P-2D':
 			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=1.0, atName=atlasName, 
 				ppl=0.25, initExag=4.0, finalExag=1.0, stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
+			#CreateProteinMaps(pList, atlasName, tP = (2500, 0.25, 4.0, 1.0))
 		case 'P-2Dx':
 			if atlasName != None: 
 				atlasName += 'x'
@@ -135,28 +161,7 @@ def MainProc(menuKey):
 		case 'S2':
 			SphereView(pId)
 		case 'TT':
-			mapStore = AtlasMapStore(atlasName) if len(pList) > 4 else None
-			tsne = FastTsne(0, 4, 2, 2000, 0.25, 4.0, 1.0)
-			for k, pId in enumerate(pList):
-				bList = LoadMainChain0(pId)
-				bList = Interpolate1Chain(bList, 3)
-				nt = ss.AugmentByStretch(bList, 0, 3)
-				nt = tsne.Fit(nt)
-				cs.PcaNormalize2D(nt)
-				bList = nt.ToBodyList()
-				if mapStore == None:
-					New.MapSnapshot(bList).Resize(0,0,800,800).FitToWindow().Show()
-				else:
-					mapStore.AddRawMap(pId, bList)
-					if (k+1)%10==0:	
-						vv.Title = f'tSNE normalizing: {pId}/{bList.Count}: {k+1}-th of {len(pList)}'
-
-			if mapStore != None:
-				info = MapInfo()
-				ma = mapStore.atlas
-				ma.Show()
-				MatchProteinMap(ma, 50)
-				ma.Description = info.ToStr()
+			CreateProteinMaps(pList, atlasName, tP = (2000, 0.25, 4.0, 1.0))
 
 MainProc(vv.EventSource.Item)
 
