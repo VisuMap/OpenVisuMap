@@ -203,7 +203,7 @@ class MapInfo():
 					dic[fs[0]] = fs[1]
 
 class AtlasMapStore():	
-	def __init__(self, atName, tgtViewName, clearAtlas):
+	def __init__(self, atName, tgtViewName='', clearAtlas=True):
 		self.atlas = New.Atlas(atName)
 		self.atlas.EventEnabled = True
 		self.atlas.OnItemsSelected = "ResetAtlas()"

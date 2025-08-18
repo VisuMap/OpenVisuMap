@@ -95,7 +95,7 @@ def MainProc(menuKey):
 				mp = ProteinMap2(pList, vt, 4000, samplingDist=0.0, *args, **kwargs)
 				vv.Dataset.AddMap(vt)
 				mp.NormalizeView().CopyMap().Close()
-			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
+			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT']
 			vList = ['tMF']
 			for vt in vList:
 				match vt:
@@ -135,14 +135,28 @@ def MainProc(menuKey):
 		case 'S2':
 			SphereView(pId)
 		case 'TT':
-			bList = LoadMainChain0(pId)
-			bList = Interpolate1Chain(bList, 3)
-			nt = ss.AugmentByStretch(bList, 0, 3)
+			mapStore = AtlasMapStore(atlasName) if len(pList) > 4 else None
 			tsne = FastTsne(0, 4, 2, 2000, 0.25, 4.0, 1.0)
-			nt = tsne.Fit(nt)
-			mp = New.MapSnapshot(nt.ToBodyList())
-			mp.Resize(0,0,800,800)
-			mp.Show().NormalizeView().FitToWindow()
+			for k, pId in enumerate(pList):
+				bList = LoadMainChain0(pId)
+				bList = Interpolate1Chain(bList, 3)
+				nt = ss.AugmentByStretch(bList, 0, 3)
+				nt = tsne.Fit(nt)
+				cs.PcaNormalize2D(nt)
+				bList = nt.ToBodyList()
+				if mapStore == None:
+					New.MapSnapshot(bList).Resize(0,0,800,800).FitToWindow().Show()
+				else:
+					mapStore.AddRawMap(pId, bList)
+					if (k+1)%10==0:	
+						vv.Title = f'tSNE normalizing: {pId}/{bList.Count}: {k+1}-th of {len(pList)}'
+
+			if mapStore != None:
+				info = MapInfo()
+				ma = mapStore.atlas
+				ma.Show()
+				MatchProteinMap(ma, 50)
+				ma.Description = info.ToStr()
 
 MainProc(vv.EventSource.Item)
 
