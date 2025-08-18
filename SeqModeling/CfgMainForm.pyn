@@ -58,13 +58,17 @@ def CreateProteinMaps(pList, atlasName, tP):
 	mapStore = AtlasMapStore(atlasName) if L > 4 else None
 	for k, pId in enumerate(pList):
 		bList = LoadMainChain0(pId)
+		vv.Message(f'N: {pId}, {bList.Count}')
 		bList = Interpolate1Chain(bList, 3)
 		nt = ss.AugmentByStretch(bList, 0, 3)
-		bList = tsne.Fit(nt).ToBodyList()
+		nt = tsne.Fit(nt)
+		if nt == None:
+			continue
+		bList = nt.ToBodyList()
 		if mapStore == None:
 			cs.FitByPCA(New.MapSnapshot(bList), 15.0).Show()
 		else:
-			mapStore.AddRawMap(pId, bList)
+			mapStore.AddRawMap(pId, bList, scale=80)
 			if (k+1)%10==0: 
 				vv.Title = f'Fitted {pId}/{bList.Count}: {k+1}-th of {L}'
 		vv.DoEvents()
@@ -87,7 +91,7 @@ def MainProc(menuKey):
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
-			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=1.0, atName=atlasName, 
+			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=0.0, atName=atlasName, 
 				ppl=0.25, initExag=4.0, finalExag=1.0, stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 			#CreateProteinMaps(pList, atlasName, tP = (2500, 0.25, 4.0, 1.0))
 		case 'P-2Dx':
@@ -161,7 +165,7 @@ def MainProc(menuKey):
 		case 'S2':
 			SphereView(pId)
 		case 'TT':
-			CreateProteinMaps(pList, atlasName, tP = (2000, 0.25, 4.0, 1.0))
+			CreateProteinMaps(pList, atlasName, tP = (2500, 0.25, 4.0, 1.0))
 
 MainProc(vv.EventSource.Item)
 

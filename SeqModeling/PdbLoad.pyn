@@ -348,6 +348,7 @@ def Download3DInfo(pId):
 		CheckCacheDir()
 		remotePath = f'https://files.rcsb.org/download/{pId[:4]}.cif'
 		#urlretrieve(remotePath, localPath)
+		print(f'Downloading {pId}...')
 		request = requests.get(remotePath, timeout=30, stream=True)
 		with open(localPath, 'wb') as f:
 			for chunk in request.iter_content(1024 * 1024):
@@ -551,8 +552,12 @@ def UnpackChains(pList=None):
 	for b in ds.BodyList:
 		nm = ds.StringAt(b.Id, 4)
 		nm2id[b.Id[:4]+'_'+nm] = b.Id
-	for k, pId in enumerate(pList):
+	print(f'Unpacking {len(pList)} cif files...')
+	for k, pId in enumerate(pList):	
 		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=False)
+		if bList == None:
+			print('Failed to load:', pId)
+			continue
 		preChName = None
 		chain = []
 		if k % 50 == 0:
@@ -576,6 +581,11 @@ def UnpackChains(pList=None):
 			id_nm = pId + '_' + preChName
 			if id_nm in nm2id:
 				SaveChain(nm2id[id_nm], chain)
+
+''' Unpack all cif files. Call this after cleaned ChainCache dir.
+UnpackChains()
+UnpackChains(['8FL2'])
+'''
 
 def PreloadPDB(sList):
 	from os.path import exists
