@@ -36,24 +36,23 @@ def MainProc(menuKey):
 		case 'ConfigMaps':
 			ConfigAtlasMaps(pp, 1000, 700, gSize=5.0, gOpacity=1.0, iconWidth=None, hiddenSize=4, reset=False)			
 		case 'P-3D':
-			justMainChain = vv.ModifierKeys.ControlPressed			
 			for e in pSelected:
 				pId = e.Name
 				chainNames = GetChainName(pId)
 				if chainNames == None:
 					vv.Message(f'Can not find chain {pId} in current dataset')
 					continue
-				mp = ShowPDB(pId, rp=5, eps=0.1, includeHA=False, mainChain=justMainChain, chainNames=chainNames, smtRatio=0.0)
+				mp = ShowPDB(pId, rp=5, eps=0.1, includeHA=False, chainNames=chainNames, smtRatio=0.0)
 				mp.NormalizeView()
 		case 'P-3Dx':
 			for e in pSelected:
-				mp = ShowPDB(e.Name, rp=5, eps=0.1, includeHA=False, mainChain=False, chainNames=None, smtRatio=0.0)
+				mp = ShowPDB(e.Name, rp=5, eps=0.1, includeHA=False, chainNames=None, smtRatio=0.0)
 				if ctrPressed:
 					mp.ClickMenu('SeqVis/P-2D')
 					mp.Close()
 		case 'P-2D':
 			pList = [item.Id for item in pSelected]
-			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=0.0,
+			UnFoldProteinList(pList, epochs=2500, includeHA=False,  wholeComplex=False, samplingDist=0.0,
 				initExag=4.0, ppl=0.1, stretch=0.1, clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
 		case 'P-Web':
 			ShowWeb(pId)

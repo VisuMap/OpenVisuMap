@@ -23,7 +23,7 @@ def CheckCacheDir():
 		vv.Return()
 
 csLoad = New.CsObject('''
-public List<IBody> LoadMainChain(string cacheFile) {
+public List<IBody> LoadChain(string cacheFile) {
 	string[] lines = File.ReadAllLines(cacheFile);	
 	IBody[] bList = new IBody[lines.Length];	
 	MT.Loop(0, lines.Length, lineIdx=>{
@@ -42,7 +42,7 @@ public List<IBody> LoadMainChain(string cacheFile) {
 	return bList.ToList();
 }
 
-public string LoadMainSeq(string cacheFile) {
+public string LoadSeq(string cacheFile) {
 	StringBuilder sb = new StringBuilder();
 	using( TextReader tr = new StreamReader(cacheFile) ) {
 		while(true) {
@@ -57,9 +57,9 @@ public string LoadMainSeq(string cacheFile) {
 }
 ''')
 
-def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, chainNames=None, includeHA=True, 
+def ShowPDB(pId, rp=3, eps=0.1, chainNames=None, includeHA=True, 
 		setChainId=False,	smtRatio=0, glyphSize=1.0, glyphOpacity=0.75):
-	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, mainChain=mainChain, chainNames=chainNames)
+	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, chainNames=chainNames)
 	bsList = Interpolate(bsList, rp, eps, smtRatio=smtRatio)
 
 	bsList[0].Type = 171
@@ -96,7 +96,6 @@ def ShowPDB(pId, rp=3, eps=0.1, mainChain=False, chainNames=None, includeHA=True
 	info.Set('SmR', smtRatio)
 	info.Set('HA', includeHA)
 	info.Set('Eps', eps)
-	info.Set('MC', mainChain)
 	mp.Description = info.ToStr()
 	mp.Title = f'{pId}, Len:{bsList.Count}:  {info.PT}'
 	mp.GlyphSet = '36 Clusters||||Colored Balls'
@@ -130,14 +129,14 @@ def SelectChain(pId, bsList, acc2chain):
 			bsList2.Add(b2)
 	return bsList2 if bsList2.Count > 0 else bsList
 
-def ShowProteinList(pList, mainChain, includeHA, atName, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75, rp=3):
+def ShowProteinList(pList, includeHA, atName, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75, rp=3):
 	mapStore = NewMapStore(atName, is3D=True, clearStore=True)
 	if mapStore != None:
 		mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
 	for k, pId in enumerate(pList):
 		vv.Title = f'Loading {pId}: {k+1}-th of {len(pList)}'
 		chainNames = GetChainName(pId)
-		ShowPDB(pId, mainChain=mainChain, chainNames=chainNames, includeHA=includeHA, rp=rp, smtRatio=smtRatio, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
+		ShowPDB(pId, chainNames=chainNames, includeHA=includeHA, rp=rp, smtRatio=smtRatio, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
 		if mapStore != None:	
 			mapStore.AddMaps()
 	if mapStore != None:
@@ -162,10 +161,11 @@ def GetChainById(cId):
 	_, bList, _, _ = LoadCifData(cId, chainNames=GetChainName(cId))
 	return bList
 
-def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=False, wholeComplex=False, 
+def UnFoldProteinList(pList, epochs=1000, eps=0.1, includeHA=False, wholeComplex=False, 
 		samplingDist=0,  ppl=0.1, initExag=5.0, finalExag=1.0, atName=None, 
 		stretch=0, clusterStretch=0.5, expandFactor=1.0, iconWidth=50, glyphSize=2.0, smtRatio=0):
 
+	t0 = time.time()
 	if wholeComplex:
 		# Remove all duplicates.
 		selected = set()
@@ -188,19 +188,15 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 	
 	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, refreshFreq=0, repeats=0, metric='EuclideanMetric',
-		ppl=ppl, initExag=initExag, finalExag=finalExag, glyphSet=vv.Map.GlyphSet, glyphOpacity=1.0)
+		ppl=ppl, initExag=initExag, finalExag=finalExag, glyphSet=vv.Map.GlyphSet, glyphOpacity=1.0)	
 	mds.GlyphSize = 0.75 if atName==None else glyphSize
+	mds.AutoNormalizing = False
+	mds.AutoScalingTsne = False
 
-	if vv.Dataset.IndexOfColumn('ChainName')>=0:
-		mainChain = False
 	try:
 		for k, pId in enumerate(pList):
 			chainNames = None if wholeComplex else GetChainName(pId)
-			if mainChain and not includeHA:
-				bList = New.BodyList(LoadMainChain(pId))
-				localPath, bList2, pdbTitle = '-', None, '-'
-			else:
-				localPath, bList, bList2, pdbTitle = LoadCifData(pId, mainChain=mainChain, chainNames=chainNames)
+			localPath, bList, bList2, pdbTitle = LoadCifData(pId, chainNames=chainNames)
 			seqLen = bList.Count
 
 			if not wholeComplex:
@@ -226,7 +222,6 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			info.Set('SmR', smtRatio)
 			info.Set('HA', includeHA)
 			info.Set('Eps', eps)
-			info.Set('MC', mainChain)
 			if chainNames != None:
 				info.Set('CNs', '|'.join(chainNames) )
 			mds.SetTrainingData(nt)
@@ -244,7 +239,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 			RunMds(mds, info=info, repeats=0)
 
 			if mapStore != None:
-				mapStore.AddMap()
+				mapStore.AddRawMap(pId, mds.BodyList, scale=10)
 			else:
 				mds.ShowSnapshot().NormalizeView()
 		mds.Close()
@@ -253,6 +248,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 	if mapStore != None:
 		ma = mapStore.atlas
 		MatchProteinMap(ma, iconWidth)
+		info.Set('TM', round(time.time()-t0, 3))
 		ma.Description = info.ToStr()
 		ma.Show()
 		ma.DataChanged = True # since the Show() clears the DataChanged flag.
@@ -260,17 +256,9 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, mainChain=False, includeHA=Fa
 def SimplifyTitle(title):
 	return title.replace(':', '..').replace(';', '.,')
 
-def LoadCifData(pId, mainChain=False, chainNames=None):
+def LoadCifData(pId, chainNames=None):
 	localPath = pId if pId.endswith('.cif') else Download3DInfo(pId[:4])
-	if chainNames != None:  
-		mainChain = False
 	bsList = cs.LoadCif(localPath, chainNames)
-	if mainChain:
-		dic = cs.GetAccession2ChainTable()
-		acc2chain = {}
-		for key in dic.Keys:
-			acc2chain[key] = dic[key]
-		bsList = SelectChain(pId, bsList, acc2chain)
 	return localPath, bsList, cs.GetHeteroChains(), cs.GetTitle()
 
 def OpenPDBFile(pMap):
@@ -370,25 +358,25 @@ def ShowBetaSheet():
 	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.b')]
 
 
-def LoadMainChain0(pId):
+def LoadChain0(pId):
 	from os.path import exists
 	cacheFile = ChainCacheFile(pId)
 	if not exists(cacheFile):
 		UnpackChains([pId[:4]])
-	return csLoad.LoadMainChain(cacheFile)
+	return csLoad.LoadChain(cacheFile)
 
-def LoadMainChain(pId):
-	bList = LoadMainChain0(pId)
+def LoadChain(pId):
+	bList = LoadChain0(pId)
 	return New.NumberTable(bList, 3)
 
-def LoadMainSeq(pId):
+def LoadSeq(pId):
 	from os.path import exists
 	cacheFile = ChainCacheFile(pId)
 	if exists(cacheFile):
-		return csLoad.LoadMainSeq(cacheFile)
+		return csLoad.LoadSeq(cacheFile)
 	else:
 		seq = []
-		nt = LoadMainChain(pId)
+		nt = LoadChain(pId)
 		for rs in nt.RowSpecList:
 			seq.append(rs.Name[0])
 		return ''.join(seq)
@@ -446,7 +434,7 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 	if (ds.Columns != 5) or (ds.ColumnSpecList[4].Id != 'ChainName'):
 		vv.Message('Current dataset has invalid format: pid;repeats;seq;len;chainName')
 		return None, None, None
-	_, bList, _, pdbTitle = LoadCifData(pId, mainChain=False)
+	_, bList, _, pdbTitle = LoadCifData(pId)
 	if bList == None:
 		print('Failed to load cif file: ', pId)
 		return None, None, None
@@ -548,7 +536,7 @@ def UnpackChains(pList=None):
 		nm2id[b.Id[:4]+'_'+nm] = b.Id
 	print(f'Unpacking {len(pList)} cif files...')
 	for k, pId in enumerate(pList):	
-		_, bList, _, pdbTitle = LoadCifData(pId, mainChain=False)
+		_, bList, _, pdbTitle = LoadCifData(pId)
 		if bList == None:
 			print('Failed to load:', pId)
 			continue

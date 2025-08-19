@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Select-UniqSeq TypeProtein P-Map P-2D P-2Dx P-3D P-3Dx Align P-3Ds P-S2 S2 TT
+#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Select-UniqSeq TypeProtein P-Map P-2D P-3D P-3Dx Align P-3Ds P-S2 S2 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -56,8 +56,9 @@ def CreateProteinMaps(pList, atlasName, tP):
 	tsne = FastTsne(0, 4, 2, epochs, ppl, initE, finalE)
 	L = len(pList)
 	mapStore = AtlasMapStore(atlasName) if L > 4 else None
+	t0 = time.time()
 	for k, pId in enumerate(pList):
-		bList = LoadMainChain0(pId)
+		bList = LoadChain0(pId)
 		bList = Interpolate1Chain(bList, 3)
 		nt = ss.AugmentByStretch(bList, 0, 3)
 		nt = tsne.Fit(nt)
@@ -67,12 +68,13 @@ def CreateProteinMaps(pList, atlasName, tP):
 		if mapStore == None:
 			cs.FitByPCA(New.MapSnapshot(bList), 15.0).Show()
 		else:
-			mapStore.AddRawMap(pId, bList, scale=80)
+			mapStore.AddRawMap(pId, bList, scale=100)
 			if (k+1)%10==0: 
 				vv.Title = f'Fitted {pId}/{bList.Count}: {k+1}-th of {L}'
 		vv.DoEvents()
 	if mapStore != None:
 		info = MapInfo()
+		info.Set('TM', round(time.time()-t0, 3))
 		info.Set('tP', tP)
 		ma = mapStore.atlas
 		ma.Show()
@@ -90,21 +92,15 @@ def MainProc(menuKey):
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
-			UnFoldProteinList(pList, epochs=2500, mainChain=False, includeHA=False,  wholeComplex=False, samplingDist=0.0, atName=atlasName, 
+			UnFoldProteinList(pList, epochs=400, includeHA=False, wholeComplex=False, samplingDist=0.0, atName=atlasName, 
 				ppl=0.25, initExag=4.0, finalExag=1.0, stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
-			#CreateProteinMaps(pList, atlasName, tP = (2500, 0.25, 4.0, 1.0))
-		case 'P-2Dx':
-			if atlasName != None: 
-				atlasName += 'x'
-			UnFoldProteinList(pList, epochs=1000, mainChain=False, includeHA=False,  wholeComplex=True, samplingDist=1.0,
-				initExag=5.0, ppl=0.15, atName=atlasName, stretch=2.0, clusterStretch=1.0, iconWidth=50, smtRatio=0.0)
+			#CreateProteinMaps(pList, atlasName, tP = (400, 0.25, 4.0, 1.0))
 		case 'P-3D':
 			if atlasName != None: atlasName += '-3D'
 			SortByPosX(pList)
-			justMainChain = vv.ModifierKeys.ControlPressed
-			ShowProteinList(pList, mainChain=justMainChain, includeHA=False, rp=5, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
+			ShowProteinList(pList, includeHA=True, rp=5, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
 		case 'P-3Dx':
-			mp = ShowPDB(pId, rp=3, eps=0.1, includeHA=False, mainChain=False, chainNames=None, setChainId=True, smtRatio=0.0)
+			mp = ShowPDB(pId, rp=3, eps=0.1, includeHA=False, setChainId=True, smtRatio=0.0)
 			npp = [b for b in mp.BodyList if b.Name[0] == 'd' or b.Name[0] == 'r' ]
 			if len(npp) > 0:
 				mp.ClickMenu('SeqVis/Flipping')

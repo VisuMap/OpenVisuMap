@@ -233,7 +233,7 @@ class AtlasMapStore():
 			return fm
 		else:
 			return None
-	def AddRawMap(self, id, bList, scale=15):
+	def AddRawMap(self, id, bList, scale):
 		mp = New.MapSnapshot(bList)
 		if mp == None: 
 			return
@@ -354,7 +354,7 @@ def GetMeanFieldTrans(pList, L=20):
 		if (k>0) and (k%200 == 0):
 			vv.Title = f'Reading: {k}:{pId}'
 			vv.DoEvents()
-		nt = LoadMainChain(pId)
+		nt = LoadChain(pId)
 		#nt = SelectHelixAA(nt)
 		#cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
 		cs.PcaNormalize(nt)
@@ -382,7 +382,7 @@ def GetTsneRD_old(pList, vType, tP):
 	L = len(pList)
 
 	for k, pId in enumerate(pList):
-		bList = LoadMainChain0(pId)
+		bList = LoadChain0(pId)
 		if bList.Count <= 2:	continue
 		if (k+1) % 10 == 0:
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
@@ -402,7 +402,7 @@ def GetTsneRD_old(pList, vType, tP):
 		if saveTMF:
 			if k == 0:
 				mapStore = AtlasMapStore('tMF_Cache', 'MdsCluster', True) if saveTMF else None
-			mapStore.AddRawMap(pId, mds.BodyList)
+			mapStore.AddRawMap(pId, mds.BodyList, 100)
 			if (k+1) == L:
 				mapStore.Close()
 	mds.Close()
@@ -424,7 +424,7 @@ def GetTsneRD(pList, vType, tP):
 	L = len(pList)
 
 	for k, pId in enumerate(pList):
-		bList = LoadMainChain0(pId)
+		bList = LoadChain0(pId)
 		if bList.Count <= 2:	
 			continue
 		if (k+1) % 10 == 0:
@@ -461,7 +461,7 @@ def GetS2MF(pList, tP):
 	for k, pId in enumerate(pList):
 		if k>0 and k%200==0:
 			vv.Title = f'Reading: {k}:{pId}'
-		nt = LoadMainChain(pId)
+		nt = LoadChain(pId)
 		cs.ToSphere(nt, sf)
 		if tsne!=None and nt.Rows>1:
 			if (k+1)%10==0:	
@@ -486,7 +486,7 @@ def GetFourierTrans(pList, waveLen, waveCount):
 		if (k>0) and (k%200 == 0):
 			vv.Title = f'Reading: {k}:{pId}'
 			vv.DoEvents()
-		nt = LoadMainChain(pId)
+		nt = LoadChain(pId)
 		#nt = SelectHelixAA(nt)
 		#cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
 		cs.PcaNormalize(nt)
@@ -1032,7 +1032,7 @@ def AtlasTileAll(atlas, aaGroups, using3DInfo=False, waveLen=128, waveCount=16):
 		dt = GetFourierTrans(pList, waveLen, waveCount)
 	else:
 		tm = GetFourier(waveLen, waveCount)
-		seqList = [LoadMainSeq(pId) for pId in pList]
+		seqList = [LoadSeq(pId) for pId in pList]
 		dt = cs.VectorizeProtein(seqList, aaGroups, tm)	
 		for k, b in enumerate(pTable.BodyListForId(pList)):
 			dt.RowSpecList[k].CopyFromBody(b)
@@ -1061,7 +1061,7 @@ def TypeProteinList(pList):
 		if k % 500 == 0:
 			vv.Title = f'Loading: {k}-th seq. of {len(pList)}'
 			vv.DoEvents()
-		sLen = len( LoadMainSeq(pId) )
+		sLen = len( LoadSeq(pId) )
 		ft.RowSpecList[k].Id = pId
 		ft.Matrix[k][0] = str(sLen)
 	tb = ft.ShowAsTable()
@@ -1164,7 +1164,7 @@ def Merge3DList(pList):
 	bs = New.BodyList()
 	ds = vv.Dataset
 	for k, pId in enumerate(pList):
-		bList = LoadMainChain0(pId)
+		bList = LoadChain0(pId)
 		cs.PcaNormalize2(bList)
 		bList = Interpolate(bList, 4, 0.1, smtRatio=0.0)
 		cs.NormalizeByFlipping(bList)
