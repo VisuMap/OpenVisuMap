@@ -58,7 +58,6 @@ def CreateProteinMaps(pList, atlasName, tP):
 	mapStore = AtlasMapStore(atlasName) if L > 4 else None
 	for k, pId in enumerate(pList):
 		bList = LoadMainChain0(pId)
-		vv.Message(f'N: {pId}, {bList.Count}')
 		bList = Interpolate1Chain(bList, 3)
 		nt = ss.AugmentByStretch(bList, 0, 3)
 		nt = tsne.Fit(nt)

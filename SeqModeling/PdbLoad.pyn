@@ -446,7 +446,6 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 	if (ds.Columns != 5) or (ds.ColumnSpecList[4].Id != 'ChainName'):
 		vv.Message('Current dataset has invalid format: pid;repeats;seq;len;chainName')
 		return None, None, None
-
 	_, bList, _, pdbTitle = LoadCifData(pId, mainChain=False)
 	if bList == None:
 		print('Failed to load cif file: ', pId)
@@ -476,12 +475,10 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 				ppType = 0
 			pp = b.Name[0] if ppType == 0 else b.Name[2]
 			seqList = [ pp ]
-
 	if len(seqList) > 0:
 		if (aaChains and ppType==0) or (rnaChains and ppType==99) or (dnaChains and ppType==97):
 			pSeq = ''.join(seqList)
 			chList.append( (chName, ppType, pSeq, len(pSeq)) )
-
 	# merge the repeated sequences:
 	chSet = {}
 	chInfo = {}
@@ -493,7 +490,6 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 		else:
 			chSet[pSeq] = 1
 			chInfo[pSeq] = (chId, ppType)
-
 	for k, ch in enumerate(chSet):
 		repeats = chSet[ch]
 		chLen = len(ch)
@@ -512,10 +508,8 @@ def LoadAllChains(pList=None, aaChains=True, rnaChains=False, dnaChains=False):
 	if (ds.Columns != 5) or (ds.ColumnSpecList[4].Id != 'ChainName'):
 		vv.Message('Current dataset has invalid format: pid;repeats;seq;len;chainName')
 		return
-
 	if pList == None:
 		pList = [f[:4] for f in os.listdir(PDB_CACHE) if f.endswith('.cif')]	
-
 	chCount = 0
 	pTable = New.FreeTable()
 	pTable.AddColumn('Chains', True)
@@ -561,7 +555,7 @@ def UnpackChains(pList=None):
 		preChName = None
 		chain = []
 		if k % 50 == 0:
-			vv.Title =  f'{k}: {chainsCount}'
+			vv.Title =  f'Unpackinging {k}: {pId} {chainsCount}'
 		vv.DoEvents()
 		for b in bList:
 			chNm = b.Name.split('.')[2]
@@ -584,7 +578,7 @@ def UnpackChains(pList=None):
 
 ''' Unpack all cif files. Call this after cleaned ChainCache dir.
 UnpackChains()
-UnpackChains(['8FL2'])
+UnpackChains(['8FL2']) # download and unpack a single cif.
 '''
 
 def PreloadPDB(sList):
