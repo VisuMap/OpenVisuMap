@@ -203,26 +203,15 @@ class MapInfo():
 					dic[fs[0]] = fs[1]
 
 class AtlasMapStore():	
-	def __init__(self, atName, tgtViewName='', clearAtlas=True):
+	def __init__(self, atName, clearAtlas=True):
 		self.atlas = New.Atlas(atName)
 		self.atlas.EventEnabled = True
 		self.atlas.OnItemsSelected = "ResetAtlas()"
 		self.atlas.HiddenItemSize = 3
 		if clearAtlas:
 			self.atlas.Clear()
-		self.viewName = tgtViewName
-	def AddMaps(self):
-		for fm in vv.FindFormList(self.viewName):
-			fm.MapZoomFactor = 0.9
-			info = MapInfo(fm.Description)
-			item = self.atlas.CaptureItem(fm)
-			item.Name = info.pId
-			item.Id = info.pId
-			item.CacheImage = True
-			if fm.Name == 'D3dRender':
-				fm.Close()
-	def AddMap(self):
-		fmList = vv.FindFormList(self.viewName)
+	def AddMap(self, viewName):
+		fmList = vv.FindFormList(viewName)
 		if fmList.Count > 0:
 			fm = fmList[fmList.Count - 1]
 			info = MapInfo(fm.Description)
@@ -276,11 +265,10 @@ def ConfigSeqMap(map, pId, redrawMap=False):
 		map.RedrawAll()
 
 
-def NewMapStore(atName, is3D=True, clearStore=False):
+def NewMapStore(atName, clearStore=False):
 	if atName is None:
 		return None
-	tgtViewName = 'D3dRender' if is3D else 'MdsCluster'
-	store = AtlasMapStore(atName, tgtViewName, clearStore)
+	store = AtlasMapStore(atName, clearStore)
 	return store
 
 #-----------------------------------------------------------
@@ -401,7 +389,7 @@ def GetTsneRD_old(pList, vType, tP):
 
 		if saveTMF:
 			if k == 0:
-				mapStore = AtlasMapStore('tMF_Cache', 'MdsCluster', True) if saveTMF else None
+				mapStore = AtlasMapStore('tMF_Cache', True) if saveTMF else None
 			mapStore.AddRawMap(pId, mds.BodyList, 100)
 			if (k+1) == L:
 				mapStore.Close()
@@ -767,7 +755,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 	info.AugCfg = augCfg
 	info.Mtd = 'Frg'
 	info.DS = vv.Dataset.Name
-	mapStore = NewMapStore(saveTo, is3D, clearStore=True)
+	mapStore = NewMapStore(saveTo, clearStore=True)
 
 	aaClusters = {}  # maps aa to cluster indexes.
 	for k, aaG in enumerate(aaGroups.split('|')):
@@ -785,7 +773,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 		vv.Title = f'Embedding sequence {pId}: {k+1}-th of {len(pList)}'
 		RunMds(mds, repeats=0, info=info, nt=nt)
 		if mapStore != None:
-			mapStore.AddMaps()
+			mapStore.AddMap('MdsCluster')
 	mds.Close()
 	if mapStore != None: 
 		ma = mapStore.atlas

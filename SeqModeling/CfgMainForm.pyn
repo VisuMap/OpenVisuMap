@@ -92,9 +92,11 @@ def MainProc(menuKey):
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
 		case 'P-2D':
+			'''
 			UnFoldProteinList(pList, epochs=400, includeHA=False, wholeComplex=False, samplingDist=0.0, atName=atlasName, 
 				ppl=0.25, initExag=4.0, finalExag=1.0, stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
-			#CreateProteinMaps(pList, atlasName, tP = (400, 0.25, 4.0, 1.0))
+			'''
+			CreateProteinMaps(pList, atlasName, tP = (400, 0.25, 4.0, 1.0))
 		case 'P-3D':
 			if atlasName != None: atlasName += '-3D'
 			SortByPosX(pList)
@@ -120,8 +122,7 @@ def MainProc(menuKey):
 				mp = ProteinMap2(pList, vt, 4000, samplingDist=0.0, *args, **kwargs)
 				vv.Dataset.AddMap(vt)
 				mp.NormalizeView().CopyMap().Close()
-			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT']
-			vList = ['tMF']
+			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
 			for vt in vList:
 				match vt:
 					case 'pMF':	
@@ -133,17 +134,13 @@ def MainProc(menuKey):
 					case 'sMF':	
 						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(0.05, 6.0, 0.8))
 					case 'rMF':	
-						PM2(tSNE=(0.1, 4.0, 1.0), tP=(20, 0.85, True, 2000, 0.15, 4.0, 1.0))
+						PM2(tSNE=(0.1, 4.0, 1.0), tP=(20, 0.85, True, 1000, 0.15, 4.0, 1.0))
 					case 'tMF' | 'tFT':	
 						svTMF = ctrPressed	
 						waveN = 15 if vt=='tMF' else 25
 						# saveTMF, epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
-						PM2(tSNE=(0.2, 6.0, 1.0), tP=(svTMF, 2000, waveN, 2, 2.0, 0.25, 6.0, 1.5))
-						if svTMF:
-							atlas = New.Atlas().Show()
-							atlas.AtlasName = vt + '-' + vv.Dataset.Name
-							MatchProteinMap(atlas, None)
-					case 'tst': GetTsneRD(pList, vType='tFT', tP=(False, 2000, waveN, 2, 0.5, 0.25, 4.0, 1.0)).ShowHeatMap()
+						PM2(tSNE=(0.2, 6.0, 1.0), tP=(svTMF, 1000, waveN, 2, 2.0, 0.25, 6.0, 1.5))
+					case 'tst': GetTsneRD(pList, vType='tFT', tP=(False, 1000, waveN, 2, 0.5, 0.25, 4.0, 1.0)).ShowHeatMap()
 					case '2D': MainProc('P-2D')
 		case 'TypeProtein':
 			TypeProteinList(pList)

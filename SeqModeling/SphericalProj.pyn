@@ -115,7 +115,7 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 	mds = NewMds(epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=0, 
 		zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=6.0, glyphOpacity=1.0)
 	atlasName = 'S2.' + atlasName
-	mapStore = NewMapStore(atlasName, is3D=False, clearStore=True)			
+	mapStore = NewMapStore(atlasName, clearStore=True)			
 	contractingF = ctrF
 	samplingDist = 0.1
 	info = MapInfo()
@@ -131,7 +131,7 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 		info.pLen = bList.Count
 		vv.Title = f'Embedding S2 {pId}/{bList.Count:,}: {k+1}-th of {len(pList)}'
 		RunMds(mds, info=info, repeats=0, nt=New.NumberTable(bList, 3))
-		mapStore.AddMap()
+		mapStore.AddMap('MdsCluster')
 	MatchProteinMap(mapStore.atlas, 70)
 	mapStore.Close()
 	mds.Close()

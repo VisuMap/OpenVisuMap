@@ -130,7 +130,7 @@ def SelectChain(pId, bsList, acc2chain):
 	return bsList2 if bsList2.Count > 0 else bsList
 
 def ShowProteinList(pList, includeHA, atName, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75, rp=3):
-	mapStore = NewMapStore(atName, is3D=True, clearStore=True)
+	mapStore = NewMapStore(atName, clearStore=True)
 	if mapStore != None:
 		mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
 	for k, pId in enumerate(pList):
@@ -138,7 +138,7 @@ def ShowProteinList(pList, includeHA, atName, smtRatio=0, glyphSize=1.0, glyphOp
 		chainNames = GetChainName(pId)
 		ShowPDB(pId, chainNames=chainNames, includeHA=includeHA, rp=rp, smtRatio=smtRatio, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
 		if mapStore != None:	
-			mapStore.AddMaps()
+			mapStore.AddMap('D3dRender').Close()
 	if mapStore != None:
 		ma = mapStore.atlas
 		for item in ma.Items: 
@@ -186,7 +186,7 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, includeHA=False, wholeComplex
 		vv.SelectedItems = pList
 		return
 	
-	mapStore = NewMapStore(atName, is3D=False, clearStore=True)	
+	mapStore = NewMapStore(atName, clearStore=True)	
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, refreshFreq=0, repeats=0, metric='EuclideanMetric',
 		ppl=ppl, initExag=initExag, finalExag=finalExag, glyphSet=vv.Map.GlyphSet, glyphOpacity=1.0)	
 	mds.GlyphSize = 0.75 if atName==None else glyphSize
