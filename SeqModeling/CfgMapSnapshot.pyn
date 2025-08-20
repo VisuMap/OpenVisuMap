@@ -38,7 +38,7 @@ match vv.EventSource.Item:
 	case 'MarkBeta':
 		ShowBetaSheet()
 	case 'P-Open':
-		OpenPDBFile(pp)
+		OpenCifFile(MapInfo(pp.Description).pId)
 	case 'UniChains':
 		if vv.ModifierKeys.ControlPressed:
 			key2type = {}		

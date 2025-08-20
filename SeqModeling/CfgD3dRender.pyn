@@ -29,7 +29,7 @@ match vv.EventSource.Item:
 	case 'RnaChain':
 		pp.SelectedItems = [b.Id for b in pp.BodyList if b.Name[0] == 'r']
 	case 'Open PDB':
-		OpenPDBFile(pp)
+		OpenCifFile(MapInfo(pp.Description).pId)
 	case 'P-Web':
 		pId = MapInfo(pp.Description).pId
 		ShowWeb(pId)

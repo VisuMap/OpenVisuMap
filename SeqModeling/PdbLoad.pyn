@@ -273,10 +273,6 @@ def LoadCifData(pId, chainNames=None):
 	bsList = cs.LoadCif(localPath, chainNames)
 	return localPath, bsList, cs.GetHeteroChains(), cs.GetTitle()
 
-def OpenPDBFile(pMap):
-	info = MapInfo(pMap.Description)
-	OpenCifFile(info.pId)
-
 def OpenCifFile(pId):
 	vv.StartProcess("vi", PdbCacheFile(pId))
 
