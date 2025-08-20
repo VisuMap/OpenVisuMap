@@ -114,18 +114,6 @@ namespace VisuMap {
             return true;
         }
 
-        public void PcaNormalize2(List<IBody> bodyList) {
-            var nt = New.NumberTable(bodyList, 3);
-            PcaNormalize(nt);
-            var M = nt.Matrix;
-            for (int k = 0; k < bodyList.Count; k++) {
-                var b = bodyList[k];
-                b.X = M[k][0];
-                b.Y = M[k][1];
-                b.Z = M[k][2];
-            }
-        }
-
         public void NormalizeByFlipping(List<IBody> bodyList) {
             int N = bodyList.Count;
             if (N < 2)
@@ -202,9 +190,9 @@ namespace VisuMap {
         }
 
 
-        public void PcaNormalize(INumberTable nt) {
+        public INumberTable PcaNormalize(INumberTable nt) {
             if (nt.Rows <= 3) 
-                return;        
+                return nt;
             double[][] M = nt.Matrix as double[][];
             int rows = M.Length;
 
@@ -234,6 +222,7 @@ namespace VisuMap {
                 R[2] = z;
             });
 
+            // Flipping X, Y and Z in SU(3), i.e. with a positive rotation matrix.
             int N = Math.Min(100, rows / 2);
             bool[] flip = new bool[3];
             for (int col = 0; col < 3; col++) {
@@ -241,7 +230,6 @@ namespace VisuMap {
                 if (flip[col])
                     flipped = !flipped;
             }
-
             if (flipped) flip[2] = !flip[2];
             MT.ForEach(M, R => {
                 for(int col = 0; col < 3; col++)
@@ -255,6 +243,8 @@ namespace VisuMap {
             for (int row = 0; row < rows; row++)
             for (int col = 0; col < 3; col++)
                 M[row][col] /= weights[row];
+
+            return nt;
         }
 
         public void PcaNormalize2D(INumberTable nt) {

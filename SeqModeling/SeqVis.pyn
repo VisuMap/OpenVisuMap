@@ -1153,9 +1153,8 @@ def Merge3DList(pList):
 	ds = vv.Dataset
 	for k, pId in enumerate(pList):
 		bList = LoadChain0(pId)
-		cs.PcaNormalize2(bList)
+		bList = cs.PcaNormalize(New.NumberTable(bList, 3)).ToBodyList()	
 		bList = Interpolate(bList, 4, 0.1, smtRatio=0.0)
-		cs.NormalizeByFlipping(bList)
 		if k == 0:
 			xc = np.average([b.X for b in bList])
 			yc = np.average([b.Y for b in bList])
