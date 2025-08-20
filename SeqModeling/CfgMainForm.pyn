@@ -51,36 +51,6 @@ def GetAAGroup(idx=0):
 		case 22:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
 
-def CreateProteinMaps(pList, atlasName, tP):
-	epochs, ppl, initE, finalE = tP
-	tsne = FastTsne(0, 4, 2, epochs, ppl, initE, finalE)
-	L = len(pList)
-	mapStore = AtlasMapStore(atlasName) if L > 4 else None
-	t0 = time.time()
-	for k, pId in enumerate(pList):
-		bList = LoadChain0(pId)
-		bList = Interpolate1Chain(bList, 3)
-		nt = ss.AugmentByStretch(bList, 0, 3)
-		nt = tsne.Fit(nt)
-		if nt == None:
-			continue
-		bList = nt.ToBodyList()
-		if mapStore == None:
-			cs.FitByPCA(New.MapSnapshot(bList), 15.0).Show()
-		else:
-			mapStore.AddRawMap(pId, bList, scale=100)
-			if (k+1)%10==0: 
-				vv.Title = f'Fitted {pId}/{bList.Count}: {k+1}-th of {L}'
-		vv.DoEvents()
-	if mapStore != None:
-		info = MapInfo()
-		info.Set('TM', round(time.time()-t0, 3))
-		info.Set('tP', tP)
-		ma = mapStore.atlas
-		ma.Show()
-		MatchProteinMap(ma, 50)
-		ma.Description = info.ToStr()
-
 def MainProc(menuKey):
 	selected = list(vv.Map.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None

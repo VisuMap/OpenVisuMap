@@ -110,25 +110,6 @@ def ShowPDB(pId, rp=3, eps=0.1, chainNames=None, includeHA=True,
 	mp.NormalizeView()
 	return mp
 
-def SelectChain(pId, bsList, acc2chain):
-	b = vv.Dataset.BodyForId(pId)
-	if b == None:
-		vv.Message(f'Cannot find {pId} protein in current dataset')
-		vv.Return()
-	if len(acc2chain) == 0:
-		tgtChain = 'A'
-	elif b.Name in acc2chain:	
-		tgtChain = acc2chain[b.Name]
-	else:
-		tgtChain = list(acc2chain.values())[0]
-	tgtChain += '_1'    # A chain may have multiple copies; we just return the first copy.
-	bsList2 = New.BodyList()
-	for b2 in bsList:
-		chName = b2.Name.split('.')[2]
-		if chName == tgtChain:
-			bsList2.Add(b2)
-	return bsList2 if bsList2.Count > 0 else bsList
-
 def ShowProteinList(pList, includeHA, atName, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75, rp=3):
 	mapStore = NewMapStore(atName, clearStore=True)
 	if mapStore != None:
@@ -252,6 +233,37 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, includeHA=False, wholeComplex
 		ma.Description = info.ToStr()
 		ma.Show()
 		ma.DataChanged = True # since the Show() clears the DataChanged flag.
+
+# CreateProteinMaps() is a fast version of UnFoldProteinList(), it is limited to sequences with less than 23K PP.
+def CreateProteinMaps(pList, atlasName, tP):
+	epochs, ppl, initE, finalE = tP
+	tsne = FastTsne(0, 4, 2, epochs, ppl, initE, finalE)
+	L = len(pList)
+	mapStore = AtlasMapStore(atlasName) if L > 4 else None
+	t0 = time.time()
+	for k, pId in enumerate(pList):
+		bList = LoadChain0(pId)
+		bList = Interpolate1Chain(bList, 3)
+		nt = ss.AugmentByStretch(bList, 0, 3)
+		nt = tsne.Fit(nt)
+		if nt == None:
+			continue
+		bList = nt.ToBodyList()
+		if mapStore == None:
+			cs.FitByPCA(New.MapSnapshot(bList), 15.0).Show()
+		else:
+			mapStore.AddRawMap(pId, bList, scale=100)
+			if (k+1)%10==0: 
+				vv.Title = f'Fitted {pId}/{bList.Count}: {k+1}-th of {L}'
+		vv.DoEvents()
+	if mapStore != None:
+		info = MapInfo()
+		info.Set('TM', round(time.time()-t0, 3))
+		info.Set('tP', tP)
+		ma = mapStore.atlas
+		ma.Show()
+		MatchProteinMap(ma, 50)
+		ma.Description = info.ToStr()
 
 def SimplifyTitle(title):
 	return title.replace(':', '..').replace(';', '.,')

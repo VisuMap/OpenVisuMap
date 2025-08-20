@@ -10,9 +10,6 @@ P3 = {'ALA':'A', 'ARG':'R', 'ASN':'N', 'ASP':'D', 'CYS':'C',
 		'LEU':'L', 'LYS':'K', 'MET':'M', 'PHE':'F', 'PRO':'P',
 		'SER':'S', 'THR':'T', 'TRP':'W', 'TYR':'Y', 'VAL':'V'}
 
-def FilterSeq(D, P):
-	return ''.join([ c for c in D.upper() if c in P ])
-
 def AssertProteinTable():
 	if (vv.Dataset.Columns < 4) or ( vv.Dataset.ColumnSpecList[2].Id != 'ProteinSeq'):
 		vv.Message('The current dataset is not a protein table')
@@ -129,16 +126,6 @@ public void LoopSection(IMap3DView mp, int selLen=25) {
 		vv.Sleep(500);
 	}
 		
-}
-
-public void ScaleMatrix(double[][] M, double scale) {
-	int Rows = M.Length;
-	int Cols = M[0].Length;
-	for(int row=0; row<Rows; row++) {
-        double[] R = M[row];
-	    for(int col=0; col<Cols; col++)
-		    R[col] *= scale;
-    }
 }
 
 public INumberTable AugmentByStretch(List<IBody> bList, double strechFactor, int intRp) {
@@ -266,49 +253,11 @@ def ConfigSeqMap(map, pId, redrawMap=False):
 
 
 def NewMapStore(atName, clearStore=False):
-	if atName is None:
-		return None
-	store = AtlasMapStore(atName, clearStore)
-	return store
+	return None if atName is None else AtlasMapStore(atName, clearStore)
 
 #-----------------------------------------------------------
 # Code to maintain the protein table.
 #-----------------------------------------------------------
-
-def Id2Sym(ds, gId):
-	rowIdx = ds.IndexOfRow(gId)
-	if rowIdx >= 0:
-		return ds.GetDataAt(rowIdx, 5)
-	else:
-		return None
-
-def GetProteinIds(ds, gId):
-	rowIdx = ds.IndexOfRow(gId)
-	if rowIdx >= 0:
-		pList = ds.GetDataAt(rowIdx, 17)
-		return pList.split(',')
-	else:
-		return None
-
-def ParseXml(pList, maxCount, minLen, maxLen):
-	import urllib.request
-	pList = pList[:100]
-	rqUrl='https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=protein&&api_key=f415a83f720db9a3ed1693cfd833cef27208&id=' + ','.join(pList)
-	xmlDoc = urllib.request.urlopen(rqUrl).read().decode('utf-8')
-	infoList = []
-	used = set()
-	pLen, pName = 0, ''
-	for s in xmlDoc.splitlines():
-		if s.find('"Length"') > 0:
-			pLen = int( s.split('>')[1][:-6] )
-		if s.find('"AccessionVersion"') > 0:
-			pName = s.split('>')[1][:-6]
-			if (pLen>=minLen) and (pLen<maxLen) and (pLen not in used):
-				infoList.append( (pName, pLen) )
-				used.add(pLen)
-		if len(infoList) >= maxCount:
-			break
-	return infoList
 
 def GetFourier(waveLen, waveCount):
 	ft = vv.FindPluginObject('WaveTransforms')
@@ -1000,18 +949,6 @@ def SmoothenCurve(pMap, repeats):
 		cs.SmoothenBodyList(bsList)
 	pMap.Description = info.ToStr()
 	pMap.RedrawAll()
-
-def ScanningForAA(pMap, pAA, progressive=False):
-	aaList = ss.SelectByAA(pMap.BodyList, pAA)
-	L = aaList.Count
-	pMap.Title = f'Amino Acide: {pAA}: {int(L/8)}'
-	if progressive:
-		stride = 1 + int(L/500)
-		for n in range(1, L, stride):
-			pMap.SelectedItems = aaList.GetRange(0, n)
-	else:
-		pMap.SelectedItems = aaList
-
 
 def AtlasTileAll(atlas, aaGroups, using3DInfo=False, waveLen=128, waveCount=16):
 	pTable = AssertProteinTable()	
