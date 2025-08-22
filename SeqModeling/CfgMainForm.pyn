@@ -51,13 +51,20 @@ def GetAAGroup(idx=0):
 		case 22:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
 
+
 def MainProc(menuKey):
 	selected = list(vv.Map.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None
 	pList = selected if len(selected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
 	atlasName = None if len(pList) == 1 else f'{vv.Dataset.Name}/{vv.Map.Name}.{len(pList)}'
-	ctrPressed = vv.ModifierKeys.ControlPressed				
+	ctrPressed = vv.ModifierKeys.ControlPressed	
 
+	def PM2(*args, **kwargs):
+		mp = ProteinMap2(pList, vt, 4000, samplingDist=0.0, *args, **kwargs)
+		vv.Dataset.AddMap(vt)
+		mp.NormalizeView().CopyMap()
+		mp.Close()
+			
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
 		case 'P-Web':  ShowWeb(pId)
@@ -88,15 +95,12 @@ def MainProc(menuKey):
 				vv.Return()
 			OpenCifFile(pId)
 		case 'P-Map':
-			def PM2(*args, **kwargs):
-				mp = ProteinMap2(pList, vt, 4000, samplingDist=0.0, *args, **kwargs)
-				vv.Dataset.AddMap(vt)
-				mp.NormalizeView().CopyMap().Close()
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
+			vList = ['tMF']
 			for vt in vList:
 				match vt:
 					case 'pMF':	
-						PM2(mfL=20, tSNE=(0.05, 4.0, 1.0))
+						PM2(mfL=20, tSNE=(0.05, 7.0, 0.8))
 					case 'pFT':	
 						PM2(waveCount=33, tSNE=(0.05, 4.0, 1.0))	
 					case 'sFT':	
@@ -106,10 +110,8 @@ def MainProc(menuKey):
 					case 'rMF':	
 						PM2(tSNE=(0.1, 4.0, 1.0), tP=(20, 0.85, True, 1000, 0.15, 4.0, 1.0))
 					case 'tMF' | 'tFT':	
-						svTMF = ctrPressed	
-						waveN = 15 if vt=='tMF' else 25
-						# saveTMF, epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
-						PM2(tSNE=(0.2, 6.0, 1.0), tP=(svTMF, 1000, waveN, 2, 2.0, 0.25, 6.0, 1.5))
+						# epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
+						PM2(tSNE=(0.05, 6.0, 1.0), tP=(1000, 25, 2, 0.1, 0.15, 4.0, 1.5))
 					case 'tst': GetTsneRD(pList, vType='tFT', tP=(False, 1000, waveN, 2, 0.5, 0.25, 4.0, 1.0)).ShowHeatMap()
 					case '2D': MainProc('P-2D')
 		case 'TypeProtein':
@@ -132,14 +134,10 @@ def MainProc(menuKey):
 MainProc(vv.EventSource.Item)
 
 '''
-
-
-
 dsList = list(vv.Folder.DatasetNameList)
-for ds  in dsList[10:]:
+for ds  in dsList[1:4]:
 	print('Dataset: ', ds)
 	vv.Folder.OpenDataset(ds)
 	vv.Sleep(1000)
-	pp.ClickMenu('SeqVis/P-2D')
-
+	pp.ClickMenu('SeqVis/P-Map')
 '''

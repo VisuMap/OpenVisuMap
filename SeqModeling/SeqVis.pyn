@@ -347,7 +347,7 @@ def GetTsneRD_old(pList, vType, tP):
 
 
 def GetTsneRD(pList, vType, tP):
-	saveTMF, epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
+	epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
 	ds, outDim = vv.Dataset, 2
 
 	maxV = int( max([ds.DoubleAt(p, 3) for p in pList]) )
@@ -504,6 +504,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
 	info.Set('tP', tP)
 
 	snMap = RunMds(mds, repeats=1, info=info)
+	snMap.Dataset = dt.ToDataset()
 	mds.Close()
 
 	info.Set('TM', round(time.time()-t0, 3))
