@@ -501,7 +501,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
 	info.Set('wvL', waveLen)
 	info.Set('wvCnt', waveCount)
 	info.Set('mfL', mfL)
-	info.Set('tP', tP)
+	info.Set('tP', tP)	
 
 	snMap = RunMds(mds, repeats=1, info=info)
 	snMap.Dataset = dt.ToDataset()

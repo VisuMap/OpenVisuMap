@@ -80,4 +80,11 @@ def MainProc(menuKey):
 
 MainProc(vv.EventSource.Item)
 
+'''
+for it in pp.GetSelectedItems():
+	mp = it.Open()
+	mp.ResetSize()
+	mp.Close()
+
+'''
 
