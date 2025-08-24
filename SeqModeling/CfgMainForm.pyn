@@ -63,6 +63,7 @@ def MainProc(menuKey):
 		mp = ProteinMap2(pList, vt, 4000, samplingDist=0.0, *args, **kwargs)
 		vv.Dataset.AddMap(vt)
 		mp.NormalizeView().CopyMap()
+		vv.Map.Redraw()
 		mp.Close()
 			
 	match menuKey:
@@ -135,7 +136,7 @@ MainProc(vv.EventSource.Item)
 
 '''
 dsList = list(vv.Folder.DatasetNameList)
-ms = AtlasMapStore('NewAtlas2', True)
+ms = AtlasMapStore('NewAtlas2D', True)
 ms.atlas.OnItemsSelected = ''
 for ds  in dsList[1:]:
 	vv.Folder.OpenDataset(ds)

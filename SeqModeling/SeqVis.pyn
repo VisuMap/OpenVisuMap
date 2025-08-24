@@ -348,7 +348,8 @@ def GetTsneRD_old(pList, vType, tP):
 
 def GetTsneRD(pList, vType, tP):
 	epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
-	ds, outDim = vv.Dataset, 2
+	outDim = 2
+	ds = vv.Dataset
 
 	maxV = int( max([ds.DoubleAt(p, 3) for p in pList]) )
 	maxPoints = min(vv.GpuCacheLimit, 2**intRp*(maxV - 1) + 1)
@@ -375,7 +376,10 @@ def GetTsneRD(pList, vType, tP):
 		if nt == None:
 			continue
 
-		cs.PcaNormalize2D(nt)
+		if outDim == 2:
+			cs.PcaNormalize2D(nt)
+		else:
+			cs.PcaNormalize(nt)
 		if vType == 'tMF':
 			cs.MeanFieldTrans(nt, D.Matrix[k])
 		else:
