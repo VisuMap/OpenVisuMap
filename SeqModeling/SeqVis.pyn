@@ -294,7 +294,7 @@ def GetMeanFieldTrans(pList, L=20):
 		nt = LoadChain(pId)
 		#nt = SelectHelixAA(nt)
 		#cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
-		cs.PcaNormalize(nt)
+		cs.PcaNormalizePositive(nt)
 		cs.RowDifferentiation(nt)
 		cs.MeanFieldTrans(nt, D.Matrix[k])
 	return D
@@ -347,8 +347,7 @@ def GetTsneRD_old(pList, vType, tP):
 
 
 def GetTsneRD(pList, vType, tP):
-	epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
-	outDim = 2
+	epochs, waveN, intRp, stretch, outDim, ppl, initExag, finalExag = tP
 	ds = vv.Dataset
 
 	maxV = int( max([ds.DoubleAt(p, 3) for p in pList]) )
@@ -379,7 +378,7 @@ def GetTsneRD(pList, vType, tP):
 		if outDim == 2:
 			cs.PcaNormalize2D(nt)
 		else:
-			cs.PcaNormalize(nt)
+			cs.PcaNormalize3D(nt)
 		if vType == 'tMF':
 			cs.MeanFieldTrans(nt, D.Matrix[k])
 		else:
@@ -430,7 +429,7 @@ def GetFourierTrans(pList, waveLen, waveCount):
 		nt = LoadChain(pId)
 		#nt = SelectHelixAA(nt)
 		#cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
-		cs.PcaNormalize(nt)
+		cs.PcaNormalizePositive(nt)
 		#cs.RowDifferentiation(nt)
 		cs.FourierTrans(tm, nt, pD.Matrix[k])
 	return pD
@@ -1095,7 +1094,7 @@ def Merge3DList(pList):
 	ds = vv.Dataset
 	for k, pId in enumerate(pList):
 		bList = LoadChain0(pId)
-		bList = cs.PcaNormalize(New.NumberTable(bList, 3)).ToBodyList()	
+		bList = cs.PcaNormalizePositive(New.NumberTable(bList, 3)).ToBodyList()	
 		bList = Interpolate(bList, 4, 0.1, smtRatio=0.0)
 		if k == 0:
 			xc = np.average([b.X for b in bList])

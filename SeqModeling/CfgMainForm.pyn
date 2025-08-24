@@ -111,9 +111,8 @@ def MainProc(menuKey):
 					case 'rMF':	
 						PM2(tSNE=(0.1, 4.0, 1.0), tP=(20, 0.85, True, 1000, 0.15, 4.0, 1.0))
 					case 'tMF' | 'tFT':	
-						# tSNE=(ppl,initExag,finalExag)  tp=(epochs, waveN, intRp, stretch, ppl, initExag, finalExag)
-						PM2(tSNE=(0.05, 6.0, 1.0),       tP=(1000, 25, 2, 0.1, 0.15, 4.0, 1.5))
-					case 'tst': GetTsneRD(pList, vType='tFT', tP=(False, 1000, waveN, 2, 0.5, 0.25, 4.0, 1.0)).ShowHeatMap()
+						# tSNE=(ppl,initExag,finalExag)  tp=(epochs, waveN, intRp, stretch, outDim, ppl, initExag, finalExag)
+						PM2(tSNE=(0.05, 6.0, 1.0),       tP=(1000, 25, 2, 0.1, 2, 0.15, 4.0, 1.5))
 					case '2D': MainProc('P-2D')
 		case 'TypeProtein':
 			TypeProteinList(pList)
@@ -136,7 +135,7 @@ MainProc(vv.EventSource.Item)
 
 '''
 dsList = list(vv.Folder.DatasetNameList)
-ms = AtlasMapStore('NewAtlas2D', True)
+ms = AtlasMapStore('NewAtlas3D-B', True)
 ms.atlas.OnItemsSelected = ''
 for ds  in dsList[1:]:
 	vv.Folder.OpenDataset(ds)

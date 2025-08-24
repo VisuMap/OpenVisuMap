@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps MatchMap IntMaps P-ChmX P-3D P-3Dx P-3Ds P-2Ds P-Web P-2D  P-Open TileAll P-Seq Align
+#MenuLabels ConfigMaps MatchMap IntMaps P-ChmX P-3D P-3Dx P-3Ds P-2Ds P-Web P-2D  P-Open TileAll P-Seq Align TT
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -76,7 +76,10 @@ def MainProc(menuKey):
 			Merge3DList([item.Name for item in pp.SelectedItems])
 		case 'P-2Ds':
 			Merge2DList(pp)
-
+		case 'TT':
+			for item in pp.Items:
+				item.IconWidth = 500
+			pp.ArrangeItems(False)
 
 MainProc(vv.EventSource.Item)
 

@@ -189,8 +189,11 @@ namespace VisuMap {
             }
         }
 
-
-        public INumberTable PcaNormalize(INumberTable nt) {
+        // Unlike PcaNormalize2D() and PcaNormalize3D(), this function only allows even number of flippings
+        // So that the rotation matrix is always positive, e.g. with positive determinantes. This method
+        // is intended to normalize raw 3D information from PDB files, whereas PcaNormalize2/3D() are intended
+        // to normalize t-SNE outputs.
+        public INumberTable PcaNormalizePositive(INumberTable nt) {
             if (nt.Rows <= 3) 
                 return nt;
             double[][] M = nt.Matrix as double[][];
@@ -275,6 +278,25 @@ namespace VisuMap {
             if (nt.Rows >= 2)
                 FlipNormalize(nt.Matrix as double[][]);
         }
+
+        public void PcaNormalize3D(INumberTable nt) {
+            if (nt.Rows <= 3) return;
+            double[][] M = nt.Matrix as double[][];
+            MathUtil.CenteringInPlace(M);
+            double[][] E = MathUtil.DoPca(M, 3);
+
+            MT.ForEach(M, R => {
+                double x = R[0] * E[0][0] + R[1] * E[0][1] + R[2] * E[0][2];
+                double y = R[0] * E[1][0] + R[1] * E[1][1] + R[2] * E[1][2];
+                double z = R[0] * E[2][0] + R[1] * E[2][1] + R[2] * E[2][2];
+                R[0] = x;
+                R[1] = y;
+                R[2] = z;
+            });
+
+            FlipNormalize(nt.Matrix as double[][]);
+        }
+
 
         public IMapSnapshot FitByPCA(IMapSnapshot map, double scale) {
             if (map == null)
