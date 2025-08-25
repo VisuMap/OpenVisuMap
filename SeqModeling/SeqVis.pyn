@@ -195,6 +195,7 @@ class AtlasMapStore():
 		self.atlas.EventEnabled = True
 		self.atlas.OnItemsSelected = "ResetAtlas()"
 		self.atlas.HiddenItemSize = 3
+		self.rawMap = None
 		if clearAtlas:
 			self.atlas.Clear()
 	def AddMap(self, viewName):
@@ -210,13 +211,16 @@ class AtlasMapStore():
 		else:
 			return None
 	def AddRawMap(self, id, bList, scale):
-		mp = New.MapSnapshot(bList)
+		mp = self.rawMap
 		if mp == None: 
-			return
+			mp = New.MapSnapshot(bList)
+			self.rawMap = mp
+		else:
+			mp.BodyList.Clear()
+			mp.BodyList.AddRange(bList)
 		ConfigSeqMap(mp, id)
 		cs.FitByPCA(mp, scale)
 		item = self.atlas.CaptureItem(mp)
-		mp.Close()
 		item.Name = id
 		item.Id = id
 		item.CacheImage = True
@@ -224,8 +228,11 @@ class AtlasMapStore():
 		item.IconWidth = int(0.05*mp.Width)
 		item.IconHeight = 0
 		return None
+
 	def Close(self):
 		self.atlas.Close()
+		if self.rawMap != None:
+			self.rawMap.Close()
 
 class FastTsne:
 	def __init__(self, maxRows=0, maxColumns=5, outDim=2, epoches=1000, ppl=0.05, initExag=4.0, finalExag=1.0):
@@ -241,7 +248,7 @@ def ConfigSeqMap(map, pId, redrawMap=False):
 	map.GlyphSize = 6.0
 	map.Description = f'pId:{pId}'
 	map.GlyphOpacity = 1.0
-	bList = map.BodyListEnabled()
+	bList = map.BodyList
 	bList[0].Type = 105
 	bList[bList.Count-1].Type = 110
 	type0 = vv.Dataset.BodyForId(pId).Type
@@ -302,7 +309,7 @@ def GetMeanFieldTrans(pList, L=20):
 # t-SNE reduced data
 
 def GetTsneRD_old(pList, vType, tP):
-	saveTMF, epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
+	epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=finalExag, 
 		ppl=ppl, repeats=0, metric='EuclideanMetric', refreshFreq=0, glyphSet=vv.Map.GlyphSet, 
 		glyphSize=6.0, glyphOpacity=1.0)
@@ -335,13 +342,6 @@ def GetTsneRD_old(pList, vType, tP):
 			cs.MeanFieldTrans(nt, D.Matrix[k])
 		else:
 			cs.FourierTrans(tm, nt, D.Matrix[k])
-
-		if saveTMF:
-			if k == 0:
-				mapStore = AtlasMapStore('tMF_Cache', True) if saveTMF else None
-			mapStore.AddRawMap(pId, mds.BodyList, 100)
-			if (k+1) == L:
-				mapStore.Close()
 	mds.Close()
 	return D
 

@@ -74,7 +74,7 @@ def MainProc(menuKey):
 			UnFoldProteinList(pList, epochs=400, includeHA=False, wholeComplex=False, samplingDist=0.0, atName=atlasName, 
 				ppl=0.25, initExag=4.0, finalExag=1.0, stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 			'''
-			CreateProteinMaps(pList, atlasName, tP = (400, 0.25, 4.0, 1.0))
+			CreateProteinMaps(pList, atlasName, tP = (400, 0.15, 4.0, 1.0))
 		case 'P-3D':
 			if atlasName != None: atlasName += '-3D'
 			SortByPosX(pList)
@@ -112,7 +112,7 @@ def MainProc(menuKey):
 						PM2(tSNE=(0.1, 4.0, 1.0), tP=(20, 0.85, True, 1000, 0.15, 4.0, 1.0))
 					case 'tMF' | 'tFT':	
 						# tSNE=(ppl,initExag,finalExag)  tp=(epochs, waveN, intRp, stretch, outDim, ppl, initExag, finalExag)
-						PM2(tSNE=(0.05, 6.0, 1.0),       tP=(1000, 25, 2, 0.1, 2, 0.15, 4.0, 1.5))
+						PM2(tSNE=(0.05, 6.0, 1.0),       tP=(1000, 25, 2, 0.2, 2, 0.15, 4.0, 1.5))
 					case '2D': MainProc('P-2D')
 		case 'TypeProtein':
 			TypeProteinList(pList)
@@ -135,7 +135,7 @@ MainProc(vv.EventSource.Item)
 
 '''
 dsList = list(vv.Folder.DatasetNameList)
-ms = AtlasMapStore('NewAtlas3D-B', True)
+ms = AtlasMapStore('tMF Maps', True)
 ms.atlas.OnItemsSelected = ''
 for ds  in dsList[1:]:
 	vv.Folder.OpenDataset(ds)
@@ -146,4 +146,11 @@ for ds  in dsList[1:]:
 	mp.Description = info.ToStr()
 	ms.AddMap('MapSnapshot').Close()
 ms.atlas.Show()
+
+dsList = list(vv.Folder.DatasetNameList)
+for ds  in dsList[1:]:
+	vv.Folder.OpenDataset(ds)
+	MainProc('P-2D')
+	vv.LastView.Close()
+
 '''

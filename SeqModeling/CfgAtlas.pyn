@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps MatchMap IntMaps P-ChmX P-3D P-3Dx P-3Ds P-2Ds P-Web P-2D  P-Open TileAll P-Seq Align TT
+#MenuLabels ConfigMaps MatchMap P-ChmX P-Web P-3D P-3Dx P-3Ds P-2Ds IntMaps P-2D  P-Open TileAll P-Seq Align TT
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -14,7 +14,7 @@ def InterpolateAllMaps(atlas, intRp):
 	itemList = atlas.Items if atlas.SelectedItems.Count == 0 else atlas.SelectedItems
 	for item in itemList:
 		mp = item.Open()
-		bList = Interpolate(bsList=mp.BodyList, rp=intRp, eps=0.1)
+		bList = Interpolate(bList=mp.BodyList, rp=intRp, eps=0.1)
 		mp.BodyList.Clear()
 		mp.BodyList.AddRange(bList)
 		mp.Close()
