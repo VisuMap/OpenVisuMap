@@ -216,8 +216,7 @@ class AtlasMapStore():
 			mp = New.MapSnapshot(bList)
 			self.rawMap = mp
 		else:
-			mp.BodyList.Clear()
-			mp.BodyList.AddRange(bList)
+			mp.BodyList = bList
 		ConfigSeqMap(mp, id)
 		cs.FitByPCA(mp, scale)
 		item = self.atlas.CaptureItem(mp)
