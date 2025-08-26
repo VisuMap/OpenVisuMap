@@ -317,6 +317,7 @@ namespace VisuMap {
 
             FlipNormalize(M);
 
+            // Scale and shift the map
             double minX = double.MaxValue;
             double minY = double.MaxValue;
             double maxX = -minX;
@@ -331,14 +332,16 @@ namespace VisuMap {
                 maxY = Math.Max(maxY, b.Y);
             }
             const int margin = 5;
-            foreach(var b in bs) {
+            MT.ForEach(bs, b => {
                 b.X = scale * (b.X - minX) + margin;
                 b.Y = scale * (b.Y - minY) + margin;
-            }
-            map.Width  = (int)( scale * (maxX - minX) + 2 * margin );
-            map.Height = (int)( scale * (maxY - minY) + 2 * margin );
-            map.MapLayout.Width = map.Width;
-            map.MapLayout.Height = map.Height;
+            });
+            var cSz = new System.Drawing.Size(
+                (int)(scale * (maxX - minX) + 2 * margin), 
+                (int)(scale * (maxY - minY) + 2 * margin));
+            map.TheForm.ClientSize = cSz;
+            map.MapLayout.Width = cSz.Width;
+            map.MapLayout.Height = cSz.Height;
             return map;
         }
 

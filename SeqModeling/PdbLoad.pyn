@@ -236,15 +236,16 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, includeHA=False, wholeComplex
 
 # CreateProteinMaps() is a fast version of UnFoldProteinList(), it is limited to sequences with less than 23K PP.
 def CreateProteinMaps(pList, atlasName, tP):
-	epochs, ppl, initE, finalE = tP
-	tsne = FastTsne(0, 4, 2, epochs, ppl, initE, finalE)
+	epochs, intRp, stretch, ppl, initE, finalE = tP
+	maxRows = MaxRows(vv.Dataset, pList, intRp)
+	tsne = FastTsne(maxRows, 4, 2, epochs, ppl, initE, finalE)
 	L = len(pList)
 	mapStore = AtlasMapStore(atlasName) if L > 4 else None
 	t0 = time.time()
 	for k, pId in enumerate(pList):
 		bList = LoadChain0(pId)
-		bList = Interpolate1Chain(bList, 3)
-		nt = ss.AugmentByStretch(bList, 0, 3)
+		bList = Interpolate1Chain(bList, intRp)
+		nt = ss.AugmentByStretch(bList, stretch, intRp)
 		nt = tsne.Fit(nt)
 		if nt == None:
 			continue
@@ -252,7 +253,7 @@ def CreateProteinMaps(pList, atlasName, tP):
 		if mapStore == None:
 			cs.FitByPCA(New.MapSnapshot(bList), 15.0).Show()
 		else:
-			mapStore.AddRawMap(pId, bList, scale=100)
+			mapStore.AddRawMap(pId, bList, scale=75)
 			if (k+1)%10==0: 
 				vv.Title = f'Fitted {pId}/{bList.Count}: {k+1}-th of {L}'
 		vv.DoEvents()

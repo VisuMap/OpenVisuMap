@@ -223,8 +223,9 @@ class AtlasMapStore():
 		item.Name = id
 		item.Id = id
 		item.CacheImage = True
-		ratio = mp.Width/mp.Height
-		item.IconWidth = int(0.05*mp.Width)
+		csz = mp.TheForm.ClientSize
+		ratio = csz.Width/csz.Height
+		item.IconWidth = int(0.06*mp.Width)
 		item.IconHeight = 0
 		return None
 
@@ -344,14 +345,15 @@ def GetTsneRD_old(pList, vType, tP):
 	mds.Close()
 	return D
 
+def MaxRows(ds, pList, intRp):
+	maxV = int( max([ds.DoubleAt(p, 3) for p in pList]) )
+	return min(vv.GpuCacheLimit, 2**intRp*(maxV - 1) + 1)
 
 def GetTsneRD(pList, vType, tP):
 	epochs, waveN, intRp, stretch, outDim, ppl, initExag, finalExag = tP
 	ds = vv.Dataset
 
-	maxV = int( max([ds.DoubleAt(p, 3) for p in pList]) )
-	maxPoints = min(vv.GpuCacheLimit, 2**intRp*(maxV - 1) + 1)
-	tsne = FastTsne(maxPoints, 4, outDim, epochs, ppl, initExag, finalExag)
+	tsne = FastTsne(MaxRows(ds, pList, intRp), 4, outDim, epochs, ppl, initExag, finalExag)
 
 	if vType == 'tFT':
 		tm = GetFourier(1024, waveN+1)

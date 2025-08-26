@@ -74,7 +74,7 @@ def MainProc(menuKey):
 			UnFoldProteinList(pList, epochs=400, includeHA=False, wholeComplex=False, samplingDist=0.0, atName=atlasName, 
 				ppl=0.25, initExag=4.0, finalExag=1.0, stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 			'''
-			CreateProteinMaps(pList, atlasName, tP = (400, 0.15, 4.0, 1.0))
+			CreateProteinMaps(pList, atlasName, tP = (1000, 3, 0.2, 0.15, 4.0, 1.0))
 		case 'P-3D':
 			if atlasName != None: atlasName += '-3D'
 			SortByPosX(pList)
@@ -129,15 +129,16 @@ def MainProc(menuKey):
 		case 'S2':
 			SphereView(pId)
 		case 'TT':
-			CreateProteinMaps(pList, atlasName, tP = (2500, 0.25, 4.0, 1.0))
+			CreateProteinMaps(pList, atlasName, tP = (2500, 2, 0.2, 0.25, 4.0, 1.0))
 
 MainProc(vv.EventSource.Item)
 
 '''
-dsList = list(vv.Folder.DatasetNameList)
+dsList = list(vv.Folder.DatasetNameList)[1:]
+
 ms = AtlasMapStore('tMF Maps', True)
 ms.atlas.OnItemsSelected = ''
-for ds  in dsList[1:]:
+for ds  in dsList:
 	vv.Folder.OpenDataset(ds)
 	MainProc('P-Map')
 	mp = New.MapSnapshot().ResetSize().Show2()
@@ -147,8 +148,7 @@ for ds  in dsList[1:]:
 	ms.AddMap('MapSnapshot').Close()
 ms.atlas.Show()
 
-dsList = list(vv.Folder.DatasetNameList)
-for ds  in dsList[1:]:
+for ds  in dsList:
 	vv.Folder.OpenDataset(ds)
 	MainProc('P-2D')
 	vv.LastView.Close()
