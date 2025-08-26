@@ -253,7 +253,7 @@ def CreateProteinMaps(pList, atlasName, tP):
 		if mapStore == None:
 			cs.FitByPCA(New.MapSnapshot(bList), 15.0).Show()
 		else:
-			mapStore.AddRawMap(pId, bList, scale=75)
+			mapStore.AddRawMap(pId, bList, scale=60)
 			if (k+1)%10==0: 
 				vv.Title = f'Fitted {pId}/{bList.Count}: {k+1}-th of {L}'
 		vv.DoEvents()
