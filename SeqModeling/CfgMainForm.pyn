@@ -51,6 +51,13 @@ def GetAAGroup(idx=0):
 		case 22:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
 
+def ShowSiblings():
+	if str(vv.EventSource.Item) != 'VisuMap.BodyMapView':
+		return
+	pSet = set([pId[:4] for pId in vv.Map.SelectedItems])
+	bsList = vv.Dataset.BodyListEnabled()
+	vv.Title = f'Selected: {vv.Map.SelectedItems.Count}'
+	vv.SelectedItems = [b.Id for b in bsList if b.Id[:4] in pSet]
 
 def MainProc(menuKey):
 	selected = list(vv.Map.SelectedItems)
@@ -119,9 +126,7 @@ def MainProc(menuKey):
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
-			pSet = set([pId[:4] for pId in vv.Map.SelectedItems])
-			bsList = vv.Dataset.BodyListEnabled()
-			vv.SelectedItems = [b.Id for b in bsList if b.Id[:4] in pSet]
+			vv.SetEventHandler('ItemsSelected', 'ShowSiblings()')
 		case 'Select-UniqSeq':
 			SelectUniqSeq()
 		case 'Align':
