@@ -145,7 +145,6 @@ def GetChainById(cId):
 def UnFoldProteinList(pList, epochs=1000, eps=0.1, includeHA=False, wholeComplex=False, 
 		samplingDist=0,  ppl=0.1, initExag=5.0, finalExag=1.0, atName=None, 
 		stretch=0, clusterStretch=0.5, expandFactor=1.0, iconWidth=50, glyphSize=2.0, smtRatio=0):
-
 	t0 = time.time()
 	if wholeComplex:
 		# Remove all duplicates.
@@ -168,7 +167,8 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, includeHA=False, wholeComplex
 		return
 	
 	mapStore = NewMapStore(atName, clearStore=True)	
-	mds = NewMds(nt=None, epochs=epochs, is3D=False, refreshFreq=0, repeats=0, metric='EuclideanMetric',
+	rFreq = 10 if mapStore == None else 0
+	mds = NewMds(nt=None, epochs=epochs, is3D=False, refreshFreq=rFreq, repeats=0, metric='EuclideanMetric',
 		ppl=ppl, initExag=initExag, finalExag=finalExag, glyphSet=vv.Map.GlyphSet, glyphOpacity=1.0)	
 	mds.GlyphSize = 0.75 if atName==None else glyphSize
 	mds.AutoNormalizing = False
@@ -221,12 +221,10 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, includeHA=False, wholeComplex
 
 			if mapStore != None:
 				mapStore.AddRawMap(pId, mds.BodyList, scale=10)
-			else:
-				mds.ShowSnapshot().NormalizeView()
-		mds.Close()
 	except Exception as e:
 		vv.Message(str(e))
 	if mapStore != None:
+		mds.Close()
 		ma = mapStore.atlas
 		MatchProteinMap(ma, iconWidth)
 		info.Set('TM', round(time.time()-t0, 3))
@@ -235,8 +233,11 @@ def UnFoldProteinList(pList, epochs=1000, eps=0.1, includeHA=False, wholeComplex
 		ma.DataChanged = True # since the Show() clears the DataChanged flag.
 
 # CreateProteinMaps() is a fast version of UnFoldProteinList(), it is limited to sequences with less than 23K PP.
-def CreateProteinMaps(pList, atlasName, tP):
+def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 	epochs, intRp, stretch, ppl, initE, finalE = tP
+	if samplingDist > 0:
+		pList = ss.FlatSampling(pList, samplingDist)
+		vv.Title = f'Sampled {len(pList)} chains!'
 	maxRows = MaxRows(vv.Dataset, pList, intRp)
 	tsne = FastTsne(maxRows, 4, 2, epochs, ppl, initE, finalE)
 	L = len(pList)
@@ -647,11 +648,8 @@ Steps to import a list of PDB id into VisuMap:
 
 sList = vv.GuiManager.GetClipboard()
 pList = sList.split(',')
-
-sList = '4WSX,4QY1,4N5Z,2FK0,4N5Y,4JUL,6ID2,4MHI,1RU7,4WST,3M6S'
-sList = ','.join(vv.AllItems)
-print(len(sList.split(',')))
-ImportPDBList(sList, 'Archaea')
+print(len(pList))
+ImportPDBList(sList, 'Virus10K')
 
 infoTable = LoadAllChains(['9A1Z'], True, True, True)
 
