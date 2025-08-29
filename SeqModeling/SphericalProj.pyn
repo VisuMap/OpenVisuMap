@@ -91,52 +91,51 @@ def SphereView(pId):
 		if vv.ModifierKeys.AltPressed: break	
 
 def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
-	if len(pList) == 1:
-		pId = pList[0]
-		info = MapInfo()
-		info.pId = pId
-		bList = GetSphereDataset(pId, interRp=0, contracting=0.9)
-		#ShowPDB(pId, rp=intRp, eps=0.1, chainNames=GetChainName(pId), includeHA=False)
-		#ShowSphere(bList)
-		mds = NewMds(New.NumberTable(bList, 3), 
-			epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
-			zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=1.0, glyphOpacity=1.0)
-		RunMds(mds, info=info, repeats=0)
+	mds = NewMds(None, epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
+		glyphScale=5.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=1.0, glyphOpacity=1.0)
+
+	def DoTsne(info, bList):
+		RunMds(mds, info=info, repeats=0, nt=New.NumberTable(bList, 3))
 		bList = Interpolate(mds.BodyList, rp=5, eps=0.1)
 		for b in bList:
 			b.Hidden = True if b.Id[0] == 'i' else False
-		mp = New.MapSnapshot(bList).Show()
-		mp.HiddenBodySize = 3
-		mp.NormalizeView()
-		mp.Description = info.ToStr()
-		mds.Close()
-		return
-
-	mds = NewMds(epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=0, 
-		zoomFactor=1.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=6.0, glyphOpacity=1.0)
-	atlasName = 'S2.' + atlasName
-	mapStore = NewMapStore(atlasName, clearStore=True)			
-	contractingF = ctrF
-	samplingDist = 0.1
-	info = MapInfo()
-	info.Mtd = 'S2'
-	info.Set('cF', contractingF)
-	if samplingDist > 0:
-		pList = ss.FlatSampling(pList, samplingDist)
-	for k, pId in enumerate(pList):				
-		bList = GetSphereDataset(pId, interRp=0, contracting=contractingF)
-		if bList == None:
-			continue
-		info.pId = pId
-		info.pLen = bList.Count
-		vv.Title = f'Embedding S2 {pId}/{bList.Count:,}: {k+1}-th of {len(pList)}'
-		RunMds(mds, info=info, repeats=0, nt=New.NumberTable(bList, 3))
-		mapStore.AddMap('MdsCluster')
-	MatchProteinMap(mapStore.atlas, 70)
-	mapStore.Close()
+		return bList
+		
+	if len(pList) < 10:
+		for pId in pList:
+			info = MapInfo()
+			info.pId = pId
+			bList = GetSphereDataset(pId, interRp=0, contracting=ctrF)
+			bList = DoTsne(info, bList)
+			mp = New.MapSnapshot(bList).Show()
+			mp.HiddenBodySize = 3
+			mp.ResetSize().NormalizeView()
+			mp.Description = info.ToStr()
+	else:
+		mds.GlyphSize = 6.0
+		mds.RefreshFreq = 0
+		atlasName = 'S2.' + atlasName
+		mapStore = NewMapStore(atlasName, clearStore=True)			
+		contractingF = ctrF
+		info = MapInfo()
+		info.Mtd = 'S2'
+		info.Set('cF', contractingF)
+		if samplingDist != 0:
+			pList = ss.FlatSampling(pList, samplingDist=samplingDist)
+		for k, pId in enumerate(pList):				
+			bList = GetSphereDataset(pId, interRp=0, contracting=contractingF)
+			if bList == None:
+				continue
+			info.pId = pId
+			info.pLen = bList.Count
+			vv.Title = f'Embedding S2 {pId}/{bList.Count:,}: {k+1}-th of {len(pList)}'
+			RunMds(mds, info=info, repeats=0, nt=New.NumberTable(bList, 3))
+			bList = DoTsne(info, bList)
+			mapStore.AddRawMap(pId, bList, 1.0)
+		MatchProteinMap(mapStore.atlas, 70)
+		mapStore.Close()
+		New.Atlas(atlasName).Show()
 	mds.Close()
-	New.Atlas(atlasName).Show()
-
 '''
 
 '''

@@ -56,8 +56,11 @@ def ShowSiblings():
 		return
 	pSet = set([pId[:4] for pId in vv.Map.SelectedItems])
 	bsList = vv.Dataset.BodyListEnabled()
-	vv.Title = f'Selected: {vv.Map.SelectedItems.Count}'
-	vv.SelectedItems = [b.Id for b in bsList if b.Id[:4] in pSet]
+	expanded = [b.Id for b in bsList if b.Id[:4] in pSet]
+	vv.Title = f'Selected: {vv.Map.SelectedItems.Count}, Expanded: {len(expanded)}'
+	if vv.ModifierKeys.AltPressed:
+		return
+	vv.SelectedItems = expanded
 
 def MainProc(menuKey):
 	selected = list(vv.Map.SelectedItems)
@@ -102,7 +105,7 @@ def MainProc(menuKey):
 					samplingDist=0.0, atName=atlasName, ppl=0.10, initExag=4.0, finalExag=1.0,
 					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 			else:
-				CreateProteinMaps(pList, 0.5, atlasName, tP = (1000, 3, 0.0, 0.1, 4.0, 1.25))
+				CreateProteinMaps(pList, 0, atlasName, tP = (1000, 3, 0.0, 0.1, 4.0, 1.25))
 		case 'P-Map':
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
 			vList = ['tMF']
@@ -126,13 +129,16 @@ def MainProc(menuKey):
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
-			vv.SetEventHandler('ItemsSelected', 'ShowSiblings()')
+			if vv.ModifierKeys.ControlPressed:
+				vv.SetEventHandler('ItemsSelected', None)
+			else:
+				vv.SetEventHandler('ItemsSelected', 'ShowSiblings()')
 		case 'Select-UniqSeq':
 			SelectUniqSeq()
 		case 'Align':
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
-			ProteinS2Map(pList, atlasName, samplingDist=0.5, ctrF=0.85)
+			ProteinS2Map(pList, atlasName, samplingDist=0.0, ctrF=0.85)
 		case 'S2':
 			SphereView(pId)
 		case 'TT':

@@ -241,7 +241,7 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 	maxRows = MaxRows(vv.Dataset, pList, intRp)
 	tsne = FastTsne(maxRows, 4, 2, epochs, ppl, initE, finalE)
 	L = len(pList)
-	mapStore = AtlasMapStore(atlasName) if L > 4 else None
+	mapStore = AtlasMapStore(atlasName) if L > 10 else None
 	t0 = time.time()
 	for k, pId in enumerate(pList):
 		bList = LoadChain0(pId)
