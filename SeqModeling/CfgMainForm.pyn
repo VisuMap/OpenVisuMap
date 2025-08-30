@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Select-UniqSeq TypeProtein P-Map P-2D P-3D P-3Dx Align P-3Ds P-S2 S2 TT
+#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Select-UniqSeq TypeProtein P-Map P-2D P-3D P-3Dx Align P-3Ds P-S2 sS sU sT TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -139,8 +139,12 @@ def MainProc(menuKey):
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
 			ProteinS2Map(pList, atlasName, samplingDist=0.0, ctrF=0.85)
-		case 'S2':
-			SphereView(pId)
+		case 'sS':
+			SphereView(pId, False)
+		case 'sU':
+			SphereView(pId, True)
+		case 'sT':
+			TorsionMap(pList)
 		case 'TT':
 			CreateProteinMaps(pList, atlasName, tP = (2500, 2, 0.2, 0.25, 4.0, 1.0))
 
