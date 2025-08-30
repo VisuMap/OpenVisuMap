@@ -154,6 +154,7 @@ class MapInfo():
 			self.ParseStr(initStr)
 	def Set(self, name, value):
 		setattr(self, name, value)
+		return self
 	def Get(self, name):
 		return getattr(self, name)
 	def Extend(self, name, value):
@@ -162,6 +163,7 @@ class MapInfo():
 		else:
 			newV = str(value)
 		self.Set(name, newV)
+		return self
 	def Has(self, attrName):
 		return hasattr(self, attrName)
 	def Init(self, epochs, is3D, initExag, finalExag, ppl):

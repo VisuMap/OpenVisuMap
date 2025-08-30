@@ -636,25 +636,24 @@ namespace VisuMap {
             Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();
 
             Vector3[] dV = new Vector3[V.Length - 1];
-            for(int k=1; k< V.Length; k++) {
+            MT.Loop(1, V.Length, k => {
                 dV[k - 1] = V[k] - V[k - 1];
                 dV[k - 1].Normalize();
-            }
+            });
 
             Vector3[] ddV = new Vector3[dV.Length - 1];
-            for (int k = 1; k <dV.Length; k++) {
+            MT.Loop(1, dV.Length, k => {
                 ddV[k - 1] = dV[k] - dV[k - 1];
                 ddV[k - 1].Normalize();
-            }
+            });
 
-            List<IBody> aList = New.BodyList();  // list of torsion angles.
-            for(int k=0; k<ddV.Length - 1; k++) {
-                var body = New.Body(bList[k+2].Id);
-                body.X = Math.Acos(Vector3.Dot(dV[k + 1], dV[k]));
-                body.Y = Math.Acos(Vector3.Dot(ddV[k + 1], ddV[k]));
-                aList.Add(body);
-            }
-            return aList;
+            IBody[] aList = new Body[ddV.Length - 1];
+            MT.Loop(0, ddV.Length - 1, k => {
+                aList[k] = New.Body(bList[k + 2].Id); 
+                aList[k].X = Math.Acos(Vector3.Dot(dV[k + 1], dV[k]));
+                aList[k].Y = Math.Acos(Vector3.Dot(ddV[k + 1], ddV[k]));
+            });
+            return aList.ToList();
         }
 
         public void ToSphere(INumberTable nt, double fct = 0.0) {
