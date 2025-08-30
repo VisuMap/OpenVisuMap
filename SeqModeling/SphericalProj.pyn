@@ -2,7 +2,7 @@
 import math
 
 def GetSphereDataset(cId, interRp=0, contracting=0, eps=0.1):
-	bList = GetChainById(cId)
+	bList = LoadChain0(cId)
 	if bList.Count < 3:
 		return None
 	bType = vv.Dataset.BodyForId(cId).Type
@@ -93,43 +93,28 @@ def SphereView(pId, unfolding):
 
 def TorsionMap(pList):
 	pId = pList[0]
-	bList = GetSphereDataset(pId, interRp=0)
-
-	for b in bList:
-		len = b.Length
-		if len != 0:
-			b.Mult(1.0/len)
-
-	bs = New.BodyList()
-	for k in range(2, bList.Count):
-		b0 = bList[k]
-		b1 = bList[k-1]
-		b2 = bList[k-2]
-		b = New.Body(b0.Id)
-		cosA = b0.X*b1.X+b0.Y*b1.Y+b0.Z*b1.Z
-		b01 = New.Body()
-		b12 = New.Body()
-		b01.SetXYZ(b0.X-b1.X, b0.Y-b1.Y, b0.Z-b1.Z)
-		b12.SetXYZ(b1.X-b2.X, b1.Y-b2.Y, b1.Z-b2.Z)		
-		cosB = (b01.X * b12.X + b01.Y * b12.Y + b01.Z * b12.Z) / (b01.Length * b12.Length)
-		b.SetXYZ(math.acos(cosA), 0.2*math.acos(cosB), k*0.01)
-		b.Mult(50.0)
-		bs.Add(b)
+	bs = LoadChain0(pId)
+	bs = cs.ToTorsionList(bs)
+	for k, b in enumerate(bs):
+		b.Y *= 0.2
+		b.Z = 0.015 * k
+		b.Mult(150)
 
 	bs = Interpolate(bs, rp=5, eps=0.1)
 	for b in bs: 
 		b.Hidden = True if b.Id[0] == 'i' else False	
-
 	bs[0].Type = 105
 	bs[bs.Count-1].Type = 110
+
 	mp = New.Map3DView(bs)
 	mp.HiddenBodySize = 1
+	mp.HiddenBodyColor = New.Color(64, 128, 128, 128)
 	mp.ShowBoundingBox = True
-	mp.Show()
 	info = MapInfo()
 	info.pId = pId
 	mp.Description = info.ToStr()
-	mp.NormalizeView()
+	mp.Show()
+	mp.NormalizeView().NormalizeView()
 
 def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 	mds = NewMds(None, epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 

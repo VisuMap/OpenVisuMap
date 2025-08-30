@@ -632,6 +632,31 @@ namespace VisuMap {
             return bList;
         }
 
+        public List<IBody> ToTorsionList(List<IBody> bList) {
+            Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();
+
+            Vector3[] dV = new Vector3[V.Length - 1];
+            for(int k=1; k< V.Length; k++) {
+                dV[k - 1] = V[k] - V[k - 1];
+                dV[k - 1].Normalize();
+            }
+
+            Vector3[] ddV = new Vector3[dV.Length - 1];
+            for (int k = 1; k <dV.Length; k++) {
+                ddV[k - 1] = dV[k] - dV[k - 1];
+                ddV[k - 1].Normalize();
+            }
+
+            List<IBody> aList = New.BodyList();  // list of torsion angles.
+            for(int k=0; k<ddV.Length - 1; k++) {
+                var body = New.Body(bList[k+2].Id);
+                body.X = Math.Acos(Vector3.Dot(dV[k + 1], dV[k]));
+                body.Y = Math.Acos(Vector3.Dot(ddV[k + 1], ddV[k]));
+                aList.Add(body);
+            }
+            return aList;
+        }
+
         public void ToSphere(INumberTable nt, double fct = 0.0) {
             for (int k = 0; k < (nt.Rows - 1); k++) {
                 double[] R0 = nt.Matrix[k] as double[];
