@@ -110,7 +110,7 @@ def ShowPDB(pId, rp=3, eps=0.1, chainNames=None, includeHA=True,
 	mp.NormalizeView()
 	return mp
 
-def ShowProteinList(pList, includeHA, atName, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75, rp=3):
+def ShowProteinList(pList, includeHA, atName=None, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75, rp=3):
 	mapStore = NewMapStore(atName, clearStore=True)
 	if mapStore != None:
 		mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
