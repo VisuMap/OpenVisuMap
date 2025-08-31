@@ -93,57 +93,82 @@ def SphereView(pId, unfolding):
 		if vv.ModifierKeys.AltPressed: break	
 
 def TorsionMap(pList):
+	vwType = 2
 	for pId in pList:
 		info = MapInfo().Set('pId', pId)
 		bs = LoadChain0(pId)
 		bs = cs.ToTorsionList(bs)
 	
-		for b in bs: 
-			b.Mult(180.0/math.pi)
-		nt = New.NumberTable(bs, 2).Transpose2()
-		bb = New.BarBand(nt)
-		bb.Description = info.ToStr()
-		bb.Vertical = True
-		bb.CompactMode = False
-		bb.ReadOnly = True
-		bb.ShowLabels = False
-		bb.Resize(0, 0, min(1800, 10*bs.Count), 400)
-		bb.AutoScaling = True
-		bb.AttributeMode = True
-		bb.Show2()	
-		continue
-	
-		bs = Interpolate1Chain(bs, rp=5, eps=0.1)
-		for k, b in enumerate(bs):
-			b.Y *= 0.2
-			b.Z = 0.0004 * k
-			b.Mult(180)
-			b.Hidden = True if b.Id[0] == 'i' else False	
-		bs[0].Type, bs[bs.Count-1].Type = 105, 110
-	
-		mp = New.Map3DView(bs)
-		mp.Description = info.ToStr()
-		mp.HiddenBodySize = 1
-		mp.HiddenBodyColor = New.Color(128, 255, 255, 255)
-		mp.ShowBoundingBox = True
-		mp.Show()
-		mp.NormalizeView().NormalizeView()
+		if vwType == 0:
+			for b in bs: 
+				b.Mult(180.0/math.pi)
+			nt = New.NumberTable(bs, 2).Transpose2()
+			bb = New.BarBand(nt)
+			bb.Description = info.ToStr()
+			bb.Vertical = True
+			bb.CompactMode = False
+			bb.ReadOnly = True
+			bb.ShowLabels = False
+			bb.Resize(0, 0, min(1800, 10*bs.Count), 400)
+			bb.AutoScaling = True
+			bb.AttributeMode = True
+			bb.Show2()	
 
-	atlas = New.Atlas()
-	atlas.Clear()
-	atlas.CaptureAllOpenViews(10, 10, "BarBandView")
-	for item in atlas.Items: 
-		item.Transparent = True
-		item.ShowBorder = True
-		item.IconHeight = 180
-		item.IconWidth = 0
-		bb = item.Load()
-		item.Id = MapInfo(bb.Description).pId
-		item.Name = item.Id
-		bb.Close()
-	atlas.BackgroundColor = New.Color(255, 0, 0, 64)
-	atlas.Show()
-	atlas.ArrangeItems(False)
+		elif vwType == 1:
+			bs = Interpolate1Chain(bs, rp=5, eps=0.1)
+			for k, b in enumerate(bs):
+				b.Y *= 0.2
+				b.Z = 0.0004 * k
+				b.Mult(180)
+				b.Hidden = True if b.Id[0] == 'i' else False	
+			bs[0].Type, bs[bs.Count-1].Type = 105, 110
+	
+			mp = New.Map3DView(bs)
+			mp.Description = info.ToStr()
+			mp.HiddenBodySize = 1
+			mp.HiddenBodyColor = New.Color(128, 255, 255, 255)
+			mp.ShowBoundingBox = True
+			mp.Show()
+			mp.NormalizeView().NormalizeView()
+
+		elif vwType == 2:
+			for k, b in enumerate(bs):
+				b.Y *= 0.2
+				b.Z = 0.0004 * k
+				b.Mult(180)
+			bs[0].Type, bs[bs.Count-1].Type = 105, 110
+			nt = New.NumberTable(bs,3)
+			nt.ColumnSpecList[0].Id = 'Alpha'
+			nt.ColumnSpecList[1].Id = 'Beta'
+			nt.ColumnSpecList[2].Id = 'Seq'
+			xy = New.XyPlot( nt )
+			xy.Description = info.ToStr()
+			xy.ActiveAxis = 0
+			xy.YAxisIndex = 0
+			xy.XAxisIndex = 2
+			xy.GlyphOpacity = 1.0
+			xy.GlyphSize = 1.5
+			xy.GlyphSetName = vv.Map.GlyphSet
+			xy.ShowConnection = True
+			xy.ReadOnly = True
+			xy.Show()
+
+	if vwType == 0:
+		atlas = New.Atlas()
+		atlas.Clear()
+		atlas.CaptureAllOpenViews(10, 10, "BarBandView")
+		for item in atlas.Items: 
+			item.Transparent = True
+			item.ShowBorder = True
+			item.IconHeight = 180
+			item.IconWidth = 0
+			bb = item.Load()
+			item.Id = MapInfo(bb.Description).pId
+			item.Name = item.Id
+			bb.Close()
+		atlas.BackgroundColor = New.Color(255, 0, 0, 64)
+		atlas.Show()
+		atlas.ArrangeItems(False)
 
 def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 	mds = NewMds(None, epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
