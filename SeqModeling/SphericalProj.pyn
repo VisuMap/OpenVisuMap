@@ -81,7 +81,8 @@ def SphereView(pId, unfolding):
 	if bList.Count > 1:
 		maxSz = 0.75*(bList[0].Length + bList[1].Length)
 		bList = New.BodyList([b for b in bList if b.Length<maxSz])
-	#ShowSphere(bList)
+	ShowSphere(bList)
+	return
 	cfList = [0.01 * k for k in range(100)]
 	cfList = 9*(cfList + cfList[::-1])
 	for k, cf in enumerate(cfList):
@@ -92,25 +93,37 @@ def SphereView(pId, unfolding):
 		if vv.ModifierKeys.AltPressed: break	
 
 def TorsionMap(pList):
-	pId = pList[0]
-	bs = LoadChain0(pId)
-	bs = cs.ToTorsionList(bs)
-	bs = Interpolate1Chain(bs, rp=5, eps=0.1)
-	for k, b in enumerate(bs):
-		b.Y *= 0.2
-		b.Z = 0.0004 * k
-		b.Mult(200)
-		b.Hidden = True if b.Id[0] == 'i' else False	
-	bs[0].Type, bs[bs.Count-1].Type = 105, 110
-
-	info = MapInfo().Set('pId', pId)
-	mp = New.Map3DView(bs)
-	mp.Description = info.ToStr()
-	mp.HiddenBodySize = 1
-	mp.HiddenBodyColor = New.Color(128, 255, 255, 255)
-	mp.ShowBoundingBox = True
-	mp.Show()
-	mp.NormalizeView().NormalizeView()
+	for pId in pList[:6]:
+		info = MapInfo().Set('pId', pId)
+		bs = LoadChain0(pId)
+		bs = cs.ToTorsionList(bs)
+	
+		for b in bs: b.Mult(180.0/math.pi)
+		nt = New.NumberTable(bs, 2).Transpose2()	
+		bb = New.BarBand(nt)
+		bb.Description = info.ToStr()
+		bb.AutoScaling = True
+		bb.Vertical = True
+		bb.CompactMode = False
+		bb.Resize(0, 0, min(1800, 5*bs.Count), 500)
+		bb.Show2()
+		continue
+	
+		bs = Interpolate1Chain(bs, rp=5, eps=0.1)
+		for k, b in enumerate(bs):
+			b.Y *= 0.2
+			b.Z = 0.0004 * k
+			b.Mult(180)
+			b.Hidden = True if b.Id[0] == 'i' else False	
+		bs[0].Type, bs[bs.Count-1].Type = 105, 110
+	
+		mp = New.Map3DView(bs)
+		mp.Description = info.ToStr()
+		mp.HiddenBodySize = 1
+		mp.HiddenBodyColor = New.Color(128, 255, 255, 255)
+		mp.ShowBoundingBox = True
+		mp.Show()
+		mp.NormalizeView().NormalizeView()
 
 def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 	mds = NewMds(None, epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
