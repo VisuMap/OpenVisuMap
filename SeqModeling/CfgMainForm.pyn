@@ -145,6 +145,7 @@ def MainProc(menuKey):
 			SphereView(pId, True)
 		case 'sT':
 			TorsionMap(pList)
+			for pId in pList: ShowChain(pId, opacity=0.15)
 		case 'TT':
 			CreateProteinMaps(pList, atlasName, tP = (2500, 2, 0.2, 0.25, 4.0, 1.0))
 

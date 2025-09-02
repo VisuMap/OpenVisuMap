@@ -116,8 +116,8 @@ def ShowChain(cId, opacity=0.5):
 	for b in bList:
 		b.Type = 1
 		b.Hidden = (b.Id[0] == 'i')
-	bList[0].Type = 155
-	bList[bList.Count-1].Type = 171
+	bList[0].Type = 171
+	bList[bList.Count-1].Type = 155
 	mp = New.Map3DView(bList)
 	mp.GlyphSet = '36 Clusters||||Colored Balls'
 	mp.ReadOnly = True

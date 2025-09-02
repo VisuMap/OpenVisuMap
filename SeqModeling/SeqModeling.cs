@@ -634,30 +634,30 @@ namespace VisuMap {
 
         public List<IBody> ToTorsionList(List<IBody> bList) {
             Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();
-
             Vector3[] dV = new Vector3[V.Length - 1];
-            Vector3[] ddV = new Vector3[dV.Length - 1];
+            Vector3[] ddV = new Vector3[V.Length - 2];
+            List<IBody> aList = bList.Skip(3).Select(b => New.Body(b.Id)).ToList();
 
             for (int k=1; k<V.Length; k++)            
                 dV[k - 1] = V[k] - V[k - 1];
             for (int k = 1; k < dV.Length; k++)
                 ddV[k - 1] = dV[k] - dV[k - 1];
 
-            float[] volume = new float[dV.Length - 2];
-            for (int k = 2; k < dV.Length; k++)
-                volume[k - 2] = Vector3.Dot(Vector3.Cross(dV[k - 2], dV[k - 1]), dV[k]);
+            for (int k = 0; k < aList.Count; k++)
+                //aList[k].Z = 2.0 - 0.01 * Vector3.Dot(Vector3.Cross(dV[k], dV[k + 1]), dV[k+2]);                
+                aList[k].Z = 18.0/bList[k].DistanceTo(bList[k+3]) - 1.8;
+                //aList[k].Z = 40.0 / bList[k+1].DistanceTo(bList[k + 3]) - 5.4;
 
             for (int k = 0; k < dV.Length; k++)
                 dV[k].Normalize();
             for (int k = 0; k < ddV.Length; k++)
                 ddV[k].Normalize();
 
-            IBody[] aList = new Body[ddV.Length - 1];
             MT.Loop(0, ddV.Length - 1, k => {
-                aList[k] = New.Body(bList[k + 2].Id); 
-                aList[k].SetXYZ(Math.Acos(Vector3.Dot(dV[k + 1], dV[k])), Math.Acos(Vector3.Dot(ddV[k + 1], ddV[k])), 2.0 - 0.01*volume[k]);
+                aList[k].X = Math.Acos(Vector3.Dot(dV[k + 1], dV[k]));
+                aList[k].Y = Math.Acos(Vector3.Dot(ddV[k + 1], ddV[k]));
             });
-            return aList.ToList();
+            return aList;
         }
 
         public void ToSphere(INumberTable nt, double fct = 0.0) {

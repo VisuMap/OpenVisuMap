@@ -113,7 +113,8 @@ def TorsionMap(pList):
 			bb.AutoScaling = True
 			bb.AttributeMode = True
 			bb.BaseLineType = 6
-			bb.BaseValueExplicit = 90.0
+			bb.BaseValueExplicit = 0.0
+			bb.FineSelection = True
 			bb.Show2()	
 
 		elif vwType == 1:
