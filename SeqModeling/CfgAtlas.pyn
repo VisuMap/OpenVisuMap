@@ -1,7 +1,8 @@
-#MenuLabels ConfigMaps MatchMap P-ChmX P-Web IntMaps P-3D P-3Dx P-3Ds P-2Ds P-2D  P-Open TileAll P-Seq Align TT
+#MenuLabels ConfigMaps MatchMap P-ChmX P-Web IntMaps P-3D P-3Dx P-3Ds P-2Ds P-2D  P-Open TileAll P-Seq Align sT TT
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
+vv.Import('SphericalProj.pyn')
 
 def HighlightItems():
 	srcClassName = vv.EventSource.Item.ToString()
@@ -20,14 +21,10 @@ def InterpolateAllMaps(atlas, intRp):
 		mp.Close()
 
 def MainProc(menuKey):
-
-	if menuKey.startswith('P-'):
-		pSelected = pp.GetSelectedItems()
-		if pSelected.Count == 0:
-			vv.Message('No protein selected')
-			return
-		else:
-			pId = pSelected[0].Name
+	pSelected = pp.GetSelectedItems()
+	if pSelected.Count >= 1:
+		pId = pSelected[0].Name
+	pList = [item.Name for item in pSelected]
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
 	match vv.EventSource.Item:
@@ -80,6 +77,18 @@ def MainProc(menuKey):
 			for item in pp.Items:
 				item.IconWidth = 500
 			pp.ArrangeItems(False)
+		case 'sT':
+			'''
+			for item in pSelected:
+				mp = item.Load()
+				mp.GlyphOpacity = 0.15
+				mp.Show()
+			'''
+			for pId in pList: ShowChain(pId, opacity=0.15)
+			TorsionMap(pList)
+
+
+			
 
 MainProc(vv.EventSource.Item)
 

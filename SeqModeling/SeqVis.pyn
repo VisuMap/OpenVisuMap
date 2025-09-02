@@ -1186,7 +1186,7 @@ def ResetAtlas():
 	srcName = vv.EventSource.Form.Name
 	mk = vv.ModifierKeys
 	n=pp.SelectedItems.Count
-	if srcName == 'D3dRender' or srcName == 'MapSnapshot': 
+	if srcName not in ['MainForm', 'MdsCluster', 'Atlas']: 
 		return
 	if mk.AltPressed or mk.ControlPressed:
 		return

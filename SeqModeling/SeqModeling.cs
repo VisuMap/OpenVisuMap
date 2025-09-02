@@ -636,22 +636,26 @@ namespace VisuMap {
             Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();
 
             Vector3[] dV = new Vector3[V.Length - 1];
-            MT.Loop(1, V.Length, k => {
-                dV[k - 1] = V[k] - V[k - 1];
-                dV[k - 1].Normalize();
-            });
-
             Vector3[] ddV = new Vector3[dV.Length - 1];
-            MT.Loop(1, dV.Length, k => {
+
+            for (int k=1; k<V.Length; k++)            
+                dV[k - 1] = V[k] - V[k - 1];
+            for (int k = 1; k < dV.Length; k++)
                 ddV[k - 1] = dV[k] - dV[k - 1];
-                ddV[k - 1].Normalize();
-            });
+
+            float[] volume = new float[dV.Length - 2];
+            for (int k = 2; k < dV.Length; k++)
+                volume[k - 2] = Vector3.Dot(Vector3.Cross(dV[k - 2], dV[k - 1]), dV[k]);
+
+            for (int k = 0; k < dV.Length; k++)
+                dV[k].Normalize();
+            for (int k = 0; k < ddV.Length; k++)
+                ddV[k].Normalize();
 
             IBody[] aList = new Body[ddV.Length - 1];
             MT.Loop(0, ddV.Length - 1, k => {
                 aList[k] = New.Body(bList[k + 2].Id); 
-                aList[k].X = Math.Acos(Vector3.Dot(dV[k + 1], dV[k]));
-                aList[k].Y = Math.Acos(Vector3.Dot(ddV[k + 1], ddV[k]));
+                aList[k].SetXYZ(Math.Acos(Vector3.Dot(dV[k + 1], dV[k])), Math.Acos(Vector3.Dot(ddV[k + 1], ddV[k])), 2.0 - 0.01*volume[k]);
             });
             return aList.ToList();
         }

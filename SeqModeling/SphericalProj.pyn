@@ -93,7 +93,7 @@ def SphereView(pId, unfolding):
 		if vv.ModifierKeys.AltPressed: break	
 
 def TorsionMap(pList):
-	vwType = 2
+	vwType = 0
 	for pId in pList:
 		info = MapInfo().Set('pId', pId)
 		bs = LoadChain0(pId)
@@ -102,7 +102,7 @@ def TorsionMap(pList):
 		if vwType == 0:
 			for b in bs: 
 				b.Mult(180.0/math.pi)
-			nt = New.NumberTable(bs, 2).Transpose2()
+			nt = New.NumberTable(bs, 3).Transpose2()
 			bb = New.BarBand(nt)
 			bb.Description = info.ToStr()
 			bb.Vertical = True
@@ -112,6 +112,8 @@ def TorsionMap(pList):
 			bb.Resize(0, 0, min(1800, 10*bs.Count), 400)
 			bb.AutoScaling = True
 			bb.AttributeMode = True
+			bb.BaseLineType = 6
+			bb.BaseValueExplicit = 90.0
 			bb.Show2()	
 
 		elif vwType == 1:
@@ -153,7 +155,7 @@ def TorsionMap(pList):
 			xy.ReadOnly = True
 			xy.Show()
 
-	if vwType == 0:
+	if vwType == 0 and len(pList)>5 :
 		atlas = New.Atlas()
 		atlas.Clear()
 		atlas.CaptureAllOpenViews(10, 10, "BarBandView")

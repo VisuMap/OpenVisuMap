@@ -110,6 +110,28 @@ def ShowPDB(pId, rp=3, eps=0.1, chainNames=None, includeHA=True,
 	mp.NormalizeView()
 	return mp
 
+def ShowChain(cId, opacity=0.5):
+	bList = LoadChain0(cId)
+	bList = Interpolate1Chain(bList, rp=5, eps=0.1)
+	for b in bList:
+		b.Type = 1
+		b.Hidden = (b.Id[0] == 'i')
+	bList[0].Type = 155
+	bList[bList.Count-1].Type = 171
+	mp = New.Map3DView(bList)
+	mp.GlyphSet = '36 Clusters||||Colored Balls'
+	mp.ReadOnly = True
+	mp.ShowPerformance = False
+	mp.ShowBoundingBox = False
+	mp.GlyphSize = 1.7
+	mp.GlyphOpacity = opacity
+	mp.HiddenBodySize = 4
+	mp.HiddenBodyColor = New.Color(128, 128, 128, 128)
+	mp.Show()
+	mp.NormalizeView()
+	return mp
+
+
 def ShowProteinList(pList, includeHA, atName=None, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75, rp=3):
 	mapStore = NewMapStore(atName, clearStore=True)
 	if mapStore != None:
