@@ -632,20 +632,31 @@ namespace VisuMap {
             return bList;
         }
 
+        const double BOND_LENGTH = 3.8;  // Average bond length. with std ca 0.1
+
         public INumberTable ToTorsionList(List<IBody> bList) {
             if (bList.Count < 5)
                 return null;
             Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();
-            INumberTable nt = New.NumberTable(bList.Skip(3).ToList(), 3);
+            INumberTable nt = New.NumberTable(bList, 3).Clear();
             Func<int, int, float> DD = (i, j) => Vector3.Distance(V[i], V[j]);
-
-            for (int k = 0; k < nt.Rows; k++) {
-                var R = nt.Matrix[k];
-                R[0] = 10.0f / DD(k + 1, k + 3);
-                R[1] = 10.0f / DD(k, k + 3);
-                R[2] = (k > 0) ? 10.0f / DD(k - 1, k + 3) : 0;
+            int N = nt.Rows;
+            double[][] M = nt.Matrix as double[][];
+            for (int k = 1; k < N-1; k++) {
+                var R = M[k];
+                if ( (k>=1) && (k+1)<N )
+                    R[0] = 2 * BOND_LENGTH / DD(k + 1, k - 1);
+                if ((k >= 2) && (k + 2) < N)
+                    R[1] = 4 * BOND_LENGTH / DD(k + 2, k - 2);
+                if ((k >= 3) && (k + 3) < N)
+                    R[2] = 6 * BOND_LENGTH / DD(k + 3, k - 3);
             }
-            nt.Matrix[0][2] = nt.Matrix[1][2];
+
+            for(int r=0; r<3; r++) 
+            for(int k=0; k<=r; k++) {
+                M[k][r] = M[r + 1][r];
+                M[N - 1 - k][r] = M[N - 2 - r][r];
+            }
 
             /*
             Vector3[] dV = new Vector3[V.Length - 1];
@@ -654,6 +665,7 @@ namespace VisuMap {
                 dV[k - 1] = V[k] - V[k - 1];
             for (int k = 1; k < dV.Length; k++)
                 ddV[k - 1] = dV[k] - dV[k - 1];
+
             for (int k = 0; k < dV.Length; k++)
                 dV[k].Normalize();
             for (int k = 0; k < ddV.Length; k++)

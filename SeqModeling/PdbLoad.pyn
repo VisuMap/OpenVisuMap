@@ -125,7 +125,7 @@ def ShowChain(cId, opacity=0.5):
 	mp.ShowBoundingBox = False
 	mp.GlyphSize = 1.7
 	mp.GlyphOpacity = opacity
-	mp.HiddenBodySize = 4
+	mp.HiddenBodySize = 6
 	mp.HiddenBodyColor = New.Color(128, 128, 128, 128)
 	mp.Show()
 	mp.NormalizeView().NormalizeView()
