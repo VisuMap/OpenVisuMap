@@ -128,7 +128,7 @@ def ShowChain(cId, opacity=0.5):
 	mp.HiddenBodySize = 4
 	mp.HiddenBodyColor = New.Color(128, 128, 128, 128)
 	mp.Show()
-	mp.NormalizeView()
+	mp.NormalizeView().NormalizeView()
 	return mp
 
 

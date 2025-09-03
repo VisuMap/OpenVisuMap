@@ -93,70 +93,24 @@ def SphereView(pId, unfolding):
 		if vv.ModifierKeys.AltPressed: break	
 
 def TorsionMap(pList):
-	vwType = 0
 	for pId in pList:
 		info = MapInfo().Set('pId', pId)
 		bs = LoadChain0(pId)
-		bs = cs.ToTorsionList(bs)
-	
-		if vwType == 0:
-			for b in bs: 
-				b.Mult(180.0/math.pi)
-			nt = New.NumberTable(bs, 3).Transpose2()
-			bb = New.BarBand(nt)
-			bb.Description = info.ToStr()
-			bb.Vertical = True
-			bb.CompactMode = False
-			bb.ReadOnly = True
-			bb.ShowLabels = False
-			bb.Resize(0, 0, min(1800, 10*bs.Count), 400)
-			bb.AutoScaling = True
-			bb.AttributeMode = True
-			bb.BaseLineType = 6
-			bb.BaseValueExplicit = 0.0
-			bb.FineSelection = True
-			bb.Show2()	
-
-		elif vwType == 1:
-			bs = Interpolate1Chain(bs, rp=5, eps=0.1)
-			for k, b in enumerate(bs):
-				b.Y *= 0.2
-				b.Z = 0.0004 * k
-				b.Mult(180)
-				b.Hidden = True if b.Id[0] == 'i' else False	
-			bs[0].Type, bs[bs.Count-1].Type = 105, 110
-	
-			mp = New.Map3DView(bs)
-			mp.Description = info.ToStr()
-			mp.HiddenBodySize = 1
-			mp.HiddenBodyColor = New.Color(128, 255, 255, 255)
-			mp.ShowBoundingBox = True
-			mp.Show()
-			mp.NormalizeView().NormalizeView()
-
-		elif vwType == 2:
-			for k, b in enumerate(bs):
-				b.Y *= 0.2
-				b.Z = 0.0004 * k
-				b.Mult(180)
-			bs[0].Type, bs[bs.Count-1].Type = 105, 110
-			nt = New.NumberTable(bs,3)
-			nt.ColumnSpecList[0].Id = 'Alpha'
-			nt.ColumnSpecList[1].Id = 'Beta'
-			nt.ColumnSpecList[2].Id = 'Seq'
-			xy = New.XyPlot( nt )
-			xy.Description = info.ToStr()
-			xy.ActiveAxis = 0
-			xy.YAxisIndex = 0
-			xy.XAxisIndex = 2
-			xy.GlyphOpacity = 1.0
-			xy.GlyphSize = 1.5
-			xy.GlyphSetName = vv.Map.GlyphSet
-			xy.ShowConnection = True
-			xy.ReadOnly = True
-			xy.Show()
-
-	if vwType == 0 and len(pList)>5 :
+		nt = cs.ToTorsionList(bs).Transpose2()
+		bb = New.BarBand(nt)
+		bb.Description = info.ToStr()
+		bb.Vertical = True
+		bb.CompactMode = False
+		bb.ReadOnly = True
+		bb.ShowLabels = False
+		bb.Resize(0, 0, min(1800, 10*bs.Count), 400)
+		bb.AutoScaling = True
+		bb.AttributeMode = True
+		bb.BaseLineType = 4
+		bb.BaseValueExplicit = 0.0
+		bb.FineSelection = True
+		bb.Show2()	
+	if len(pList)>5 :
 		atlas = New.Atlas()
 		atlas.Clear()
 		atlas.CaptureAllOpenViews(10, 10, "BarBandView")

@@ -632,9 +632,12 @@ namespace VisuMap {
             return bList;
         }
 
-        public List<IBody> ToTorsionList(List<IBody> bList) {
+        public INumberTable ToTorsionList(List<IBody> bList) {
+            if (bList.Count < 5)
+                return null;
             Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();
-            List<IBody> aList = bList.Skip(3).Select(b => New.Body(b.Id)).ToList();
+            INumberTable nt = New.NumberTable(bList.Skip(3).ToList(), 3);
+            Func<int, int, float> DD = (i, j) => Vector3.Distance(V[i], V[j]);
 
             /*
             Vector3[] dV = new Vector3[V.Length - 1];
@@ -646,15 +649,14 @@ namespace VisuMap {
                 ddV[k - 1] = dV[k] - dV[k - 1];
             */
 
-            Func<int, int, float> DD = (i, j)=> Vector3.Distance(V[i], V[j]);
 
-            for (int k = 0; k < aList.Count; k++) {
-                //aList[k].Z = 2.0 - 0.01 * Vector3.Dot(Vector3.Cross(dV[k], dV[k + 1]), dV[k+2]);                
-                aList[k].X = 2 * (40.0f / DD(k+1, k+3) - 5.4f);
-                aList[k].Y = 3 * (18.0f / DD(k, k + 3) - 1.8f);
-                if (k >= 1)
-                    aList[k - 1].Z = 40.0f / DD(k - 1, k + 3) - 2.5f;
+            for (int k = 0; k < nt.Rows; k++) {
+                var R = nt.Matrix[k];
+                R[0] = 10.0f / DD(k + 1, k + 3);
+                R[1] = 10.0f / DD(k, k + 3);
+                R[2] = (k>0) ? 10.0f / DD(k - 1, k + 3) : 0;
             }
+            nt.Matrix[0][2] = nt.Matrix[1][2];
 
             /*
             for (int k = 0; k < dV.Length; k++)
@@ -662,13 +664,14 @@ namespace VisuMap {
             for (int k = 0; k < ddV.Length; k++)
                 ddV[k].Normalize();
 
+            double[][] M = nt.Matrix as double[][];
             MT.Loop(0, ddV.Length - 1, k => {
-                aList[k].X = Math.Acos(Vector3.Dot(dV[k + 1], dV[k]));
-                aList[k].Y = Math.Acos(Vector3.Dot(ddV[k + 1], ddV[k]));
+                M[k][0] = Math.Acos(Vector3.Dot(dV[k + 1], dV[k]));
+                M[k][1] = Math.Acos(Vector3.Dot(ddV[k + 1], ddV[k]));
             });
             */
 
-            return aList;
+            return nt;
         }
 
         public void ToSphere(INumberTable nt, double fct = 0.0) {
