@@ -639,35 +639,29 @@ namespace VisuMap {
             INumberTable nt = New.NumberTable(bList.Skip(3).ToList(), 3);
             Func<int, int, float> DD = (i, j) => Vector3.Distance(V[i], V[j]);
 
-            /*
-            Vector3[] dV = new Vector3[V.Length - 1];
-            Vector3[] ddV = new Vector3[V.Length - 2];
-
-            for (int k=1; k<V.Length; k++)            
-                dV[k - 1] = V[k] - V[k - 1];
-            for (int k = 1; k < dV.Length; k++)
-                ddV[k - 1] = dV[k] - dV[k - 1];
-            */
-
-
             for (int k = 0; k < nt.Rows; k++) {
                 var R = nt.Matrix[k];
                 R[0] = 10.0f / DD(k + 1, k + 3);
                 R[1] = 10.0f / DD(k, k + 3);
-                R[2] = (k>0) ? 10.0f / DD(k - 1, k + 3) : 0;
+                R[2] = (k > 0) ? 10.0f / DD(k - 1, k + 3) : 0;
             }
             nt.Matrix[0][2] = nt.Matrix[1][2];
 
             /*
+            Vector3[] dV = new Vector3[V.Length - 1];
+            Vector3[] ddV = new Vector3[V.Length - 2];
+            for (int k=1; k<V.Length; k++)            
+                dV[k - 1] = V[k] - V[k - 1];
+            for (int k = 1; k < dV.Length; k++)
+                ddV[k - 1] = dV[k] - dV[k - 1];
             for (int k = 0; k < dV.Length; k++)
                 dV[k].Normalize();
             for (int k = 0; k < ddV.Length; k++)
                 ddV[k].Normalize();
-
-            double[][] M = nt.Matrix as double[][];
             MT.Loop(0, ddV.Length - 1, k => {
-                M[k][0] = Math.Acos(Vector3.Dot(dV[k + 1], dV[k]));
-                M[k][1] = Math.Acos(Vector3.Dot(ddV[k + 1], ddV[k]));
+                double[] R = (double[]) nt.Matrix[k];
+                R[3] = Math.Acos(Vector3.Dot(dV[k + 1], dV[k]));
+                R[4] = Math.Acos(Vector3.Dot(ddV[k + 1], ddV[k]));
             });
             */
 

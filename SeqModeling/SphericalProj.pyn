@@ -73,16 +73,18 @@ def ShrinkSphere(bList, cf):
 	tgtView.MoveBodiesTo(bList, 5, 50, 0, 0)
 
 
-def SphereView(pId, unfolding):
+def SphereView(pId, unfolding, cf=0):
 	global tgtView
 	tgtView = None
-	tstFct = SphereUnfold if unfolding else ShrinkSphere
 	bList = GetSphereDataset(pId, interRp=0)
 	if bList.Count > 1:
 		maxSz = 0.75*(bList[0].Length + bList[1].Length)
 		bList = New.BodyList([b for b in bList if b.Length<maxSz])
-	ShowSphere(bList)
-	return
+	if cf != 0:
+		cs.ShrinkSphere(bList, cf)
+		ShowSphere(bList)
+		return
+	tstFct = SphereUnfold if unfolding else ShrinkSphere
 	cfList = [0.01 * k for k in range(100)]
 	cfList = 9*(cfList + cfList[::-1])
 	for k, cf in enumerate(cfList):
