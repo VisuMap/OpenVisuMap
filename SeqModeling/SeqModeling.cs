@@ -635,48 +635,46 @@ namespace VisuMap {
         const double BOND_LENGTH = 3.8;  // Average bond length. with std ca 0.1
 
         public INumberTable ToTorsionList(List<IBody> bList) {
-            if (bList.Count < 5)
+            if (bList.Count < 7)
                 return null;
             Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();
             INumberTable nt = New.NumberTable(bList, 3).Clear();
             Func<int, int, float> DD = (i, j) => Vector3.Distance(V[i], V[j]);
-            int N = nt.Rows;
-            double[][] M = nt.Matrix as double[][];
-            for (int k = 1; k < N-1; k++) {
-                var R = M[k];
-                if ( (k>=1) && (k+1)<N )
+            int L = nt.Rows;
+            for (int k = 1; k < L-1; k++) {
+                double[] R = nt.Matrix[k] as double[];
+                if ( (k>=1) && (k+1)<L )
                     R[0] = 2 * BOND_LENGTH / DD(k + 1, k - 1);
-                if ((k >= 2) && (k + 2) < N)
+                if ((k >= 2) && (k + 2) < L)
                     R[1] = 4 * BOND_LENGTH / DD(k + 2, k - 2);
-                if ((k >= 3) && (k + 3) < N)
+                if ((k >= 3) && (k + 3) < L)
                     R[2] = 6 * BOND_LENGTH / DD(k + 3, k - 3);
             }
-
-            for(int r=0; r<3; r++) 
+            // Fill the zeros with neighboring value.
+            double[][] M = nt.Matrix as double[][];
+            for (int r=0; r<3; r++) 
             for(int k=0; k<=r; k++) {
                 M[k][r] = M[r + 1][r];
-                M[N - 1 - k][r] = M[N - 2 - r][r];
+                M[L - 1 - k][r] = M[L - 2 - r][r];
             }
-
+            
             /*
             Vector3[] dV = new Vector3[V.Length - 1];
             Vector3[] ddV = new Vector3[V.Length - 2];
-            for (int k=1; k<V.Length; k++)            
-                dV[k - 1] = V[k] - V[k - 1];
-            for (int k = 1; k < dV.Length; k++)
-                ddV[k - 1] = dV[k] - dV[k - 1];
-
-            for (int k = 0; k < dV.Length; k++)
+            for (int k=0; k<dV.Length; k++)  {          
+                dV[k] = V[k+1] - V[k];
                 dV[k].Normalize();
-            for (int k = 0; k < ddV.Length; k++)
+            }
+            for (int k = 0; k < ddV.Length; k++) {
+                ddV[k] = dV[k+1] - dV[k];
                 ddV[k].Normalize();
+            }
             MT.Loop(0, ddV.Length - 1, k => {
                 double[] R = (double[]) nt.Matrix[k];
                 R[3] = Math.Acos(Vector3.Dot(dV[k + 1], dV[k]));
                 R[4] = Math.Acos(Vector3.Dot(ddV[k + 1], ddV[k]));
             });
             */
-
             return nt;
         }
 

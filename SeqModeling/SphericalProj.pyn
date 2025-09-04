@@ -82,8 +82,11 @@ def SphereView(pId, unfolding, cf=0):
 		bList = New.BodyList([b for b in bList if b.Length<maxSz])
 	if cf != 0:
 		cs.ShrinkSphere(bList, cf)
-		ShowSphere(bList)
-		return
+		for b in bList: 
+			b.Mult(10/(1-cf))
+			if b.Type == 0:
+				b.Type = 5
+		return ShowSphere(bList, gsize=2.0)
 	tstFct = SphereUnfold if unfolding else ShrinkSphere
 	cfList = [0.01 * k for k in range(100)]
 	cfList = 9*(cfList + cfList[::-1])

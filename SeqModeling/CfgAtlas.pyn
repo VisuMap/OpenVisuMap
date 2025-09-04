@@ -86,6 +86,9 @@ def MainProc(menuKey):
 			'''
 			for pId in pList: ShowChain(pId, opacity=0.15)
 			TorsionMap(pList)
+			mp = SphereView(pId, False, 0.95).NormalizeView()
+			mp.GlyphOpacity = 0.2
+			mp.Redraw()
 
 
 			
