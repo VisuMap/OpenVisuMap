@@ -145,8 +145,8 @@ def MainProc(menuKey):
 			SphereView(pId, True)
 		case 'sT':
 			TorsionMap(pList[:1])
-			ShowChain(pId, opacity=0.15).RotateXYZ(0, 0.0025, 0).StartAnimation(0)
-			SphereView(pId, False, 0.95)
+			#ShowChain(pId, opacity=0.15).RotateXYZ(0, 0.0025, 0).StartAnimation(0).EditMode = False
+			SphereView(pId, False, 0.95, gopacity=0.15).NormalizeView().EditMode=False
 		case 'TT':
 			CreateProteinMaps(pList, atlasName, tP = (2500, 2, 0.2, 0.25, 4.0, 1.0))
 

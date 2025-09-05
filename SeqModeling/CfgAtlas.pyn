@@ -78,17 +78,9 @@ def MainProc(menuKey):
 				item.IconWidth = 500
 			pp.ArrangeItems(False)
 		case 'sT':
-			'''
-			for item in pSelected:
-				mp = item.Load()
-				mp.GlyphOpacity = 0.15
-				mp.Show()
-			'''
-			for pId in pList: ShowChain(pId, opacity=0.15)
+			#ShowChain(pId, opacity=0.15).RotateXYZ(0, 0.0025, 0).StartAnimation(0).EditMode=False
+			SphereView(pId, False, cf=0.975, gopacity=0.2).NormalizeView().EditMode=False
 			TorsionMap(pList)
-			mp = SphereView(pId, False, 0.95).NormalizeView()
-			mp.GlyphOpacity = 0.2
-			mp.Redraw()
 
 
 			

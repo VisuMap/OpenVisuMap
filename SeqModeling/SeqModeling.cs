@@ -637,19 +637,20 @@ namespace VisuMap {
         public INumberTable ToTorsionList(List<IBody> bList) {
             if (bList.Count < 7)
                 return null;
-            Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();
-            INumberTable nt = New.NumberTable(bList, 3).Clear();
-            Func<int, int, float> DD = (i, j) => Vector3.Distance(V[i], V[j]);
+            Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();            
+            double DD(int i, int j) => Vector3.Distance(V[i], V[j]);
+            INumberTable nt = New.NumberTable(bList, 5).Clear();
             int L = nt.Rows;
             for (int k = 1; k < L-1; k++) {
                 double[] R = nt.Matrix[k] as double[];
                 if ( (k>=1) && (k+1)<L )
-                    R[0] = 2 * BOND_LENGTH / DD(k + 1, k - 1);
+                    R[0] = 2*BOND_LENGTH / DD(k + 1, k - 1);
                 if ((k >= 2) && (k + 2) < L)
                     R[1] = 4 * BOND_LENGTH / DD(k + 2, k - 2);
                 if ((k >= 3) && (k + 3) < L)
                     R[2] = 6 * BOND_LENGTH / DD(k + 3, k - 3);
             }
+
             // Fill the zeros with neighboring value.
             double[][] M = nt.Matrix as double[][];
             for (int r=0; r<3; r++) 
@@ -658,7 +659,6 @@ namespace VisuMap {
                 M[L - 1 - k][r] = M[L - 2 - r][r];
             }
             
-            /*
             Vector3[] dV = new Vector3[V.Length - 1];
             Vector3[] ddV = new Vector3[V.Length - 2];
             for (int k=0; k<dV.Length; k++)  {          
@@ -669,12 +669,16 @@ namespace VisuMap {
                 ddV[k] = dV[k+1] - dV[k];
                 ddV[k].Normalize();
             }
+            double Angle(Vector3 vA, Vector3 vB) => Math.Acos(Vector3.Dot(vA, vB));
             MT.Loop(0, ddV.Length - 1, k => {
-                double[] R = (double[]) nt.Matrix[k];
-                R[3] = Math.Acos(Vector3.Dot(dV[k + 1], dV[k]));
-                R[4] = Math.Acos(Vector3.Dot(ddV[k + 1], ddV[k]));
+                M[k][3] = Angle(dV[k + 1], dV[k]);
+                M[k][4] = Angle(ddV[k + 1], ddV[k]);
             });
-            */
+            for(int k=L-3; k<L; k++) {
+                M[k][3] = M[L - 4][3];
+                M[k][4] = M[L - 4][4];
+            }
+
             return nt;
         }
 

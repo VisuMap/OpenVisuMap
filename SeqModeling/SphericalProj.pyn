@@ -17,13 +17,14 @@ def GetSphereDataset(cId, interRp=0, contracting=0, eps=0.1):
 	bList[bList.Count-1].Type = 110
 	return bList
 
-def ShowSphere(bList, info=None, hsize=1, gsize=3.0):
+def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0):
 	mp = New.Map3DView(bList)
 	mp.ReadOnly = True
 	mp.ShowPerformance = False
 	mp.ShowBoundingBox = True
 	mp.MapDepth = 0.5*(mp.Width+mp.Height)
 	mp.GlyphSize = gsize
+	mp.GlyphOpacity = gopacity
 	mp.HiddenBodySize = hsize
 	mp.Show()
 	mp.CentralizeView()
@@ -73,7 +74,7 @@ def ShrinkSphere(bList, cf):
 	tgtView.MoveBodiesTo(bList, 5, 50, 0, 0)
 
 
-def SphereView(pId, unfolding, cf=0):
+def SphereView(pId, unfolding, cf=0, gopacity=1.0):
 	global tgtView
 	tgtView = None
 	bList = GetSphereDataset(pId, interRp=0)
@@ -83,10 +84,9 @@ def SphereView(pId, unfolding, cf=0):
 	if cf != 0:
 		cs.ShrinkSphere(bList, cf)
 		for b in bList: 
-			b.Mult(10/(1-cf))
-			if b.Type == 0:
-				b.Type = 5
-		return ShowSphere(bList, gsize=2.0)
+			b.Mult(1000.0/b.Length)
+			if b.Type == 0: b.Type = 5
+		return ShowSphere(bList, gsize=2.0, gopacity=gopacity)
 	tstFct = SphereUnfold if unfolding else ShrinkSphere
 	cfList = [0.01 * k for k in range(100)]
 	cfList = 9*(cfList + cfList[::-1])
