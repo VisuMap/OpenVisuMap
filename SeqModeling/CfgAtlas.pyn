@@ -78,8 +78,8 @@ def MainProc(menuKey):
 				item.IconWidth = 500
 			pp.ArrangeItems(False)
 		case 'sT':
-			#ShowChain(pId, opacity=0.15).RotateXYZ(0, 0.0025, 0).StartAnimation(0).EditMode=False
-			SphereView(pId, False, cf=0.975, gopacity=0.2).NormalizeView().EditMode=False
+			ShowChain(pId, opacity=0.15).RotateXYZ(0, 0.0025, 0).StartAnimation(0).EditMode=False
+			ShowSphere2(pId, cf=0.975, gopacity=0.2)
 			TorsionMap(pList)
 
 

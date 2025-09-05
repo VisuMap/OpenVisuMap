@@ -32,6 +32,19 @@ def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0):
 		mp.Description = info.ToStr()
 	return mp
 
+def ShowSphere2(pId, cf, hsize=1, gsize=2.0, gopacity=1.0):
+	info = MapInfo()
+	info.pId = pId
+	bList = GetSphereDataset(pId, interRp=0)
+	cs.ShrinkSphere(bList, cf)
+	for b in bList: 
+		b.Mult(1000.0/b.Length)
+		if b.Type == 0: b.Type = 5
+	mp = ShowSphere(bList, info, hsize, gsize, gopacity)
+	mp.NormalizeView()
+	mp.EditMode = True
+	return mp
+
 def NotExits(vw):
 	return (vw == None) or vw.TheForm.IsDisposed
 
@@ -74,19 +87,13 @@ def ShrinkSphere(bList, cf):
 	tgtView.MoveBodiesTo(bList, 5, 50, 0, 0)
 
 
-def SphereView(pId, unfolding, cf=0, gopacity=1.0):
+def SphereView(pId, unfolding, gopacity=1.0):
 	global tgtView
 	tgtView = None
 	bList = GetSphereDataset(pId, interRp=0)
 	if bList.Count > 1:
 		maxSz = 0.75*(bList[0].Length + bList[1].Length)
 		bList = New.BodyList([b for b in bList if b.Length<maxSz])
-	if cf != 0:
-		cs.ShrinkSphere(bList, cf)
-		for b in bList: 
-			b.Mult(1000.0/b.Length)
-			if b.Type == 0: b.Type = 5
-		return ShowSphere(bList, gsize=2.0, gopacity=gopacity)
 	tstFct = SphereUnfold if unfolding else ShrinkSphere
 	cfList = [0.01 * k for k in range(100)]
 	cfList = 9*(cfList + cfList[::-1])
