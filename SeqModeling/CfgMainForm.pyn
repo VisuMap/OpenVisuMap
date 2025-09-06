@@ -146,7 +146,7 @@ def MainProc(menuKey):
 		case 'sT':
 			TorsionMap(pList[:1])
 			ShowChain(pId, opacity=0.5) # . RotateXYZ(0, 0.0025, 0).StartAnimation(0)
-			ShowSphere2(pId, 0.9, gopacity=0.5)
+			ShowSphere2(pId, 0.95, gopacity=0.5)
 		case 'TT':
 			CreateProteinMaps(pList, atlasName, tP = (2500, 2, 0.2, 0.25, 4.0, 1.0))
 

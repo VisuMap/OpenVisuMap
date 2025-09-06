@@ -139,9 +139,12 @@ def ShowProteinList(pList, includeHA, atName=None, smtRatio=0, glyphSize=1.0, gl
 	for k, pId in enumerate(pList):
 		vv.Title = f'Loading {pId}: {k+1}-th of {len(pList)}'
 		chainNames = GetChainName(pId)
-		ShowPDB(pId, chainNames=chainNames, includeHA=includeHA, rp=rp, smtRatio=smtRatio, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
+		mp = ShowPDB(pId, chainNames=chainNames, includeHA=includeHA, 
+				rp=rp, smtRatio=smtRatio, glyphSize=glyphSize, glyphOpacity=glyphOpacity)
 		if mapStore != None:	
 			mapStore.AddMap('D3dRender').Close()
+		else:
+			mp.NormalizeView()
 	if mapStore != None:
 		ma = mapStore.atlas
 		for item in ma.Items: 

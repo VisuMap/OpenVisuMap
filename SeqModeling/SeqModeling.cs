@@ -659,21 +659,22 @@ namespace VisuMap {
                 M[L - 1 - k][r] = M[L - 2 - r][r];
             }
             
-            Vector3[] dV = new Vector3[V.Length - 1];
-            Vector3[] ddV = new Vector3[V.Length - 2];
+            Vector3[] dV = new Vector3[L - 1];
             for (int k=0; k<dV.Length; k++)  {          
                 dV[k] = V[k+1] - V[k];
                 dV[k].Normalize();
             }
-            for (int k = 0; k < ddV.Length; k++) {
-                ddV[k] = dV[k+1] - dV[k];
-                ddV[k].Normalize();
-            }
-            double Angle(Vector3 vA, Vector3 vB) => Math.Acos(Vector3.Dot(vA, vB));
-            MT.Loop(0, ddV.Length - 1, k => {
-                M[k][3] = Angle(dV[k + 1], dV[k]);
-                M[k][4] = Angle(ddV[k + 1], ddV[k]);
+            MT.Loop(0, L - 3, k => {
+                float cosA = Vector3.Dot(dV[k + 1], dV[k]);
+                M[k][3] = Math.Acos(cosA);
+                Vector3 P0 = cosA * dV[k];
+                Vector3 P1 = dV[k + 1] - P0;
+                Vector3 P2 = dV[k + 2] - P0;
+                P1.Normalize();
+                P2.Normalize();
+                M[k][4] = Math.Acos(Vector3.Dot(P2, P1));
             });
+
             for(int k=L-3; k<L; k++) {
                 M[k][3] = M[L - 4][3];
                 M[k][4] = M[L - 4][4];
