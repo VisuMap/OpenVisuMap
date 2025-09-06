@@ -621,7 +621,7 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 		for col in range(L):
 			nt.ColumnSpecList[col].Id = chr(col+ord('a'))
 	else:
-        EPS = 0.085
+		EPS = 0.085
 		nt = cs.InterpolateVector(mm.ToMatrix32(dt), repeats, EPS)
 		secL = 2**repeats
 		L2 = int(secL / 2)
