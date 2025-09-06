@@ -27,10 +27,10 @@ match vv.EventSource.Item:
 		info = MapInfo(pp.Description)
 		pId = info.pId
 		chainNames = info.Get('CNs').split('|') if info.Has('CNs') else None				
-		ShowPDB(pId, rp=3, eps=0.1, includeHA=False, chainNames=chainNames) 
+		ShowPDB(pId, rp=3, includeHA=False, chainNames=chainNames) 
 	case 'P-3Dx':
 		info = MapInfo(pp.Description)
-		ShowPDB(info.pId[:4], rp=3, eps=0.1, includeHA=False, chainNames=None) 
+		ShowPDB(info.pId[:4], rp=3, includeHA=False, chainNames=None) 
 	case 'HideIPO':
 		HideInterpolates()
 	case 'MarkHelix':

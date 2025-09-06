@@ -84,7 +84,7 @@ def MainProc(menuKey):
 			SortByPosX(pList)
 			ShowProteinList(pList, includeHA=False, rp=5, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
 		case 'P-3Dx':
-			mp = ShowPDB(pId, rp=3, eps=0.1, includeHA=False, setChainId=True, smtRatio=0.0)
+			mp = ShowPDB(pId, rp=3, includeHA=False, setChainId=True, smtRatio=0.0)
 			npp = [b for b in mp.BodyList if b.Name[0] == 'd' or b.Name[0] == 'r' ]
 			if len(npp) > 0:
 				mp.ClickMenu('SeqVis/Flipping')
@@ -145,8 +145,8 @@ def MainProc(menuKey):
 			SphereView(pId, True)
 		case 'sT':
 			TorsionMap(pList[:1])
-			ShowChain(pId, opacity=0.15).RotateXYZ(0, 0.0025, 0).StartAnimation(0).EditMode = False
-			ShowSphere2(pId, 0.95, gopacity=0.15)
+			ShowChain(pId, opacity=0.5) # . RotateXYZ(0, 0.0025, 0).StartAnimation(0)
+			ShowSphere2(pId, 0.9, gopacity=0.5)
 		case 'TT':
 			CreateProteinMaps(pList, atlasName, tP = (2500, 2, 0.2, 0.25, 4.0, 1.0))
 

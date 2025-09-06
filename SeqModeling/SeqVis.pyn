@@ -333,7 +333,7 @@ def GetTsneRD_old(pList, vType, tP):
 		if (k+1) % 10 == 0:
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
 		ss.SetBodyType2(bList, vv.Dataset.BodyForId(pId).Type)
-		bList = Interpolate1Chain(bList, rp=intRp, eps=0.1, smtRatio=0)
+		bList = Interpolate1Chain(bList, rp=intRp, smtRatio=0)
 		nt = ss.AugmentByStretch(bList, stretch, intRp)
 		mds.Description = f'pId:{pId}'
 		RunMds(mds, repeats=0, nt=nt)	
@@ -370,7 +370,7 @@ def GetTsneRD(pList, vType, tP):
 		if (k+1) % 10 == 0:
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
 		ss.SetBodyType2(bList, ds.BodyForId(pId).Type)
-		bList = Interpolate1Chain(bList, rp=intRp, eps=0.1, smtRatio=0)
+		bList = Interpolate1Chain(bList, rp=intRp, smtRatio=0)
 		nt = ss.AugmentByStretch(bList, stretch, intRp)
 		vv.DoEvents()
 
@@ -612,7 +612,7 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 	dt = AugmentData(dt, augCfg)
 	
 	# add interpolation
-	repeats, eps = 3, 0.1
+	repeats = 3
 	if repeats == 0:
 		nt = mm.ToTable(dt)
 		for k, c in enumerate(S):
@@ -621,7 +621,8 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 		for col in range(L):
 			nt.ColumnSpecList[col].Id = chr(col+ord('a'))
 	else:
-		nt = cs.InterpolateVector(mm.ToMatrix32(dt), repeats, eps)
+        EPS = 0.085
+		nt = cs.InterpolateVector(mm.ToMatrix32(dt), repeats, EPS)
 		secL = 2**repeats
 		L2 = int(secL / 2)
 		for k in range(0, nt.Rows, secL):
@@ -1098,7 +1099,7 @@ def Merge3DList(pList):
 	for k, pId in enumerate(pList):
 		bList = LoadChain0(pId)
 		bList = cs.PcaNormalizePositive(New.NumberTable(bList, 3)).ToBodyList()	
-		bList = Interpolate(bList, 4, 0.1, smtRatio=0.0)
+		bList = Interpolate(bList, 4, smtRatio=0.0)
 		if k == 0:
 			xc = np.average([b.X for b in bList])
 			yc = np.average([b.Y for b in bList])
