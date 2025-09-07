@@ -635,20 +635,23 @@ namespace VisuMap {
         const double BOND_LENGTH = 3.8;  // Average bond length. with std ca 0.1
 
         public INumberTable ToTorsionList(List<IBody> bList) {
-            if (bList.Count < 7)
+            int L = bList.Count;
+            if (L < 7)
                 return null;
             Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();            
             double DD(int i, int j) => Vector3.Distance(V[i], V[j]);
-            INumberTable nt = New.NumberTable(bList, 5).Clear();
-            int L = nt.Rows;
+            INumberTable nt = New.NumberTable(L, 5);
+            for (int k = 0; k < L; k++)
+                nt.RowSpecList[k].CopyFromBody(bList[k]);
+
             for (int k = 1; k < L-1; k++) {
                 double[] R = nt.Matrix[k] as double[];
                 if ( (k>=1) && (k+1)<L )
-                    R[0] = 2*BOND_LENGTH / DD(k + 1, k - 1);
+                    R[0] = BOND_LENGTH / DD(k + 1, k - 1);
                 if ((k >= 2) && (k + 2) < L)
-                    R[1] = 4 * BOND_LENGTH / DD(k + 2, k - 2);
+                    R[1] = 2 * BOND_LENGTH / DD(k + 2, k - 2);
                 if ((k >= 3) && (k + 3) < L)
-                    R[2] = 6 * BOND_LENGTH / DD(k + 3, k - 3);
+                    R[2] = 3 * BOND_LENGTH / DD(k + 3, k - 3);
             }
 
             // Fill the zeros with neighboring value.
@@ -660,18 +663,19 @@ namespace VisuMap {
             }
             
             Vector3[] dV = new Vector3[L - 1];
-            for (int k=0; k<dV.Length; k++)  {          
-                dV[k] = V[k+1] - V[k];
+            for (int k=0; k<L-1; k++)  {
+                dV[k] = V[k + 1] - V[k];
                 dV[k].Normalize();
             }
-            MT.Loop(0, L - 3, k => {
+
+            MT.Loop(0, L - 3, k => {                
                 float cosA = Vector3.Dot(dV[k + 1], dV[k]);
-                M[k][3] = Math.Acos(cosA);
                 Vector3 P0 = cosA * dV[k];
                 Vector3 P1 = dV[k + 1] - P0;
                 Vector3 P2 = dV[k + 2] - P0;
                 P1.Normalize();
                 P2.Normalize();
+                M[k][3] = Math.Acos(cosA);
                 M[k][4] = Math.Acos(Vector3.Dot(P2, P1));
             });
 
