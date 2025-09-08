@@ -276,7 +276,7 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 		else:
 			mapStore.AddRawMap(pId, bList, scale=60)
 			if (k+1)%10==0: 
-				vv.Title = f'Fitted {pId}/{bList.Count}: {k+1}-th of {L}'
+				vv.Title = f'2D Fitted {pId}/{bList.Count}: {k+1}-th of {L}'
 		vv.DoEvents()
 	if mapStore != None:
 		info = MapInfo()
@@ -566,7 +566,6 @@ def UnpackChains(pList=None):
 	for b in ds.BodyList:
 		nm = ds.StringAt(b.Id, 4)
 		nm2id[b.Id[:4]+'_'+nm] = b.Id
-	print(f'Unpacking {len(pList)} cif files...')
 	for k, pId in enumerate(pList):	
 		_, bList, _, pdbTitle = LoadCifData(pId)
 		if bList == None:
@@ -574,8 +573,6 @@ def UnpackChains(pList=None):
 			continue
 		preChName = None
 		chain = []
-		if k % 50 == 0:
-			vv.Title =  f'Unpackinging {k}: {pId} {chainsCount}'
 		vv.DoEvents()
 		for b in bList:
 			chNm = b.Name.split('.')[2]
@@ -671,7 +668,7 @@ Steps to import a list of PDB id into VisuMap:
 sList = vv.GuiManager.GetClipboard()
 pList = sList.split(',')
 print(len(pList))
-ImportPDBList(sList, 'Virus10K')
+ImportPDBList(sList, 'GSymmetry10K')
 
 infoTable = LoadAllChains(['9A1Z'], True, True, True)
 

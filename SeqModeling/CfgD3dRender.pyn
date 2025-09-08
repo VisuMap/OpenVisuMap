@@ -50,12 +50,15 @@ match vv.EventSource.Item:
 		ob = New.Body()
 		pp.ShowBoundingBox = False
 		pp.NormalizeView()
-		pp.RotateXYZ(0, 0.001, 0, 1, 10)
-		pp.StartAnimation(0)
+		pp.RotateXYZ(0, 0.001, 0, 1, 10)	
+		#pp.StartAnimation(0)
+		hType = 70 if pp.GlyphSet.startswith('Ordered 64') else 177
 		for b in pp.BodyList:
 			ob.CopyFrom(b)
-			b.Type = 70
+			b.Type = hType
 			b.Hidden = False
+			if b.Id[0] != 'i':
+				vv.SelectedItems = [ b.Id ]
 			pp.Redraw()
 			vv.Sleep(10)
 			b.CopyFrom(ob)

@@ -70,7 +70,7 @@ def MainProc(menuKey):
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
 	def PM2(*args, **kwargs):
-		mp = ProteinMap2(pList, vt, 4000, samplingDist=0.0, *args, **kwargs)
+		mp = ProteinMap2(pList, vt, 4000, samplingDist=0.5, *args, **kwargs)
 		vv.Dataset.AddMap(vt)
 		mp.NormalizeView().CopyMap()
 		vv.Map.Redraw()
@@ -84,7 +84,7 @@ def MainProc(menuKey):
 			SortByPosX(pList)
 			ShowProteinList(pList, includeHA=False, rp=5, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
 		case 'P-3Dx':
-			mp = ShowPDB(pId, rp=3, includeHA=False, setChainId=True, smtRatio=0.0)
+			mp = ShowPDB(pId, rp=5, includeHA=False, setChainId=True, smtRatio=0.0)
 			npp = [b for b in mp.BodyList if b.Name[0] == 'd' or b.Name[0] == 'r' ]
 			if len(npp) > 0:
 				mp.ClickMenu('SeqVis/Flipping')
@@ -112,7 +112,7 @@ def MainProc(menuKey):
 			for vt in vList:
 				match vt:
 					case 'pMF':	
-						PM2(mfL=20, tSNE=(0.05, 7.0, 0.8))
+						PM2(mfL=20, tSNE=(0.05, 4.0, 0.8))
 					case 'pFT':	
 						PM2(waveCount=33, tSNE=(0.05, 4.0, 1.0))	
 					case 'sFT':	

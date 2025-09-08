@@ -647,7 +647,7 @@ namespace VisuMap {
             for (int k = 1; k < L-1; k++) {
                 double[] R = nt.Matrix[k] as double[];
                 if ( (k>=1) && (k+1)<L )
-                    R[0] = BOND_LENGTH / DD(k + 1, k - 1);
+                    R[0] = 2 * BOND_LENGTH / DD(k + 1, k - 1);
                 if ((k >= 2) && (k + 2) < L)
                     R[1] = 2 * BOND_LENGTH / DD(k + 2, k - 2);
                 if ((k >= 3) && (k + 3) < L)
