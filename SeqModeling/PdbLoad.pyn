@@ -369,7 +369,7 @@ def Download3DInfo(pId):
 		CheckCacheDir()
 		remotePath = f'https://files.rcsb.org/download/{pId[:4]}.cif'
 		#urlretrieve(remotePath, localPath)
-		print(f'Downloading {pId}...')
+		#print(f'Downloading {pId}...')
 		request = requests.get(remotePath, timeout=30, stream=True)
 		with open(localPath, 'wb') as f:
 			for chunk in request.iter_content(1024 * 1024):
@@ -546,7 +546,7 @@ def LoadAllChains(pList=None, aaChains=True, rnaChains=False, dnaChains=False):
 	loaded, skipped = [], []
 	for k, pId in enumerate(pList):
 		if (k+1)%50 == 0:
-			print(k+1, ': ', pId, chCount)
+			print(f'{k+1}: {pId} {chCount} chains')
 		chCnt, totalLen, title = LoadChains(pId, aaChains=aaChains, rnaChains=rnaChains, dnaChains=dnaChains)
 		if chCnt == None:
 			skipped.append(pId)
@@ -623,7 +623,7 @@ def PreloadPDB(sList):
 	errs = 0
 	for k, pId in enumerate(pList):
 		if k%50 == 0: 
-			print(k)
+			print(f'Downloading {k}-th cif {pId}')
 		if not exists(PdbCacheFile(pId)):
 			try:
 				Download3DInfo(pId)
@@ -692,8 +692,7 @@ Steps to import a list of PDB id into VisuMap:
 sList = vv.GuiManager.GetClipboard()
 pList = sList.split(',')
 print(len(pList))
-#ImportPDBList(sList, 'GSymmetry320K_330K')
-ImportPDBList(sList, 'TTT')
+ImportPDBList(sList, 'PSymmetry10K')
 
 
 pList = list(set([p[:4] for p in pList]))

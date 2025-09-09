@@ -70,7 +70,7 @@ def MainProc(menuKey):
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
 	def PM2(*args, **kwargs):
-		mp = ProteinMap2(pList, vt, 4000, samplingDist=0.5, *args, **kwargs)
+		mp = ProteinMap2(pList, vt, 4000, samplingDist=0.0, *args, **kwargs)
 		vv.Dataset.AddMap(vt)
 		mp.NormalizeView().CopyMap()
 		vv.Map.Redraw()
@@ -105,7 +105,8 @@ def MainProc(menuKey):
 					samplingDist=0.0, atName=atlasName, ppl=0.10, initExag=4.0, finalExag=1.0,
 					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 			else:
-				CreateProteinMaps(pList, 0, atlasName, tP = (1000, 3, 0.0, 0.1, 4.0, 1.25))
+				CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, 
+					tP = (1000, 3, 0.0, 0.1, 4.0, 1.25))
 		case 'P-Map':
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
 			vList = ['tMF']
