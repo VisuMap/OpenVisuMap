@@ -1,13 +1,13 @@
 # functions to import and process pdb/cif files.
 vv.Import('SeqVis.pyn')
 
-PDB_CACHE = 'c:/temp/PdbCache'
+PDB_CACHE = 'C:/temp/PdbCache'
 CHAIN_CACHE = 'C:/temp/ChainCache'
 
 # get the path for the cached (PDB) CIF file.
 def PdbCacheFile(pId):
 	if len(pId)<4:
-		raise Exception('Invalid protein ID')
+		raise Exception(f'Invalid protein ID: {pId}')
 	return f'{PDB_CACHE}/{pId[:4]}.cif'
 
 # get cache file path for a poliptide chain.
@@ -293,7 +293,10 @@ def SimplifyTitle(title):
 def LoadCifData(pId, chainNames=None):
 	localPath = pId if pId.endswith('.cif') else Download3DInfo(pId[:4])
 	bsList = cs.LoadCif(localPath, chainNames)
-	return localPath, bsList, cs.GetHeteroChains(), cs.GetTitle()
+	if bsList == None:
+		return None, None, None, ''
+	else:
+		return localPath, bsList, cs.GetHeteroChains(), cs.GetTitle()
 
 def OpenCifFile(pId):
 	vv.StartProcess("vi", PdbCacheFile(pId))
@@ -466,10 +469,13 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 	if (ds.Columns != 5) or (ds.ColumnSpecList[4].Id != 'ChainName'):
 		vv.Message('Current dataset has invalid format: pid;repeats;seq;len;chainName')
 		return None, None, None
-	_, bList, _, pdbTitle = LoadCifData(pId)
-	if bList == None:
-		print('Failed to load cif file: ', pId)
+	try:
+		_, bList, _, pdbTitle = LoadCifData(pId)
+		if bList == None:
+			return None, None, None
+	except Exception as ex :
 		return None, None, None
+	
 	chList = []
 	chType = -1    # current chain type
 	chName = ''	  # current chain name.
@@ -537,17 +543,20 @@ def LoadAllChains(pList=None, aaChains=True, rnaChains=False, dnaChains=False):
 	pTable.AddColumn('Title', False)
 
 	print(f'Importing {len(pList)} proteins')
+	loaded, skipped = [], []
 	for k, pId in enumerate(pList):
 		if (k+1)%50 == 0:
 			print(k+1, ': ', pId, chCount)
 		chCnt, totalLen, title = LoadChains(pId, aaChains=aaChains, rnaChains=rnaChains, dnaChains=dnaChains)
 		if chCnt == None:
+			skipped.append(pId)
 			continue
 		chCount += chCnt
+		loaded.append(pId)
 		pTable.AddRow(pId, 0, [str(chCnt), str(totalLen), title])
 		vv.DoEvents()
 	ds.CommitChanges()
-	return pTable
+	return pTable, loaded, skipped
 
 def SaveChain(chId, chain):
 	cacheFile = ChainCacheFile(chId)
@@ -566,13 +575,17 @@ def UnpackChains(pList=None):
 	for b in ds.BodyList:
 		nm = ds.StringAt(b.Id, 4)
 		nm2id[b.Id[:4]+'_'+nm] = b.Id
+
+	print(f'Unpacking {len(pList)} cif files...')
+	unpacked = []
 	for k, pId in enumerate(pList):	
 		_, bList, _, pdbTitle = LoadCifData(pId)
 		if bList == None:
-			print('Failed to load:', pId)
 			continue
 		preChName = None
 		chain = []
+		if k%50 == 0:
+			print(f'Unpacking {k}-th cif file...')
 		vv.DoEvents()
 		for b in bList:
 			chNm = b.Name.split('.')[2]
@@ -592,6 +605,8 @@ def UnpackChains(pList=None):
 			id_nm = pId + '_' + preChName
 			if id_nm in nm2id:
 				SaveChain(nm2id[id_nm], chain)
+		unpacked.append(pId)
+	print(f'Unpacked {len(unpacked)} cif files')
 
 ''' Unpack all cif files. Call this after cleaned ChainCache dir.
 UnpackChains()
@@ -604,7 +619,8 @@ def PreloadPDB(sList):
 	print(f'Preloading {len(pList)} pIds...')
 	pList = list(set([p[:4] for p in pList]))
 	print(f'Preloading {len(pList)} files...')
-	cnt = 0
+	loaded = []
+	errs = 0
 	for k, pId in enumerate(pList):
 		if k%50 == 0: 
 			print(k)
@@ -612,12 +628,16 @@ def PreloadPDB(sList):
 			try:
 				Download3DInfo(pId)
 				vv.DoEvents()
+				loaded.append(pId)
 			except Exception as e:
-				print(f'EXCEPTION ({k}): ', pId, str(e))
-				raise e
-			cnt+=1
-	print(f'Downloaded {cnt} PDB files')
-	return pList
+				errs += 1
+				if (errs < 5):
+					print(f'EXCEPTION ({k}): ', pId, str(e))
+					raise e
+		else:
+			loaded.append(pId)			
+	print(f'Downloaded {len(loaded)} PDB files')
+	return loaded
 
 def InitDatabase(dsName, description):
 	dsName = vv.Folder.NewDataset(dsName, description).Name
@@ -652,8 +672,12 @@ def MergeTableToDataset(tb, dsName):
 def ImportPDBList(sList, dsName, dsDescription=''):
 	pList = PreloadPDB(sList)
 	InitDatabase(dsName, dsDescription)
-	infoTable = LoadAllChains(pList, True, True, True)
+	infoTable, loaded, skipped = LoadAllChains(pList, True, True, True)
 	MergeTableToDataset(infoTable, "P-Info")
+	UnpackChains(loaded)
+	if len(skipped) > 0:
+		skList = ','.join(skipped[:100])		
+		vv.Message(f'Skipped {len(skipped)} cif files: {skList}')
 
 '''
 
@@ -668,7 +692,17 @@ Steps to import a list of PDB id into VisuMap:
 sList = vv.GuiManager.GetClipboard()
 pList = sList.split(',')
 print(len(pList))
-ImportPDBList(sList, 'GSymmetry10K')
+#ImportPDBList(sList, 'GSymmetry320K_330K')
+ImportPDBList(sList, 'TTT')
+
+
+pList = list(set([p[:4] for p in pList]))
+for pId in pList:
+	fpath = PdbCacheFile(pId)
+	os.remove(fpath)
+
+UnpackChains(pList)
+
 
 infoTable = LoadAllChains(['9A1Z'], True, True, True)
 

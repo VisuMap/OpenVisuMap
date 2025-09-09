@@ -53,7 +53,7 @@ def GetAAGroup(idx=0):
 
 def ShowSiblings():
 	if str(vv.EventSource.Item) != 'VisuMap.BodyMapView':
-		return
+		return	
 	pSet = set([pId[:4] for pId in vv.Map.SelectedItems])
 	bsList = vv.Dataset.BodyListEnabled()
 	expanded = [b.Id for b in bsList if b.Id[:4] in pSet]

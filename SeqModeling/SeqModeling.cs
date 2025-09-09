@@ -923,7 +923,8 @@ namespace VisuMap {
                     continue;
                 string[] fs = L.Split(fSeparator, StringSplitOptions.RemoveEmptyEntries);
                 if (fs.Length < 21) {
-                    vv.Message("Invalid record: " + fs.Length + ": |" + L + "|");
+                    //vv.Message("Invalid record: " + fs.Length + ": |" + L + "|");
+                    vv.LastError = "Invalid record: " + fs.Length + ": |" + L + "|";
                     return null;
                 }
                 string chName = fs[18] + "_" + fs[20];
