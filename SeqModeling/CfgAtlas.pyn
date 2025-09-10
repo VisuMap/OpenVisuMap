@@ -43,7 +43,7 @@ def MainProc(menuKey):
 				mp.NormalizeView()
 		case 'P-3Dx':
 			for e in pSelected:
-				mp = ShowPDB(e.Name, rp=5, includeHA=False, chainNames=None, smtRatio=0.0)
+				mp = ShowPDB(e.Name, rp=5, includeHA=False, setChainId=True, chainNames=None, smtRatio=0.0)
 				if ctrPressed:
 					mp.ClickMenu('SeqVis/P-2D')
 					mp.Close()

@@ -69,30 +69,18 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True,
 			bsList[k+1].Type = 171
 	bsList[bsList.Count-1].Type = 155
 
-	# Set the id of the first and last pp of each chain to the chain id.
-	ds = vv.Dataset
-	chName2Id = {ds.StringAt(b.Id, 4):b.Id for b in ds.BodyList if b.Id[:4] == pId[:4]}
-	for b in bsList:
-		if b.Type == 155 or b.Type == 171:
-			b.Id = chName2Id[b.Name.split('.')[2]]	
+	if setChainId:
+		ds = vv.Dataset
+		chName2Id = {ds.StringAt(b.Id, 4):b.Id for b in ds.BodyList if b.Id.startswith(pId[:4])}
+		for b in bsList:
+			chName = b.Name.split('.')[2]
+			# notice some chains maybe exact repeats so that they not in the dataset table, but
+			# accounted in the Repeats columns. 
+			if chName in chName2Id:
+				b.Id = chName2Id[chName]
 
 	if includeHA:
 		bsList.AddRange(bsList2)
-
-	if setChainId:
-		ds = vv.Dataset
-		ch2pId = {}
-		pId4 = pId[:4]
-		for k in range(ds.Rows):
-			id = ds.BodyList[k].Id
-			if id.startswith( pId4 ):
-				ch2pId[ds.GetDataAt(k, 4)] = id
-		for b in bsList:
-			chId = b.Name.split('.')[2]
-			if chId in ch2pId:
-				b.Id = ch2pId[chId]
-			else:
-				b.Id = chId
 
 	mp = New.Map3DView(bsList)
 	info = MapInfo()
