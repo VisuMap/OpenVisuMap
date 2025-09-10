@@ -71,13 +71,16 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True,
 
 	if setChainId:
 		ds = vv.Dataset
-		chName2Id = {ds.StringAt(b.Id, 4):b.Id for b in ds.BodyList if b.Id.startswith(pId[:4])}
+		chId = pId[:4]
+		chName2Id = {ds.StringAt(b.Id, 4):b.Id for b in ds.BodyList if b.Id.startswith(chId)}
 		for b in bsList:
 			chName = b.Name.split('.')[2]
 			# notice some chains maybe exact repeats so that they not in the dataset table, but
 			# accounted in the Repeats columns. 
 			if chName in chName2Id:
 				b.Id = chName2Id[chName]
+			else:
+				b.Id = chId + chName 
 
 	if includeHA:
 		bsList.AddRange(bsList2)
@@ -459,7 +462,7 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, staged=False, repeats=1, stretch=0, cl
 
 # pId=pList[0]
 # Extract chains from PDB complex and store then in current table. Duplicates will be removed.
-def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
+def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False, mergeEqChains=True):
 	ds = vv.Dataset
 	if (ds.Columns != 5) or (ds.ColumnSpecList[4].Id != 'ChainName'):
 		vv.Message('Current dataset has invalid format: pid;repeats;seq;len;chainName')
@@ -500,30 +503,42 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 		if (aaChains and ppType==0) or (rnaChains and ppType==99) or (dnaChains and ppType==97):
 			pSeq = ''.join(seqList)
 			chList.append( (chName, ppType, pSeq, len(pSeq)) )
-	# merge the repeated sequences:
-	chSet = {}
-	chInfo = {}
+
 	totalLength = 0
-	for (chId, ppType, pSeq, seqLen) in chList:
-		totalLength += seqLen
-		if pSeq in chSet:
-			chSet[pSeq] += 1
-		else:
-			chSet[pSeq] = 1
-			chInfo[pSeq] = (chId, ppType)
-	for k, ch in enumerate(chSet):
-		repeats = chSet[ch]
-		chLen = len(ch)
-		chId, ppType = chInfo[ch]
-		seq = ch if ppType == 0 else ch.lower()
-		b = ds.AddRow(f'{pId}_{k}', None,  ppType, [pId, str(repeats), seq, str(chLen), chId])
-		if b == None:
-			raise Exception('Failed: '+vv.LastError)
+	
+	if mergeEqChains:
+		# merge the repeated sequences:
+		chSet = {}
+		chInfo = {}
+		for (chId, ppType, pSeq, seqLen) in chList:
+			totalLength += seqLen
+			if pSeq in chSet:
+				chSet[pSeq] += 1
+			else:
+				chSet[pSeq] = 1
+				chInfo[pSeq] = (chId, ppType)
+		for k, ch in enumerate(chSet):
+			repeats = chSet[ch]
+			chLen = len(ch)
+			chId, ppType = chInfo[ch]
+			seq = ch if ppType == 0 else ch.lower()
+			if (chLen>0) and len(seq) == chLen:
+				b = ds.AddRow(f'{pId}_{k}', None,  ppType, [pId, str(repeats), seq, str(chLen), chId])
+				if b == None:
+					raise Exception('Failed: '+vv.LastError)
+	else:
+		spId = pId+'_'		
+		for k, (chId, ppType, pSeq, seqLen) in enumerate(chList):
+			if (seqLen>0) and len(pSeq) == seqLen:
+				b = ds.AddRow(spId + str(k), None,  ppType, [pId, '1', pSeq, str(seqLen), chId])
+			totalLength += seqLen
+
+			
 	return len(chList), totalLength, pdbTitle
 
 # Unpack all chains in a PDB directory and store them in current dataset.
 # A summary table about each protein will displayed.
-def LoadAllChains(pList=None, aaChains=True, rnaChains=False, dnaChains=False):
+def LoadAllChains(pList=None, aaChains=True, rnaChains=False, dnaChains=False, mergeEqChains=True):
 	import os
 	ds = vv.Dataset
 	if (ds.Columns != 5) or (ds.ColumnSpecList[4].Id != 'ChainName'):
@@ -542,7 +557,7 @@ def LoadAllChains(pList=None, aaChains=True, rnaChains=False, dnaChains=False):
 	for k, pId in enumerate(pList):
 		if (k+1)%50 == 0:
 			print(f'{k+1}: {pId} {chCount} chains')
-		chCnt, totalLen, title = LoadChains(pId, aaChains=aaChains, rnaChains=rnaChains, dnaChains=dnaChains)
+		chCnt, totalLen, title = LoadChains(pId, aaChains=aaChains, rnaChains=rnaChains, dnaChains=dnaChains, mergeEqChains=mergeEqChains)
 		if chCnt == None:
 			skipped.append(pId)
 			continue
@@ -667,9 +682,9 @@ def MergeTableToDataset(tb, dsName):
 def ImportPDBList(sList, dsName, dsDescription=''):
 	pList = PreloadPDB(sList)
 	InitDatabase(dsName, dsDescription)
-	infoTable, loaded, skipped = LoadAllChains(pList, True, True, True)
+	mergeEqChains = True
+	infoTable, loaded, skipped = LoadAllChains(pList, True, True, True, mergeEqChains)
 	MergeTableToDataset(infoTable, "P-Info")
-	UnpackChains(loaded)
 	if len(skipped) > 0:
 		skList = ','.join(skipped[:100])		
 		vv.Message(f'Skipped {len(skipped)} cif files: {skList}')
@@ -687,7 +702,9 @@ Steps to import a list of PDB id into VisuMap:
 sList = vv.GuiManager.GetClipboard()
 pList = sList.split(',')
 print(len(pList))
-ImportPDBList(sList, 'PSymmetry10K')
+ImportPDBList(sList, 'T2414_C')
+
+chCnt, totalLen, title = LoadChains('7SQC', True, True, True, True)
 
 
 pList = list(set([p[:4] for p in pList]))
