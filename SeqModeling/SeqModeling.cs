@@ -892,9 +892,10 @@ namespace VisuMap {
                 { "HOH", maxChainIndex + 3 },
                 { "NAG", maxChainIndex + 11 } } ;
             int headIndex = 0;
+            const int MAX_CHAINS = 2000;  // maximal chain number in a complex.
             int Lookup(string chName) {
                 if (!ch2idx.ContainsKey(chName)) {
-                    for (int k = headIndex; k < 200; k++) {
+                    for (int k = headIndex; k < MAX_CHAINS; k++) {
                         if (!ch2idx.ContainsValue(k)) {
                             ch2idx[chName] = k;
                             headIndex = k + 1;
@@ -902,7 +903,7 @@ namespace VisuMap {
                         }
                     }
                     if (!ch2idx.ContainsKey(chName))
-                        ch2idx[chName] = 200;
+                        ch2idx[chName] = MAX_CHAINS;
                 }
                 return ch2idx[chName];
             }
