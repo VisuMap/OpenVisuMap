@@ -116,4 +116,12 @@ for ds  in dsList:
 	ms.AddMap('MapSnapshot').Close()
 ms.atlas.Show()
 
+import random
+dnList = list(vv.Folder.DatasetNameList)[2:]
+MAX_SZ = 10000
+for dn in dnList[:2]:
+	vv.Folder.OpenDataset(dn)
+	msize = min(MAX_SZ, vv.Dataset.BodyCount)
+	vv.SelectedItems = random.sample(vv.AllItems, msize)
+	MainProc('P-Map')
 '''
