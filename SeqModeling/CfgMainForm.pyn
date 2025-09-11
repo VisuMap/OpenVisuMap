@@ -6,62 +6,6 @@ vv.Import('SphericalProj.pyn')
 def SortByPosX(idList):
 	idList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
 
-def GetAAGroup(idx=0):
-	aaHydrophobic = 'AVILMFYW'
-	aaPolarUncharged = 'STNQ'
-	aaSpecial = 'CGP'
-	aaSpC = 'C'
-	aaSpG = 'G'
-	aaSpP = 'P'
-	aaNoPolar = 'AGILMPV'
-	aaCarboxyl = 'DE'
-	aaAmine = 'RHK'
-	aaAromatic = 'FWY'
-	aaHydroxyl = 'STY'
-
-	match idx:
-		case 0:
-			return 'AVILMFYW|STNQ|CGP|RHK|DE'
-		case 1:
-			return '|'.join( [ aaHydrophobic, aaPolarUncharged,  aaSpecial, aaNoPolar, aaCarboxyl, aaAmine, aaAromatic, aaHydroxyl] )
-		case 11:
-			return [ aaHydrophobic, aaPolarUncharged,  aaSpecial, aaNoPolar, aaCarboxyl, aaAmine, aaAromatic, aaHydroxyl]
-		case 2:
-			return aaHydrophobic
-		case 3:
-			return aaAromatic
-		case 4:
-			from itertools import combinations
-			#return ['|'.join(g) for g in combinations(list('CGPDEFWY'), 3)]
-			return ['|'.join(g) for g in combinations(list('AVILMFYW'), 3)]
-		case 10:
-			return 'AVILMFYW|STNQ|CGP|RHK|DE|aut|cg'
-		case 12:
-			return 'FL|S|Y|CW|L|P|HQ|R|IM|T|N|K|S|R|V|A|D|E|G|aut|cg'
-		case 13:
-			return 'FLSYCW|LPHQR|IMTNKSR|VADEG|aut|cg'
-		case 14:
-			return 'IMTNKSR|aut|cg'
-		case 9:
-			return '|'.join('AVILMFYWSTNQCGPRHKDE')
-		case 20:
-			return 'AVILMFYW|STNQ|CGP|RHK|DE|ctu'
-		case 21:
-			return 'AVILMFYW|STNQ|CGP|RHK|DE|c|g|u|a'
-		case 22:
-			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
-
-def ShowSiblings():
-	if str(vv.EventSource.Item) != 'VisuMap.BodyMapView':
-		return	
-	pSet = set([pId[:4] for pId in vv.Map.SelectedItems])
-	bsList = vv.Dataset.BodyListEnabled()
-	expanded = [b.Id for b in bsList if b.Id[:4] in pSet]
-	vv.Title = f'Selected: {vv.Map.SelectedItems.Count}, Expanded: {len(expanded)}'
-	if vv.ModifierKeys.AltPressed:
-		return
-	vv.SelectedItems = expanded
-
 def MainProc(menuKey):
 	selected = list(vv.Map.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None
@@ -82,9 +26,9 @@ def MainProc(menuKey):
 		case 'P-3D':
 			if atlasName != None: atlasName += '-3D'
 			SortByPosX(pList)
-			ShowProteinList(pList, includeHA=False, rp=5, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
+			ShowProteinList(pList, includeHA=True, rp=5, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
 		case 'P-3Dx':
-			mp = ShowPDB(pId, rp=5, includeHA=False, setChainId=True, smtRatio=0.0)
+			mp = ShowPDB(pId, rp=5, includeHA=True, setChainId=True, smtRatio=0.0)
 			npp = [b for b in mp.BodyList if b.Name[0] == 'd' or b.Name[0] == 'r' ]
 			if len(npp) > 0:
 				mp.ClickMenu('SeqVis/Flipping')
@@ -130,10 +74,9 @@ def MainProc(menuKey):
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
-			if vv.ModifierKeys.ControlPressed:
-				vv.SetEventHandler('ItemsSelected', None)
-			else:
-				vv.SetEventHandler('ItemsSelected', 'ShowSiblings()')
+			pSet = set([pId[:4] for pId in selected])
+			vv.SelectedItems = [b.Id for b in vv.Dataset.BodyListEnabled() if b.Id[:4] in pSet]
+			vv.Title = f'Selected: {len(selected)}, Expanded: {vv.SelectedItems.Count}'
 		case 'Select-UniqSeq':
 			SelectUniqSeq()
 		case 'Align':

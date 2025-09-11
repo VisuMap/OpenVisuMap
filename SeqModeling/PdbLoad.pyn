@@ -510,27 +510,29 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False, mergeEqChai
 		# merge the repeated sequences:
 		chSet = {}
 		chInfo = {}
-		for (chId, ppType, pSeq, seqLen) in chList:
+		for cIdx, (chId, ppType, pSeq, seqLen) in enumerate(chList):
 			totalLength += seqLen
 			if pSeq in chSet:
 				chSet[pSeq] += 1
 			else:
 				chSet[pSeq] = 1
-				chInfo[pSeq] = (chId, ppType)
-		for k, ch in enumerate(chSet):
+				chInfo[pSeq] = (chId, cIdx, ppType)
+		for ch in chSet:
 			repeats = chSet[ch]
 			chLen = len(ch)
-			chId, ppType = chInfo[ch]
+			chId, cIdx, ppType = chInfo[ch]
 			seq = ch if ppType == 0 else ch.lower()
 			if (chLen>0) and len(seq) == chLen:
-				b = ds.AddRow(f'{pId}_{k}', None,  ppType, [pId, str(repeats), seq, str(chLen), chId])
+				b = ds.AddRow(f'{pId}_{cIdx}', None,  ppType, [pId, str(repeats), seq, str(chLen), chId])
 				if b == None:
 					raise Exception('Failed: '+vv.LastError)
 	else:
 		spId = pId+'_'		
-		for k, (chId, ppType, pSeq, seqLen) in enumerate(chList):
+		for cIdx, (chId, ppType, pSeq, seqLen) in enumerate(chList):
 			if (seqLen>0) and len(pSeq) == seqLen:
-				b = ds.AddRow(spId + str(k), None,  ppType, [pId, '1', pSeq, str(seqLen), chId])
+				b = ds.AddRow(spId + str(cIdx), None,  ppType, [pId, '1', pSeq, str(seqLen), chId])
+				if b == None:
+					raise Exception('Failed: '+vv.LastError)
 			totalLength += seqLen
 
 			
@@ -689,6 +691,51 @@ def ImportPDBList(sList, dsName, dsDescription=''):
 		skList = ','.join(skipped[:100])		
 		vv.Message(f'Skipped {len(skipped)} cif files: {skList}')
 
+def GetAAGroup(idx=0):
+	aaHydrophobic = 'AVILMFYW'
+	aaPolarUncharged = 'STNQ'
+	aaSpecial = 'CGP'
+	aaSpC = 'C'
+	aaSpG = 'G'
+	aaSpP = 'P'
+	aaNoPolar = 'AGILMPV'
+	aaCarboxyl = 'DE'
+	aaAmine = 'RHK'
+	aaAromatic = 'FWY'
+	aaHydroxyl = 'STY'
+
+	match idx:
+		case 0:
+			return 'AVILMFYW|STNQ|CGP|RHK|DE'
+		case 1:
+			return '|'.join( [ aaHydrophobic, aaPolarUncharged,  aaSpecial, aaNoPolar, aaCarboxyl, aaAmine, aaAromatic, aaHydroxyl] )
+		case 11:
+			return [ aaHydrophobic, aaPolarUncharged,  aaSpecial, aaNoPolar, aaCarboxyl, aaAmine, aaAromatic, aaHydroxyl]
+		case 2:
+			return aaHydrophobic
+		case 3:
+			return aaAromatic
+		case 4:
+			from itertools import combinations
+			#return ['|'.join(g) for g in combinations(list('CGPDEFWY'), 3)]
+			return ['|'.join(g) for g in combinations(list('AVILMFYW'), 3)]
+		case 10:
+			return 'AVILMFYW|STNQ|CGP|RHK|DE|aut|cg'
+		case 12:
+			return 'FL|S|Y|CW|L|P|HQ|R|IM|T|N|K|S|R|V|A|D|E|G|aut|cg'
+		case 13:
+			return 'FLSYCW|LPHQR|IMTNKSR|VADEG|aut|cg'
+		case 14:
+			return 'IMTNKSR|aut|cg'
+		case 9:
+			return '|'.join('AVILMFYWSTNQCGPRHKDE')
+		case 20:
+			return 'AVILMFYW|STNQ|CGP|RHK|DE|ctu'
+		case 21:
+			return 'AVILMFYW|STNQ|CGP|RHK|DE|c|g|u|a'
+		case 22:
+			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
+
 '''
 
 import os
@@ -702,15 +749,24 @@ Steps to import a list of PDB id into VisuMap:
 sList = vv.GuiManager.GetClipboard()
 pList = sList.split(',')
 print(len(pList))
-ImportPDBList(sList, 'T2414_C')
+ImportPDBList(sList, 'T2414_B')
 
 chCnt, totalLen, title = LoadChains('7SQC', True, True, True, True)
 
+import global
 
-pList = list(set([p[:4] for p in pList]))
+pList = set([p[:4] for p in pList])
+fList = []
+for f in os.listdir(CHAIN_CACHE):
+	if f[:4] in pList:
+		fList.append(f)
+for f in fList:
+	os.remove(f'{CHAIN_CACHE}/{f}')
+
 for pId in pList:
-	fpath = PdbCacheFile(pId)
-	os.remove(fpath)
+	#os.remove(f'{CHAIN_CACHE}/{pId}*.pmc')
+	for k, f in enumerate( glob.glob(f'{CHAIN_CACHE}/{pId}*.pmc') ):
+		print(k, f)
 
 UnpackChains(pList)
 
