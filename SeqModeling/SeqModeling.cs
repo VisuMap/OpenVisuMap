@@ -19,18 +19,12 @@ namespace VisuMap {
         public IBody MeanPoint(IList<IBody> bList) {
             if (bList.Count == 0)
                 return null;
-            double x = 0;
-            double y = 0;
-            foreach (IBody b in bList) {
-                x += b.X;
-                y += b.Y;
-            }
-            x /= bList.Count;
-            y /= bList.Count;
+            double mx = bList.Select(b => b.X).Average();
+            double my = bList.Select(b => b.Y).Average();
             IBody mBody = null;
             double mDist = 1.0e10;
             foreach (IBody b in bList) {
-                double d2 = (b.X - x) * (b.X - x) + (b.Y - y) * (b.Y - y);
+                double d2 = (b.X - mx) * (b.X - mx) + (b.Y - my) * (b.Y - my);
                 if (d2 < mDist) {
                     mBody = b;
                     mDist = d2;
@@ -117,17 +111,9 @@ namespace VisuMap {
             int N = bodyList.Count;
             if (N < 2)
                 return;
-            double xm = 0;
-            double ym = 0;
-            double zm = 0;
-            foreach (var b in bodyList) {
-                xm += b.X;
-                ym += b.Y;
-                zm += b.Z;
-            }
-            xm /= N;
-            ym /= N;
-            zm /= N;
+            double xm = bodyList.Select(b => b.X).Average();
+            double ym = bodyList.Select(b => b.Y).Average();
+            double zm = bodyList.Select(b => b.Z).Average();
 
             double x = 0;
             double y = 0;
@@ -181,9 +167,11 @@ namespace VisuMap {
                     colSum[col] += R[col];
             }
 
+            bool[] flipColumn = colSum.Select(c => c > 0).ToArray();
+
             foreach (var R in M) { 
                 for (int col = 0; col < cols; col++)
-                    if (colSum[col] > 0)
+                    if ( flipColumn[col] )
                             R[col] = -R[col];
             }
         }
