@@ -284,6 +284,9 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 		ma.Show()
 		MatchProteinMap(ma, 50)
 		ma.Description = info.ToStr()
+		return ma
+	else:
+		return None
 
 def SimplifyTitle(title):
 	return title.replace(':', '..').replace(';', '.,')
@@ -586,7 +589,10 @@ def UnpackChains(pList=None):
 		nm = ds.StringAt(b.Id, 4)
 		nm2id[b.Id[:4]+'_'+nm] = b.Id
 
-	print(f'Unpacking {len(pList)} cif files...')
+	reporting = len(pList) > 1
+
+	if reporting:
+		print(f'Unpacking {len(pList)} cif files...')
 	unpacked = []
 	for k, pId in enumerate(pList):	
 		_, bList, _, pdbTitle = LoadCifData(pId)
@@ -594,7 +600,7 @@ def UnpackChains(pList=None):
 			continue
 		preChName = None
 		chain = []
-		if k%50 == 0:
+		if (k+1)%50 == 0:
 			print(f'Unpacking {k}-th cif file...')
 		vv.DoEvents()
 		for b in bList:
@@ -616,7 +622,8 @@ def UnpackChains(pList=None):
 			if id_nm in nm2id:
 				SaveChain(nm2id[id_nm], chain)
 		unpacked.append(pId)
-	print(f'Unpacked {len(unpacked)} cif files')
+	if reporting:
+		print(f'Unpacked {len(unpacked)} cif files')
 
 ''' Unpack all cif files. Call this after cleaned ChainCache dir.
 UnpackChains()
