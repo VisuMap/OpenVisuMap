@@ -87,7 +87,6 @@ namespace VisuMap {
         public bool LocalSmoothen2(double[][] M, double smoothenRatio, int repeats = 8) {
             if ((M == null) || (M.Length < 3) || (M[0].Length != 3) || (repeats <= 0))
                 return false;
-
             int N = M.Length;
             Vector3[] P = new Vector3[N];
             for (int k = 0; k < N; k++) {
