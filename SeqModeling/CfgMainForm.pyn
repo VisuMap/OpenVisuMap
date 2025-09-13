@@ -117,16 +117,19 @@ for ds  in dsList:
 ms.atlas.Show()
 
 import random
+
 dnList = list(vv.Folder.DatasetNameList)[2:]
-MAX_SZ = 10000
-for dn in [dnList[9]] + dnList[11:]:
+for dn in dnList:
+	print('DS: ', dn)
 	vv.Folder.OpenDataset(dn)
-	msize = min(MAX_SZ, vv.Dataset.BodyCount)
+	vv.Dataset.OpenMap(vv.Dataset.MapNameList[0])
+	bs = [b.Id for b in vv.Dataset.BodyListEnabled()]
 	random.seed(dnList.index(dn))
-	vv.SelectedItems = random.sample(vv.AllItems, msize)
+	vv.SelectedItems = random.sample(bs, min(500, len(bs)))
 	MainProc('P-Map')
 	MainProc('P-2D')
-	if vv.LastView.Name == 'Atlas':	vv.LastView.Close()
+	if vv.LastView.Name == 'Atlas':
+		vv.LastView.Close()
 	vv.Folder.Save()
 
 '''

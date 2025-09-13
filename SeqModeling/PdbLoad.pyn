@@ -613,6 +613,7 @@ def UnpackChains(pList=None):
 					if id_nm in nm2id:
 						chainsCount += 1
 						SaveChain(nm2id[id_nm], chain)
+						vv.DoEvents()
 				# start a new chain with chName and b as first point
 				preChName = chNm
 				chain = [ b ]
