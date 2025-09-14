@@ -96,6 +96,19 @@ def MainProc(menuKey):
 
 MainProc(vv.EventSource.Item)
 
+import random
+def MakeDatasetPMap(dn, sampleSize):
+	vv.Folder.OpenDataset(dn)
+	vv.Dataset.OpenMap(vv.Dataset.MapNameList[0])
+	bs = [b.Id for b in vv.Dataset.BodyListEnabled()]
+	random.seed(321)
+	vv.SelectedItems = random.sample(bs, min(sampleSize, len(bs)))
+	MainProc('P-Map')
+	MainProc('P-2D')
+	if vv.LastView.Name == 'Atlas':
+		vv.LastView.Close()
+	vv.Folder.Save()
+
 '''
 dsList = list(vv.Folder.DatasetNameList)[1:]
 
@@ -116,20 +129,10 @@ for ds  in dsList:
 	ms.AddMap('MapSnapshot').Close()
 ms.atlas.Show()
 
-import random
 
 dnList = list(vv.Folder.DatasetNameList)[2:]
-for dn in dnList:
-	print('DS: ', dn)
-	vv.Folder.OpenDataset(dn)
-	vv.Dataset.OpenMap(vv.Dataset.MapNameList[0])
-	bs = [b.Id for b in vv.Dataset.BodyListEnabled()]
-	random.seed(dnList.index(dn))
-	vv.SelectedItems = random.sample(bs, min(500, len(bs)))
-	MainProc('P-Map')
-	MainProc('P-2D')
-	if vv.LastView.Name == 'Atlas':
-		vv.LastView.Close()
-	vv.Folder.Save()
+for k, dn in enumerate(dnList):
+	print(f'{k}: {dn}')
+	MakeDatasetPMap(dn, 500)
 
 '''
