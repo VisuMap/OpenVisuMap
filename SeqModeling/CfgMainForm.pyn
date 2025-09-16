@@ -14,7 +14,7 @@ def MainProc(menuKey):
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
 	def PM2(*args, **kwargs):
-		mp = ProteinMap2(pList, vt, 4000, samplingDist=0.0, *args, **kwargs)
+		mp = ProteinMap2(pList, vt, 4000, samplingDist=0.5, minLen=50, maxLen=0, *args, **kwargs)
 		vv.Dataset.AddMap(vt)
 		mp.NormalizeView().CopyMap()
 		vv.Map.Redraw()
@@ -50,7 +50,7 @@ def MainProc(menuKey):
 					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 			else:
 				CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, 
-					tP = (1000, 3, 0.0, 0.1, 4.0, 1.25))
+					tP = (1000, 2, 0.0, 0.1, 4.0, 1.25))
 		case 'P-Map':
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
 			vList = ['tMF']
@@ -92,17 +92,30 @@ def MainProc(menuKey):
 			ShowChain(pId, opacity=0.5) # . RotateXYZ(0, 0.0025, 0).StartAnimation(0)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
 		case 'TT':
-			CreateProteinMaps(pList, atlasName, tP = (2500, 2, 0.2, 0.25, 4.0, 1.0))
+			bList = GetSphereDataset(pId, interRp=5)
+			cs.ShrinkSphere(bList, 0.9)
+			for b in bList: 
+				b.Mult(1000.0/b.Length)
+				if b.Type == 0: 
+					b.Type = 5
+			info = MapInfo().Set('pId', pId)
+			mp = ShowSphere(bList, info, 2, 3.0, 0.5)
+			mp.ShowBoundingBox = False
+			mp.NormalizeView()
+
 
 MainProc(vv.EventSource.Item)
 
 import random
 def MakeDatasetPMap(dn, sampleSize):
+	print('DS: ', dn)
 	vv.Folder.OpenDataset(dn)
-	vv.Dataset.OpenMap(vv.Dataset.MapNameList[0])
-	bs = [b.Id for b in vv.Dataset.BodyListEnabled()]
+	ds = vv.Dataset
+	ds.OpenMap('map')
+	bs = [b.Id for b in ds.BodyListEnabled()]
 	random.seed(321)
 	vv.SelectedItems = random.sample(bs, min(sampleSize, len(bs)))
+	random.seed(time.time())
 	MainProc('P-Map')
 	MainProc('P-2D')
 	if vv.LastView.Name == 'Atlas':
@@ -110,29 +123,6 @@ def MakeDatasetPMap(dn, sampleSize):
 	vv.Folder.Save()
 
 '''
-dsList = list(vv.Folder.DatasetNameList)[1:]
-
-for ds  in dsList:
-	vv.Folder.OpenDataset(ds)
-	MainProc('P-Map')
-	MainProc('P-2D')
-	vv.LastView.Close()
-
-ms = AtlasMapStore('tMF Maps', True)
-ms.atlas.OnItemsSelected = ''
-for ds  in dsList:
-	vv.Folder.OpenDataset(ds)
-	mp = New.MapSnapshot().ResetSize().Show2()
-	info = MapInfo(mp.Description)
-	info.DS = ds
-	mp.Description = info.ToStr()
-	ms.AddMap('MapSnapshot').Close()
-ms.atlas.Show()
-
-
-dnList = list(vv.Folder.DatasetNameList)[2:]
-for k, dn in enumerate(dnList):
-	print(f'{k}: {dn}')
-	MakeDatasetPMap(dn, 500)
-
+for dn in list(vv.Folder.DatasetNameList)[1:]:
+	MakeDatasetPMap(dn, 2000)
 '''

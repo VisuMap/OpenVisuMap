@@ -32,9 +32,9 @@ def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0):
 		mp.Description = info.ToStr()
 	return mp
 
-def ShowSphere2(pId, cf, hsize=4, gsize=4.0, gopacity=1.0):
+def ShowSphere2(pId, cf, hsize=4, gsize=4.0, gopacity=1.0, iRp=5):
 	info = MapInfo().Set('pId', pId)
-	bList = GetSphereDataset(pId, interRp=5)
+	bList = GetSphereDataset(pId, interRp=iRp)
 	cs.ShrinkSphere(bList, cf)
 	for b in bList: 
 		b.Mult(1000.0/b.Length)
