@@ -92,16 +92,17 @@ def MainProc(menuKey):
 			ShowChain(pId, opacity=0.5) # . RotateXYZ(0, 0.0025, 0).StartAnimation(0)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
 		case 'TT':
-			bList = GetSphereDataset(pId, interRp=5)
-			cs.ShrinkSphere(bList, 0.9)
-			for b in bList: 
-				b.Mult(1000.0/b.Length)
-				if b.Type == 0: 
-					b.Type = 5
+			bList = LoadChain0(pId)
+			bList = cs.ToSphere(bList, 0.9)
+			bList = cs.ToSphere(bList, 0.9)
+			bList = Interpolate(bList, 5)
+
+			for b in bList:
+				b.Type = 5
+				b.Hidden = b.Id.startswith('i')
+			bList[0].Type, bList[bList.Count-1].Type = 105, 110
 			info = MapInfo().Set('pId', pId)
-			mp = ShowSphere(bList, info, 2, 3.0, 0.5)
-			mp.ShowBoundingBox = False
-			mp.NormalizeView()
+			ShowSphere(bList, info, 2, 3.0, 0.5).NormalizeView()
 
 
 MainProc(vv.EventSource.Item)

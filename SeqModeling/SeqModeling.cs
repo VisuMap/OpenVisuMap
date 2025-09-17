@@ -605,7 +605,7 @@ namespace VisuMap {
             return A[cols];
         }
 
-        public List<IBody> ToSphere(List<IBody> bList, double fct=1.0) {
+        public List<IBody> ToSphere(List<IBody> bList, double contracting = 0, bool normalizing=false) {
             for (int k = 0; k < (bList.Count - 1); k++) {
                 var b = bList[k];
                 var b1 = bList[k + 1];
@@ -613,8 +613,17 @@ namespace VisuMap {
             }
             bList.RemoveAt(bList.Count - 1);
 
-            if (fct != 0)
-                ShrinkSphere(bList, (float)fct);
+            if (normalizing) {
+                foreach (var b in bList) {
+                    double len = b.Length;
+                    if (len > 0)
+                        b.Mult(1000.0 / len);
+                }
+            }
+
+            if (contracting != 0) {
+                ShrinkSphere(bList, (float)contracting);
+            }
 
             return bList;
         }
