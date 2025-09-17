@@ -500,11 +500,9 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
 	for k, b in enumerate(pTable.BodyListForId(pList)):
 		dt.RowSpecList[k].CopyFromBody(b)
 
-	#dt.ShowHeatMap()
-	#vv.Return()
-
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=1.5, glyphOpacity=1.0, staged=staged, 
 		initExag=initExag, finalExag=finalExag, ppl=ppl)
+
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'Hrm'  
 	info.Set('vType', vType)
@@ -514,6 +512,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
 	info.Set('mfL', mfL)
 	info.Set('maxL', maxLen)
 	info.Set('minL', minLen)
+	info.Set('pCnt', dt.Rows)
 	info.Set('tP', tP)	
 
 	snMap = RunMds(mds, repeats=1, info=info)
