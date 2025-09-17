@@ -95,14 +95,13 @@ def MainProc(menuKey):
 			bList = LoadChain0(pId)
 			bList = cs.ToSphere(bList, 0.9)
 			bList = cs.ToSphere(bList, 0.9)
-			bList = Interpolate(bList, 5)
+			bList = Interpolate(bList, 5, hidIntp=True)
 
 			for b in bList:
 				b.Type = 5
-				b.Hidden = b.Id.startswith('i')
 			bList[0].Type, bList[bList.Count-1].Type = 105, 110
-			info = MapInfo().Set('pId', pId)
-			ShowSphere(bList, info, 2, 3.0, 0.5).NormalizeView()
+			info = MapInfo('pId:'+pId)
+			ShowSphere(bList, info, 2, 3.0, 0.5, True)
 
 
 MainProc(vv.EventSource.Item)

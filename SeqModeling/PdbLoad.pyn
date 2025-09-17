@@ -415,7 +415,7 @@ def LoadSeq(pId):
 			seq.append(rs.Name[0])
 		return ''.join(seq)
 
-def Interpolate(bList, rp=3, smtRatio=0):
+def Interpolate(bList, rp=3, smtRatio=0, hidIntp=False):
 	EPS = 0.085
 	bs = New.BodyList()
 	k0 = 0
@@ -432,6 +432,9 @@ def Interpolate(bList, rp=3, smtRatio=0):
 			if k < bList.Count:
 				k0 = k
 				t0 = bList[k0].Type
+	if hidIntp:
+		for b in bs:
+			b.Hidden = b.Id.startswith('i')
 	return bs
 
 def Interpolate1Chain(bList, rp=3, smtRatio=0):

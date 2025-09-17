@@ -1,14 +1,14 @@
 #SphericalProj.pyn
 import math
 
-def GetSphereDataset(cId, interRp=0, contracting=0):
+def GetSphereDataset(cId, interRp=0, contracting=0, normalizing=False):
 	bList = LoadChain0(cId)
 	if bList.Count < 3:
 		return None
 	bType = vv.Dataset.BodyForId(cId).Type
 	for b in bList: 
 		b.Type = bType
-	bList = cs.ToSphere(bList, contracting)
+	bList = cs.ToSphere(bList, contracting, normalizing)
 	if interRp>0:
 		bList = Interpolate(bList, interRp)
 		for b in bList: 
@@ -17,7 +17,7 @@ def GetSphereDataset(cId, interRp=0, contracting=0):
 	bList[bList.Count-1].Type = 110
 	return bList
 
-def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0):
+def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0, normalizing=False):
 	mp = New.Map3DView(bList)
 	mp.ReadOnly = True
 	mp.ShowPerformance = False
@@ -30,20 +30,20 @@ def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0):
 	mp.CentralizeView()
 	if info != None:
 		mp.Description = info.ToStr()
+	if normalizing: 
+		mp.NormalizeView()
 	return mp
 
 def ShowSphere2(pId, cf, hsize=4, gsize=4.0, gopacity=1.0, iRp=5):
 	info = MapInfo().Set('pId', pId)
-	bList = GetSphereDataset(pId, interRp=iRp)
-	cs.ShrinkSphere(bList, cf)
-	for b in bList: 
-		b.Mult(1000.0/b.Length)
+	bList = GetSphereDataset(pId, interRp=iRp, contracting=cf, normalizing=True)
+	for b in bList:
 		if b.Type == 0: 
 			b.Type = 5
-	mp = ShowSphere(bList, info, hsize, gsize, gopacity)
+	mp = ShowSphere(bList, info, hsize, gsize, gopacity, True)
 	mp.EditMode = True
 	mp.ShowBoundingBox = False
-	mp.NormalizeView().NormalizeView()
+	mp.NormalizeView()
 	return mp
 
 def NotExits(vw):
@@ -183,6 +183,7 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 		mapStore.Close()
 		New.Atlas(atlasName).Show()
 	mds.Close()
+
 '''
 
 '''
