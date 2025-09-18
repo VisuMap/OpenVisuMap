@@ -14,7 +14,7 @@ def MainProc(menuKey):
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
 	def PM2(*args, **kwargs):
-		mp = ProteinMap2(pList, vt, 4000, samplingDist=0.5, minLen=50, maxLen=0, *args, **kwargs)
+		mp = ProteinMap2(pList, vt, 4000, samplingDist=0, minLen=0, maxLen=0, *args, **kwargs)
 		vv.Dataset.AddMap(vt)
 		mp.NormalizeView().CopyMap()
 		vv.Map.Redraw()
@@ -50,7 +50,7 @@ def MainProc(menuKey):
 					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 			else:
 				CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, 
-					tP = (1000, 2, 0.0, 0.1, 4.0, 1.25))
+					tP = (1000, 3, 0.0, 0.1, 4.0, 1.25))
 		case 'P-Map':
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
 			vList = ['tMF']
@@ -92,16 +92,20 @@ def MainProc(menuKey):
 			ShowChain(pId, opacity=0.5) # . RotateXYZ(0, 0.0025, 0).StartAnimation(0)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
 		case 'TT':
-			bList = LoadChain0(pId)
-			bList = cs.ToSphere(bList, 0.9)
-			bList = cs.ToSphere(bList, 0.9)
-			bList = Interpolate(bList, 5, hidIntp=True)
+			ShowSphere3(pId)
 
-			for b in bList:
-				b.Type = 5
-			bList[0].Type, bList[bList.Count-1].Type = 105, 110
-			info = MapInfo('pId:'+pId)
-			ShowSphere(bList, info, 2, 3.0, 0.5, True)
+def ShowSphere3(pId):
+	bList = LoadChain0(pId)
+	bList = cs.ToSphere(bList, 0)
+	bList = cs.ToSphere(bList, 0.9, normalizing=True)
+	bList = Interpolate(bList, 5, hidIntp=True)
+
+	for b in bList: b.Type = 5
+	bList[0].Type, bList[bList.Count-1].Type = 105, 110
+	info = MapInfo('pId:'+pId)
+	mp = ShowSphere(bList, info, 2, 3.0, 0.5, True)
+	mp.ShowBoundingBox = False
+	mp.RedrawAll()
 
 
 MainProc(vv.EventSource.Item)
@@ -123,6 +127,13 @@ def MakeDatasetPMap(dn, sampleSize):
 	vv.Folder.Save()
 
 '''
-for dn in list(vv.Folder.DatasetNameList)[1:]:
+for dn in list(vv.Folder.DatasetNameList)[2:]:
+	vv.Folder.OpenDataset(dn)
+	vv.Dataset.OpenMap('map')
+	vv.Map.Randomize()
+
+for dn in list(vv.Folder.DatasetNameList)[2:]:
 	MakeDatasetPMap(dn, 2000)
+	
+
 '''

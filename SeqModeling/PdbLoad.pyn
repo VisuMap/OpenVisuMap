@@ -22,45 +22,11 @@ def CheckCacheDir():
 		vv.Message(f'Cache directories not setup: {PDB_CACHE} and {CHAIN_CACHE}')
 		vv.Return()
 
-csLoad = New.CsObject('''
-public List<IBody> LoadChain(string cacheFile) {
-	string[] lines = File.ReadAllLines(cacheFile);	
-	IBody[] bList = new IBody[lines.Length];	
-	MT.Loop(0, lines.Length, lineIdx=>{
-			string line = lines[lineIdx];
-			if (line == null) 
-				return;
-			string[] fs = line.Split('|');
-			Body b = new Body(fs[0]);
-			b.Name = fs[1];
-			b.Type = short.Parse(fs[2]);
-			b.X = float.Parse(fs[3]);
-			b.Y = float.Parse(fs[4]);
-			b.Z = float.Parse(fs[5]);
-			bList[lineIdx] = b;
-	});
-	return bList.ToList();
-}
-
-public string LoadSeq(string cacheFile) {
-	StringBuilder sb = new StringBuilder();
-	using( TextReader tr = new StreamReader(cacheFile) ) {
-		while(true) {
-			string line = tr.ReadLine();
-			if (line == null) 
-				break;
-			int idx = line.IndexOf('|');
-			sb.Append(line[idx+1]);
-		}
-	}
-	return sb.ToString();
-}
-''')
-
-def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, 
+def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 		setChainId=False,	smtRatio=0, glyphSize=1.0, glyphOpacity=0.75):
+
 	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, chainNames=chainNames)
-	bsList = Interpolate(bsList, rp, smtRatio=smtRatio)
+	bsList = Interpolate(bsList, rp, smtRatio=smtRatio, hidIntp=hidIntp)
 	
 	bsList[0].Type = 171
 	for k in range(1, bsList.Count-1):		
@@ -102,7 +68,7 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True,
 	mp.GlyphSize = glyphSize
 	mp.GlyphOpacity = glyphOpacity
 	mp.Show()
-	mp.HiddenBodySize = 6
+	mp.HiddenBodySize = 3
 	mp.HiddenBodyColor = New.Color('White')
 	mp.NormalizeView()
 	return mp
@@ -397,7 +363,7 @@ def LoadChain0(pId):
 	cacheFile = ChainCacheFile(pId)
 	if not exists(cacheFile):
 		UnpackChains([pId[:4]])
-	return csLoad.LoadChain(cacheFile)
+	return cs.LoadChain3D(cacheFile)
 
 def LoadChain(pId):
 	bList = LoadChain0(pId)
@@ -407,7 +373,7 @@ def LoadSeq(pId):
 	from os.path import exists
 	cacheFile = ChainCacheFile(pId)
 	if exists(cacheFile):
-		return csLoad.LoadSeq(cacheFile)
+		return cs.LoadChainSeq(cacheFile)
 	else:
 		seq = []
 		nt = LoadChain(pId)
@@ -575,10 +541,7 @@ def LoadAllChains(pList=None, mergeEqChains=True):
 	return pTable, loaded, skipped
 
 def SaveChain(chId, chain):
-	cacheFile = ChainCacheFile(chId)
-	with open(cacheFile, 'w') as outFile:
-		for b in chain:
-			outFile.write(f'{b.Id}|{b.Name}|{b.Type}|{b.X:.2f}|{b.Y:.2f}|{b.Z:.2f}\n')
+	cs.SaveChain(ChainCacheFile(chId), chain)
 
 def UnpackChains(pList=None):
 	import os
@@ -804,7 +767,13 @@ for row in range(ds.Rows):
 	dnList.append(dn)
 	pLL.append(pList)
 
+pLL = spList
+print(len(pLL), len(dnList))
+
 for row, dn in enumerate(dnList):
+	print('DS: ', dn)
 	ImportPDBList(pLL[row], dn)
+
+
 
 '''

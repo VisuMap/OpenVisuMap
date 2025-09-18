@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text;
 using VisuMap.Script;
 using Vector3 = SharpDX.Vector3;
 using Quaternion = SharpDX.Quaternion;
@@ -728,6 +729,51 @@ namespace VisuMap {
                 bList[k].SetXYZ(Vector3.Transform(p, T));
             }
         }
+
+        #region Load chains from chain cache files
+
+        public void SaveChain(string cacheFile, IList<IBody>bodyList) {
+            using (StreamWriter sw = new StreamWriter(cacheFile)) {
+                foreach(var b in bodyList) {
+                    sw.WriteLine($"{b.Id}|{b.Name}|{b.Type}|{b.X:f2}|{b.Y:f2}|{b.Z:f2}");
+                }
+            }
+        }
+
+        public List<IBody> LoadChain3D(string cacheFile) {
+            string[] lines = File.ReadAllLines(cacheFile);
+            IBody[] bList = new IBody[lines.Length];
+            MT.Loop(0, lines.Length, lineIdx => {
+                string line = lines[lineIdx];
+                if (line == null)
+                    return;
+                string[] fs = line.Split('|');
+                Body b = new Body(fs[0]);
+                b.Name = fs[1];
+                b.Type = short.Parse(fs[2]);
+                b.X = float.Parse(fs[3]);
+                b.Y = float.Parse(fs[4]);
+                b.Z = float.Parse(fs[5]);
+                bList[lineIdx] = b;
+            });
+            return bList.ToList();
+        }
+
+        public string LoadChainSeq(string cacheFile) {
+            StringBuilder sb = new StringBuilder();
+            using (TextReader tr = new StreamReader(cacheFile)) {
+                while (true) {
+                    string line = tr.ReadLine();
+                    if (line == null)
+                        break;
+                    int idx = line.IndexOf('|');
+                    sb.Append(line[idx + 1]);
+                }
+            }
+            return sb.ToString();
+        }
+
+        #endregion
 
         #region LoadCif() method
         string pdbTitle = null;
