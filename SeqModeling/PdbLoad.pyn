@@ -118,16 +118,11 @@ def ShowProteinList(pList, includeHA, atName=None, smtRatio=0, glyphSize=1.0, gl
 		ma.OnItemsSelected = ''
 
 def GetChainName(pId):
-	ds = vv.Dataset
-	chIdx = ds.IndexOfColumn('ChainName')
-	if chIdx >= 0:
-		rowIdx = ds.BodyIndexForId(pId)
-		if rowIdx < 0:
-			vv.Message(f'Cannot find chain {pId} in current dataset.')
-			return None
-		chName = ds.GetDataAt(rowIdx, chIdx)
-		return [ chName ]
+	rowIdx = vv.Dataset.BodyIndexForId(pId)
+	if rowIdx >= 0:
+		return [ vv.Dataset.GetDataAt(rowIdx, 4) ]
 	else:
+		vv.Message(f'Cannot find chain {pId} in current dataset.')
 		return None
 
 def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False, 
