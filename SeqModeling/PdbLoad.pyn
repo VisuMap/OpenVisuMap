@@ -122,6 +122,9 @@ def GetChainName(pId):
 	chIdx = ds.IndexOfColumn('ChainName')
 	if chIdx >= 0:
 		rowIdx = ds.BodyIndexForId(pId)
+		if rowIdx < 0:
+			vv.Message(f'Cannot find chain {pId} in current dataset.')
+			return None
 		chName = ds.GetDataAt(rowIdx, chIdx)
 		return [ chName ]
 	else:
