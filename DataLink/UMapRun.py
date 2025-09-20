@@ -34,8 +34,12 @@ def ResetTest(cfgIdx):
         md, sp, ns = 0.5, 1.0, 15
     elif cfgIdx == 1:
         md, sp, ns = 0.1, 1.5, 30
-    else:
+    elif cfgIdx == 2:
         md, sp, ns = 0.23, 1.12, 15
+    elif cfgIdx == 3:
+        lc, md, sp, ns = 25, 0.5, 1.0, 15
+    elif cfgIdx == 4:
+        lc, md, sp, ns = 50, 0.5, 1.0, 15
 
 def DoTest():
     global ds, nr
@@ -69,7 +73,7 @@ def DoTest():
 #====================================================================================
 try:
   cmd = vm.DataLinkCmd()
-  for cfg in [0, 1, 2]:
+  for cfg in [4, 3, 0, 1, 2]:
     ResetTest(cfg)
     DoTest()
     #cmd.RunScript('vv.GuiManager.TileAllWindows()')

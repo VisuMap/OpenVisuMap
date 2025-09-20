@@ -37,7 +37,6 @@ def MainProc(menuKey):
 				pId = e.Name
 				chainNames = GetChainName(pId)
 				if chainNames == None:
-					vv.Message(f'Can not find chain {pId} in current dataset')
 					continue
 				mp = ShowPDB(pId, rp=5, includeHA=False, hidIntp=True, glyphSize=2.0, chainNames=chainNames, smtRatio=0.0)
 				mp.NormalizeView()
@@ -74,6 +73,8 @@ def MainProc(menuKey):
 		case 'P-2Ds':
 			Merge2DList(pp)
 		case 'TT':
+			ShowChain(pId, opacity=0.35)
+			ShowSphere2(pId, cf=0.9, gopacity=0.35)
 			ShowSphere3(pId)
 		case 'sT':
 			ShowChain(pId, opacity=0.35).RotateXYZ(0, 0.0025, 0).StartAnimation(0).EditMode=False

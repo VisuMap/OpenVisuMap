@@ -17,11 +17,11 @@ def GetSphereDataset(cId, interRp=0, contracting=0, normalizing=False):
 	bList[bList.Count-1].Type = 110
 	return bList
 
-def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0, normalizing=False):
+def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0, normalizing=False, showBox=True):
 	mp = New.Map3DView(bList)
 	mp.ReadOnly = True
 	mp.ShowPerformance = False
-	mp.ShowBoundingBox = True
+	mp.ShowBoundingBox = showBox
 	mp.MapDepth = 0.5*(mp.Width+mp.Height)
 	mp.GlyphSize = gsize
 	mp.GlyphOpacity = gopacity
@@ -36,7 +36,7 @@ def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0, normalizing=F
 
 def ShowSphere2(pId, cf, hsize=4, gsize=4.0, gopacity=1.0, iRp=5):
 	info = MapInfo().Set('pId', pId)
-	bList = GetSphereDataset(pId, interRp=iRp, contracting=cf, normalizing=True)
+	bList = GetSphereDataset(pId, interRp=iRp, contracting=cf, normalizing=False)
 	for b in bList:
 		if b.Type == 0: 
 			b.Type = 5

@@ -89,15 +89,17 @@ def MainProc(menuKey):
 			SphereView(pId, True)
 		case 'sT':
 			TorsionMap(pList[:1])
-			ShowChain(pId, opacity=0.5) # . RotateXYZ(0, 0.0025, 0).StartAnimation(0)
+			ShowChain(pId, opacity=0.5)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
 		case 'TT':
+			ShowChain(pId, opacity=0.5)
+			ShowSphere2(pId, 0.95, gopacity=0.5)
 			ShowSphere3(pId)
 
 def ShowSphere3(pId):
 	bList = LoadChain0(pId)
 	bList = cs.ToSphere(bList, 0)
-	bList = cs.ToSphere(bList, 0.9, normalizing=True)
+	bList = cs.ToSphere(bList, 0.9)
 	bList = Interpolate(bList, 5, hidIntp=True)
 
 	for b in bList: b.Type = 5
@@ -133,7 +135,7 @@ for dn in list(vv.Folder.DatasetNameList)[2:]:
 	vv.Map.Randomize()
 
 for dn in list(vv.Folder.DatasetNameList)[2:]:
-	MakeDatasetPMap(dn, 2000)
+	MakeDatasetPMap(dn, 500)
 	
 
 '''
