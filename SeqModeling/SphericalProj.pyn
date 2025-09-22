@@ -13,8 +13,8 @@ def GetSphereDataset(cId, interRp=0, contracting=0, normalizing=False):
 		bList = Interpolate(bList, interRp)
 		for b in bList: 
 			b.Hidden = b.Id.startswith('i')
-	bList[0].Type = 105
-	bList[bList.Count-1].Type = 110
+	bList[0].Type = SeqMap_HEAD
+	bList[bList.Count-1].Type = SeqMap_TAIL
 	return bList
 
 def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0, normalizing=False, showBox=True):
@@ -53,7 +53,7 @@ def ShowSphere3(pId):
 	bList = Interpolate(bList, 5, hidIntp=True)
 
 	for b in bList: b.Type = 5
-	bList[0].Type, bList[bList.Count-1].Type = 105, 110
+	bList[0].Type, bList[bList.Count-1].Type = SeqMap_HEAD, SeqMap_TAIL
 	info = MapInfo('pId:'+pId)
 	mp = ShowSphere(bList, info, 2, 3.0, 0.5, True)
 	mp.ShowBoundingBox = False
@@ -75,8 +75,8 @@ def ShowSphere4(repeats=5, contracting=0.9):
 	for b in bList: 
 		b.Mult(1000.0)
 		b.Type = 5
-	bList[0].Type = 105
-	bList[bList.Count - 1].Type = 110
+	bList[0].Type = SeqMap_HEAD
+	bList[bList.Count - 1].Type = SeqMap_TAIL
 	info = MapInfo('pId:'+pId)
 	ShowSphere(bList, info, gsize=2.5, hsize=2, gopacity=0.75,  showBox=False)
 
@@ -100,8 +100,8 @@ def SphereUnfold(bList, cf):
 		bx.Type = 0
 		bs.Add(bx.Clone())
 	bs = Interpolate1Chain(bs, rp=5)
-	bs[0].Type = 105
-	bs[bs.Count-1].Type = 110
+	bs[0].Type = SeqMap_HEAD
+	bs[bs.Count-1].Type = SeqMap_TAIL
 	if NotExits(tgtView):
 		tgtView = New.Map3DView(New.BodyListClone(bs)).Show()
 		tgtView.CentralizeView()
@@ -176,7 +176,7 @@ def TorsionMap(pList):
 
 def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 	mds = NewMds(None, epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
-		glyphScale=5.0, glyphSet='Ordered 64|36 Clusters|Red Green', glyphSize=1.0, glyphOpacity=1.0)
+		glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphSize=1.0, glyphOpacity=1.0)
 
 	def DoTsne(info, bList):
 		RunMds(mds, info=info, repeats=0, nt=New.NumberTable(bList, 3))

@@ -28,12 +28,12 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, chainNames=chainNames)
 	bsList = Interpolate(bsList, rp, smtRatio=smtRatio, hidIntp=hidIntp)
 	
-	bsList[0].Type = 171
+	bsList[0].Type = SeqMap_TAIL
 	for k in range(1, bsList.Count-1):		
 		if bsList[k].Name.split('.')[2] != bsList[k+1].Name.split('.')[2]:
-			bsList[k].Type = 155
-			bsList[k+1].Type = 171
-	bsList[bsList.Count-1].Type = 155
+			bsList[k].Type = SeqMap_HEAD
+			bsList[k+1].Type = SeqMap_TAIL
+	bsList[bsList.Count-1].Type = SeqMap_HEAD
 
 	if setChainId:
 		ds = vv.Dataset
@@ -61,7 +61,7 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 	info.Set('HA', includeHA)
 	mp.Description = info.ToStr()
 	mp.Title = f'{pId}, Len:{bsList.Count}:  {info.PT}'
-	mp.GlyphSet = '36 Clusters||||Colored Balls'
+	mp.GlyphSet = SeqMap_GLYPHSET
 	mp.ReadOnly = True
 	mp.ShowPerformance = False
 	mp.ShowBoundingBox = False
@@ -79,10 +79,10 @@ def ShowChain(cId, gsize=2.1, gopacity=0.75, hsize=3, intRp=5):
 	for b in bList:
 		b.Type = 1
 		b.Hidden = (b.Id[0] == 'i')
-	bList[0].Type = 171
-	bList[bList.Count-1].Type = 155
+	bList[0].Type = SeqMap_TAIL
+	bList[bList.Count-1].Type = SeqMap_HEAD
 	mp = New.Map3DView(bList)
-	mp.GlyphSet = '36 Clusters||||Colored Balls'
+	mp.GlyphSet = SeqMap_GLYPHSET
 	mp.ReadOnly = True
 	mp.ShowPerformance = False
 	mp.ShowBoundingBox = False
@@ -192,12 +192,12 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 
 			# Mark the head red.
 			bList = mds.BodyList
-			bList[0].Type = 105
+			bList[0].Type = SeqMap_HEAD
 			for k in range(1, bList.Count-1):		
 				if bList[k].Name.split('.')[2] != bList[k+1].Name.split('.')[2]:
-					bList[k].Type = 110
-					bList[k+1].Type = 105
-			bList[bList.Count-1].Type = 110
+					bList[k].Type = SeqMap_TAIL
+					bList[k+1].Type = SeqMap_HEAD
+			bList[bList.Count-1].Type = SeqMap_TAIL
 
 			RunMds(mds, info=info, repeats=0)
 
@@ -234,7 +234,9 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 			continue
 		bList = nt.ToBodyList()
 		if mapStore == None:
-			cs.FitByPCA(New.MapSnapshot(bList), 15.0).Show()
+			map = New.MapSnapshot(bList)
+			ConfigSeqMap(map, pId, gsize=1.0)
+			cs.FitByPCA(map, 15.0).Show()
 		else:
 			mapStore.AddRawMap(pId, bList, scale=60)
 			if (k+1)%10==0: 
@@ -403,7 +405,7 @@ def Interpolate(bList, rp=3, smtRatio=0, hidIntp=False):
 
 def Interpolate1Chain(bList, rp=3, smtRatio=0):
 	EPS = 0.085
-	marked = bList[0].Type == 105
+	marked = bList[0].Type == SeqMap_HEAD
 	if marked:
 		bList[0].Type = bList[1].Type
 		bList[bList.Count-1].Type = bList[1].Type			
@@ -411,8 +413,8 @@ def Interpolate1Chain(bList, rp=3, smtRatio=0):
 		cs.LocalSmoothen(bList, smtRatio, 8)
 	bList = cs.Interpolate3D(bList, rp, EPS, bList.Count, 0)
 	if marked:
-		bList[0].Type = 105
-		bList[bList.Count-1].Type = 110
+		bList[0].Type = SeqMap_HEAD
+		bList[bList.Count-1].Type = SeqMap_TAIL
 	return bList
 
 def UnFoldMap(pMap, epochs=1000, ppl=0.1, staged=False, repeats=1, stretch=0, clusterStretch=1.0, expandFactor=1.0, initExag=10.0, finalExag=1.0, is3D=False):
@@ -623,7 +625,7 @@ def PreloadPDB(sList):
 def InitDatabase(dsName, description):
 	dsName = vv.Folder.NewDataset(dsName, description).Name
 	vv.Folder.OpenDataset(dsName)
-	vv.Map.GlyphSet = 'Ordered 64|36 Clusters|Red Green'
+	vv.Map.GlyphSet = PMap_GLYPHSET
 	ds = vv.Dataset
 	ds.AddColumn('PID', 0, '', 0)
 	ds.AddColumn('Repeats', 1, '0', 1)

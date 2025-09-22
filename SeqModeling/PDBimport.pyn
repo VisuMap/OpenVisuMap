@@ -17,7 +17,7 @@ def IsOK(pSeq):
 def InitDatabase(dsName, description):
 	dsName = vv.Folder.NewDataset(dsName, description).Name
 	vv.Folder.OpenDataset(dsName)
-	vv.Map.GlyphSet = 'Ordered 64'
+	vv.Map.GlyphSet = PMap_GLYPHSET
 	ds = vv.Dataset
 	ds.AddColumn('PID', 0, '', 0)
 	ds.AddColumn('Accession', 0, '', 1)

@@ -9,6 +9,10 @@ P3 = {'ALA':'A', 'ARG':'R', 'ASN':'N', 'ASP':'D', 'CYS':'C',
       'GLU':'E', 'GLN':'Q', 'GLY':'G', 'HIS':'H', 'ILE':'I',
 		'LEU':'L', 'LYS':'K', 'MET':'M', 'PHE':'F', 'PRO':'P',
 		'SER':'S', 'THR':'T', 'TRP':'W', 'TYR':'Y', 'VAL':'V'}
+SeqMap_GLYPHSET = '36 Clusters||||Colored Balls'
+SeqMap_HEAD = 155
+SeqMap_TAIL = 171
+PMap_GLYPHSET = 'Ordered 64|36 Clusters|Red Green'
 
 def AssertProteinTable():
 	if (vv.Dataset.Columns < 4) or ( vv.Dataset.ColumnSpecList[2].Id != 'ProteinSeq'):
@@ -245,14 +249,14 @@ class FastTsne:
 	def Fit(self, nt):
 		return self.tsne.Fit(nt)
 
-def ConfigSeqMap(map, pId, redrawMap=False):
-	map.GlyphSet = 'Ordered 64|36 Clusters|Red Green'
-	map.GlyphSize = 6.0
+def ConfigSeqMap(map, pId, gsize=6.0, redrawMap=False):
+	map.GlyphSet = SeqMap_GLYPHSET
+	map.GlyphSize = gsize
 	map.Description = f'pId:{pId}'
 	map.GlyphOpacity = 1.0
 	bList = map.BodyList
-	bList[0].Type = 105
-	bList[bList.Count-1].Type = 110
+	bList[0].Type = SeqMap_HEAD
+	bList[bList.Count-1].Type = SeqMap_TAIL
 	type0 = vv.Dataset.BodyForId(pId).Type
 	for k in range(1, bList.Count-1):
 		bList[k].Type = type0
@@ -709,7 +713,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 		vv.Return(0)
 	pTable = AssertProteinTable()
 	mds = NewMds(None, epochs=epochs, is3D=is3D, initExag=initExag, finalExag=finalExag, ppl=ppl)
-	mds.GlyphSet = '36 Clusters||||Colored Balls'
+	mds.GlyphSet = SeqMap_GLYPHSET
 	mds.GlyphSize = glyphSize
 	mds.GlyphOpacity = glyphOpacity
 	mds.AutoNormalizing = True
@@ -865,8 +869,8 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75,
 				b.Hidden = False
 		
 		# Mark the head AA.
-		bList[0].Type = 105
-		bList[bList.Count-1].Type = 110
+		bList[0].Type = SeqMap_HEAD
+		bList[bList.Count-1].Type = SeqMap_TAIL
 
 		try:										
 			mp.ResetSize()
@@ -1118,7 +1122,7 @@ def Merge3DList(pList):
 		bs.AddRange(bList)
 	mp = New.Map3DView(bs).Show()
 	mp.ReadOnly = True
-	mp.GlyphSet = '36 Clusters||||Red Green'
+	mp.GlyphSet = SeqMap_GLYPHSET
 	mp.ShowBoundingBox = False
 	mp.GlyphSize = 1.0
 	mp.GlyphOpacity = 0.75
@@ -1144,7 +1148,7 @@ def Merge2DList(atlas):
 		mp.Close()
 	mp = New.MapSnapshot(bs)
 	mp.ReadOnly = True
-	mp.GlyphSet = '36 Clusters||||Red Green'
+	mp.GlyphSet = SeqMap_GLYPHSET
 	mp.GlyphSize = 0.35
 	mp.GlyphOpacity = 0.5
 	mp.CentralizeView()
