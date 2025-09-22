@@ -76,9 +76,7 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 def ShowChain(cId, gsize=2.1, gopacity=0.75, hsize=3, intRp=5):
 	bList = LoadChain0(cId)
 	bList = Interpolate1Chain(bList, rp=intRp)
-	for b in bList:
-		b.Type = 1
-		b.Hidden = (b.Id[0] == 'i')
+	for b in bList: b.Hidden = (b.Id[0] == 'i')
 	bList[0].Type = SeqMap_TAIL
 	bList[bList.Count-1].Type = SeqMap_HEAD
 	mp = New.Map3DView(bList)
@@ -164,9 +162,8 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 			seqLen = bList.Count
 
 			if not wholeComplex:
-				bb = vv.Dataset.BodyForId(pId)
 				for b in bList:
-					b.Type = bb.Type
+					b.Type = 184
 					b.Hidden = False
 			bList = Interpolate(bList, rp=3, smtRatio=smtRatio)			
 			if includeHA:
@@ -712,11 +709,12 @@ import os
 sList = [f[:4] for f in os.listdir(PDB_CACHE) if f.endswith('.cif')]
 print(len(sList))
 sList = ','.join(sList)
-ImportPDBList(sList, 'AllPdb')
+ImportPDBList(sList, 'GrowthProcess')
 
 Steps to import a list of PDB id into VisuMap:
 
-sList = vv.GuiManager.GetClipboard()
+sList0 = vv.GuiManager.GetClipboard()
+sList = sList0 + ',' + vv.GuiManager.GetClipboard()
 pList = sList.split(',')
 print(len(pList))
 ImportPDBList(sList, 'T2414_B')

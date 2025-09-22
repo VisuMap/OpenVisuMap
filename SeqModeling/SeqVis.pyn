@@ -1116,8 +1116,8 @@ def Merge3DList(pList):
 		else:
 			cs.CenteringBodyList(bList, xc, yc, zc)
 		bList = ss.SetBodyType(bList, pId, k)
-		bList[0].Type = 146
-		bList[bList.Count-1].Type = 159
+		bList[0].Type = SeqMap_HEAD
+		bList[bList.Count-1].Type = SeqMap_TAIL
 		bs.AddRange(bList)
 	mp = New.Map3DView(bs).Show()
 	mp.ReadOnly = True
@@ -1141,8 +1141,8 @@ def Merge2DList(atlas):
 		else:
 			cs.CenteringBodyList(bList, xc, yc, 0)
 		bList = ss.SetBodyType(bList, item.Id, k)
-		bList[0].Type = 146
-		bList[bList.Count-1].Type = 159
+		bList[0].Type = SeqMap_HEAD
+		bList[bList.Count-1].Type = SeqMap_TAIL
 		bs.AddRange(bList)
 		mp.Close()
 	mp = New.MapSnapshot(bs)

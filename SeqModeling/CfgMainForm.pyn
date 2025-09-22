@@ -121,13 +121,9 @@ def MakeDatasetPMap(dn, sampleSize):
 	vv.Folder.Save()
 
 '''
-for dn in list(vv.Folder.DatasetNameList)[2:]:
-	vv.Folder.OpenDataset(dn)
-	vv.Dataset.OpenMap('map')
-	vv.Map.Randomize()
-
-for dn in list(vv.Folder.DatasetNameList)[2:]:
-	MakeDatasetPMap(dn, 500)
+dnList = list(vv.Folder.DatasetNameList)[2:]
+dnList = [ vv.Dataset.Name ]
+for dn in dnList:	MakeDatasetPMap(dn, 10000)
 	
 
 '''

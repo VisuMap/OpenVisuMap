@@ -38,9 +38,6 @@ def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0, normalizing=F
 def ShowSphere2(pId, cf, hsize=4, gsize=4.0, gopacity=1.0, iRp=5):
 	info = MapInfo().Set('pId', pId)
 	bList = GetSphereDataset(pId, interRp=iRp, contracting=cf, normalizing=False)
-	for b in bList:
-		if b.Type == 0: 
-			b.Type = 5
 	mp = ShowSphere(bList, info, hsize, gsize, gopacity, True)
 	mp.EditMode = True
 	mp.ShowBoundingBox = False
@@ -53,7 +50,6 @@ def ShowSphere3(pId):
 	bList = cs.ToSphere(bList, 0.9)
 	bList = Interpolate(bList, 5, hidIntp=True)
 
-	for b in bList: b.Type = 5
 	bList[0].Type, bList[bList.Count-1].Type = SeqMap_HEAD, SeqMap_TAIL
 	info = MapInfo('pId:'+pId)
 	mp = ShowSphere(bList, info, 2, 3.0, 0.5, True)
@@ -73,9 +69,7 @@ def ShowSphere4(repeats=5, contracting=0.9):
 	bList = New.BodyListClone([b for b in bList if b.Id.startswith('A')])
 	bList = cs.ToSphere(bList, contracting)
 	bList = Interpolate(bList, repeats, hidIntp=True)
-	for b in bList: 
-		b.Mult(1000.0)
-		b.Type = 5
+	for b in bList: b.Mult(1000.0)
 	bList[0].Type = SeqMap_HEAD
 	bList[bList.Count - 1].Type = SeqMap_TAIL
 	info = MapInfo('pId:'+pId)
