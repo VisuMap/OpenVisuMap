@@ -9,7 +9,7 @@ P3 = {'ALA':'A', 'ARG':'R', 'ASN':'N', 'ASP':'D', 'CYS':'C',
       'GLU':'E', 'GLN':'Q', 'GLY':'G', 'HIS':'H', 'ILE':'I',
 		'LEU':'L', 'LYS':'K', 'MET':'M', 'PHE':'F', 'PRO':'P',
 		'SER':'S', 'THR':'T', 'TRP':'W', 'TYR':'Y', 'VAL':'V'}
-SeqMap_GLYPHSET = '36 Clusters||||Colored Balls'
+SeqMap_GLYPHSET = '36 Clusters||||Colored Balls|Ordered Glyphs'
 SeqMap_HEAD = 155
 SeqMap_TAIL = 171
 PMap_GLYPHSET = 'Ordered 64|36 Clusters|Red Green'
@@ -223,7 +223,7 @@ class AtlasMapStore():
 			self.rawMap = mp
 		else:
 			mp.BodyList = bList
-		ConfigSeqMap(mp, id)
+		ConfigSeqMap(mp, id, gsize=6.0)
 		cs.FitByPCA(mp, scale)
 		item = self.atlas.CaptureItem(mp)
 		item.Name = id
@@ -257,9 +257,8 @@ def ConfigSeqMap(map, pId, gsize=6.0, redrawMap=False):
 	bList = map.BodyList
 	bList[0].Type = SeqMap_HEAD
 	bList[bList.Count-1].Type = SeqMap_TAIL
-	type0 = vv.Dataset.BodyForId(pId).Type
 	for k in range(1, bList.Count-1):
-		bList[k].Type = type0
+		bList[k].Type = 184
 	if redrawMap:
 		map.ReloadGlyphSet()
 		map.RedrawAll()
