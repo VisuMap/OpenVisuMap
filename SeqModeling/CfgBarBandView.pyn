@@ -4,7 +4,7 @@ vv.Import('SeqVis.pyn')
 pId = MapInfo(pp.Description).pId
 match vv.EventSource.Item:
 	case 'P-3D':		
-		ShowProteinList([pId], includeHA=True, rp=5, glyphSize=1.5, glyphOpacity=0.5)
+		ShowProteinList([pId], includeHA=True, intRp=5, gsize=1.5, gopacity=0.5)
 	case 'SelectId':
 		vv.SelectedItems = [pId]
 

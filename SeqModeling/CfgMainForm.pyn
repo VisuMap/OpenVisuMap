@@ -26,7 +26,7 @@ def MainProc(menuKey):
 		case 'P-3D':
 			if atlasName != None: atlasName += '-3D'
 			SortByPosX(pList)
-			ShowProteinList(pList, includeHA=True, rp=5, atName=atlasName, smtRatio=0.0, glyphSize=1.5, glyphOpacity=0.5)
+			ShowProteinList(pList, includeHA=True, intRp=5, atName=atlasName, smtRatio=0.0, gsize=1.5, gopacity=0.5)
 		case 'P-3Dx':
 			mp = ShowPDB(pId, rp=5, includeHA=True, setChainId=True, smtRatio=0.0)
 			npp = [b for b in mp.BodyList if b.Name[0] == 'd' or b.Name[0] == 'r' ]
@@ -89,25 +89,17 @@ def MainProc(menuKey):
 			SphereView(pId, True)
 		case 'sT':
 			TorsionMap(pList[:1])
-			ShowChain(pId, opacity=0.5)
+			ShowChain(pId, gopacity=0.5)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
 		case 'TT':
-			ShowChain(pId, opacity=0.5)
+			'''
+			ShowChain(pId, gopacity=0.5)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
 			ShowSphere3(pId)
+			'''
+			ShowSphere4()
+			ShowChain(pId)
 
-def ShowSphere3(pId):
-	bList = LoadChain0(pId)
-	bList = cs.ToSphere(bList, 0)
-	bList = cs.ToSphere(bList, 0.9)
-	bList = Interpolate(bList, 5, hidIntp=True)
-
-	for b in bList: b.Type = 5
-	bList[0].Type, bList[bList.Count-1].Type = 105, 110
-	info = MapInfo('pId:'+pId)
-	mp = ShowSphere(bList, info, 2, 3.0, 0.5, True)
-	mp.ShowBoundingBox = False
-	mp.RedrawAll()
 
 
 MainProc(vv.EventSource.Item)

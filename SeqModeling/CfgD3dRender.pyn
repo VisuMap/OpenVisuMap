@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen P-2D P-Seq P-Web P-ChmX HideIPO MarkHelix MarkBeta RnaChain 'Open PDB' UniChains Flipping Looping SelectPID Tr
+#MenuLabels ShowData Scanning ReCreateMap Smoothen P-2D P-Seq P-Web P-ChmX HideIPO MarkHelix MarkBeta RnaChain 'Open PDB' UniChains Flipping Looping SelectPID Tr TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -65,5 +65,7 @@ match vv.EventSource.Item:
 			if vv.ModifierKeys.AltPressed:
 				break
 		pp.Redraw()
+	case 'TT':
+		ShowSphere4(contracting=0.9)
 
 
