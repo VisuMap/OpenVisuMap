@@ -465,22 +465,19 @@ def GetMFSeq(pList, aaGroups, mfL):
 
 
 def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
-		aaGroups='A', waveLen=1024, waveCount=33, mfL=20, staged=False, minLen=0, maxLen=0, samplingDist=0):
+		aaGroups='A', waveLen=1024, waveCount=33, mfL=20, staged=False, filterP=(0.0,0,0)):
 	pTable = AssertProteinTable()	
 	ppl, initExag, finalExag = tSNE
 	t0 = time.time()
 
+	samplingDist, minLen, maxLen = filterP
 	if minLen > 0:
 		pList = [ pId for pId in pList if int(vv.Dataset.DoubleAt(pId, 3)) >= minLen ]
 	if maxLen > 0:
 		pList = [ pId for pId in pList if int(vv.Dataset.DoubleAt(pId, 3)) <= maxLen ]
-
-	if samplingDist > 0:
+	if samplingDist > 0.0:
 		pList = ss.FlatSampling(pList, samplingDist)
 		vv.Title = f'Sampled {len(pList)} chains!'
-		if vv.ModifierKeys.ControlPressed:
-			vv.SelectedItems = pList
-			return
 
 	# vectorizing the sequence to a table.
 	match vType:
@@ -513,10 +510,9 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
 	info.Set('wvL', waveLen)
 	info.Set('wvCnt', waveCount)
 	info.Set('mfL', mfL)
-	info.Set('maxL', maxLen)
-	info.Set('minL', minLen)
 	info.Set('pCnt', dt.Rows)
 	info.Set('tP', tP)	
+	info.Set('fP', filterP)
 
 	snMap = RunMds(mds, repeats=1, info=info)
 	snMap.Dataset = dt.ToDataset()

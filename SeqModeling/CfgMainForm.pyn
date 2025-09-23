@@ -6,7 +6,7 @@ vv.Import('SphericalProj.pyn')
 def SortByPosX(idList):
 	idList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
 
-def MainProc(menuKey):
+def MainMain(menuKey):
 	selected = list(vv.Map.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None
 	pList = selected if len(selected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
@@ -14,7 +14,7 @@ def MainProc(menuKey):
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
 	def PM2(*args, **kwargs):
-		mp = ProteinMap2(pList, vt, 4000, samplingDist=0, minLen=0, maxLen=0, *args, **kwargs)
+		mp = ProteinMap2(pList, vt, 4000, filterP=(0.0, 0, 0), *args, **kwargs)
 		vv.Dataset.AddMap(vt)
 		mp.NormalizeView().CopyMap()
 		vv.Map.Redraw()
@@ -70,7 +70,7 @@ def MainProc(menuKey):
 						# tSNE=(ppl,initE,finalE)  tp=(epochs,waveN,intRp,stretch,   outDim,ppl,initE,finalE)
 						PM2(tSNE=(0.05, 6.0, 1.0), tP=(1000, 20, 2, 0.5,     2, 0.25, 3.0, 1.5))
 					case '2D': 
-						MainProc('P-2D')
+						MainMain('P-2D')
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
@@ -100,9 +100,7 @@ def MainProc(menuKey):
 			ShowSphere4()
 			ShowChain(pId)
 
-
-
-MainProc(vv.EventSource.Item)
+MainMain(vv.EventSource.Item)
 
 import random
 def MakeDatasetPMap(dn, sampleSize):
@@ -114,16 +112,14 @@ def MakeDatasetPMap(dn, sampleSize):
 	random.seed(321)
 	vv.SelectedItems = random.sample(bs, min(sampleSize, len(bs)))
 	random.seed(time.time())
-	MainProc('P-Map')
-	MainProc('P-2D')
+	MainMain('P-Map')
+	MainMain('P-2D')
 	if vv.LastView.Name == 'Atlas':
 		vv.LastView.Close()
 	vv.Folder.Save()
 
 '''
-dnList = list(vv.Folder.DatasetNameList)[2:]
-dnList = [ vv.Dataset.Name ]
-for dn in dnList:	MakeDatasetPMap(dn, 10000)
-	
-
+dnList = list(vv.Folder.DatasetNameList)[1:]
+dnList = dnList[dnList.index('Virus10K'):]
+for dn in dnList:	MakeDatasetPMap(dn, 5000)
 '''
