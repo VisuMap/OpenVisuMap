@@ -1012,6 +1012,12 @@ def TypeProteinList(pList):
 def SeqMod(op, seq):
 	return ''.join( [modOp[c] for c in seq] )
 
+def NormalizeChainTypes(bList):
+	for b in bList: 
+		b.Type = 1;
+	bList[0].Type = SeqMap_HEAD
+	bList[bList.Count-1].Type = SeqMap_TAIL
+
 def LookupKey(key2type, ckey):
 	for k in key2type:
 		if cs.NWDistance(ckey, k) < 20:
