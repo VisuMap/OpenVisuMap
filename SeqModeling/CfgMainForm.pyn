@@ -50,7 +50,7 @@ def MainMain(menuKey):
 					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 			else:
 				CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, 
-					tP = (1000, 3, 0.0, 0.1, 4.0, 1.25))
+					tP = (1000, 3, 0.0, 0.1, 4.0, 1.25))			
 		case 'P-Map':
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
 			vList = ['tMF']
@@ -122,6 +122,6 @@ def MakeDatasetPMap(dn, sampleSize):
 
 '''
 dnList = list(vv.Folder.DatasetNameList)[1:]
-#dnList = dnList[dnList.index('Pigmentation'):]
+#dnList = dnList[dnList.index('T2414'):]
 for dn in dnList:	MakeDatasetPMap(dn, 5000)
 '''

@@ -209,6 +209,7 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 		ma.Description = info.ToStr()
 		ma.Show()
 		ma.DataChanged = True # since the Show() clears the DataChanged flag.
+		del mapStore
 
 # CreateProteinMaps() is a fast version of UnFoldProteinList(), it is limited to sequences with less than 23K PP.
 def CreateProteinMaps(pList, samplingDist, atlasName, tP):
@@ -246,9 +247,7 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 		ma.Show()
 		MatchProteinMap(ma, 50)
 		ma.Description = info.ToStr()
-		return ma
-	else:
-		return None
+		del mapStore
 
 def SimplifyTitle(title):
 	return title.replace(':', '..').replace(';', '.,')

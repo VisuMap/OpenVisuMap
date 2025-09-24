@@ -240,7 +240,7 @@ class AtlasMapStore():
 		if self.rawMap != None:
 			self.rawMap.Close()
 
-class FastTsne:
+class FastTsne():
 	def __init__(self, maxRows=0, maxColumns=5, outDim=2, epoches=1000, ppl=0.05, initExag=4.0, finalExag=1.0):
 		self.tsne = New.FastTsne(maxRows, maxColumns, outDim)
 		self.tsne.Configure(epoches, ppl, initExag, finalExag)
