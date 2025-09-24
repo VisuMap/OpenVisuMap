@@ -104,6 +104,7 @@ MainMain(vv.EventSource.Item)
 
 import random
 def MakeDatasetPMap(dn, sampleSize):
+	t0 = time.time()
 	print('DS: ', dn)
 	vv.Folder.OpenDataset(dn)
 	ds = vv.Dataset
@@ -117,9 +118,10 @@ def MakeDatasetPMap(dn, sampleSize):
 	if vv.LastView.Name == 'Atlas':
 		vv.LastView.Close()
 	vv.Folder.Save()
+	print('        TM: ', round(time.time()-t0, 1))
 
 '''
 dnList = list(vv.Folder.DatasetNameList)[1:]
-dnList = dnList[dnList.index('Virus10K'):]
+#dnList = dnList[dnList.index('Pigmentation'):]
 for dn in dnList:	MakeDatasetPMap(dn, 5000)
 '''

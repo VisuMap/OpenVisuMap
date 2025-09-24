@@ -254,11 +254,7 @@ def ConfigSeqMap(map, pId, gsize=6.0, redrawMap=False):
 	map.GlyphSize = gsize
 	map.Description = f'pId:{pId}'
 	map.GlyphOpacity = 1.0
-	bList = map.BodyList
-	bList[0].Type = SeqMap_HEAD
-	bList[bList.Count-1].Type = SeqMap_TAIL
-	for k in range(1, bList.Count-1):
-		bList[k].Type = 184
+	NormalizeChainTypes(map.BodyList, 184)						
 	if redrawMap:
 		map.ReloadGlyphSet()
 		map.RedrawAll()
@@ -1012,9 +1008,9 @@ def TypeProteinList(pList):
 def SeqMod(op, seq):
 	return ''.join( [modOp[c] for c in seq] )
 
-def NormalizeChainTypes(bList):
+def NormalizeChainTypes(bList, chType=1):
 	for b in bList: 
-		b.Type = 1;
+		b.Type = chType;
 	bList[0].Type = SeqMap_HEAD
 	bList[bList.Count-1].Type = SeqMap_TAIL
 

@@ -162,8 +162,8 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 
 			if not wholeComplex:
 				for b in bList:
-					b.Type = 184
 					b.Hidden = False
+				NormalizeChainTypes(bList, 184)						
 			bList = Interpolate(bList, rp=3, smtRatio=smtRatio)			
 			if includeHA:
 				bList.AddRange(bList2)
