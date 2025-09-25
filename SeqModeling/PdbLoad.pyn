@@ -138,7 +138,7 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 		pList = pList2
 
 	if samplingDist > 0:
-		pList = ss.FlatSampling(pList, samplingDist)
+		pList = cs.FlatSampling(pList, samplingDist)
 		vv.Title = f'Sampled {len(pList)} chains!'
 	else:
 		vv.Title = 'Sampled all chains'
@@ -216,7 +216,7 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 	epochs, intRp, stretch, ppl, initE, finalE = tP
 	if samplingDist > 0:
-		pList = ss.FlatSampling(pList, samplingDist)
+		pList = cs.FlatSampling(pList, samplingDist)
 		vv.Title = f'Sampled {len(pList)} chains!'
 	maxRows = MaxRows(vv.Dataset, pList, intRp)
 	tsne = FastTsne(maxRows, 4, 2, epochs, ppl, initE, finalE)

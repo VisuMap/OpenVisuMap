@@ -200,7 +200,7 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 		info.Mtd = 'S2'
 		info.Set('cF', ctrF)
 		if samplingDist != 0:
-			pList = ss.FlatSampling(pList, samplingDist=samplingDist)
+			pList = cs.FlatSampling(pList, samplingDist=samplingDist)
 		for k, pId in enumerate(pList):				
 			bList = GetSphereDataset(pId, interRp=0, contracting=ctrF)
 			if bList == None:

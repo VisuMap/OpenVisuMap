@@ -43,7 +43,7 @@ match vv.EventSource.Item:
 	case 'Flipping':		
 		FlippingChains(pp)
 	case 'Looping':
-		LoopingChains(pp, secLen=25)
+		cs.LoopSection(pp, secLen=25)
 	case 'SelectPID':
 		vv.SelectedItems = [MapInfo(pp.Description).pId]
 	case 'Tr':

@@ -52,28 +52,6 @@ public void SwapHiddenBodies(List<IBody> bsList) {
 		b.Hidden = !b.Hidden;
 }
 
-public List<string> FlatSampling(List<string> chIds, double minDist) {
-	IList<IBody> bsList = vv.Dataset.BodyListForId(chIds);
-	List<IBody> sampling = New.BodyList();
-	double limit = minDist * minDist;
-	foreach(IBody b in bsList) {
-		bool isSampled = false;
-		double bX = b.X;
-		double bY = b.Y;
-		for(int k=0; k<sampling.Count; k++){
-			IBody a = sampling[k];
-			double dx = a.X - bX;
-			double dy = a.Y - bY;
-			if ( (dx*dx + dy*dy) < limit ) {
-				isSampled = true;
-				break;
-			}
-		}
-		if ( ! isSampled )
-			sampling.Add(b);
-	}
-	return sampling.Select(b=>b.Id).ToList();
-}
 
 public List<IBody> SetBodyType(List<IBody> bsList, string pId, int type) {
 	for(int k=0; k<bsList.Count; k++){
@@ -91,42 +69,6 @@ public void SetBodyType2(List<IBody> bsList,  short type) {
 	}
 }
 
-public void LoopSection(IMap3DView mp, int selLen=25) {
-	var bs = mp.BodyList;
-	int L;
-	for(L=0; L<bs.Count; L++) 
-		if (bs[L].Id != bs[0].Id)
-			break;
-	for(int idx = 0; idx<L; idx+=2) {
-	   string cId = "";
-		int k = 0;
-		int idx2 = idx + selLen;
-		foreach(IBody b in bs) {
-			if (b.Id != cId) {
-				k = 0;
-				cId = b.Id;
-			} else 
-				k++;
-			b.Hidden = ! ( (k>=idx) && (k<idx2) );
-		}
-		mp.Redraw();
-		vv.Sleep(20);
-		if ( vv.ModifierKeys.ControlPressed )
-			break;
-	}
-
-	vv.Sleep(500);
-	int maxType = bs.Select(b=>b.Type).Max();
-	for(int t=0; t<=maxType; t++) {
-		if ( vv.ModifierKeys.ControlPressed )
-			break;
-		foreach(var b in bs)
-			b.Hidden = (b.Type != t);
-		mp.Redraw();
-		vv.Sleep(500);
-	}
-		
-}
 
 public INumberTable AugmentByStretch(List<IBody> bList, double strechFactor, int intRp) {
 	if (strechFactor == 0)
@@ -467,7 +409,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
 	if maxLen > 0:
 		pList = [ pId for pId in pList if int(vv.Dataset.DoubleAt(pId, 3)) <= maxLen ]
 	if samplingDist > 0.0:
-		pList = ss.FlatSampling(pList, samplingDist)
+		pList = cs.FlatSampling(pList, samplingDist)
 		vv.Title = f'Sampled {len(pList)} chains!'
 
 	# vectorizing the sequence to a table.
@@ -1145,9 +1087,6 @@ def Merge2DList(atlas):
 	mp.GlyphOpacity = 0.5
 	mp.CentralizeView()
 	mp.Show()
-
-def LoopingChains(m3dView, secLen):
-	ss.LoopSection(m3dView, secLen)
 
 def SelectUniqSeq():
 	idSet = set()

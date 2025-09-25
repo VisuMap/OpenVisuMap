@@ -475,6 +475,66 @@ namespace VisuMap {
             return P;
         }
 
+        public List<string> FlatSampling(List<string> chIds, double minDist) {
+            IList<IBody> bsList = vv.Dataset.BodyListForId(chIds);
+            List<IBody> sampling = New.BodyList();
+            double limit = minDist * minDist;
+            foreach (IBody b in bsList) {
+                bool isSampled = false;
+                double bX = b.X;
+                double bY = b.Y;
+                for (int k = 0; k < sampling.Count; k++) {
+                    IBody a = sampling[k];
+                    double dx = a.X - bX;
+                    double dy = a.Y - bY;
+                    if ((dx * dx + dy * dy) < limit) {
+                        isSampled = true;
+                        break;
+                    }
+                }
+                if (!isSampled)
+                    sampling.Add(b);
+            }
+            return sampling.Select(b => b.Id).ToList();
+        }
+
+        public void LoopSection(IMap3DView mp, int selLen = 25) {
+            var bs = mp.BodyList;
+            int L;
+            for (L = 0; L < bs.Count; L++)
+                if (bs[L].Id != bs[0].Id)
+                    break;
+            for (int idx = 0; idx < L; idx += 2) {
+                string cId = "";
+                int k = 0;
+                int idx2 = idx + selLen;
+                foreach (IBody b in bs) {
+                    if (b.Id != cId) {
+                        k = 0;
+                        cId = b.Id;
+                    } else
+                        k++;
+                    b.Hidden = !((k >= idx) && (k < idx2));
+                }
+                mp.Redraw();
+                vv.Sleep(20);
+                if (vv.ModifierKeys.ControlPressed)
+                    break;
+            }
+
+            vv.Sleep(500);
+            int maxType = bs.Select(b => b.Type).Max();
+            for (int t = 0; t <= maxType; t++) {
+                if (vv.ModifierKeys.ControlPressed)
+                    break;
+                foreach (var b in bs)
+                    b.Hidden = (b.Type != t);
+                mp.Redraw();
+                vv.Sleep(500);
+            }
+
+        }
+
         public INumberTable VectorizeProtein(IList<string> seqList, string aaGroups, INumberTable transMatrix) {
             var P = Cluster2IdxList(aaGroups);
             int clusters = P.Values.Max(vs=>vs.Max()) + 1;

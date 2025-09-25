@@ -103,27 +103,32 @@ def MainMain(menuKey):
 MainMain(vv.EventSource.Item)
 
 import random
-def MakeDatasetPMap(dn, sampleSize):
-	t0 = time.time()
-	vv.Folder.OpenDataset(dn)
-	ds = vv.Dataset
-	ds.OpenMap('map')
-	bs = [b.Id for b in ds.BodyListEnabled()]
-	random.seed(321)
-	vv.SelectedItems = random.sample(bs, min(sampleSize, len(bs)))
-	random.seed(time.time())
-	MainMain('P-Map')
-	MainMain('P-2D')
-	if vv.LastView.Name == 'Atlas': vv.LastView.Close()
-	print('DS: ', dn, ';  TM: ', round(time.time()-t0, 1))
+def DoDatasetList(dnList, sampleSize=2000, createAtlas=False, rdSeed=321):
+	tm0 = time.time()
+	for n, dn in enumerate(dnList):
+		t0 = time.time()
+		vv.Folder.OpenDataset(dn)
+		ds = vv.Dataset
+		ds.OpenMap('map')
+		bs = [b.Id for b in ds.BodyListEnabled()]
+		random.seed(rdSeed)
+		vv.SelectedItems = random.sample(bs, min(sampleSize, len(bs)))
+		random.seed(time.time())
+		MainMain('P-Map')
+		if createAtlas:
+			MainMain('P-2D')
+			if vv.LastView.Name == 'Atlas': 
+				vv.LastView.Close()
+		t0 = time.time()-t0
+		print(f'{n}: {dn}, \t{t0:.1f}s')
+	tm0 = (time.time() - tm0)/3600.0
+	print(f'Total Time: {tm0:.2f}hr')
 
 '''
 
-tm0 = time.time()
 dnList = list(vv.Folder.DatasetNameList)[1:]
-#dnList = dnList[dnList.index('Dynein'):]
-for dn in dnList:	MakeDatasetPMap(dn, 5000)
-tm0 = time.time() - tm0
-print('Total Time:', round(tm0, 1))
+dnList = dnList[dnList.index('PSymmetry10K'):]
+DoDatasetList(dnList, 2000, True)
+
 
 '''
