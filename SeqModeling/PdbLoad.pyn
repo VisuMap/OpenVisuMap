@@ -94,7 +94,7 @@ def ShowChain(cId, gsize=2.1, gopacity=0.75, hsize=3, intRp=5):
 
 
 def ShowProteinList(pList, includeHA, atName=None, smtRatio=0, gsize=1.0, gopacity=0.75, intRp=3):
-	mapStore = NewMapStore(atName, clearStore=True)
+	mapStore = NewMapStore(atName)
 	if mapStore != None:
 		mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
 	for k, pId in enumerate(pList):
@@ -147,7 +147,7 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 		vv.SelectedItems = pList
 		return
 	
-	mapStore = NewMapStore(atName, clearStore=True)	
+	mapStore = NewMapStore(atName)	
 	rFreq = 10 if mapStore == None else 0
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, refreshFreq=rFreq, repeats=0, metric='EuclideanMetric',
 		ppl=ppl, initExag=initExag, finalExag=finalExag, glyphSet=vv.Map.GlyphSet, glyphOpacity=1.0)	

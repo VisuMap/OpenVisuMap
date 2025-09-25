@@ -47,10 +47,6 @@ if 'cs' not in globals():
 
 ss = New.CsObject('''
 
-public IList<string> SelectByAA(IList<IBody> bList, string pAA) {
-	return bList.Where(b=>pAA.Contains(b.Name[0])).Select(b=>b.Id).ToList();
-}
-
 public void SwapHiddenBodies(List<IBody> bsList) {
     foreach(var b in bsList)
 		b.Hidden = !b.Hidden;
@@ -259,9 +255,8 @@ def ConfigSeqMap(map, pId, gsize=6.0, redrawMap=False):
 		map.ReloadGlyphSet()
 		map.RedrawAll()
 
-
-def NewMapStore(atName, clearStore=False):
-	return None if atName is None else AtlasMapStore(atName, clearStore)
+def NewMapStore(atName):
+	return AtlasMapStore(atName, True) if atName!=None else None
 
 #-----------------------------------------------------------
 # Code to maintain the protein table.
@@ -713,7 +708,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 	info.AugCfg = augCfg
 	info.Mtd = 'Frg'
 	info.DS = vv.Dataset.Name
-	mapStore = NewMapStore(saveTo, clearStore=True)
+	mapStore = NewMapStore(saveTo)
 
 	aaClusters = {}  # maps aa to cluster indexes.
 	for k, aaG in enumerate(aaGroups.split('|')):

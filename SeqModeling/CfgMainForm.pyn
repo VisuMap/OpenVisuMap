@@ -105,7 +105,6 @@ MainMain(vv.EventSource.Item)
 import random
 def MakeDatasetPMap(dn, sampleSize):
 	t0 = time.time()
-	print('DS: ', dn)
 	vv.Folder.OpenDataset(dn)
 	ds = vv.Dataset
 	ds.OpenMap('map')
@@ -115,12 +114,16 @@ def MakeDatasetPMap(dn, sampleSize):
 	random.seed(time.time())
 	MainMain('P-Map')
 	MainMain('P-2D')
-	if vv.LastView.Name == 'Atlas':
-		vv.LastView.Close()
-	print('        TM: ', round(time.time()-t0, 1))
+	if vv.LastView.Name == 'Atlas': vv.LastView.Close()
+	print('DS: ', dn, ';  TM: ', round(time.time()-t0, 1))
 
 '''
+
+tm0 = time.time()
 dnList = list(vv.Folder.DatasetNameList)[1:]
 #dnList = dnList[dnList.index('Dynein'):]
 for dn in dnList:	MakeDatasetPMap(dn, 5000)
+tm0 = time.time() - tm0
+print('Total Time:', round(tm0, 1))
+
 '''
