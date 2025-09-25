@@ -211,7 +211,7 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 			bList = DoTsne(info, bList)
 			mapStore.AddRawMap(pId, bList, 1.0)
 		MatchProteinMap(mapStore.atlas, 70)
-		mapStore.Close()
+		del mapStore
 		New.Atlas(atlasName).Show()
 	mds.Close()
 

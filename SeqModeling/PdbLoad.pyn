@@ -103,7 +103,8 @@ def ShowProteinList(pList, includeHA, atName=None, smtRatio=0, gsize=1.0, gopaci
 		mp = ShowPDB(pId, chainNames=chainNames, includeHA=includeHA, 
 				rp=intRp, smtRatio=smtRatio, glyphSize=gsize, glyphOpacity=gopacity)
 		if mapStore != None:	
-			mapStore.AddMap('D3dRender').Close()
+			mapStore.AddMap('D3dRender')
+			del mapStore
 		else:
 			mp.NormalizeView()
 	if mapStore != None:

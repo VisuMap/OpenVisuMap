@@ -235,7 +235,7 @@ class AtlasMapStore():
 		item.IconHeight = 0
 		return None
 
-	def Close(self):
+	def __del__(self):
 		self.atlas.Close()
 		if self.rawMap != None:
 			self.rawMap.Close()

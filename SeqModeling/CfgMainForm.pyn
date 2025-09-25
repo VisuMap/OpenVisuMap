@@ -117,11 +117,10 @@ def MakeDatasetPMap(dn, sampleSize):
 	MainMain('P-2D')
 	if vv.LastView.Name == 'Atlas':
 		vv.LastView.Close()
-	vv.Folder.Save()
 	print('        TM: ', round(time.time()-t0, 1))
 
 '''
 dnList = list(vv.Folder.DatasetNameList)[1:]
-#dnList = dnList[dnList.index('T2414'):]
+#dnList = dnList[dnList.index('Dynein'):]
 for dn in dnList:	MakeDatasetPMap(dn, 5000)
 '''
