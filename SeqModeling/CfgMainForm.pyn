@@ -42,7 +42,7 @@ def MainMain(menuKey):
 					samplingDist=0.0, atName=atlasName, ppl=0.10, initExag=4.0, finalExag=1.0,
 					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 			else:
-				CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, 
+				CreateProteinMaps(pList, samplingDist=2.5, atlasName=atlasName, 
 					tP = (1000, 3, 0.0, 0.1, 4.0, 1.25))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
@@ -102,32 +102,39 @@ def MainMain(menuKey):
 MainMain(vv.EventSource.Item)
 
 import random
-def DoDatasetList(dnList, sampleSize=2000, createAtlas=False, rdSeed=321):
+def DoDatasetList(dnList, sampleSize=2000, initMap=0, createPMap=True, createAtlas=False):
 	tm0 = time.time()
 	for n, dn in enumerate(dnList):
 		t0 = time.time()
 		vv.Folder.OpenDataset(dn)
 		ds = vv.Dataset
-		ds.OpenMap('map')
-		bs = [b.Id for b in ds.BodyListEnabled()]
-		random.seed(rdSeed)
-		vv.SelectedItems = random.sample(bs, min(sampleSize, len(bs)))
-		random.seed(time.time())
-		MainMain('P-Map')
+		ds.OpenMap(ds.MapNameList[initMap])
+		if createPMap:
+			bs = [b.Id for b in ds.BodyListEnabled()]
+			random.seed(321)
+			vv.SelectedItems = random.sample(bs, min(sampleSize, len(bs)))
+			random.seed(time.time())
+			MainMain('P-Map')
 		if createAtlas:
 			MainMain('P-2D')
 			if vv.LastView.Name == 'Atlas': 
 				vv.LastView.Close()
 		t0 = time.time()-t0
-		print(f'{n}: {dn}, \t{t0:.1f}s')
+		print(f'{n}: {dn}\t{t0:.1f}s')
 	tm0 = (time.time() - tm0)/3600.0
 	print(f'Total Time: {tm0:.2f}hr')
 
 '''
 
 dnList = list(vv.Folder.DatasetNameList)[1:]
-dnList = dnList[dnList.index('PSymmetry10K'):]
-DoDatasetList(dnList, 2000, True)
 
+for dn in dnList:
+	vv.Folder.OpenDataset(dn)
+	mpList = list(vv.Dataset.MapNameList)
+	for mp in mpList[3:]:
+		vv.Dataset.DeleteMap(mp)
+
+#dnList = dnList[dnList.index('PSymmetry10K'):]
+DoDatasetList(dnList, sampleSize=10000, initMap=1, createPMap=False, createAtlas=True )
 
 '''
