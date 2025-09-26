@@ -604,7 +604,7 @@ def NewMds(nt=None, epochs=1000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0
 	mds.MapZoomFactor = zoomFactor
 	mds.GlyphScale = glyphScale
 	mds.GlyphSet = vv.Map.GlyphType if glyphSet==None else glyphSet
-	mds.Description = ''
+	mds.Description = ''	
 	return mds
 
 def RunMds(mds, repeats=1, info=None, nt=None):
@@ -1083,8 +1083,8 @@ def Merge2DList(atlas):
 	mp = New.MapSnapshot(bs)
 	mp.ReadOnly = True
 	mp.GlyphSet = SeqMap_GLYPHSET
-	mp.GlyphSize = 0.35
-	mp.GlyphOpacity = 0.5
+	mp.GlyphSize = 0.75
+	mp.GlyphOpacity = 0.75
 	mp.CentralizeView()
 	mp.Show()
 

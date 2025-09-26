@@ -48,8 +48,9 @@ def AtlasMain(menuKey):
 					mp.Close()
 		case 'P-2D':
 			pList = [item.Id for item in pSelected]
-			UnFoldProteinList(pList, epochs=2500, includeHA=False,  wholeComplex=False, samplingDist=0.0,
-				initExag=4.0, ppl=0.1, stretch=0.1, clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
+			UnFoldProteinList(pList, epochs=2500, includeHA=False,  wholeComplex=False,
+				samplingDist=0.0,	initExag=4.0, ppl=0.1, stretch=0.1,
+				clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
 		case 'P-Web':
 			ShowWeb(pId)
 		case 'P-ChmX':

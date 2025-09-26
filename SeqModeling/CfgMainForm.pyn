@@ -12,13 +12,6 @@ def MainMain(menuKey):
 	pList = selected if len(selected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
 	atlasName = None if len(pList) == 1 else f'{vv.Dataset.Name}/{vv.Map.Name}.{len(pList)}'
 	ctrPressed = vv.ModifierKeys.ControlPressed	
-
-	def PM2(*args, **kwargs):
-		mp = ProteinMap2(pList, vt, 4000, filterP=(0.0, 0, 0), *args, **kwargs)
-		vv.Dataset.AddMap(vt)
-		mp.NormalizeView().CopyMap()
-		vv.Map.Redraw()
-		mp.Close()
 			
 	match menuKey:
 		case 'P-ChmX': ShowChimeraX(pId)
@@ -52,6 +45,12 @@ def MainMain(menuKey):
 				CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, 
 					tP = (1000, 3, 0.0, 0.1, 4.0, 1.25))			
 		case 'P-Map':
+			def PM2(*args, **kwargs):
+				mp = ProteinMap2(pList, vt, 4000, filterP=(0.0, 0, 0), *args, **kwargs)
+				vv.Dataset.AddMap(vt)
+				mp.NormalizeView().CopyMap()
+				vv.Map.Redraw()
+				mp.Close()
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
 			vList = ['tMF']
 			for vt in vList:
@@ -68,7 +67,7 @@ def MainMain(menuKey):
 						PM2(tSNE=(0.1, 4.0, 1.0), tP=(20, 0.85, True, 1000, 0.15, 4.0, 1.0))
 					case 'tMF' | 'tFT':	
 						# tSNE=(ppl,initE,finalE)  tp=(epochs,waveN,intRp,stretch,   outDim,ppl,initE,finalE)
-						PM2(tSNE=(0.05, 6.0, 1.0), tP=(1000, 20, 2, 0.5,     2, 0.25, 3.0, 1.5))
+						PM2(tSNE=(0.05, 6.0, 1.0), tP=(1000, 20, 2, 0.5,     2, 0.25, 5.0, 1.5))
 					case '2D': 
 						MainMain('P-2D')
 		case 'TypeProtein':
