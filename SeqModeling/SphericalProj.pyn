@@ -59,18 +59,20 @@ def ShowSphere3(pId):
 	mp.RedrawAll()
 
 def ShowSphere4(repeats=5, contracting=0.9):
-	if pp.Name == 'MainForm':
-		pId = pp.SelectedItems[0]
-		bList = LoadChain0(pId)
-	elif pp.Name == 'Atlas':
-		pId = pp.SelectedItems[0].Id
-		bList = LoadChain0(pId)
-	elif pp.Name == 'D3dRender':
-		pId = MapInfo(pp.Description).pId
-		bList = pp.BodyList
-	else:
-		pId = MapInfo(pp.Description).pId
-		bList = pp.BodyList
+	match pp.Name:
+		case 'MainForm' | 'MapSnapshot':
+			pId = pp.SelectedItems[0]
+			bList = LoadChain0(pId)
+		case 'Atlas':
+			pId = pp.SelectedItems[0].Id
+			bList = LoadChain0(pId)
+		case 'D3dRender':
+			pId = MapInfo(pp.Description).pId
+			bList = pp.BodyList
+		case _:
+			pId = MapInfo(pp.Description).pId
+			bList = pp.BodyList
+
 	bList = New.BodyListClone([b for b in bList if b.Id.startswith('A')])
 	bList = cs.ToSphere(bList, contracting)
 

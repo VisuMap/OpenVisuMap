@@ -27,7 +27,7 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 
 	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, chainNames=chainNames)
 	bsList = Interpolate(bsList, rp, smtRatio=smtRatio, hidIntp=hidIntp)
-	
+
 	bsList[0].Type = SeqMap_TAIL
 	for k in range(1, bsList.Count-1):		
 		if bsList[k].Name.split('.')[2] != bsList[k+1].Name.split('.')[2]:

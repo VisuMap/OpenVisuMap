@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-ChmX P-3D P-3Dx HideIPO MarkHelix MarkBeta UniChains 'RNA/DNA' Align SelectPID
+#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-ChmX P-3D P-3Dx HideIPO MarkHelix MarkBeta UniChains 'RNA/DNA' Align SelectPID S2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -24,9 +24,14 @@ match vv.EventSource.Item:
 		pId = MapInfo(pp.Description).pId
 		ShowChimeraX(pId)
 	case 'P-3D':		
-		info = MapInfo(pp.Description)
+		info = MapInfo(pp.Description)				
 		pId = info.pId
-		chainNames = info.Get('CNs').split('|') if info.Has('CNs') else None				
+		if info.pId == None:
+			pId = pp.SelectedItems[0]
+			chainNames = None
+		else:
+			pId = info.pId
+			chainNames = info.Get('CNs').split('|') if info.Has('CNs') else None
 		ShowPDB(pId, rp=3, includeHA=False, chainNames=chainNames) 
 	case 'P-3Dx':
 		info = MapInfo(pp.Description)
@@ -47,6 +52,8 @@ match vv.EventSource.Item:
 		AlignSeqPair(pp)
 	case 'SelectPID':
 		vv.SelectedItems = [MapInfo(pp.Description).pId]
+	case 'S2':
+		ShowSphere4()
 
 
 
