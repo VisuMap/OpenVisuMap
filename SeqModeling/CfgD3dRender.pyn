@@ -1,18 +1,10 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen P-2D P-Seq P-Web P-ChmX HideIPO MarkHelix MarkBeta RnaChain 'Open PDB' UniChains Flipping Looping SelectPID Tr TT
+#MenuLabels Scanning Smoothen P-2D HideIPO MarkHelix MarkBeta RnaChain UniChains Flipping Looping SelectPID Tr S2 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
 match vv.EventSource.Item:
-	case 'ShowData':
-		AssertSeqMap(pp)
-		ShowMapData(pp)
 	case 'Scanning':
 		Scanning(pp, stepSize=10, broadcasting=vv.ModifierKeys.ControlPressed)
-	case 'P-Seq':
-		ShowAASeq(pp)
-	case 'ReCreateMap':
-		AssertSeqMap(pp)
-		ReCreateMap(pp)
 	case 'Smoothen':
 		SmoothenCurve(pp, repeats=50)
 	case 'P-2D':
@@ -28,14 +20,6 @@ match vv.EventSource.Item:
 		ShowBetaSheet()
 	case 'RnaChain':
 		pp.SelectedItems = [b.Id for b in pp.BodyList if b.Name[0] == 'r']
-	case 'Open PDB':
-		OpenCifFile(MapInfo(pp.Description).pId)
-	case 'P-Web':
-		pId = MapInfo(pp.Description).pId
-		ShowWeb(pId)
-	case 'P-ChmX':
-		pId = MapInfo(pp.Description).pId
-		ShowChimeraX(pId)
 	case 'UniChains':
 		if vv.ModifierKeys.ControlPressed:
 			key2type = {}		
@@ -65,6 +49,8 @@ match vv.EventSource.Item:
 			if vv.ModifierKeys.AltPressed:
 				break
 		pp.Redraw()
+	case 'S2':
+		ShowSphere4(contracting=0.9)
 	case 'TT':
 		ShowSphere4(contracting=0.9)
 

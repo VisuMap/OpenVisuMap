@@ -66,34 +66,6 @@ public List<IBody> SetBodyType(List<IBody> bList, string pId=null, int bType=1) 
 	return bList;
 }
 
-public List<IBody> NormalizeChain(List<IBody> bList, int chType=1, bool hidIntp=false){
-	foreach(var b in bList) {
-		if (chType >= 0)
-			b.Type = (short) chType;
-		if (hidIntp)
-			b.Hidden = b.Id[0] == 'i';
-	}
-	const short SeqMap_HEAD = 155;
-	const short SeqMap_TAIL = 171;
-	bList[0].Type = SeqMap_HEAD;
-	bList[bList.Count-1].Type = SeqMap_TAIL;
-	return bList;
-}
-
-public INumberTable AugmentByStretch(List<IBody> bList, double strechFactor, int intRp) {
-	if (strechFactor == 0)
-		return New.NumberTable(bList, 3);
-	INumberTable nt = New.NumberTable(bList, 4);
-	int intCnt = 1;
-	for(int k=0; k<intRp; k++)
-		intCnt += intCnt;
-	double dx = 0.1*strechFactor/intCnt;
-	double[][] M = (double[][])nt.Matrix;
-	for(int k=0; k<nt.Rows; k++)
-		M[k][3] = k*dx;
-	return nt;
-}
-
 ''')
 
 
@@ -202,7 +174,7 @@ def ConfigSeqMap(map, pId, gsize=6.0, redrawMap=False):
 	map.GlyphSize = gsize
 	map.Description = f'pId:{pId}'
 	map.GlyphOpacity = 1.0
-	ss.NormalizeChain(map.BodyList, 184)						
+	cs.NormalizeChain(map.BodyList, 184)						
 	if redrawMap:
 		map.ReloadGlyphSet()
 		map.RedrawAll()
@@ -280,7 +252,7 @@ def GetTsneRD_old(pList, vType, tP):
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
 		ss.SetBodyType(bList, None, vv.Dataset.BodyForId(pId).Type)
 		bList = Interpolate1Chain(bList, rp=intRp, smtRatio=0)
-		nt = ss.AugmentByStretch(bList, stretch, intRp)
+		nt = cs.AugmentByStretch(bList, stretch, intRp)
 		mds.Description = f'pId:{pId}'
 		RunMds(mds, repeats=0, nt=nt)	
 
@@ -317,7 +289,7 @@ def GetTsneRD(pList, vType, tP):
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
 		ss.SetBodyType(bList, None, ds.BodyForId(pId).Type)
 		bList = Interpolate1Chain(bList, rp=intRp, smtRatio=0)
-		nt = ss.AugmentByStretch(bList, stretch, intRp)
+		nt = cs.AugmentByStretch(bList, stretch, intRp)
 		vv.DoEvents()
 
 		nt = tsne.Fit(nt)
@@ -1079,9 +1051,9 @@ def Merge2DList(atlas):
 			yc = np.average([b.Y for b in bList])
 		else:
 			cs.CenteringBodyList(bList, xc, yc, 0)
-		ss.NormalizeChain(bList, chType=-1, hidIntp=True)
+		cs.NormalizeChain(bList, chType=-1, hidIntp=True)
 		bList = ss.SetBodyType(bList, item.Id, k)
-		ss.NormalizeChain(bList, chType=-1, hidIntp=False)
+		cs.NormalizeChain(bList, chType=-1, hidIntp=False)
 		bs.AddRange(bList)
 		mp.Close()
 	mp = New.MapSnapshot(bs)

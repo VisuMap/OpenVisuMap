@@ -138,6 +138,34 @@ namespace VisuMap {
             }
         }
 
+        public List<IBody> NormalizeChain(List<IBody> bList, int chType = 1, bool hidIntp = false) {
+            foreach (var b in bList) {
+                if (chType >= 0)
+                    b.Type = (short)chType;
+                if (hidIntp)
+                    b.Hidden = b.Id[0] == 'i';
+            }
+            const short SeqMap_HEAD = 155;
+            const short SeqMap_TAIL = 171;
+            bList[0].Type = SeqMap_HEAD;
+            bList[bList.Count - 1].Type = SeqMap_TAIL;
+            return bList;
+        }
+
+        public INumberTable AugmentByStretch(List<IBody> bList, double strechFactor, int intRp) {
+            if (strechFactor == 0)
+                return New.NumberTable(bList, 3);
+            INumberTable nt = New.NumberTable(bList, 4);
+            int intCnt = 1;
+            for (int k = 0; k < intRp; k++)
+                intCnt += intCnt;
+            double dx = 0.1 * strechFactor / intCnt;
+            double[][] M = (double[][])nt.Matrix;
+            for (int k = 0; k < nt.Rows; k++)
+                M[k][3] = k * dx;
+            return nt;
+        }
+
         public void CenteringBodyList(IList<IBody> bList, double cx, double cy, double cz) {
             if (bList.Count < 1)
                 return;

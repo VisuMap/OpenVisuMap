@@ -38,7 +38,7 @@ def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0, normalizing=F
 def ShowSphere2(pId, cf, hsize=4, gsize=4.0, gopacity=1.0, iRp=5):
 	info = MapInfo().Set('pId', pId)
 	bList = GetSphereDataset(pId, interRp=iRp, contracting=cf, normalizing=False)
-	ss.NormalizeChain(bList)
+	cs.NormalizeChain(bList)
 	mp = ShowSphere(bList, info, hsize, gsize, gopacity, True)
 	mp.EditMode = True
 	mp.ShowBoundingBox = False
@@ -51,7 +51,7 @@ def ShowSphere3(pId):
 	bList = cs.ToSphere(bList, 0.9)
 	bList = Interpolate(bList, 5, hidIntp=True)
 
-	ss.NormalizeChain(bList)
+	cs.NormalizeChain(bList)
 
 	info = MapInfo('pId:'+pId)
 	mp = ShowSphere(bList, info, 2, 3.0, 0.5, True)
@@ -79,7 +79,7 @@ def ShowSphere4(repeats=5, contracting=0.9):
 
 	bList = Interpolate(bList, repeats, hidIntp=True)	
 	for b in bList: b.Mult(1000.0)
-	ss.NormalizeChain(bList)
+	cs.NormalizeChain(bList)
 	info = MapInfo('pId:'+pId)
 	ShowSphere(bList, info, gsize=2.0, hsize=3, gopacity=0.75,  showBox=False)
 
@@ -104,7 +104,7 @@ def SphereUnfold(bList, cf):
 		bx.Type = 0
 		bs.Add(bx.Clone())
 	bs = Interpolate1Chain(bs, rp=5, hidIntp=True)
-	ss.NormalizeChain(bs)
+	cs.NormalizeChain(bs)
 	if NotExits(tgtView):
 		tgtView = New.Map3DView(New.BodyListClone(bs)).Show()
 		tgtView.CentralizeView()
@@ -128,7 +128,7 @@ def ShrinkSphere(bList, cf):
 		tgtView.GlyphSet = SeqMap_GLYPHSET
 		tgtView.GlyphOpacity = 0.5
 		tgtView.HiddenBodySize = 3
-		ss.NormalizeChain(tgtView.BodyList)
+		cs.NormalizeChain(tgtView.BodyList)
 		tgtView.Show()
 		tgtView.CentralizeView(False)
 	tgtView.MoveBodiesTo(bList, 5, 50, 0, 0)

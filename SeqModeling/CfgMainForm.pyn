@@ -25,9 +25,6 @@ def MainMain(menuKey):
 				pId = vv.PromptMessage('Protein ID: ', '????')
 				if pId == None: return
 			mp = ShowPDB(pId, rp=5, includeHA=True, setChainId=True, smtRatio=0.0)
-			npp = [b for b in mp.BodyList if b.Name[0] == 'd' or b.Name[0] == 'r' ]
-			if len(npp) > 0:
-				mp.ClickMenu('SeqVis/Flipping')
 		case 'P-3Ds':
 			Merge3DList(pList)
 		case 'SeqMap':

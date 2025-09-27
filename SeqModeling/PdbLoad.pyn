@@ -77,7 +77,7 @@ def ShowChain(cId, gsize=2.1, gopacity=0.75, hsize=3, intRp=5):
 	bList = LoadChain0(cId)
 	bList = Interpolate1Chain(bList, rp=intRp)
 	for b in bList: b.Hidden = (b.Id[0] == 'i')
-	ss.NormalizeChain(bList)
+	cs.NormalizeChain(bList)
 	mp = New.Map3DView(bList)
 	mp.GlyphSet = SeqMap_GLYPHSET
 	mp.ReadOnly = True
@@ -106,7 +106,7 @@ def ShowProteinList(pList, includeHA, atName=None, smtRatio=0, gsize=1.0, gopaci
 			mapStore.AddMap('D3dRender')
 			del mapStore
 		else:
-			ss.NormalizeChain(mp.BodyList, chType=-1, hidIntp=True)
+			cs.NormalizeChain(mp.BodyList, chType=-1, hidIntp=True)
 			mp.NormalizeView()
 	if mapStore != None:
 		ma = mapStore.atlas
@@ -165,7 +165,7 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 			if not wholeComplex:
 				for b in bList:
 					b.Hidden = False
-				ss.NormalizeChain(bList, 184)						
+				cs.NormalizeChain(bList, 184)						
 			bList = Interpolate(bList, rp=3, smtRatio=smtRatio)			
 			if includeHA:
 				bList.AddRange(bList2)
@@ -230,7 +230,7 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 	for k, pId in enumerate(pList):
 		bList = LoadChain0(pId)
 		bList = Interpolate1Chain(bList, intRp)
-		nt = ss.AugmentByStretch(bList, stretch, intRp)
+		nt = cs.AugmentByStretch(bList, stretch, intRp)
 		nt = tsne.Fit(nt)
 		if nt == None:
 			continue
