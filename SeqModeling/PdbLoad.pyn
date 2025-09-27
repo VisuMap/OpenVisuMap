@@ -77,7 +77,7 @@ def ShowChain(cId, gsize=2.1, gopacity=0.75, hsize=3, intRp=5):
 	bList = LoadChain0(cId)
 	bList = Interpolate1Chain(bList, rp=intRp)
 	for b in bList: b.Hidden = (b.Id[0] == 'i')
-	NormalizeChainTypes(bList)
+	ss.NormalizeChain(bList)
 	mp = New.Map3DView(bList)
 	mp.GlyphSet = SeqMap_GLYPHSET
 	mp.ReadOnly = True
@@ -106,6 +106,7 @@ def ShowProteinList(pList, includeHA, atName=None, smtRatio=0, gsize=1.0, gopaci
 			mapStore.AddMap('D3dRender')
 			del mapStore
 		else:
+			ss.NormalizeChain(mp.BodyList, chType=-1, hidIntp=True)
 			mp.NormalizeView()
 	if mapStore != None:
 		ma = mapStore.atlas
@@ -164,7 +165,7 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 			if not wholeComplex:
 				for b in bList:
 					b.Hidden = False
-				NormalizeChainTypes(bList, 184)						
+				ss.NormalizeChain(bList, 184)						
 			bList = Interpolate(bList, rp=3, smtRatio=smtRatio)			
 			if includeHA:
 				bList.AddRange(bList2)

@@ -21,6 +21,9 @@ def MainMain(menuKey):
 			SortByPosX(pList)
 			ShowProteinList(pList, includeHA=True, intRp=5, atName=atlasName, smtRatio=0.0, gsize=1.5, gopacity=0.5)
 		case 'P-3Dx':
+			if vv.ModifierKeys.ControlPressed:
+				pId = vv.PromptMessage('Protein ID: ', '????')
+				if pId == None: return
 			mp = ShowPDB(pId, rp=5, includeHA=True, setChainId=True, smtRatio=0.0)
 			npp = [b for b in mp.BodyList if b.Name[0] == 'd' or b.Name[0] == 'r' ]
 			if len(npp) > 0:
@@ -133,6 +136,8 @@ for dn in dnList:
 	mpList = list(vv.Dataset.MapNameList)
 	for mp in mpList[3:]:
 		vv.Dataset.DeleteMap(mp)
+
+ShowPDB('6DNW', rp=5)
 
 #dnList = dnList[dnList.index('PSymmetry10K'):]
 DoDatasetList(dnList, sampleSize=10000, initMap=1, createPMap=False, createAtlas=True )

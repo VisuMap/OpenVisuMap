@@ -52,23 +52,33 @@ public void SwapHiddenBodies(List<IBody> bsList) {
 		b.Hidden = !b.Hidden;
 }
 
-
-public List<IBody> SetBodyType(List<IBody> bsList, string pId, int type) {
-	for(int k=0; k<bsList.Count; k++){
-		bsList[k].Id = pId ;
-		bsList[k].Type = (short)type;
+public List<IBody> SetBodyType(List<IBody> bList, string pId=null, int bType=1) {
+	foreach(var b in bList){
+		if (pId == null) {
+			b.Type = (short)bType;
+			b.Disabled = false;
+			b.Hidden = false;
+		} else {
+			b.Id = pId ;
+			b.Type = (short)bType;
+		}
 	}
-	return bsList;
+	return bList;
 }
 
-public void SetBodyType2(List<IBody> bsList,  short type) {
-	foreach(var b in bsList){
-		b.Type = type;
-		b.Disabled = false;
-		b.Hidden = false;
+public List<IBody> NormalizeChain(List<IBody> bList, int chType=1, bool hidIntp=false){
+	foreach(var b in bList) {
+		if (chType >= 0)
+			b.Type = (short) chType;
+		if (hidIntp)
+			b.Hidden = b.Id[0] == 'i';
 	}
+	const short SeqMap_HEAD = 155;
+	const short SeqMap_TAIL = 171;
+	bList[0].Type = SeqMap_HEAD;
+	bList[bList.Count-1].Type = SeqMap_TAIL;
+	return bList;
 }
-
 
 public INumberTable AugmentByStretch(List<IBody> bList, double strechFactor, int intRp) {
 	if (strechFactor == 0)
@@ -192,7 +202,7 @@ def ConfigSeqMap(map, pId, gsize=6.0, redrawMap=False):
 	map.GlyphSize = gsize
 	map.Description = f'pId:{pId}'
 	map.GlyphOpacity = 1.0
-	NormalizeChainTypes(map.BodyList, 184)						
+	ss.NormalizeChain(map.BodyList, 184)						
 	if redrawMap:
 		map.ReloadGlyphSet()
 		map.RedrawAll()
@@ -268,7 +278,7 @@ def GetTsneRD_old(pList, vType, tP):
 		if bList.Count <= 2:	continue
 		if (k+1) % 10 == 0:
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
-		ss.SetBodyType2(bList, vv.Dataset.BodyForId(pId).Type)
+		ss.SetBodyType(bList, None, vv.Dataset.BodyForId(pId).Type)
 		bList = Interpolate1Chain(bList, rp=intRp, smtRatio=0)
 		nt = ss.AugmentByStretch(bList, stretch, intRp)
 		mds.Description = f'pId:{pId}'
@@ -305,7 +315,7 @@ def GetTsneRD(pList, vType, tP):
 			continue
 		if (k+1) % 10 == 0:
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
-		ss.SetBodyType2(bList, ds.BodyForId(pId).Type)
+		ss.SetBodyType(bList, None, ds.BodyForId(pId).Type)
 		bList = Interpolate1Chain(bList, rp=intRp, smtRatio=0)
 		nt = ss.AugmentByStretch(bList, stretch, intRp)
 		vv.DoEvents()
@@ -945,12 +955,6 @@ def TypeProteinList(pList):
 def SeqMod(op, seq):
 	return ''.join( [modOp[c] for c in seq] )
 
-def NormalizeChainTypes(bList, chType=1):
-	for b in bList: 
-		b.Type = chType;
-	bList[0].Type = SeqMap_HEAD
-	bList[bList.Count-1].Type = SeqMap_TAIL
-
 def LookupKey(key2type, ckey):
 	for k in key2type:
 		if cs.NWDistance(ckey, k) < 20:
@@ -1050,7 +1054,7 @@ def Merge3DList(pList):
 			zc = np.average([b.Z for b in bList])
 		else:
 			cs.CenteringBodyList(bList, xc, yc, zc)
-		bList = ss.SetBodyType(bList, pId, k)
+		bList = ss.SetBodyType(bList, pId=pId, bType=k)
 		bList[0].Type = SeqMap_HEAD
 		bList[bList.Count-1].Type = SeqMap_TAIL
 		bs.AddRange(bList)
@@ -1075,9 +1079,9 @@ def Merge2DList(atlas):
 			yc = np.average([b.Y for b in bList])
 		else:
 			cs.CenteringBodyList(bList, xc, yc, 0)
+		ss.NormalizeChain(bList, chType=-1, hidIntp=True)
 		bList = ss.SetBodyType(bList, item.Id, k)
-		bList[0].Type = SeqMap_HEAD
-		bList[bList.Count-1].Type = SeqMap_TAIL
+		ss.NormalizeChain(bList, chType=-1, hidIntp=False)
 		bs.AddRange(bList)
 		mp.Close()
 	mp = New.MapSnapshot(bs)
@@ -1085,6 +1089,7 @@ def Merge2DList(atlas):
 	mp.GlyphSet = SeqMap_GLYPHSET
 	mp.GlyphSize = 0.75
 	mp.GlyphOpacity = 0.75
+	mp.HiddenBodySize = 4
 	mp.CentralizeView()
 	mp.Show()
 
