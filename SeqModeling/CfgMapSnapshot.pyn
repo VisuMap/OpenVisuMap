@@ -23,19 +23,22 @@ match vv.EventSource.Item:
 	case 'P-ChmX':
 		pId = MapInfo(pp.Description).pId
 		ShowChimeraX(pId)
-	case 'P-3D':		
+	case 'P-3D':
 		info = MapInfo(pp.Description)				
-		pId = info.pId
 		if info.pId == None:
 			pId = pp.SelectedItems[0]
-			chainNames = None
+			chainNames = GetChainName(pId)
 		else:
 			pId = info.pId
 			chainNames = info.Get('CNs').split('|') if info.Has('CNs') else None
 		ShowPDB(pId, rp=3, includeHA=False, chainNames=chainNames) 
 	case 'P-3Dx':
-		info = MapInfo(pp.Description)
-		ShowPDB(info.pId[:4], rp=3, includeHA=False, chainNames=None) 
+		info = MapInfo(pp.Description)				
+		if info.pId == None:
+			pId = pp.SelectedItems[0]
+		else:
+			pId = info.pId
+		ShowPDB(pId, rp=3, includeHA=False, chainNames=None) 
 	case 'HideIPO':
 		HideInterpolates()
 	case 'MarkHelix':
