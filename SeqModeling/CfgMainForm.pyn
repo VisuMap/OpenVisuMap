@@ -45,8 +45,8 @@ def MainMain(menuKey):
 					samplingDist=0.0, atName=atlasName, ppl=0.10, initExag=4.0, finalExag=1.0,
 					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 			else:
-				CreateProteinMaps(pList, samplingDist=2.5, atlasName=atlasName, 
-					tP = (1000, 3, 0.0, 0.1, 4.0, 1.25))			
+				CreateProteinMaps(pList, samplingDist=1.5, atlasName=atlasName, 
+					tP = (1000, 3, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
 				mp = ProteinMap2(pList, vt, 4000, filterP=(0.0, 0, 0), *args, **kwargs)
@@ -137,9 +137,11 @@ for dn in dnList:
 	for mp in mpList[3:]:
 		vv.Dataset.DeleteMap(mp)
 
+vv.GuiManager.StopFlag
 ShowPDB('6DNW', rp=5)
 
-#dnList = dnList[dnList.index('PSymmetry10K'):]
-DoDatasetList(dnList, sampleSize=10000, initMap=1, createPMap=False, createAtlas=True )
+dnList = dnList[dnList.index('PSymmetry10K'):]
+
+DoDatasetList(dnList, sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
 
 '''

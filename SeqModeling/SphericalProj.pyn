@@ -65,12 +65,19 @@ def ShowSphere4(repeats=5, contracting=0.9):
 	elif pp.Name == 'Atlas':
 		pId = pp.SelectedItems[0].Id
 		bList = LoadChain0(pId)
+	elif pp.Name == 'D3dRender':
+		pId = MapInfo(pp.Description).pId
+		bList = pp.BodyList
 	else:
 		pId = MapInfo(pp.Description).pId
 		bList = pp.BodyList
 	bList = New.BodyListClone([b for b in bList if b.Id.startswith('A')])
 	bList = cs.ToSphere(bList, contracting)
-	bList = Interpolate(bList, repeats, hidIntp=True)
+
+	bList[0].Type = bList[1].Type
+	bList[bList.Count-1].Type = bList[bList.Count-2].Type
+
+	bList = Interpolate(bList, repeats, hidIntp=True)	
 	for b in bList: b.Mult(1000.0)
 	ss.NormalizeChain(bList)
 	info = MapInfo('pId:'+pId)
