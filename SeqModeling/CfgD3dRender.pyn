@@ -54,8 +54,15 @@ match vv.EventSource.Item:
 	case 'TT':
 		ShowSphere4(contracting=0.9)
 	case 'GroupChains':
+		pId = MapInfo(pp.Description).pId
+		fPath = Download3DInfo(pId[:4])
+		cList = cs.LoadChainToClusters(fPath)
 		for b in pp.BodyList:
-			b.Type = ord(b.Name[6]) - ord('A')
+			fs = b.Id.split('_')
+			if len(fs) >= 2:
+				chIdx = int(fs[1])
+				if (chIdx>=0) and (chIdx < cList.Length):
+					b.Type = cList[chIdx]
 		pp.RedrawAll()		
 
 

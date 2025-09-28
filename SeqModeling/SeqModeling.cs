@@ -867,6 +867,7 @@ namespace VisuMap {
         string pdbTitle = null;
         List<IBody> heteroChains = null;
         Dictionary<string, string> acc2chain = null;
+        List<Tuple<string, int>> chainList = null;
 
         public List<IBody> LoadCif(string fileName, List<string> chainNames) {
             List<IBody> bList = null;
@@ -894,10 +895,69 @@ namespace VisuMap {
                     } else if (L.StartsWith("_atom_site.")) {
                         bList = LoadAtoms(tr, helixSet, betaSet, chainNames);
                         break;
+                    } else if (L.StartsWith("_entity.details")) {
+                        LoadChainList(tr);
                     }
                 }
             }
             return bList;
+        }
+
+        public int[] LoadChainToClusters(string fileName) {
+            using (TextReader tr = new StreamReader(fileName)) {
+                string L = tr.ReadLine();
+                if (!L.StartsWith("data_"))
+                    return null;
+                while (true) {
+                    L = tr.ReadLine();
+                    if (L == null)
+                        break;
+                    if (L.StartsWith("_entity.details")) {
+                        LoadChainList(tr);
+                        break;
+                    }
+                }
+            }
+            if (chainList == null)
+                return null;
+            List<int> chainClusters = new List<int>();
+            for(int cIdx=0; cIdx<chainList.Count; cIdx++) {
+                for (int k = 0; k < chainList[k].Item2; k++)
+                    chainClusters.Add(cIdx);
+            }
+            return chainClusters.ToArray();
+        }
+
+        void LoadChainList(TextReader tr) {
+            chainList = new List<Tuple<string, int>>();
+            while (true) {
+                string L = tr.ReadLine();
+                if (L[0] == '#')
+                    break;
+                string[] bs = L.Split(new char[] { '\'', '\"' });
+                string[] fs = null;
+                string chName = null;
+                int chCount = 0;
+                if (bs.Length == 3) {
+                    fs = bs[0].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (fs[1] == "polymer") {
+                        fs = bs[2].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        chName = bs[1];
+                        if (fs.Length == 6)
+                            chCount = int.Parse(fs[1]);
+                    }
+                } else {
+                    fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (fs[1] == "polymer") {
+                        fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        chName = fs[3];
+                        chCount = int.Parse(fs[5]);
+                    }
+                }
+                if ( (chName != null) && (chCount > 0) ) {
+                    chainList.Add(new Tuple<string, int>(chName, chCount));
+                }
+            }
         }
 
         void LoadBetaSheet(TextReader tr, HashSet<int> betaSet) {
