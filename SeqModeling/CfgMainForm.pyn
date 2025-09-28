@@ -24,7 +24,7 @@ def MainMain(menuKey):
 			if vv.ModifierKeys.ControlPressed:
 				pId = vv.PromptMessage('Protein ID: ', '????')
 				if pId == None: return
-			mp = ShowPDB(pId, rp=5, includeHA=True, setChainId=True, smtRatio=0.0)
+			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=True, smtRatio=0.0)
 		case 'P-3Ds':
 			Merge3DList(pList)
 		case 'SeqMap':

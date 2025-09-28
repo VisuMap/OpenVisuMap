@@ -13,6 +13,7 @@ SeqMap_GLYPHSET = '36 Clusters||||Colored Balls|Ordered Glyphs'
 SeqMap_HEAD = 155
 SeqMap_TAIL = 171
 PMap_GLYPHSET = 'Ordered 64|36 Clusters|Red Green'
+vv.RightHanded3D = True
 
 def AssertProteinTable():
 	if (vv.Dataset.Columns < 4) or ( vv.Dataset.ColumnSpecList[2].Id != 'ProteinSeq'):
