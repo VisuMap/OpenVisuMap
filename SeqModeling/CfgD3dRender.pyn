@@ -1,4 +1,4 @@
-#MenuLabels Scanning Smoothen P-2D HideIPO MarkHelix MarkBeta RnaChain UniChains Flipping Looping SelectPID Tr S2 TT
+#MenuLabels Scanning Smoothen P-2D HideIPO GroupChains MarkHelix MarkBeta RnaChain UniChains Flipping Looping SelectPID Tr S2 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -53,5 +53,9 @@ match vv.EventSource.Item:
 		ShowSphere4(contracting=0.9)
 	case 'TT':
 		ShowSphere4(contracting=0.9)
+	case 'GroupChains':
+		for b in pp.BodyList:
+			b.Type = ord(b.Name[6]) - ord('A')
+		pp.RedrawAll()		
 
 
