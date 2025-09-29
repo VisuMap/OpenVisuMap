@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web Siblings SeqMap P-Open Select-UniqSeq TypeProtein P-Map P-2D P-3D P-3Dx Align P-3Ds P-S2 sS sU sT TT
+#MenuLabels P-ChmX P-Web Siblings vsSz SeqMap P-Open UniqSeq TypeProtein P-Map P-2D P-3D P-3Dx Align P-3Ds P-S2 sS sU sT TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -24,7 +24,7 @@ def MainMain(menuKey):
 			if vv.ModifierKeys.ControlPressed:
 				pId = vv.PromptMessage('Protein ID: ', '????')
 				if pId == None: return
-			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=False, smtRatio=0.0)
+			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, smtRatio=0.0)
 		case 'P-3Ds':
 			Merge3DList(pList)
 		case 'SeqMap':
@@ -76,7 +76,7 @@ def MainMain(menuKey):
 			pSet = set([pId[:4] for pId in selected])
 			vv.SelectedItems = [b.Id for b in vv.Dataset.BodyListEnabled() if b.Id[:4] in pSet]
 			vv.Title = f'Selected: {len(selected)}, Expanded: {vv.SelectedItems.Count}'
-		case 'Select-UniqSeq':
+		case 'UniqSeq':
 			SelectUniqSeq()
 		case 'Align':
 			AlignSeqPair(vv.Map)
@@ -90,18 +90,16 @@ def MainMain(menuKey):
 			TorsionMap(pList[:1])
 			ShowChain(pId, gopacity=0.5)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
+		case 'vsSz':
+			VisChainSize(szType=2)
 		case 'TT':
 			'''
 			ShowChain(pId, gopacity=0.5)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
 			ShowSphere3(pId)
+			'''
 			ShowSphere4()
 			ShowChain(pId)
-			'''
-			for k, pId in enumerate(selected):
-				fPath = Download3DInfo(pId[:4])
-				enitityTable = cs.GetEntityTable(fPath)
-				print(k, pId, len(enitityTable))
 
 
 MainMain(vv.EventSource.Item)
@@ -139,11 +137,10 @@ for dn in dnList:
 	for mp in mpList[3:]:
 		vv.Dataset.DeleteMap(mp)
 
-vv.GuiManager.StopFlag
-ShowPDB('6DNW', rp=5)
-
 dnList = dnList[dnList.index('PSymmetry10K'):]
 
 DoDatasetList(dnList, sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
+
+DoDatasetList([vv.Dataset.Name], sampleSize=5000, initMap=0, createPMap=True, createAtlas=True )
 
 '''

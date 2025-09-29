@@ -385,14 +385,17 @@ def LoadSeq(pId):
 			seq.append(rs.Name[0])
 		return ''.join(seq)
 
+def ChainName(body):
+	return body.Name.split('.')[2]
+
 def Interpolate(bList, rp=3, smtRatio=0, hidIntp=False):
 	EPS = 0.085
 	bs = New.BodyList()
 	k0 = 0
-	t0 = bList[0].Type
+	t0 = ChainName(bList[0])
 	chIdx  = 0
-	for k in range(bList.Count+1):
-		if (k == bList.Count) or (bList[k].Type != t0):
+	for k in range(bList.Count+1):		
+		if (k == bList.Count) or (ChainName(bList[k]) != t0):
 			D = bList.GetRange(k0, k-k0)
 			if smtRatio != 0:
 				cs.LocalSmoothen(D, smtRatio, 8)
@@ -401,7 +404,7 @@ def Interpolate(bList, rp=3, smtRatio=0, hidIntp=False):
 			bs.AddRange(D)
 			if k < bList.Count:
 				k0 = k
-				t0 = bList[k0].Type
+				t0 = ChainName(bList[k0])
 	if hidIntp:
 		for b in bs:
 			b.Hidden = b.Id.startswith('i')
@@ -719,20 +722,16 @@ import os
 sList = [f[:4] for f in os.listdir(PDB_CACHE) if f.endswith('.cif')]
 print(len(sList))
 sList = ','.join(sList)
-ImportPDBList(sList, 'GrowthProcess')
 
-Steps to import a list of PDB id into VisuMap:
+--- Steps to import a list of PDB id into VisuMap: ---
 
-sList0 = vv.GuiManager.GetClipboard()
-sList = sList0 + ',' + vv.GuiManager.GetClipboard()
+sList = vv.GuiManager.GetClipboard()
 pList = sList.split(',')
 print(len(pList))
-ImportPDBList(sList, 'T2414_B')
+ImportPDBList(sList, 'Alpha10K')
 
-chCnt, totalLen, title = LoadChains('7SQC', True, True, True, True)
 
-import global
-
+# remove all chain cache files of a pList:
 pList = set([p[:4] for p in pList])
 fList = []
 for f in os.listdir(CHAIN_CACHE):
@@ -741,20 +740,9 @@ for f in os.listdir(CHAIN_CACHE):
 for f in fList:
 	os.remove(f'{CHAIN_CACHE}/{f}')
 
-for pId in pList:
-	#os.remove(f'{CHAIN_CACHE}/{pId}*.pmc')
-	for k, f in enumerate( glob.glob(f'{CHAIN_CACHE}/{pId}*.pmc') ):
-		print(k, f)
-
-UnpackChains(pList)
-
-ds = vv.Folder.ReadDataset("Dynein")
-pSet = set([b.Id[:4] for b in ds.BodyList])
-print(len(pList))
-
+# Extract a chain list for each dataset:
 dnList = list(vv.Folder.DatasetNameList)[1:]
 dsInfo = New.FreeTable(len(dnList), 3)
-
 for k, dn in enumerate(dnList):
 	ds = vv.Folder.ReadDataset(dn)
 	pSet = set([b.Id[:4] for b in ds.BodyList])
@@ -762,26 +750,7 @@ for k, dn in enumerate(dnList):
 	dsInfo.Matrix[k][0] = dn
 	dsInfo.Matrix[k][1] = ','.join(pList)
 	dsInfo.Matrix[k][2] = str( len(pList) )
-
 New.DataDetails(dsInfo).Show()
-
-
-ds = vv.Dataset
-dnList = []
-pLL = []
-for row in range(ds.Rows):
-	dn = ds.ValueAtAsString(row, 0)
-	pList = ds.ValueAtAsString(row, 1)
-	dnList.append(dn)
-	pLL.append(pList)
-
-pLL = spList
-print(len(pLL), len(dnList))
-
-for row, dn in enumerate(dnList):
-	print('DS: ', dn)
-	ImportPDBList(pLL[row], dn)
-
 
 
 '''
