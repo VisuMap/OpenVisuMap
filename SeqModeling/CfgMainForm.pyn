@@ -24,7 +24,7 @@ def MainMain(menuKey):
 			if vv.ModifierKeys.ControlPressed:
 				pId = vv.PromptMessage('Protein ID: ', '????')
 				if pId == None: return
-			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=True, smtRatio=0.0)
+			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=False, smtRatio=0.0)
 		case 'P-3Ds':
 			Merge3DList(pList)
 		case 'SeqMap':
@@ -95,9 +95,14 @@ def MainMain(menuKey):
 			ShowChain(pId, gopacity=0.5)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
 			ShowSphere3(pId)
-			'''
 			ShowSphere4()
 			ShowChain(pId)
+			'''
+			for k, pId in enumerate(selected):
+				fPath = Download3DInfo(pId[:4])
+				enitityTable = cs.GetEntityTable(fPath)
+				print(k, pId, len(enitityTable))
+
 
 MainMain(vv.EventSource.Item)
 

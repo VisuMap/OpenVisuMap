@@ -23,7 +23,7 @@ def CheckCacheDir():
 		vv.Return()
 
 def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
-		setChainId=False,	smtRatio=0, glyphSize=1.0, glyphOpacity=0.75):
+		setChainId=False,	typeByChainIdx=False, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75):
 
 	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, chainNames=chainNames)
 	bsList = Interpolate(bsList, rp, smtRatio=smtRatio, hidIntp=hidIntp)
@@ -45,6 +45,15 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 
 	if includeHA:
 		bsList.AddRange(bsList2)
+
+	#Set the chain name index as body type, which was holding the enitity id.
+	if typeByChainIdx:
+		chName2Type = {}
+		for b in bsList:
+			chName = b.Name.split('.')[2]
+			if not chName in chName2Type:
+				chName2Type[chName] = len(chName2Type)
+			b.Type = chName2Type[chName]
 
 	mp = New.Map3DView(bsList)
 	info = MapInfo()

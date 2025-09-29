@@ -894,12 +894,12 @@ namespace VisuMap {
                     } else if (L.StartsWith("_struct.title")) {
                         pdbTitle = GetPDBTitle(L, tr);
                     } else if (L.StartsWith("_struct_ref_seq.align_id")) {
-                        acc2chain = GetAcc2Chain(tr);
+                        //acc2chain = GetAcc2Chain(tr);
                     } else if (L.StartsWith("_atom_site.")) {
                         bList = LoadAtoms(tr, helixSet, betaSet, chainNames);
                         break;
                     } else if (L.StartsWith("_entity.details")) {
-                        LoadEnityTable(tr);
+                        //LoadEnityTable(tr);
                     }
                 }
             }

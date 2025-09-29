@@ -1,4 +1,4 @@
-#MenuLabels Scanning Smoothen P-2D HideIPO GroupChains MarkHelix MarkBeta RnaChain UniChains Flipping Looping SelectPID Tr S2 TT
+#MenuLabels Scanning Smoothen P-2D HideIPO MarkHelix MarkBeta RnaChain UniChains Flipping Looping SelectPID Tr S2 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -53,10 +53,5 @@ match vv.EventSource.Item:
 		ShowSphere4(contracting=0.9)
 	case 'TT':
 		ShowSphere4(contracting=0.9)
-	case 'GroupChains':
-		pId = MapInfo(pp.Description).pId
-		fPath = Download3DInfo(pId[:4])
-		for ent in cs.GetEntityTable(fPath):
-			print(ent.Item1, ent.Item2, ent.Item3, ent.Item4)
 
 
