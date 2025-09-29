@@ -130,7 +130,6 @@ def DoDatasetList(dnList, sampleSize=2000, initMap=0, createPMap=True, createAtl
 	print(f'Total Time: {tm0:.2f}hr')
 
 '''
-
 dnList = list(vv.Folder.DatasetNameList)[1:]
 
 for dn in dnList:
