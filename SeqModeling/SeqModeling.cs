@@ -906,8 +906,8 @@ namespace VisuMap {
             return bList;
         }
 
-        /*
-        public int[] LoadChainToClusters(string fileName) {
+        public List<EntityInfo> GetEntityTable(string fileName) {
+            entityTable = null;
             using (TextReader tr = new StreamReader(fileName)) {
                 string L = tr.ReadLine();
                 if (!L.StartsWith("data_"))
@@ -917,21 +917,13 @@ namespace VisuMap {
                     if (L == null)
                         break;
                     if (L.StartsWith("_entity.details")) {
-                        LoadEnityList(tr);
+                        LoadEnityTable(tr);
                         break;
                     }
                 }
             }
-            if (chainList == null)
-                return null;
-            List<int> chainClusters = new List<int>();
-            for(int cIdx=0; cIdx<chainList.Count; cIdx++) {
-                for (int k = 0; k < chainList[k].Item2; k++)
-                    chainClusters.Add(cIdx);
-            }
-            return chainClusters.ToArray();
+            return entityTable;
         }
-        */
 
         void LoadEnityTable(TextReader tr) {
             entityTable = new List<EntityInfo>();
@@ -939,30 +931,44 @@ namespace VisuMap {
                 string L = tr.ReadLine();
                 if (L[0] == '#')
                     break;
+                if (L[0] == ';')
+                    continue;
                 string[] bs = L.Split(new char[] { '\'', '\"' });
                 string[] fs = null;
                 string entDesc = null;
                 int entId = 0;
                 string entType = null;
                 int entCnt = 0;
-                if (bs.Length == 3) {
-                    fs = bs[0].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    entId = int.Parse(fs[0]);
-                    entType = fs[1];
-                    fs = bs[2].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    entDesc = bs[1];
-                    if (fs.Length == 6)
-                        entCnt = int.Parse(fs[1]);
-                } else {
-                    fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    entId = int.Parse(fs[0]);
-                    entType = fs[1];
-                    entDesc = fs[3];
-                    entCnt = int.Parse(fs[5]);
+                fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Merge spices of quoated string togehter.
+                List<string> fList = new List<string>();
+                string parF = "";
+                bool inPar = false;
+                foreach(string f in fs) {
+                    if (f[0] == '\'') {
+                        parF = f.Substring(1);
+                        inPar = true;
+                    } else if (f[f.Length-1] == '\'') {
+                        fList.Add(parF + " " + f.Substring(0, f.Length - 1));
+                        inPar = false;
+                    } else {
+                        if (inPar)
+                            parF += " " + f;
+                        else
+                            fList.Add(f);
+                    }
                 }
-                if ( entId > 0 ) {
+
+                if (fList.Count < 6)
+                    continue;
+
+                entId = int.Parse(fList[0]);
+                entType = fList[1];
+                entDesc = fList[3];
+                entCnt = char.IsDigit(fList[5][0]) ? int.Parse(fList[5]) : 1;
+                if ( entId > 0 ) 
                     entityTable.Add(new EntityInfo(entId, entType, entDesc, entCnt));
-                }
             }
         }
 
@@ -1127,6 +1133,7 @@ namespace VisuMap {
                 string chName = fs[18] + "_" + fs[20];
                 string atName = fs[3].Trim(dbQuoats);
                 string rsName = fs[5];
+                int entityId = int.Parse(fs[7]);
                 string secType = "x";
                 string p1 = "x";
                 string bId = null;
@@ -1168,13 +1175,9 @@ namespace VisuMap {
                 b.Z = float.Parse(fs[12]);
 
                 b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType;
-                b.Type = (short)Lookup(chName);
+                b.Type = (short)(entityId - 1);
 
                 if (b.Id[0] == 'H') {
-                    if (ch2idx.ContainsKey(rsName))
-                        b.Type = (short)Lookup(rsName);
-                    else
-                        b.Type = maxChainIndex + 25;
                     bsList2.Add(b);
                 } else {
                     if ( (b.Name[0] == 'r') || (b.Name[0] == 'd') )

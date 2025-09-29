@@ -56,8 +56,7 @@ match vv.EventSource.Item:
 	case 'GroupChains':
 		pId = MapInfo(pp.Description).pId
 		fPath = Download3DInfo(pId[:4])
-		cs.LoadCif(fPath, None)
-		for ent in cs.EntityTable:
+		for ent in cs.GetEntityTable(fPath):
 			print(ent.Item1, ent.Item2, ent.Item3, ent.Item4)
 
 
