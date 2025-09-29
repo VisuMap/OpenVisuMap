@@ -927,48 +927,60 @@ namespace VisuMap {
 
         void LoadEnityTable(TextReader tr) {
             entityTable = new List<EntityInfo>();
+            List<string> fs = new List<string>();
             while (true) {
                 string L = tr.ReadLine();
                 if (L[0] == '#')
                     break;
-                if (L[0] == ';')
+                if (L[0] == ';') {
                     continue;
+                }
                 string[] bs = L.Split(new char[] { '\'', '\"' });
-                string[] fs = null;
-                string entDesc = null;
-                int entId = 0;
-                string entType = null;
-                int entCnt = 0;
-                fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                fs.AddRange(L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+            }
 
-                // Merge spices of quoated string togehter.
-                List<string> fList = new List<string>();
-                string parF = "";
-                bool inPar = false;
-                foreach(string f in fs) {
-                    if (f[0] == '\'') {
-                        parF = f.Substring(1);
-                        inPar = true;
-                    } else if (f[f.Length-1] == '\'') {
+            // Merge spices of quoated string togehter.
+            List<string> fList = new List<string>();
+            string parF = "";
+            bool inWord = false;
+            char quota = '\'';
+
+            foreach(string f in fs) {
+                if (inWord) {
+                    if (f[f.Length - 1] == quota) {
                         fList.Add(parF + " " + f.Substring(0, f.Length - 1));
-                        inPar = false;
+                        inWord = false;
                     } else {
-                        if (inPar)
-                            parF += " " + f;
-                        else
-                            fList.Add(f);
+                        parF += " " + f;
+                    }
+                } else { 
+                    if ( (f[0]=='\'') || (f[0]=='\"') ) {
+                        if (f[f.Length - 1] == f[0]) {
+                            fList.Add(f.Substring(1, f.Length - 2));
+                            inWord = false;
+                        } else {
+                            parF = f.Substring(1);
+                            inWord = true;
+                            quota = f[0];
+                        }
+                    } else
+                        fList.Add(f);
+                }
+            }
+
+            try {
+                for (int k = 0; k < fList.Count; k += 10) {
+                    if ((k + 5) < fList.Count) {
+                        int entId = int.Parse(fList[k]);
+                        string entType = fList[k + 1];
+                        string entDesc = fList[k + 3];
+                        int entCnt = char.IsDigit(fList[k + 5][0]) ? int.Parse(fList[k + 5]) : 1;
+                        if (entId > 0)
+                            entityTable.Add(new EntityInfo(entId, entType, entDesc, entCnt));
                     }
                 }
-
-                if (fList.Count < 6)
-                    continue;
-
-                entId = int.Parse(fList[0]);
-                entType = fList[1];
-                entDesc = fList[3];
-                entCnt = char.IsDigit(fList[5][0]) ? int.Parse(fList[5]) : 1;
-                if ( entId > 0 ) 
-                    entityTable.Add(new EntityInfo(entId, entType, entDesc, entCnt));
+            }catch(Exception) {
+                // The entity section sometimes has wild format which still causes SOME TROUBERS.
             }
         }
 
