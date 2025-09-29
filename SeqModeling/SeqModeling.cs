@@ -5,6 +5,7 @@ using System.Text;
 using VisuMap.Script;
 using Vector3 = SharpDX.Vector3;
 using Quaternion = SharpDX.Quaternion;
+using EntityInfo = System.Tuple<int, string, string, int>;
 using System.IO;
 
 namespace VisuMap {
@@ -867,12 +868,14 @@ namespace VisuMap {
         string pdbTitle = null;
         List<IBody> heteroChains = null;
         Dictionary<string, string> acc2chain = null;
-        List<Tuple<string, int>> chainList = null;
+        List<EntityInfo> entityTable = null;
+        public List<EntityInfo> EntityTable { get => entityTable; }
 
         public List<IBody> LoadCif(string fileName, List<string> chainNames) {
             List<IBody> bList = null;
             HashSet<int> betaSet = new HashSet<int>();
             HashSet<int> helixSet = new HashSet<int>();
+            entityTable = null;
             using (TextReader tr = new StreamReader(fileName)) {
                 string L = tr.ReadLine();
                 if (!L.StartsWith("data_"))
@@ -896,13 +899,14 @@ namespace VisuMap {
                         bList = LoadAtoms(tr, helixSet, betaSet, chainNames);
                         break;
                     } else if (L.StartsWith("_entity.details")) {
-                        LoadChainList(tr);
+                        LoadEnityTable(tr);
                     }
                 }
             }
             return bList;
         }
 
+        /*
         public int[] LoadChainToClusters(string fileName) {
             using (TextReader tr = new StreamReader(fileName)) {
                 string L = tr.ReadLine();
@@ -913,7 +917,7 @@ namespace VisuMap {
                     if (L == null)
                         break;
                     if (L.StartsWith("_entity.details")) {
-                        LoadChainList(tr);
+                        LoadEnityList(tr);
                         break;
                     }
                 }
@@ -927,35 +931,37 @@ namespace VisuMap {
             }
             return chainClusters.ToArray();
         }
+        */
 
-        void LoadChainList(TextReader tr) {
-            chainList = new List<Tuple<string, int>>();
+        void LoadEnityTable(TextReader tr) {
+            entityTable = new List<EntityInfo>();
             while (true) {
                 string L = tr.ReadLine();
                 if (L[0] == '#')
                     break;
                 string[] bs = L.Split(new char[] { '\'', '\"' });
                 string[] fs = null;
-                string chName = null;
-                int chCount = 0;
+                string entDesc = null;
+                int entId = 0;
+                string entType = null;
+                int entCnt = 0;
                 if (bs.Length == 3) {
                     fs = bs[0].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (fs[1] == "polymer") {
-                        fs = bs[2].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        chName = bs[1];
-                        if (fs.Length == 6)
-                            chCount = int.Parse(fs[1]);
-                    }
+                    entId = int.Parse(fs[0]);
+                    entType = fs[1];
+                    fs = bs[2].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    entDesc = bs[1];
+                    if (fs.Length == 6)
+                        entCnt = int.Parse(fs[1]);
                 } else {
                     fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (fs[1] == "polymer") {
-                        fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        chName = fs[3];
-                        chCount = int.Parse(fs[5]);
-                    }
+                    entId = int.Parse(fs[0]);
+                    entType = fs[1];
+                    entDesc = fs[3];
+                    entCnt = int.Parse(fs[5]);
                 }
-                if ( (chName != null) && (chCount > 0) ) {
-                    chainList.Add(new Tuple<string, int>(chName, chCount));
+                if ( entId > 0 ) {
+                    entityTable.Add(new EntityInfo(entId, entType, entDesc, entCnt));
                 }
             }
         }
