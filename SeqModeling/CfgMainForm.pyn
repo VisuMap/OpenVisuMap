@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web Siblings vsSz SeqMap P-Open UniqSeq TypeProtein P-Map P-2D P-3D P-3Dx Align P-3Ds P-S2 sS sU sT TT
+#MenuLabels P-ChmX P-Web Siblings vsSz SeqMap P-Open UniqSeq TypeProtein P-Map P-2D P-3D P-3Dx Align P-3Ds P-S2 S2 sS sU sT TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -24,7 +24,7 @@ def MainMain(menuKey):
 			if vv.ModifierKeys.ControlPressed:
 				pId = vv.PromptMessage('Protein ID: ', '????')
 				if pId == None: return
-			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, smtRatio=0.0)
+			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=False, smtRatio=0.0)
 		case 'P-3Ds':
 			Merge3DList(pList)
 		case 'SeqMap':
@@ -92,6 +92,8 @@ def MainMain(menuKey):
 			ShowSphere2(pId, 0.95, gopacity=0.5)
 		case 'vsSz':
 			VisChainSize(szType=2)
+		case 'S2':
+			ShowSphere4(repeats=5, contracting=0.9)
 		case 'TT':
 			'''
 			ShowChain(pId, gopacity=0.5)

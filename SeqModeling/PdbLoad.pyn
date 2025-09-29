@@ -108,7 +108,6 @@ def ShowProteinList(pList, includeHA, atName=None, smtRatio=0, gsize=1.0, gopaci
 				rp=intRp, smtRatio=smtRatio, glyphSize=gsize, glyphOpacity=gopacity)
 		if mapStore != None:	
 			mapStore.AddMap('D3dRender')
-			del mapStore
 		else:
 			cs.NormalizeChain(mp.BodyList, chType=-1, hidIntp=True)
 			mp.NormalizeView()
@@ -119,6 +118,7 @@ def ShowProteinList(pList, includeHA, atName=None, smtRatio=0, gsize=1.0, gopaci
 		ma.Show()
 		ma.ArrangeItems(False)
 		ma.OnItemsSelected = ''
+		del mapStore
 
 def GetChainName(pId):
 	rowIdx = vv.Dataset.BodyIndexForId(pId)

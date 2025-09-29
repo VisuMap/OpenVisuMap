@@ -1042,6 +1042,7 @@ def VisChainSize(szType=2):
 		for k, b in enumerate(pDS.BodyList):
 			if b.Id not in p2sz:
 				p2sz[b.Id] = int( pDS.ValueAtAsDouble(k, szType) )
+	vv.GuiManager.RememberCurrentMap()	
 	for b in vv.Dataset.BodyListEnabled():
 		match szType:
 			case 0:
