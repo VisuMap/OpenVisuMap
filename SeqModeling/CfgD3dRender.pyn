@@ -1,4 +1,4 @@
-#MenuLabels Scanning Smoothen P-2D HideIPO MarkHelix MarkBeta RnaChain UniChains Flipping Looping SelectPID Tr S2 TT
+#MenuLabels Scanning Smoothen P-2D HideIPO MarkHelix MarkBeta RnaChain Flipping Looping SelectPID Tr S2 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -20,10 +20,6 @@ match vv.EventSource.Item:
 		ShowBetaSheet()
 	case 'RnaChain':
 		pp.SelectedItems = [b.Id for b in pp.BodyList if b.Name[0] == 'r']
-	case 'UniChains':
-		if vv.ModifierKeys.ControlPressed:
-			key2type = {}		
-		UnifyChains(pp)
 	case 'Flipping':		
 		FlippingChains(pp)
 	case 'Looping':

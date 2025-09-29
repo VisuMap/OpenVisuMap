@@ -457,12 +457,12 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False, mergeEqChai
 		return None, None, None
 	
 	chList = []
-	chType = -1    # current chain type
 	chName = ''	  # current chain name.
 	seqList = []
 	ppType = -1   # polypeptide type: 0: aa-pp, 99: rna-pp, 97: dna-pp
 	for b in bList:
-		if b.Type == chType:
+		bChNm = ChainName(b)
+		if bChNm == chName:
 			pp = b.Name[0] if ppType == 0 else b.Name[2]
 			seqList.append(pp)
 		else:
@@ -470,7 +470,7 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False, mergeEqChai
 				if (aaChains and ppType==0) or (rnaChains and ppType==1) or (dnaChains and ppType==2):
 					pSeq = ''.join(seqList)
 					chList.append( (chName, ppType, pSeq, len(pSeq)) )
-			chType = b.Type
+			chName = bChNm
 			fs = b.Name.split('.')
 			chName = fs[2]
 			if fs[0] == 'r':	
@@ -580,7 +580,7 @@ def UnpackChains(pList=None):
 			print(f'Unpacking {k}-th cif file...')
 		vv.DoEvents()
 		for b in bList:
-			chNm = b.Name.split('.')[2]
+			chNm = ChainName(b)
 			if chNm == preChName:
 				chain.append(b)
 			else:
@@ -732,7 +732,10 @@ ImportPDBList(sList, 'Alpha10K')
 
 
 # remove all chain cache files of a pList:
+import os
+pList = vv.AllItems
 pList = set([p[:4] for p in pList])
+print(len(pList))
 fList = []
 for f in os.listdir(CHAIN_CACHE):
 	if f[:4] in pList:

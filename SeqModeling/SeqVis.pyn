@@ -950,62 +950,6 @@ def LookupKey(key2type, ckey):
 	key2type[ckey] = 1+len(key2type)
 	return ckey
 
-def UnifyChains(pMap):
-	global key2type
-	chains = []
-	prefix = []
-	curType = -1
-	maxKeyLen = 50
-	for b in pMap.BodyList:
-		if b.Id[0] == 'A':
-			if b.Type != curType:
-				if curType >= 0:
-					chains.append( (''.join(prefix[:maxKeyLen]), curType) )
-				curType = b.Type
-				prefix = []
-			if len(prefix) < maxKeyLen:
-				c0 = b.Name[0]
-				if c0 == 'r':
-					prefix.append(b.Name[2].lower())
-				elif c0 == 'd':
-					prefix.append(b.Name[2].lower())
-				else:
-					prefix.append(c0)
-	if len(prefix)>0:	# Add the last chain
-		chains.append( (''.join(prefix[:maxKeyLen]), curType) )
-
-	# setup dictionary type2type to convert chain types to new type in global scope
-	type2type = {}
-	if 'key2type' not in globals():
-		key2type = {}
-	keyLen = len(key2type)
-	for ckey, ty in chains:
-		ky = LookupKey(key2type, ckey)
-		type2type[ty] = key2type[ky]
-	newKeys = len(key2type) - keyLen
-	#vv.Message(f'Added {newKeys} new chains!')
-
-		
-	# Multiple chains might be assigned the same type. 
-	# We resolve these conflict by indexing all atoms in each type.
-	for b in pMap.BodyList:
-		if b.Type not in type2type:
-			type2type[b.Type] = b.Type
-	typeIdx = {t:0 for t in set(type2type.values())}
-
-	for b in pMap.BodyList:
-		if b.Type not in type2type:
-			vv.Message(f'Unknow chain type: {b.Type}')
-			break
-		b.Type = type2type[b.Type]
-		b.Id = f'{b.Id[0]}{b.Type}.{typeIdx[b.Type]}'
-		typeIdx[b.Type] += 1
-
-	if pMap.Name == 'MapSnapshot':
-		pMap.RedrawBodiesType()
-	else:
-		pMap.Redraw()
-
 def FlippingChains(pMap, loopSize=60, loops=5):
 	szList = loops * ( list(range(loopSize+1)) + list(range(loopSize, -1, -1)) )
 	pMap.HiddenBodyColor = New.Color('White')
