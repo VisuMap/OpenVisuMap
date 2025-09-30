@@ -130,7 +130,7 @@ def DoDatasetList(dnList, sampleSize=2000, initMap=0, createPMap=True, createAtl
 	print(f'Total Time: {tm0:.2f}hr')
 
 '''
-dnList = list(vv.Folder.DatasetNameList)[1:]
+
 
 for dn in dnList:
 	vv.Folder.OpenDataset(dn)
@@ -138,9 +138,9 @@ for dn in dnList:
 	for mp in mpList[3:]:
 		vv.Dataset.DeleteMap(mp)
 
-dnList = dnList[dnList.index('PSymmetry10K'):]
-
-DoDatasetList(dnList, sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
+dnList = list(vv.Folder.DatasetNameList)[1:]
+#dnList = dnList[dnList.index('PSymmetry10K'):]
+DoDatasetList(dnList[3:10], sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
 
 DoDatasetList([vv.Dataset.Name], sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
 '''

@@ -598,13 +598,15 @@ def PreloadPDB(sList):
 	print(f'Preloading {len(pList)} files...')
 	loaded = []
 	errs = 0
+	cnt = 0
 	for k, pId in enumerate(pList):
-		if k%50 == 0: print(f'Downloading {k}-th cif {pId}')
+		if (cnt+1)%50 == 0: print(f'Downloading {k}-th cif {pId}')
 		if not exists(PdbCacheFile(pId)):
 			try:
 				Download3DInfo(pId)
 				vv.DoEvents()
 				loaded.append(pId)
+				cnt += 1
 			except Exception as e:
 				errs += 1
 				if (errs < 5):
@@ -718,7 +720,7 @@ sList = ','.join(sList)
 
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'Alpha10K')
+ImportPDBList(sList, 'Albumin')
 
 
 # remove all chain cache files of a pList:
@@ -745,5 +747,12 @@ for k, dn in enumerate(dnList):
 	dsInfo.Matrix[k][2] = str( len(pList) )
 New.DataDetails(dsInfo).Show()
 
-
+dsList = []
+ds = vv.Dataset
+for k in range(ds.Rows):
+	dsList.append( (ds.ValueAtAsString(k, 0), ds.ValueAtAsString(k, 1)) )
+dsList = dsList[:-1]
+for dn, sList in dsList:
+	print(dn, len(sList.split(',')))
+	ImportPDBList(sList, dn)
 '''
