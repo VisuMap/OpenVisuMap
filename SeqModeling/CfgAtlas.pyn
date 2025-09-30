@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps MatchMap P-ChmX P-Web IntMaps P-3D P-3Dx P-3Ds P-2Ds P-2D  P-Open TileAll P-Seq Align sT TT
+#MenuLabels ConfigMaps MatchMap ChmX Web IntMaps 3D 3Dx 3Ds 2Ds 2D  Open S2 TileAll Seq Align sT TT
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -32,7 +32,7 @@ def AtlasMain(menuKey):
 			InterpolateAllMaps(pp, 5)
 		case 'ConfigMaps':
 			ConfigAtlasMaps(pp, 1000, 700, gSize=5.0, gOpacity=1.0, iconWidth=None, hiddenSize=4, reset=False)			
-		case 'P-3D':
+		case '3D':
 			for e in pSelected:
 				pId = e.Name
 				chainNames = GetChainName(pId)
@@ -40,39 +40,41 @@ def AtlasMain(menuKey):
 					continue
 				mp = ShowPDB(pId, rp=5, includeHA=False, hidIntp=True, glyphSize=2.0, chainNames=chainNames, smtRatio=0.0)
 				mp.NormalizeView()
-		case 'P-3Dx':
+		case '3Dx':
 			for e in pSelected:
 				mp = ShowPDB(e.Name, rp=5, includeHA=False, setChainId=False, typeByChainIdx=True, chainNames=None, smtRatio=0.0)
 				if ctrPressed:
 					mp.ClickMenu('SeqVis/P-2D')
 					mp.Close()
-		case 'P-2D':
+		case '2D':
 			pList = [item.Id for item in pSelected]
 			UnFoldProteinList(pList, epochs=2500, includeHA=False,  wholeComplex=False,
 				samplingDist=0.0,	initExag=4.0, ppl=0.1, stretch=0.1,
 				clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
-		case 'P-Web':
+		case 'Web':
 			ShowWeb(pId)
-		case 'P-ChmX':
+		case 'ChmX':
 			ShowChimeraX(pId)
-		case 'P-Open':  
+		case 'Open':  
 			OpenCifFile(pId)
 		case 'MatchMap':
 			MatchProteinMap(pp, iconWidth=None)
 		case 'TileAll':
 			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
 			AtlasTileAll(pp, aaGroups, using3DInfo=False, waveLen=256, waveCount=32)
-		case 'P-Seq':
+		case 'Seq':
 			for item in pp.SelectedItems:
 				mp = item.Open()
 				ShowAASeq(mp)
 				mp.Close()
 		case 'Align':
 			AlignSeqPair(pp)
-		case 'P-3Ds':
+		case '3Ds':
 			Merge3DList([item.Name for item in pp.SelectedItems])
-		case 'P-2Ds':
+		case '2Ds':
 			Merge2DList(pp)
+		case 'S2':
+			ShowSphere4(repeats=5, contracting=0.9)
 		case 'TT':
 			ShowChain(pId, gopacity=0.35)
 			ShowSphere3(pId)
@@ -81,7 +83,6 @@ def AtlasMain(menuKey):
 			ShowChain(pId, gopacity=0.35).RotateXYZ(0, 0.0025, 0).StartAnimation(0).EditMode=False
 			ShowSphere2(pId, cf=0.9, gsize=2.0, gopacity=0.5, hsize=3)
 			TorsionMap(pList)
-
 
 			
 

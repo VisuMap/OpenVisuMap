@@ -1,4 +1,4 @@
-#MenuLabels P-ChmX P-Web Siblings vsSz SeqMap P-Open UniqSeq TypeProtein P-Map P-2D P-3D P-3Dx Align P-3Ds P-S2 S2 sS sU sT TT
+#MenuLabels ChmX Web Siblings vsSz SeqMap Open UniqSeq TypeProtein P-Map P-S2 P-2D 3D 3Dx Align 3Ds S2 sS sU sT TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -14,24 +14,24 @@ def MainMain(menuKey):
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 			
 	match menuKey:
-		case 'P-ChmX': ShowChimeraX(pId)
-		case 'P-Web':  ShowWeb(pId)
-		case 'P-3D':
+		case 'ChmX': ShowChimeraX(pId)
+		case 'Web':  ShowWeb(pId)
+		case '3D':
 			if atlasName != None: atlasName += '-3D'
 			SortByPosX(pList)
 			ShowProteinList(pList, includeHA=True, intRp=5, atName=atlasName, smtRatio=0.0, gsize=1.5, gopacity=0.5)
-		case 'P-3Dx':
+		case '3Dx':
 			if vv.ModifierKeys.ControlPressed:
 				pId = vv.PromptMessage('Protein ID: ', '????')
 				if pId == None: return
 			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, smtRatio=0.0)
-		case 'P-3Ds':
+		case '3Ds':
 			Merge3DList(pList)
 		case 'SeqMap':
 			aaGroups = GetAAGroup(idx=0)
 			if atlasName != None: atlasName += '-Seq'
 			CreateSeqMaps(pList, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
-		case 'P-Open': 
+		case 'Open': 
 			if pId == None:
 				vv.Message('No protein selected')
 				vv.Return()

@@ -51,7 +51,7 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 				chName2Type[chName] = len(chName2Type)
 			b.Type = chName2Type[chName]
 
-	ss.SetChainEndings(bsList)
+	cs.SetChainEndings(bsList)
 
 	if includeHA:
 		bsList.AddRange(bsList2)
