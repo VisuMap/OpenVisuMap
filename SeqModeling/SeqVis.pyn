@@ -68,12 +68,16 @@ public List<IBody> SetBodyType(List<IBody> bList, string pId=null, int bType=1) 
 }
 
 public void SetChainEndings(List<IBody> bsList) {
+	if (bsList.Count < 2)
+		return;
 	const short SeqMap_HEAD = 155;
 	const short SeqMap_TAIL = 171;
 	bsList[0].Type = SeqMap_HEAD;
 	bool[] chainEnds = new bool[bsList.Count];
-	for(int k=1; k<bsList.Count-1; k++)
-		chainEnds[k] =	(bsList[k].Type != bsList[k+1].Type);
+	for(int k=1; k<bsList.Count-1; k++) 
+		chainEnds[k] = bsList[k  ].Name.Split('.')[2] != 
+							bsList[k+1].Name.Split('.')[2];
+	
 	for(int k=1; k<bsList.Count-1; k++)
 		if (chainEnds[k]) {
 			bsList[k].Type = SeqMap_TAIL;
@@ -684,7 +688,7 @@ def Scanning(pMap, stride=100, stepSize=20, broadcasting=False):
 			else:
 				pMap.SelectedItems = selected
 			vv.Sleep(20)
-			if pMap.SelectedItems.Count == 0: 
+			if vv.ModifierKeys.AltPressed or pMap.SelectedItems.Count == 0: 
 				return
 		vv.Sleep(1000)
 

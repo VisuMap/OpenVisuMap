@@ -24,7 +24,7 @@ def MainMain(menuKey):
 			if vv.ModifierKeys.ControlPressed:
 				pId = vv.PromptMessage('Protein ID: ', '????')
 				if pId == None: return
-			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=False, smtRatio=0.0)
+			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, smtRatio=0.0)
 		case 'P-3Ds':
 			Merge3DList(pList)
 		case 'SeqMap':
@@ -42,7 +42,7 @@ def MainMain(menuKey):
 					samplingDist=0.0, atName=atlasName, ppl=0.10, initExag=4.0, finalExag=1.0,
 					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
 			else:
-				CreateProteinMaps(pList, samplingDist=1.5, atlasName=atlasName, 
+				CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, 
 					tP = (1000, 3, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
@@ -91,7 +91,7 @@ def MainMain(menuKey):
 			ShowChain(pId, gopacity=0.5)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
 		case 'vsSz':
-			VisChainSize(szType=2)
+			VisChainSize(szType=1)
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'TT':

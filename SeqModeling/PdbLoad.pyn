@@ -28,7 +28,6 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, chainNames=chainNames)
 	bsList = Interpolate(bsList, rp, smtRatio=smtRatio, hidIntp=hidIntp)
 	
-	ss.SetChainEndings(bsList)
 
 	if setChainId:
 		ds = vv.Dataset
@@ -43,9 +42,6 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 			else:
 				b.Id = chId + chName 
 
-	if includeHA:
-		bsList.AddRange(bsList2)
-
 	#Set the chain name index as body type, which was holding the enitity id.
 	if typeByChainIdx:
 		chName2Type = {}
@@ -54,6 +50,11 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 			if not chName in chName2Type:
 				chName2Type[chName] = len(chName2Type)
 			b.Type = chName2Type[chName]
+
+	ss.SetChainEndings(bsList)
+
+	if includeHA:
+		bsList.AddRange(bsList2)
 
 	mp = New.Map3DView(bsList)
 	info = MapInfo()
