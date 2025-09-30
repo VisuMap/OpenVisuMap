@@ -445,7 +445,7 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, staged=False, repeats=1, stretch=0, cl
 
 # pId=pList[0]
 # Extract chains from PDB complex and store then in current table. Duplicates will be removed.
-def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False, mergeEqChains=True):
+def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 	ds = vv.Dataset
 	if (ds.Columns != 5) or (ds.ColumnSpecList[4].Id != 'ChainName'):
 		vv.Message('Current dataset has invalid format: pid;repeats;seq;len;chainName')
@@ -459,8 +459,10 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False, mergeEqChai
 	
 	chList = []
 	chName = ''	  # current chain name.
+	entityId = -1
 	seqList = []
 	ppType = -1   # polypeptide type: 0: aa-pp, 99: rna-pp, 97: dna-pp
+	
 	for b in bList:
 		bChNm = ChainName(b)
 		if bChNm == chName:
@@ -470,8 +472,9 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False, mergeEqChai
 			if len(seqList) > 0:
 				if (aaChains and ppType==0) or (rnaChains and ppType==1) or (dnaChains and ppType==2):
 					pSeq = ''.join(seqList)
-					chList.append( (chName, ppType, pSeq, len(pSeq)) )
+					chList.append( (chName, entityId, ppType, pSeq, len(pSeq)) )
 			chName = bChNm
+			entityId = b.Type+1
 			fs = b.Name.split('.')
 			chName = fs[2]
 			if fs[0] == 'r':	
@@ -485,43 +488,21 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False, mergeEqChai
 	if len(seqList) > 0:
 		if (aaChains and ppType==0) or (rnaChains and ppType==99) or (dnaChains and ppType==97):
 			pSeq = ''.join(seqList)
-			chList.append( (chName, ppType, pSeq, len(pSeq)) )
+			chList.append( (chName, entityId, ppType, pSeq, len(pSeq)) )
 
-	totalLength = 0
-	
-	if mergeEqChains:
-		# merge the repeated sequences:
-		chSet = {}
-		chInfo = {}
-		for cIdx, (chId, ppType, pSeq, seqLen) in enumerate(chList):
-			totalLength += seqLen
-			if pSeq in chSet:
-				chSet[pSeq] += 1
-			else:
-				chSet[pSeq] = 1
-				chInfo[pSeq] = (chId, cIdx, ppType)
-		for ch in chSet:
-			repeats = chSet[ch]
-			chLen = len(ch)
-			chId, cIdx, ppType = chInfo[ch]
-			seq = ch if ppType == 0 else ch.lower()
-			if (chLen>0) and len(seq) == chLen:
-				b = ds.AddRow(f'{pId}_{cIdx}', None,  ppType, [pId, str(repeats), seq, str(chLen), chId])
-				if b == None:
-					raise Exception('Failed: '+vv.LastError)
-	else:
-		spId = pId+'_'		
-		for cIdx, (chId, ppType, pSeq, seqLen) in enumerate(chList):
-			if (seqLen>0) and len(pSeq) == seqLen:
-				b = ds.AddRow(spId + str(cIdx), None,  ppType, [pId, '1', pSeq, str(seqLen), chId])
-				if b == None:
-					raise Exception('Failed: '+vv.LastError)
-			totalLength += seqLen			
+	totalLength = 0	
+	spId = pId+'_'		
+	for cIdx, (chId, entityId, ppType, pSeq, seqLen) in enumerate(chList):
+		if (seqLen>0) and len(pSeq) == seqLen:
+			b = ds.AddRow(spId + str(cIdx), None,  ppType, [pId, str(entityId), pSeq, str(seqLen), chId])
+			if b == None:
+				raise Exception('Failed: '+vv.LastError)
+		totalLength += seqLen			
 	return len(chList), totalLength, pdbTitle
 
 # Unpack all chains in a PDB directory and store them in current dataset.
 # A summary table about each protein will displayed.
-def LoadAllChains(pList=None, mergeEqChains=True):
+def LoadAllChains(pList=None):
 	import os
 	ds = vv.Dataset
 	if (ds.Columns != 5) or (ds.ColumnSpecList[4].Id != 'ChainName'):
@@ -540,7 +521,7 @@ def LoadAllChains(pList=None, mergeEqChains=True):
 	for k, pId in enumerate(pList):
 		if (k+1)%50 == 0:
 			print(f'{k+1}: {pId} {chCount} chains')
-		chCnt, totalLen, title = LoadChains(pId, aaChains=True, rnaChains=True, dnaChains=True, mergeEqChains=mergeEqChains)
+		chCnt, totalLen, title = LoadChains(pId, aaChains=True, rnaChains=True, dnaChains=True)
 		if chCnt == None:
 			skipped.append(pId)
 			continue
@@ -560,6 +541,7 @@ def UnpackChains(pList=None):
 	if pList == None:   # Unpack all cif files.
 		pList = [f[:4] for f in os.listdir(PDB_CACHE) if f.endswith('.cif')]	
 	chainsCount = 0
+	# nm2id converts a chain-name to chain-id using the current dataset.
 	nm2id = {}
 	ds = vv.Dataset
 	for b in ds.BodyList:
@@ -639,7 +621,7 @@ def InitDatabase(dsName, description):
 	vv.Map.GlyphSet = PMap_GLYPHSET
 	ds = vv.Dataset
 	ds.AddColumn('PID', 0, '', 0)
-	ds.AddColumn('Repeats', 1, '0', 1)
+	ds.AddColumn('EntityId', 1, '0', 1)
 	ds.AddColumn('ProteinSeq', 0, '', 2)
 	ds.AddColumn('SeqLen', 1, '0', 3)
 	ds.AddColumn('ChainName', 0, '', 4)
@@ -656,9 +638,15 @@ def MergeTableToDataset(tb, dsName):
 		ds.AddColumn('Title', 0, '', 2)
 		ds.CommitChanges()
 	for row in range(tb.Rows):
-		rowId = tb.RowSpecList[row].Id		
-		if ds.IndexOfRow(rowId) < 0:
-			ds.AddRow(rowId, '', 0, tb.Matrix[row])	
+		rowId = tb.RowSpecList[row].Id
+		rowIdx = ds.IndexOfRow(rowId)
+		R = tb.Matrix[row]
+		if rowIdx < 0:
+			ds.AddRow(rowId, '', 0, R)
+		else:
+			ds.SetDataAt(rowIdx, 0, R[0])
+			ds.SetDataAt(rowIdx, 1, R[1])
+			ds.SetDataAt(rowIdx, 2, R[2])
 	ds.CommitChanges()
 	vv.Folder.OpenDataset(oldDsName)
 
@@ -666,8 +654,10 @@ def MergeTableToDataset(tb, dsName):
 def ImportPDBList(sList, dsName, dsDescription=''):
 	pList = PreloadPDB(sList)
 	InitDatabase(dsName, dsDescription)
-	infoTable, loaded, skipped = LoadAllChains(pList, mergeEqChains=True)
+	infoTable, loaded, skipped = LoadAllChains(pList)
 	MergeTableToDataset(infoTable, "P-Info")
+	vv.Map.Randomize()
+	vv.Map.Redraw()
 	if len(skipped) > 0:
 		skList = ','.join(skipped[:100])		
 		vv.Message(f'Skipped {len(skipped)} cif files: {skList}')
@@ -727,8 +717,7 @@ sList = ','.join(sList)
 --- Steps to import a list of PDB id into VisuMap: ---
 
 sList = vv.GuiManager.GetClipboard()
-pList = sList.split(',')
-print(len(pList))
+print(len(sList.split(',')))
 ImportPDBList(sList, 'Alpha10K')
 
 

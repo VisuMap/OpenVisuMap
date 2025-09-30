@@ -142,5 +142,5 @@ dnList = dnList[dnList.index('PSymmetry10K'):]
 
 DoDatasetList(dnList, sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
 
-DoDatasetList([vv.Dataset.Name], sampleSize=5000, initMap=0, createPMap=True, createAtlas=True )
+DoDatasetList([vv.Dataset.Name], sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
 '''
