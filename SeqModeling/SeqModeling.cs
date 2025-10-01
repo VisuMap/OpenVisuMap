@@ -925,6 +925,25 @@ namespace VisuMap {
             return bList;
         }
 
+        public List<List<IBody>> SplitByChainName(List<IBody> bodyList) {
+            if ( (bodyList == null) || (bodyList.Count==0) )
+                    return null;
+            List<List<IBody>> chainList = new List<List<IBody>>();
+            int iBegin = 0;
+            string curName = bodyList[0].Name.Split('.')[2];
+            for(int iEnd = 1; iEnd<bodyList.Count; iEnd++) {
+                string chName = bodyList[iEnd].Name.Split('.')[2];
+                if (chName != curName) {
+                    chainList.Add(bodyList.GetRange(iBegin, iEnd - iBegin));
+                    iBegin = iEnd;
+                    curName = chName;
+                }
+            }
+            if ( iBegin < bodyList.Count)
+                chainList.Add(bodyList.GetRange(iBegin, bodyList.Count - iBegin));
+            return chainList;
+        }
+
         public List<EntityInfo> GetEntityTable(string fileName) {
             entityTable = null;
             using (TextReader tr = new StreamReader(fileName)) {

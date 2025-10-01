@@ -443,13 +443,6 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, staged=False, repeats=1, stretch=0, cl
 	if repeats != 0:
 		mds.Close()
 
-def AddRecord(ds, pId, chIdx, chName, entityId, ppType, seqList):
-	pSeq = ''.join(seqList)
-	seqLen = len(pSeq)
-	b = ds.AddRow(pId + '_' + str(chIdx), None,  ppType, [pId, str(entityId), pSeq, str(seqLen), chName])
-	if b == None:
-		raise Exception('Failed: '+vv.LastError)
-
 # Extract chains from PDB complex and store then in current table. Heter-atoms and singltons will be ignored.
 def LoadChains(pId):
 	ds = vv.Dataset
@@ -463,40 +456,30 @@ def LoadChains(pId):
 	except Exception as ex :
 		return None, None, None
 	
-	chName = ''	  # current chain name.
-	entityId = -1
-	seqList = []
-	ppType = -1   # polypeptide type: 0: aa-pp, 99: rna-pp, 97: dna-pp
-	totalLength = 0
-	chIdx = 0    # The chain index
-	
-	for b in bList:
-		bChNm = ChainName(b)
-		if bChNm == chName:
-			pp = b.Name[0] if ppType == 0 else b.Name[2]
-			seqList.append(pp)
+	chainList = cs.SplitByChainName(bList)
+	totalLength = sum([ch.Count for ch in chainList])
+	chainList = [ ch for ch in chainList if ch.Count>1 ]
+	for chIdx, ch in enumerate(chainList):
+		b = ch[0]
+		entityId = b.Type + 1
+		fs = b.Name.split('.')
+		chName = fs[2]
+		if fs[0] == 'r':	
+			ppType = 99
+		elif fs[0] == 'd':
+			ppType = 97
 		else:
-			totalLength += len(seqList)
-			if len(seqList) > 1:
-				AddRecord(ds, pId, chIdx, chName, entityId, ppType, seqList)
-				chIdx += 1
-			chName = bChNm
-			entityId = b.Type+1
-			fs = b.Name.split('.')
-			chName = fs[2]
-			if fs[0] == 'r':	
-				ppType = 99
-			elif fs[0] == 'd':
-				ppType = 97
-			else:
-				ppType = 0
-			pp = b.Name[0] if ppType == 0 else b.Name[2]
-			seqList = [ pp ]
+			ppType = 0
+		if ppType == 0:
+			seqList = [ b.Name[0] for b in ch ]
+		else:
+			seqList = [ b.Name[2] for b in ch ]
+		pSeq = ''.join(seqList)
+		seqLen = len(pSeq)
+		body = ds.AddRow(pId + '_' + str(chIdx), None,  ppType, [pId, str(entityId), pSeq, str(seqLen), chName])
+		if body == None:
+			raise Exception('Failed: '+vv.LastError)
 
-	totalLength += len(seqList)
-	if len(seqList) > 1:
-		AddRecord(ds, pId, chIdx, chName, entityId, ppType, seqList)
-		chIdx += 1
 	return chIdx, totalLength, pdbTitle
 
 # Unpack all chains in a PDB directory and store them in current dataset.
@@ -547,46 +530,28 @@ def UnpackChains(pList=None):
 		nm = ds.StringAt(b.Id, 4)
 		nm2id[b.Id[:4]+'_'+nm] = b.Id
 
-	reporting = len(pList) > 1
-
-	if reporting:
+	if len(pList) > 1:
 		print(f'Unpacking {len(pList)} cif files...')
-	unpacked = []
+
 	for k, pId in enumerate(pList):	
 		_, bList, _, pdbTitle = LoadCifData(pId)
 		if bList == None:
 			continue
-		preChName = None
-		chain = []
+		chainsCount += 1
 		if (k+1)%50 == 0:
 			print(f'Unpacking {k}-th cif file...')
 		vv.DoEvents()
-		for b in bList:
-			chNm = ChainName(b)
-			if chNm == preChName:
-				chain.append(b)
-			else:
-				if preChName != None:
-					id_nm = pId + '_' + preChName
-					if id_nm in nm2id:
-						chainsCount += 1
-						SaveChain(nm2id[id_nm], chain)
-						vv.DoEvents()
-				# start a new chain with chName and b as first point
-				preChName = chNm
-				chain = [ b ]
-		# The last chain
-		if len(chain) > 0:
-			id_nm = pId + '_' + preChName
-			if id_nm in nm2id:
-				SaveChain(nm2id[id_nm], chain)
-		unpacked.append(pId)
-	if reporting:
-		print(f'Unpacked {len(unpacked)} cif files')
+		for ch in cs.SplitByChainName(bList):
+			chIdName = pId + '_' + ChainName(ch[0])
+			if chIdName in nm2id:
+				SaveChain(nm2id[chIdName], ch)
+
+	if len(pList) > 1:
+		print(f'Unpacked {chainsCount} cif files')
 
 ''' Unpack all cif files. Call this after cleaned ChainCache dir.
 UnpackChains()
-UnpackChains(['8FL2']) # download and unpack a single cif.
+UnpackChains(['2JU0']) 
 '''
 
 def PreloadPDB(sList):
