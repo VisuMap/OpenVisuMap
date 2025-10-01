@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps MatchMap ChmX Web IntMaps 3D 3Dx 3Ds 2Ds 2D  Open S2 TileAll Seq Align sT TT
+#MenuLabels ConfigMaps MatchMap ChmX Web IntMaps Open 3D 3Dx 3Ds 2D 2Ds S2 TileAll Seq Align sT TT
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')

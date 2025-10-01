@@ -443,9 +443,12 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, staged=False, repeats=1, stretch=0, cl
 	if repeats != 0:
 		mds.Close()
 
-# pId=pList[0]
-# Extract chains from PDB complex and store then in current table. Duplicates will be removed.
-def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
+def AddRecord(chList, chName, entityId, ppType, seqList):
+	pSeq = ''.join(seqList)
+	chList.append( (chName, entityId, ppType, pSeq, len(pSeq)) )	
+
+# Extract chains from PDB complex and store then in current table. Heter-atoms and singltons will be ignored.
+def LoadChains(pId):
 	ds = vv.Dataset
 	if (ds.Columns != 5) or (ds.ColumnSpecList[4].Id != 'ChainName'):
 		vv.Message('Current dataset has invalid format: pid;repeats;seq;len;chainName')
@@ -462,6 +465,7 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 	entityId = -1
 	seqList = []
 	ppType = -1   # polypeptide type: 0: aa-pp, 99: rna-pp, 97: dna-pp
+	totalLength = 0	
 	
 	for b in bList:
 		bChNm = ChainName(b)
@@ -469,10 +473,9 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 			pp = b.Name[0] if ppType == 0 else b.Name[2]
 			seqList.append(pp)
 		else:
-			if len(seqList) > 0:
-				if (aaChains and ppType==0) or (rnaChains and ppType==1) or (dnaChains and ppType==2):
-					pSeq = ''.join(seqList)
-					chList.append( (chName, entityId, ppType, pSeq, len(pSeq)) )
+			totalLength += len(seqList)
+			if len(seqList) > 1:
+				AddRecord(chList, chName, entityId, ppType, seqList)
 			chName = bChNm
 			entityId = b.Type+1
 			fs = b.Name.split('.')
@@ -485,19 +488,16 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 				ppType = 0
 			pp = b.Name[0] if ppType == 0 else b.Name[2]
 			seqList = [ pp ]
-	if len(seqList) > 0:
-		if (aaChains and ppType==0) or (rnaChains and ppType==99) or (dnaChains and ppType==97):
-			pSeq = ''.join(seqList)
-			chList.append( (chName, entityId, ppType, pSeq, len(pSeq)) )
 
-	totalLength = 0	
+	totalLength += len(seqList)
+	if len(seqList) > 1:
+		AddRecord(chList, chName, entityId, ppType, seqList)
+
 	spId = pId+'_'		
 	for cIdx, (chId, entityId, ppType, pSeq, seqLen) in enumerate(chList):
-		if (seqLen>1) and len(pSeq) == seqLen:
-			b = ds.AddRow(spId + str(cIdx), None,  ppType, [pId, str(entityId), pSeq, str(seqLen), chId])
-			if b == None:
-				raise Exception('Failed: '+vv.LastError)
-		totalLength += seqLen
+		b = ds.AddRow(spId + str(cIdx), None,  ppType, [pId, str(entityId), pSeq, str(seqLen), chId])
+		if b == None:
+			raise Exception('Failed: '+vv.LastError)
 	return len(chList), totalLength, pdbTitle
 
 # Unpack all chains in a PDB directory and store them in current dataset.
@@ -521,7 +521,7 @@ def LoadAllChains(pList=None):
 	for k, pId in enumerate(pList):
 		if (k+1)%50 == 0:
 			print(f'{k+1}: {pId} {chCount} chains')
-		chCnt, totalLen, title = LoadChains(pId, aaChains=True, rnaChains=True, dnaChains=True)
+		chCnt, totalLen, title = LoadChains(pId)
 		if chCnt == None:
 			skipped.append(pId)
 			continue
@@ -720,7 +720,7 @@ sList = ','.join(sList)
 
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'Albumin')
+ImportPDBList(sList, 'TT')
 
 
 # remove all chain cache files of a pList:
@@ -751,7 +751,6 @@ dsList = []
 ds = vv.Dataset
 for k in range(ds.Rows):
 	dsList.append( (ds.ValueAtAsString(k, 0), ds.ValueAtAsString(k, 1)) )
-dsList = dsList[:-1]
 for dn, sList in dsList:
 	print(dn, len(sList.split(',')))
 	ImportPDBList(sList, dn)
