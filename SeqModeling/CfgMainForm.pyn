@@ -46,7 +46,7 @@ def MainMain(menuKey):
 					tP = (1000, 3, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
-				mp = ProteinMap2(pList, vt, 4000, filterP=(0.0, 0, 0), *args, **kwargs)
+				mp = ProteinMap2(pList, vt, 4000, filterP=(0.0, 2, 0), *args, **kwargs)
 				vv.Dataset.AddMap(vt)
 				mp.NormalizeView().CopyMap()
 				vv.Map.Redraw()
@@ -139,8 +139,8 @@ for dn in dnList:
 		vv.Dataset.DeleteMap(mp)
 
 dnList = list(vv.Folder.DatasetNameList)[1:]
-#dnList = dnList[dnList.index('PSymmetry10K'):]
-DoDatasetList(dnList[3:10], sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
+dnIndex = dnList.index('GSymmetry320K_330K')
+DoDatasetList(dnList[14:], sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
 
 DoDatasetList([vv.Dataset.Name], sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
 '''

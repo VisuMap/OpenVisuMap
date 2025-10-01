@@ -493,11 +493,11 @@ def LoadChains(pId, aaChains=True, rnaChains=False, dnaChains=False):
 	totalLength = 0	
 	spId = pId+'_'		
 	for cIdx, (chId, entityId, ppType, pSeq, seqLen) in enumerate(chList):
-		if (seqLen>0) and len(pSeq) == seqLen:
+		if (seqLen>1) and len(pSeq) == seqLen:
 			b = ds.AddRow(spId + str(cIdx), None,  ppType, [pId, str(entityId), pSeq, str(seqLen), chId])
 			if b == None:
 				raise Exception('Failed: '+vv.LastError)
-		totalLength += seqLen			
+		totalLength += seqLen
 	return len(chList), totalLength, pdbTitle
 
 # Unpack all chains in a PDB directory and store them in current dataset.
