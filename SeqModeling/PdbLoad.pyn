@@ -443,9 +443,12 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, staged=False, repeats=1, stretch=0, cl
 	if repeats != 0:
 		mds.Close()
 
-def AddRecord(chList, chName, entityId, ppType, seqList):
+def AddRecord(ds, pId, chIdx, chName, entityId, ppType, seqList):
 	pSeq = ''.join(seqList)
-	chList.append( (chName, entityId, ppType, pSeq, len(pSeq)) )	
+	seqLen = len(pSeq)
+	b = ds.AddRow(pId + '_' + str(chIdx), None,  ppType, [pId, str(entityId), pSeq, str(seqLen), chName])
+	if b == None:
+		raise Exception('Failed: '+vv.LastError)
 
 # Extract chains from PDB complex and store then in current table. Heter-atoms and singltons will be ignored.
 def LoadChains(pId):
@@ -460,12 +463,12 @@ def LoadChains(pId):
 	except Exception as ex :
 		return None, None, None
 	
-	chList = []
 	chName = ''	  # current chain name.
 	entityId = -1
 	seqList = []
 	ppType = -1   # polypeptide type: 0: aa-pp, 99: rna-pp, 97: dna-pp
-	totalLength = 0	
+	totalLength = 0
+	chIdx = 0    # The chain index
 	
 	for b in bList:
 		bChNm = ChainName(b)
@@ -475,7 +478,8 @@ def LoadChains(pId):
 		else:
 			totalLength += len(seqList)
 			if len(seqList) > 1:
-				AddRecord(chList, chName, entityId, ppType, seqList)
+				AddRecord(ds, pId, chIdx, chName, entityId, ppType, seqList)
+				chIdx += 1
 			chName = bChNm
 			entityId = b.Type+1
 			fs = b.Name.split('.')
@@ -491,14 +495,9 @@ def LoadChains(pId):
 
 	totalLength += len(seqList)
 	if len(seqList) > 1:
-		AddRecord(chList, chName, entityId, ppType, seqList)
-
-	spId = pId+'_'		
-	for cIdx, (chId, entityId, ppType, pSeq, seqLen) in enumerate(chList):
-		b = ds.AddRow(spId + str(cIdx), None,  ppType, [pId, str(entityId), pSeq, str(seqLen), chId])
-		if b == None:
-			raise Exception('Failed: '+vv.LastError)
-	return len(chList), totalLength, pdbTitle
+		AddRecord(ds, pId, chIdx, chName, entityId, ppType, seqList)
+		chIdx += 1
+	return chIdx, totalLength, pdbTitle
 
 # Unpack all chains in a PDB directory and store them in current dataset.
 # A summary table about each protein will displayed.
@@ -751,6 +750,7 @@ dsList = []
 ds = vv.Dataset
 for k in range(ds.Rows):
 	dsList.append( (ds.ValueAtAsString(k, 0), ds.ValueAtAsString(k, 1)) )
+dsList = dsList[5:]
 for dn, sList in dsList:
 	print(dn, len(sList.split(',')))
 	ImportPDBList(sList, dn)
