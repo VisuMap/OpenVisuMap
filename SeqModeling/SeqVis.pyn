@@ -183,6 +183,11 @@ def ConfigSeqMap(map, pId, gsize=6.0, redrawMap=False):
 def NewMapStore(atName):
 	return AtlasMapStore(atName, True) if atName!=None else None
 
+def Siblings(chList):
+	pSet = set([pId[:4] for pId in chList])
+	chList = [b.Id for b in vv.Dataset.BodyListEnabled() if b.Id[:4] in pSet]
+	return chList, len(pSet)
+
 #-----------------------------------------------------------
 # Code to maintain the protein table.
 #-----------------------------------------------------------

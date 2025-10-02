@@ -678,7 +678,7 @@ ImportPDBList(sList, 'TT')
 
 # remove all chain cache files of a pList:
 import os
-pList = vv.AllItems
+pList = [b.Id for b in vv.Dataset.BodyListEnabled()]
 pList = set([p[:4] for p in pList])
 print(len(pList))
 fList = []

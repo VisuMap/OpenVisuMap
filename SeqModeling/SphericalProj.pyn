@@ -83,7 +83,7 @@ def ShowSphere4(repeats=5, contracting=0.9):
 	for b in bList: b.Mult(1000.0)
 	cs.NormalizeChain(bList)
 	info = MapInfo('pId:'+pId)
-	ShowSphere(bList, info, gsize=2.0, hsize=3, gopacity=0.75,  showBox=False)
+	ShowSphere(bList, info, gsize=2.0, hsize=3, gopacity=0.75,  showBox=False, normalizing=True)
 
 
 def NotExits(vw):

@@ -73,8 +73,7 @@ def MainMain(menuKey):
 		case 'TypeProtein':
 			TypeProteinList(pList)
 		case 'Siblings':
-			pSet = set([pId[:4] for pId in selected])
-			vv.SelectedItems = [b.Id for b in vv.Dataset.BodyListEnabled() if b.Id[:4] in pSet]
+			vv.SelectedItems, _ = Siblings(selected)
 			vv.Title = f'Selected: {len(selected)}, Expanded: {vv.SelectedItems.Count}'
 		case 'UniqSeq':
 			SelectUniqSeq()
@@ -107,23 +106,35 @@ def MainMain(menuKey):
 MainMain(vv.EventSource.Item)
 
 import random
-def DoDatasetList(dnList, sampleSize=2000, initMap=0, createPMap=True, createAtlas=False):
+def DoDatasetList(dnList, initMap=0, sampleSize=1000, createPMap=True, createAtlas=False, closure=False):
 	tm0 = time.time()
 	for n, dn in enumerate(dnList):
 		t0 = time.time()
 		vv.Folder.OpenDataset(dn)
 		ds = vv.Dataset
 		ds.OpenMap(ds.MapNameList[initMap])
-		if createPMap:
+
+		if sampleSize > 0:
 			bs = [b.Id for b in ds.BodyListEnabled()]
 			random.seed(321)
-			vv.SelectedItems = random.sample(bs, min(sampleSize, len(bs)))
+			chList = random.sample(bs, min(sampleSize, len(bs)))
 			random.seed(time.time())
+		else:
+			chList = []
+
+		if closure:
+			chList, cmpCnt = Siblings(chList)
+			print(f'\t\t\tP-Complexes: {cmpCnt}; Siblings: {len(chList)}')
+
+		if createPMap:
+			bs = [b.Id for b in ds.BodyListEnabled()]
+			vv.SelectedItems = chList
 			MainMain('P-Map')
+
 		if createAtlas:
 			MainMain('P-2D')
-			if vv.LastView.Name == 'Atlas': 
-				vv.LastView.Close()
+			vv.LastView.Close()
+
 		t0 = time.time()-t0
 		print(f'{n}: {dn}\t{t0:.1f}s')
 	tm0 = (time.time() - tm0)/3600.0
@@ -138,9 +149,11 @@ for dn in dnList:
 	for mp in mpList[3:]:
 		vv.Dataset.DeleteMap(mp)
 
-dnList = list(vv.Folder.DatasetNameList)[2:-1]
-#dnIndex = dnList.index('GSymmetry320K_330K')
-DoDatasetList(dnList, sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
+dnList = list(vv.Folder.DatasetNameList)[1:]
+dnIndex = dnList.index('Virus10K')
+dnList = dnList[dnIndex:]
+print(dnList[0])
+DoDatasetList(dnList, initMap=0, sampleSize=100, createPMap=True, createAtlas=False, closure=True )
 
-DoDatasetList([vv.Dataset.Name], sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
+DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=100,  createPMap=False, createAtlas=False, closure=True )
 '''
