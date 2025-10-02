@@ -367,7 +367,7 @@ def LoadChain0(pId):
 	from os.path import exists
 	cacheFile = ChainCacheFile(pId)
 	if not exists(cacheFile):
-		UnpackChains([pId[:4]])
+		UnpackChain(pId[:4])
 	return cs.LoadChain3D(cacheFile)
 
 def LoadChain(pId):
@@ -470,11 +470,7 @@ def LoadChains(pId):
 			ppType = 97
 		else:
 			ppType = 0
-		if ppType == 0:
-			seqList = [ b.Name[0] for b in ch ]
-		else:
-			seqList = [ b.Name[2] for b in ch ]
-		pSeq = ''.join(seqList)
+		pSeq = cs.ToSequence(ch)
 		seqLen = len(pSeq)
 		body = ds.AddRow(pId + '_' + str(chIdx), None,  ppType, [pId, str(entityId), pSeq, str(seqLen), chName])
 		if body == None:
@@ -517,41 +513,34 @@ def LoadAllChains(pList=None):
 def SaveChain(chId, chain):
 	cs.SaveChain(ChainCacheFile(chId), chain)
 
-def UnpackChains(pList=None):
-	import os
-	CheckCacheDir()
-	if pList == None:   # Unpack all cif files.
-		pList = [f[:4] for f in os.listdir(PDB_CACHE) if f.endswith('.cif')]	
-	chainsCount = 0
-	# nm2id converts a chain-name to chain-id using the current dataset.
-	nm2id = {}
+cachedNm2Id = None
+
+def UnpackChain(pId):
+	global cachedNm2Id
 	ds = vv.Dataset
-	for b in ds.BodyList:
-		nm = ds.StringAt(b.Id, 4)
-		nm2id[b.Id[:4]+'_'+nm] = b.Id
 
-	if len(pList) > 1:
-		print(f'Unpacking {len(pList)} cif files...')
+	if (cachedNm2Id == None) or (cachedNm2Id['DS_Name'] != ds.Name) or (len(cachedNm2Id)-1 != ds.Rows):
+		# nm2id converts a chain-name to chain-id using the current dataset.
+		nm2id = {}
+		for b in ds.BodyList:
+			nm = ds.StringAt(b.Id, 4)
+			nm2id[b.Id[:4]+'_'+nm] = b.Id
+		cachedNm2Id = nm2id
+		cachedNm2Id['DS_Name'] = ds.Name
+	else:
+		nm2id = cachedNm2Id
 
-	for k, pId in enumerate(pList):	
-		_, bList, _, pdbTitle = LoadCifData(pId)
-		if bList == None:
-			continue
-		chainsCount += 1
-		if (k+1)%50 == 0:
-			print(f'Unpacking {k}-th cif file...')
+	_, bList, _, pdbTitle = LoadCifData(pId)
+	if bList == None:
+		return
+	for ch in cs.SplitByChainName(bList):
+		chIdName = pId + '_' + ChainName(ch[0])
 		vv.DoEvents()
-		for ch in cs.SplitByChainName(bList):
-			chIdName = pId + '_' + ChainName(ch[0])
-			if chIdName in nm2id:
-				SaveChain(nm2id[chIdName], ch)
+		if chIdName in nm2id:
+			SaveChain(nm2id[chIdName], ch)
 
-	if len(pList) > 1:
-		print(f'Unpacked {chainsCount} cif files')
-
-''' Unpack all cif files. Call this after cleaned ChainCache dir.
-UnpackChains()
-UnpackChains(['2JU0']) 
+'''
+UnpackChain('2JU0')
 '''
 
 def PreloadPDB(sList):

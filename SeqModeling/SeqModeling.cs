@@ -944,6 +944,17 @@ namespace VisuMap {
             return chainList;
         }
 
+        public string ToSequence(List<IBody> bList) {
+            if ((bList == null) || (bList.Count == 0))
+                return "";
+            StringBuilder sb = new StringBuilder();
+            string[] fs = bList[0].Name.Split('.');
+            int chIdx = (fs[0] == "r") || (fs[0] == "d") ? 2 : 0;
+            foreach (var b in bList)
+                sb.Append(b.Name[chIdx]);
+            return sb.ToString();
+        }
+
         public List<EntityInfo> GetEntityTable(string fileName) {
             entityTable = null;
             using (TextReader tr = new StreamReader(fileName)) {

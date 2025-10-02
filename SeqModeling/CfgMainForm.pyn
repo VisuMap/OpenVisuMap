@@ -138,9 +138,9 @@ for dn in dnList:
 	for mp in mpList[3:]:
 		vv.Dataset.DeleteMap(mp)
 
-dnList = list(vv.Folder.DatasetNameList)[1:]
-dnIndex = dnList.index('GSymmetry320K_330K')
-DoDatasetList(dnList[14:], sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
+dnList = list(vv.Folder.DatasetNameList)[2:-1]
+#dnIndex = dnList.index('GSymmetry320K_330K')
+DoDatasetList(dnList, sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
 
 DoDatasetList([vv.Dataset.Name], sampleSize=1000, initMap=0, createPMap=True, createAtlas=True )
 '''
