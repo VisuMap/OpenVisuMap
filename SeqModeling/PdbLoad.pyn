@@ -466,13 +466,16 @@ def LoadChains(pId):
 		chName = fs[2]
 		if fs[0] == 'r':	
 			ppType = 99
+			chType = 'r'
 		elif fs[0] == 'd':
 			ppType = 97
+			chType = 'd'
 		else:
 			ppType = 0
+			chType = 'A'
 		pSeq = cs.ToSequence(ch)
 		seqLen = len(pSeq)
-		body = ds.AddRow(pId + '_' + str(chIdx), None,  ppType, [pId, str(entityId), pSeq, str(seqLen), chName])
+		body = ds.AddRow(pId + '_' + str(chIdx), None,  ppType, [chType, str(entityId), pSeq, str(seqLen), chName])
 		if body == None:
 			raise Exception('Failed: '+vv.LastError)
 
@@ -575,7 +578,7 @@ def InitDatabase(dsName, description):
 	vv.Folder.OpenDataset(dsName)
 	vv.Map.GlyphSet = PMap_GLYPHSET
 	ds = vv.Dataset
-	ds.AddColumn('PID', 0, '', 0)
+	ds.AddColumn('ChainType', 0, '', 0)
 	ds.AddColumn('EntityId', 1, '0', 1)
 	ds.AddColumn('ProteinSeq', 0, '', 2)
 	ds.AddColumn('SeqLen', 1, '0', 3)
@@ -663,18 +666,10 @@ def GetAAGroup(idx=0):
 			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
 
 '''
-
-import os
-sList = [f[:4] for f in os.listdir(PDB_CACHE) if f.endswith('.cif')]
-print(len(sList))
-sList = ','.join(sList)
-
 --- Steps to import a list of PDB id into VisuMap: ---
-
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
 ImportPDBList(sList, 'TT')
-
 
 # remove all chain cache files of a pList:
 import os

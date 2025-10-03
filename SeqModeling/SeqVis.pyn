@@ -447,7 +447,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
 
 def ShowWeb(pId):
 	pId = pId[:4]
-	if vv.Dataset.ColumnSpecList[0].Id == 'PID':
+	if vv.Dataset.ColumnSpecList[0].Id == 'ChainType':
 		vv.StartProcess(f'https://rcsb.org/3d-view/{pId}')
 	else:
 		vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/protein/{pId}')
@@ -1038,11 +1038,20 @@ def VisChainSize(szType=2):
 		match szType:
 			case 0:
 				typeIdx = int(p2sz[b.Id[:4]])
+				b.Type = min(63, typeIdx)
 			case 1:
 				typeIdx = int(p2sz[b.Id[:4]]/500)
+				b.Type = min(63, typeIdx)
 			case 2:
 				typeIdx = int(ds.DoubleAt(b.Id, 3)/100)
-		b.Type = min(63, typeIdx)
+				b.Type = min(63, typeIdx)
+			case 3:
+				typeIdx = int(ds.DoubleAt(b.Id, 1))
+				b.Type = 64 + typeIdx
+			case 4:
+				chType = ds.StringAt(b.Id, 0)
+				typeIdx = 0 if chType=='A' else ( 99 if chType=='r' else 97 )
+				b.Type = typeIdx		
 	vv.Map.RedrawAll()
 
 def AlignSeqPair(parentWin):
