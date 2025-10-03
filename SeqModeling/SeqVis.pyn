@@ -13,7 +13,12 @@ SeqMap_GLYPHSET = '36 Clusters||||Colored Balls|Ordered Glyphs'
 SeqMap_HEAD = 155
 SeqMap_TAIL = 171
 PMap_GLYPHSET = 'Ordered 64|36 Clusters|Red Green'
+BOND_LENGTH = 3.8015
+ALPHA_ANGLE = 2*math.pi/3.6   # angle between two alpha atoms in the axis direction.
+ALPHA_DIAM = 5.4    # the average diameter of alpha hex.
+
 vv.RightHanded3D = True
+
 
 def AssertProteinTable():
 	if (vv.Dataset.Columns < 4) or ( vv.Dataset.ColumnSpecList[2].Id != 'ProteinSeq'):
@@ -257,7 +262,7 @@ def GetTsneRD_old(pList, vType, tP):
 		if (k+1) % 10 == 0:
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
 		ss.SetBodyType(bList, None, vv.Dataset.BodyForId(pId).Type)
-		bList = Interpolate1Chain(bList, rp=intRp, smtRatio=0)
+		bList = Interpolate1Chain(bList, rp=intRp)
 		nt = cs.AugmentByStretch(bList, stretch, intRp)
 		mds.Description = f'pId:{pId}'
 		RunMds(mds, repeats=0, nt=nt)	
@@ -294,7 +299,7 @@ def GetTsneRD(pList, vType, tP):
 		if (k+1) % 10 == 0:
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
 		ss.SetBodyType(bList, None, ds.BodyForId(pId).Type)
-		bList = Interpolate1Chain(bList, rp=intRp, smtRatio=0)
+		bList = Interpolate1Chain(bList, rp=intRp)
 		nt = cs.AugmentByStretch(bList, stretch, intRp)
 		vv.DoEvents()
 
@@ -969,7 +974,7 @@ def Merge3DList(pList):
 	for k, pId in enumerate(pList):
 		bList = LoadChain0(pId)
 		bList = cs.PcaNormalizePositive(New.NumberTable(bList, 3)).ToBodyList()	
-		bList = Interpolate(bList, 4, smtRatio=0.0)
+		bList = Interpolate(bList, 4)
 		if k == 0:
 			xc = np.average([b.X for b in bList])
 			yc = np.average([b.Y for b in bList])

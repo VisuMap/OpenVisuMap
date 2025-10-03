@@ -718,7 +718,7 @@ namespace VisuMap {
             return bList;
         }
 
-        const double BOND_LENGTH = 3.8;  // Average bond length. with std ca 0.1
+        const double BOND_LENGTH = 3.8015;  // Average bond length. with std ca 0.1
 
         public INumberTable ToTorsionList(List<IBody> bList) {
             int L = bList.Count;

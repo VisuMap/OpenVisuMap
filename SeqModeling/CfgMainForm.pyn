@@ -19,12 +19,12 @@ def MainMain(menuKey):
 		case '3D':
 			if atlasName != None: atlasName += '-3D'
 			SortByPosX(pList)
-			ShowProteinList(pList, includeHA=True, intRp=5, atName=atlasName, smtRatio=0.0, gsize=1.5, gopacity=0.5)
+			ShowProteinList(pList, includeHA=True, intRp=5, atName=atlasName, gsize=1.5, gopacity=0.5)
 		case '3Dx':
 			if vv.ModifierKeys.ControlPressed:
 				pId = vv.PromptMessage('Protein ID: ', '????')
 				if pId == None: return
-			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, smtRatio=0.0)
+			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True)
 		case '3Ds':
 			Merge3DList(pList)
 		case 'SeqMap':
@@ -40,7 +40,7 @@ def MainMain(menuKey):
 			if False:
 				UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False, 
 					samplingDist=0.0, atName=atlasName, ppl=0.10, initExag=4.0, finalExag=1.0,
-					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0, smtRatio=0.0)
+					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0)
 			else:
 				CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, 
 					tP = (1000, 3, 0.0, 0.1, 4.0, 1.0))			
@@ -90,7 +90,7 @@ def MainMain(menuKey):
 			ShowChain(pId, gopacity=0.5)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
 		case 'vsSz':
-			VisChainSize(szType=1)
+			VisChainSize(szType=3)
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'TT':
@@ -162,4 +162,5 @@ DoDatasetList(dnList, initMap=1, sampleSize=0,   closure=False, createPMap=False
 
 DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=100,  createPMap=False, createAtlas=False, closure=True )
 
+LoadChain0
 '''

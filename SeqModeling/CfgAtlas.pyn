@@ -38,19 +38,18 @@ def AtlasMain(menuKey):
 				chainNames = GetChainName(pId)
 				if chainNames == None:
 					continue
-				mp = ShowPDB(pId, rp=5, includeHA=False, hidIntp=True, glyphSize=2.0, chainNames=chainNames, smtRatio=0.0)
+				mp = ShowPDB(pId, rp=5, includeHA=False, hidIntp=True, glyphSize=2.0, chainNames=chainNames)
 				mp.NormalizeView()
 		case '3Dx':
 			for e in pSelected:
-				mp = ShowPDB(e.Name, rp=5, includeHA=False, setChainId=False, typeByChainIdx=True, chainNames=None, smtRatio=0.0)
+				mp = ShowPDB(e.Name, rp=5, includeHA=False, setChainId=False, typeByChainIdx=True, chainNames=None)
 				if ctrPressed:
 					mp.ClickMenu('SeqVis/P-2D')
 					mp.Close()
 		case '2D':
 			pList = [item.Id for item in pSelected]
 			UnFoldProteinList(pList, epochs=2500, includeHA=False,  wholeComplex=False,
-				samplingDist=0.0,	initExag=4.0, ppl=0.1, stretch=0.1,
-				clusterStretch=0.0, iconWidth=50, smtRatio=0.0)
+				samplingDist=0.0,	initExag=4.0, ppl=0.1, stretch=0.1,	clusterStretch=0.0, iconWidth=50)
 		case 'Web':
 			ShowWeb(pId)
 		case 'ChmX':

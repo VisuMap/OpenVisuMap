@@ -23,10 +23,10 @@ def CheckCacheDir():
 		vv.Return()
 
 def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
-		setChainId=False,	typeByChainIdx=False, smtRatio=0, glyphSize=1.0, glyphOpacity=0.75):
+		setChainId=False,	typeByChainIdx=False, glyphSize=1.0, glyphOpacity=0.75):
 
 	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, chainNames=chainNames)
-	bsList = Interpolate(bsList, rp, smtRatio=smtRatio, hidIntp=hidIntp)
+	bsList = Interpolate(bsList, rp, hidIntp=hidIntp)
 	
 
 	if setChainId:
@@ -62,7 +62,6 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 	info.pLen = bsList.Count
 	info.Mtd = 'PDB'
 	info.PT = SimplifyTitle(pdbTitle)
-	info.Set('SmR', smtRatio)
 	info.Set('HA', includeHA)
 	mp.Description = info.ToStr()
 	mp.Title = f'{pId}, Len:{bsList.Count}:  {info.PT}'
@@ -98,7 +97,7 @@ def ShowChain(cId, gsize=2.1, gopacity=0.75, hsize=3, intRp=5):
 	return mp
 
 
-def ShowProteinList(pList, includeHA, atName=None, smtRatio=0, gsize=1.0, gopacity=0.75, intRp=3):
+def ShowProteinList(pList, includeHA, atName=None, gsize=1.0, gopacity=0.75, intRp=3):
 	mapStore = NewMapStore(atName)
 	if mapStore != None:
 		mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
@@ -106,7 +105,7 @@ def ShowProteinList(pList, includeHA, atName=None, smtRatio=0, gsize=1.0, gopaci
 		vv.Title = f'Loading {pId}: {k+1}-th of {len(pList)}'
 		chainNames = GetChainName(pId)
 		mp = ShowPDB(pId, chainNames=chainNames, includeHA=includeHA, 
-				rp=intRp, smtRatio=smtRatio, glyphSize=gsize, glyphOpacity=gopacity)
+				rp=intRp, glyphSize=gsize, glyphOpacity=gopacity)
 		if mapStore != None:	
 			mapStore.AddMap('D3dRender')
 		else:
@@ -131,7 +130,7 @@ def GetChainName(pId):
 
 def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False, 
 		samplingDist=0,  ppl=0.1, initExag=5.0, finalExag=1.0, atName=None, 
-		stretch=0, clusterStretch=0.5, expandFactor=1.0, iconWidth=50, glyphSize=2.0, smtRatio=0):
+		stretch=0, clusterStretch=0.5, expandFactor=1.0, iconWidth=50, glyphSize=2.0):
 	t0 = time.time()
 	if wholeComplex:
 		# Remove all duplicates.
@@ -171,7 +170,7 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 				for b in bList:
 					b.Hidden = False
 				cs.NormalizeChain(bList, 184)						
-			bList = Interpolate(bList, rp=3, smtRatio=smtRatio)			
+			bList = Interpolate(bList, rp=3)
 			if includeHA:
 				bList.AddRange(bList2)
 			nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
@@ -186,7 +185,6 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 			info.Mtd = 'PDB'
 			info.PT = SimplifyTitle(pdbTitle)
 			info.DS = f'DS:{vv.Dataset.Name}'
-			info.Set('SmR', smtRatio)
 			info.Set('HA', includeHA)
 			if chainNames != None:
 				info.Set('CNs', '|'.join(chainNames) )
@@ -389,7 +387,7 @@ def LoadSeq(pId):
 def ChainName(body):
 	return body.Name.split('.')[2]
 
-def Interpolate(bList, rp=3, smtRatio=0, hidIntp=False):
+def Interpolate(bList, rp=3, hidIntp=False):
 	EPS = 0.085
 	bs = New.BodyList()
 	k0 = 0
@@ -398,8 +396,6 @@ def Interpolate(bList, rp=3, smtRatio=0, hidIntp=False):
 	for k in range(bList.Count+1):		
 		if (k == bList.Count) or (ChainName(bList[k]) != t0):
 			D = bList.GetRange(k0, k-k0)
-			if smtRatio != 0:
-				cs.LocalSmoothen(D, smtRatio, 8)
 			D = cs.Interpolate3D(D, rp, EPS, bs.Count, chIdx)
 			chIdx+=1
 			bs.AddRange(D)
@@ -411,14 +407,12 @@ def Interpolate(bList, rp=3, smtRatio=0, hidIntp=False):
 			b.Hidden = b.Id.startswith('i')
 	return bs
 
-def Interpolate1Chain(bList, rp=3, smtRatio=0, hidIntp=False):
+def Interpolate1Chain(bList, rp=3, hidIntp=False):
 	EPS = 0.085
 	marked = bList[0].Type == SeqMap_HEAD
 	if marked:
 		bList[0].Type = bList[1].Type
 		bList[bList.Count-1].Type = bList[1].Type			
-	if smtRatio != 0:
-		cs.LocalSmoothen(bList, smtRatio, 8)
 	bList = cs.Interpolate3D(bList, rp, EPS, bList.Count, 0)
 	if marked:
 		bList[0].Type = SeqMap_HEAD
