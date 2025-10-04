@@ -399,13 +399,6 @@ namespace VisuMap {
             var spX = CubicSpline.InterpolateNaturalSorted(P, X);
             var spY = CubicSpline.InterpolateNaturalSorted(P, Y);
             var spZ = CubicSpline.InterpolateNaturalSorted(P, Z);
-            Vector3[] D = new Vector3[iN];
-            MT.Loop(0, iN, k => {
-                double p = k * dx;
-                D[k].X = (float)spX.Interpolate(p);
-                D[k].Y = (float)spY.Interpolate(p);
-                D[k].Z = (float)spZ.Interpolate(p);
-            });
 
             int L2 = secL / 2;
             Body b0 = null;
@@ -415,10 +408,14 @@ namespace VisuMap {
                 for (int i = k - L2; i < k + L2; i++) {
                     if (i == k) {
                         bs.Add(b0);
-                    } else if ((i >= 0) && (i < D.Length)) {
-                        Body b = new Body("i", b0.Name, b0.Type);
+                    } else if ((i >= 0) && (i < iN)) {
+                        double p = i * dx;
+                        Body b = new Body("i", b0.Type, 
+                            spX.Interpolate(p), 
+                            spY.Interpolate(p), 
+                            spZ.Interpolate(p));
+                        b.Name = b0.Name;
                         b.Flags = b0.Flags;
-                        b.SetXYZ(D[i].X, D[i].Y, D[i].Z);
                         bs.Add(b);
                     }
                 }
