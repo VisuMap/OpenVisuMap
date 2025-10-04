@@ -380,63 +380,51 @@ namespace VisuMap {
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
             if ((bList.Count <= 1) || (repeats == 0))
                 return bList;
+
+            int secL = 1 << repeats;
             int N = bList.Count;
+            int iN = (N - 1) * secL + 1;
+            string secPrefix = "";
+            Body b0 = null;
+            List<IBody> bs = new List<IBody>();
+            for (int k = 0; k < iN; k++) {
+                int secIdx = k % secL;
+                if ( secIdx == 0) {
+                    b0 = bList[k / secL] as Body;
+                    bs.Add(b0);
+                    int rsIdx = 0;
+                    if ((b0.Id[0] == 'A') && (char.IsDigit(b0.Id[1])))
+                        rsIdx = int.Parse(b0.Id.Split('.')[0].Substring(1));
+                    secPrefix = "i" + chIdx + "." + rsIdx + ".";
+                } else {
+                    Body b = new Body(secPrefix + (secIdx - 1), b0.Name, b0.Type);
+                    b.Flags = b0.Flags;
+                    bs.Add(b);
+                }
+            }
+
             double[] P = new double[N];
             double[] X = new double[N];
             double[] Y = new double[N];
             double[] Z = new double[N];
-            for (int k=0; k<N; k++) {
+            for (int k = 0; k < N; k++) {
                 P[k] = k;
                 var b = bList[k];
                 X[k] = b.X;
                 Y[k] = b.Y;
                 Z[k] = b.Z;
             }
-
-            int secL = 1 << repeats;
-            int iN = (N - 1) * secL + 1;
             double dx = P[N - 1] / (iN - 1);
             var spX = CubicSpline.InterpolateNaturalSorted(P, X);
             var spY = CubicSpline.InterpolateNaturalSorted(P, Y);
             var spZ = CubicSpline.InterpolateNaturalSorted(P, Z);
-
-            int L2 = secL / 2;
-            Body b0 = null;
-            List<IBody> bs = new List<IBody>();
-            for (int k = 0; k < iN; k += secL) {
-                b0 = bList[k / secL] as Body;
-                for (int i = k - L2; i < k + L2; i++) {
-                    if (i == k) {
-                        bs.Add(b0);
-                    } else if ((i >= 0) && (i < iN)) {
-                        double p = i * dx;
-                        Body b = new Body("i", b0.Type, 
-                            spX.Interpolate(p), 
-                            spY.Interpolate(p), 
-                            spZ.Interpolate(p));
-                        b.Name = b0.Name;
-                        b.Flags = b0.Flags;
-                        bs.Add(b);
-                    }
-                }
-            }
-
-            string secPrefix = "";
-            int secIdx = 0;
-            for (int k = 0; k < bs.Count; k++) {
+            MT.Loop(0, iN, k => {
                 IBody b = bs[k];
-                if (b.Id[0] == 'i') {
-                    b.Id = secPrefix + secIdx;
-                    secIdx++;
-                } else {
-                    int rsIdx = 0;
-                    if ((b.Id[0] == 'A') && (char.IsDigit(b.Id[1])))
-                        rsIdx = int.Parse(b.Id.Split('.')[0].Substring(1));
-                    secPrefix = "i" + chIdx + "." + rsIdx + ".";
-                    secIdx = 0;
+                if ( b.Id[0] == 'i' ) {
+                    double p = dx * k;
+                    b.SetXYZ(spX.Interpolate(p), spY.Interpolate(p), spZ.Interpolate(p));
                 }
-            }
-
+            });
             return bs;
         }
 
