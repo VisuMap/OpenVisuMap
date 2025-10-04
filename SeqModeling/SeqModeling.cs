@@ -380,28 +380,24 @@ namespace VisuMap {
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
             if ((bList.Count <= 1) || (repeats == 0))
                 return bList;
-
-            int secL = 1 << repeats;
+            int L = 1 << repeats;
             int N = bList.Count;
-            int iN = (N - 1) * secL + 1;
-            string secPrefix = "";
-            Body b0 = null;
+            int iN = (N - 1) * L + 1;
             List<IBody> bs = new List<IBody>();
-            for (int k = 0; k < iN; k++) {
-                int secIdx = k % secL;
-                if ( secIdx == 0) {
-                    b0 = bList[k / secL] as Body;
-                    bs.Add(b0);
-                    int rsIdx = 0;
-                    if ((b0.Id[0] == 'A') && (char.IsDigit(b0.Id[1])))
-                        rsIdx = int.Parse(b0.Id.Split('.')[0].Substring(1));
-                    secPrefix = "i" + chIdx + "." + rsIdx + ".";
-                } else {
-                    Body b = new Body(secPrefix + (secIdx - 1), b0.Name, b0.Type);
+            for (int n=0; n<(N-1); n++) {
+                Body b0 = bList[n] as Body;
+                bs.Add(b0);
+                int rsIdx = 0;
+                if ((b0.Id[0] == 'A') && (char.IsDigit(b0.Id[1])))
+                    rsIdx = int.Parse(b0.Id.Split('.')[0].Substring(1));
+                string secPrefix = "i" + chIdx + "." + rsIdx + ".";
+                for (int k=0; k<(L-1); k++) {
+                    Body b = new Body(secPrefix + k, b0.Name, b0.Type);
                     b.Flags = b0.Flags;
                     bs.Add(b);
                 }
             }
+            bs.Add(bList[N - 1]);
 
             double[] P = new double[N];
             double[] X = new double[N];
