@@ -7,6 +7,7 @@ using Vector3 = SharpDX.Vector3;
 using Quaternion = SharpDX.Quaternion;
 using EntityInfo = System.Tuple<int, string, string, int>;
 using System.IO;
+using MathNet.Numerics.Interpolation;
 
 namespace VisuMap {
     public class SeqModeling {
@@ -376,8 +377,73 @@ namespace VisuMap {
                     R[i0 + i] += Mr[i];
             }
         }
-        
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
+            if ((bList.Count <= 1) || (repeats == 0))
+                return bList;
+            int N = bList.Count;
+            double[] P = new double[N];
+            double[] X = new double[N];
+            double[] Y = new double[N];
+            double[] Z = new double[N];
+            for (int k=0; k<N; k++) {
+                P[k] = k;
+                var b = bList[k];
+                X[k] = b.X;
+                Y[k] = b.Y;
+                Z[k] = b.Z;
+            }
+
+            int secL = 1 << repeats;
+            int iN = (N - 1) * secL + 1;
+            double dx = P[N - 1] / (iN - 1);
+            var spX = CubicSpline.InterpolateNaturalSorted(P, X);
+            var spY = CubicSpline.InterpolateNaturalSorted(P, Y);
+            var spZ = CubicSpline.InterpolateNaturalSorted(P, Z);
+            Vector3[] D = new Vector3[iN];
+            MT.Loop(0, iN, k => {
+                double p = k * dx;
+                D[k].X = (float)spX.Interpolate(p);
+                D[k].Y = (float)spY.Interpolate(p);
+                D[k].Z = (float)spZ.Interpolate(p);
+            });
+
+            int L2 = secL / 2;
+            Body b0 = null;
+            List<IBody> bs = new List<IBody>();
+            for (int k = 0; k < iN; k += secL) {
+                b0 = bList[k / secL] as Body;
+                for (int i = k - L2; i < k + L2; i++) {
+                    if (i == k) {
+                        bs.Add(b0);
+                    } else if ((i >= 0) && (i < D.Length)) {
+                        Body b = new Body("i", b0.Name, b0.Type);
+                        b.Flags = b0.Flags;
+                        b.SetXYZ(D[i].X, D[i].Y, D[i].Z);
+                        bs.Add(b);
+                    }
+                }
+            }
+
+            string secPrefix = "";
+            int secIdx = 0;
+            for (int k = 0; k < bs.Count; k++) {
+                IBody b = bs[k];
+                if (b.Id[0] == 'i') {
+                    b.Id = secPrefix + secIdx;
+                    secIdx++;
+                } else {
+                    int rsIdx = 0;
+                    if ((b.Id[0] == 'A') && (char.IsDigit(b.Id[1])))
+                        rsIdx = int.Parse(b.Id.Split('.')[0].Substring(1));
+                    secPrefix = "i" + chIdx + "." + rsIdx + ".";
+                    secIdx = 0;
+                }
+            }
+
+            return bs;
+        }
+
+        public List<IBody> Interpolate3D_Old(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
             if ((bList.Count <= 1) || (repeats == 0))
                 return bList;
 

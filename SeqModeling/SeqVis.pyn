@@ -45,6 +45,8 @@ def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling
 		#vv.StartProcess(msbuild, 'SeqModeling.csproj /p:Configuration=Release', False).WaitForExit(1000)
 		copy(vv.CurrentScriptDirectory + '/bin/Release/' + seqdll, vv.CurrentScriptDirectory)
 		#copy(vv.CurrentScriptDirectory + '/bin/Debug/' + seqdll, vv.CurrentScriptDirectory)
+	if not exists(vv.CurrentScriptDirectory + '/' + 'MathNet.Numerics.dll'):
+		copy(vv.CurrentScriptDirectory + '/packages/MathNet.Numerics.5.0.0/lib/net48/' + 'MathNet.Numerics.dll', vv.CurrentScriptDirectory)
 	vv.LoadLibrary(dllFile)
 	return New.Instance(className)
 
