@@ -42,7 +42,7 @@ def MainMain(menuKey):
 					samplingDist=0.0, atName=atlasName, ppl=0.10, initExag=4.0, finalExag=1.0,
 					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0)
 			else:
-				CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, 
+				CreateProteinMaps(pList, samplingDist=2.0, atlasName=atlasName, 
 					tP = (1000, 3, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
@@ -106,12 +106,13 @@ def MainMain(menuKey):
 MainMain(vv.EventSource.Item)
 
 import random
-def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=False, createPMap=True, createAtlas=False):
+def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, createPMap=True, createAtlas=False):
 	tm0 = time.time()
 	for n, dn in enumerate(dnList):
 		t0 = time.time()
 		vv.Folder.OpenDataset(dn)
 		ds = vv.Dataset
+		cmpCnt = 0
 		ds.OpenMap(ds.MapNameList[initMap])
 
 		if sampleSize > 0:
@@ -137,9 +138,12 @@ def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=False, createPMap=
 				vv.LastView.Close()
 
 		t0 = time.time()-t0
-		print(f'{n}: {dn}\t{t0:.1f}s')
+		print(f'{n}: {dn}\t{t0:.1f}s;\t\tcmp:{cmpCnt}, chains:{len(chList)}')
+		if vv.GuiManager.StopFlag:
+			break
 	tm0 = (time.time() - tm0)/3600.0
 	print(f'Total Time: {tm0:.2f}hr')
+	vv.Folder.Save()
 
 '''
 
@@ -147,21 +151,21 @@ def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=False, createPMap=
 for dn in dnList:
 	vv.Folder.OpenDataset(dn)
 	mpList = list(vv.Dataset.MapNameList)
-	for mp in mpList[3:]:
+	for mp in mpList[1:]:
 		vv.Dataset.DeleteMap(mp)
 
-dnList = list(vv.Folder.DatasetNameList)[1:]
+dnList = list(vv.Folder.DatasetNameList)[1:-1]
 
-#dnIndex = dnList.index('Virus10K')
-#dnList = dnList[dnIndex:]
+dnIndex = dnList.index('LSymmetry')
+dnList = dnList[dnIndex:]
 #print(dnList[0])
 dnList = dnList[:5]
 print(dnList)
 
-DoDatasetList(dnList, initMap=0, sampleSize=100, closure=True, createPMap=True,  createAtlas=True )
+DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, createPMap=True,  createAtlas=False )
 
 DoDatasetList(dnList, initMap=1, sampleSize=0,   closure=False, createPMap=False, createAtlas=True )
 
-DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=100,  createPMap=False, createAtlas=False, closure=True )
+DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=50,  createPMap=True, createAtlas=False )
 
 '''
