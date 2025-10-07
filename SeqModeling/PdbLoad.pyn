@@ -55,8 +55,9 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 
 	if includeHA:
 		bsList.AddRange(bsList2)
+	
+	mp = ShowBodyList(bsList, gSize=glyphSize, gOpacity=glyphOpacity)
 
-	mp = New.Map3DView(bsList)
 	info = MapInfo()
 	info.pId = pId
 	info.pLen = bsList.Count
@@ -65,37 +66,16 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 	info.Set('HA', includeHA)
 	mp.Description = info.ToStr()
 	mp.Title = f'{pId}, Len:{bsList.Count}:  {info.PT}'
-	mp.GlyphSet = SeqMap_GLYPHSET
-	mp.ReadOnly = True
-	mp.ShowPerformance = False
-	mp.ShowBoundingBox = False
-	mp.GlyphSize = glyphSize
-	mp.GlyphOpacity = glyphOpacity
-	mp.Show()
-	mp.HiddenBodySize = 3
-	mp.HiddenBodyColor = New.Color('White')
-	mp.NormalizeView()
+
 	return mp
+
 
 def ShowChain(cId, gsize=2.1, gopacity=0.75, hsize=3, intRp=5):
 	bList = LoadChain0(cId)
 	bList = Interpolate1Chain(bList, rp=intRp)
 	for b in bList: b.Hidden = (b.Id[0] == 'i')
 	cs.NormalizeChain(bList)
-	mp = New.Map3DView(bList)
-	mp.GlyphSet = SeqMap_GLYPHSET
-	mp.ReadOnly = True
-	mp.ShowPerformance = False
-	mp.ShowBoundingBox = False
-	mp.GlyphSize = gsize
-	mp.GlyphOpacity = gopacity
-	mp.HiddenBodySize = hsize
-	mp.HiddenBodyColor = New.Color('White')
-	mp.EditMode = False
-	mp.Show()
-	mp.NormalizeView().NormalizeView()
-	return mp
-
+	return ShowBodyList(bList, gSize=gsize, gOpacity=gopacity, hSize=hsize)
 
 def ShowProteinList(pList, includeHA, atName=None, gsize=1.0, gopacity=0.75, intRp=3):
 	mapStore = NewMapStore(atName)

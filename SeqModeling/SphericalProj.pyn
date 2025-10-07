@@ -17,29 +17,17 @@ def GetSphereDataset(cId, interRp=0, contracting=0, normalizing=False):
 	bList[bList.Count-1].Type = SeqMap_TAIL
 	return bList
 
-def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0, normalizing=False, showBox=True):
-	mp = New.Map3DView(bList)
-	mp.ReadOnly = True
-	mp.ShowPerformance = False
-	mp.ShowBoundingBox = showBox
-	mp.MapDepth = 0.5*(mp.Width+mp.Height)
-	mp.GlyphSize = gsize
-	mp.GlyphOpacity = gopacity
-	mp.HiddenBodySize = hsize
-	mp.GlyphSet = SeqMap_GLYPHSET
-	mp.Show()
-	mp.CentralizeView()
+def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0):
+	mp = ShowBodyList(bList, gSize=gsize, gOpacity=gopacity, hSize=hsize)
 	if info != None:
 		mp.Description = info.ToStr()
-	if normalizing: 
-		mp.NormalizeView()
 	return mp
 
 def ShowSphere2(pId, cf, hsize=4, gsize=4.0, gopacity=1.0, iRp=5):
 	info = MapInfo().Set('pId', pId)
 	bList = GetSphereDataset(pId, interRp=iRp, contracting=cf, normalizing=False)
 	cs.NormalizeChain(bList)
-	mp = ShowSphere(bList, info, hsize, gsize, gopacity, True)
+	mp = ShowSphere(bList, info, hsize, gsize, gopacity)
 	mp.EditMode = True
 	mp.ShowBoundingBox = False
 	mp.NormalizeView()
@@ -54,7 +42,7 @@ def ShowSphere3(pId):
 	cs.NormalizeChain(bList)
 
 	info = MapInfo('pId:'+pId)
-	mp = ShowSphere(bList, info, 2, 3.0, 0.5, True)
+	mp = ShowSphere(bList, info, 2, 3.0, 0.5)
 	mp.ShowBoundingBox = False
 	mp.RedrawAll()
 
@@ -83,7 +71,7 @@ def ShowSphere4(repeats=5, contracting=0.9):
 	for b in bList: b.Mult(1000.0)
 	cs.NormalizeChain(bList)
 	info = MapInfo('pId:'+pId)
-	ShowSphere(bList, info, gsize=2.0, hsize=3, gopacity=0.75,  showBox=False, normalizing=True)
+	ShowSphere(bList, info, gsize=2.0, hsize=3, gopacity=0.75)
 
 
 def NotExits(vw):
@@ -93,6 +81,8 @@ def SphereUnfold(bList, cf):
 	global tgtView
 	cf = max(0, min(1, cf))
 	bList = New.BodyListClone(bList)
+	for b in bList:
+		b.Mult(15)
 	cs.ShrinkSphere(bList, cf)
 	bs = New.BodyList()
 	bx = New.Body('A999.0')
@@ -103,36 +93,27 @@ def SphereUnfold(bList, cf):
 		bx.Add(b.X, b.Y, b.Z)
 		bx.Name = b.Name
 		bx.Id = b.Id
-		bx.Type = 0
+		bx.Type = 0		
 		bs.Add(bx.Clone())
 	bs = Interpolate1Chain(bs, rp=5, hidIntp=True)
 	cs.NormalizeChain(bs)
 	if NotExits(tgtView):
-		tgtView = New.Map3DView(New.BodyListClone(bs)).Show()
-		tgtView.CentralizeView()
-		tgtView.ShowBoundingBox = False
-		tgtView.GlyphSize = 2.0
-		tgtView.GlyphSet = SeqMap_GLYPHSET
-		tgtView.GlyphOpacity = 0.5
-		tgtView.HiddenBodySize = 3		
+		tgtView = ShowBodyList(New.BodyListClone(bs), gSize=2.0, gOpacity=0.5, hSize=3)
 	tgtView.MoveBodiesTo(bs, 5, 50, 0, 0)
 
 def ShrinkSphere(bList, cf):
 	global tgtView	
 	cf = max(0, min(1, cf))
 	bList = New.BodyListClone(bList)
+	for b in bList: 
+		b.Mult(40.0)
 	cs.ShrinkSphere(bList, cf)
 	bList = Interpolate1Chain(bList, rp=6, hidIntp=True)
 	if NotExits(tgtView):
-		tgtView = New.Map3DView(bList)
-		tgtView.ShowBoundingBox = False
-		tgtView.GlyphSize = 2.0
-		tgtView.GlyphSet = SeqMap_GLYPHSET
-		tgtView.GlyphOpacity = 0.5
-		tgtView.HiddenBodySize = 3
+		tgtView = ShowBodyList(bList, gSize=2.0, gOpacity=0.5, hSize=3)
 		cs.NormalizeChain(tgtView.BodyList)
 		tgtView.Show()
-		tgtView.CentralizeView(False)
+		tgtView.CentralizeView(False)		
 	tgtView.MoveBodiesTo(bList, 5, 50, 0, 0)
 
 

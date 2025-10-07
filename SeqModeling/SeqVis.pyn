@@ -621,6 +621,21 @@ def RunMds(mds, repeats=1, info=None, nt=None):
 		return mds.ShowSnapshot()
 	return mds
 
+def ShowBodyList(bList, gSize=1.5, gOpacity=0.5, hSize=3, normalize=True):
+	mp = New.Map3DView(bList)
+	mp.GlyphSet = SeqMap_GLYPHSET
+	mp.ReadOnly = True
+	mp.ShowPerformance = False
+	mp.ShowBoundingBox = False
+	mp.GlyphSize = gSize
+	mp.GlyphOpacity = gOpacity
+	mp.HiddenBodySize = hSize
+	mp.HiddenBodyColor = New.Color('White')
+	mp.Show()
+	if normalize:
+		mp.NormalizeView()
+	return mp
+
 #-------------------------------------------------------------------
 
 def ShowMapData(pMap):
@@ -722,6 +737,7 @@ def ShowAASeq(pMap):
 		if pv != None:
 			tp.AddLine(f'{pn}\t{pv}')
 	tp.Show()
+
 
 def OnSeqSelection():
 	pMap = pp.Tag
@@ -987,14 +1003,7 @@ def Merge3DList(pList):
 		bList[0].Type = SeqMap_HEAD
 		bList[bList.Count-1].Type = SeqMap_TAIL
 		bs.AddRange(bList)
-	mp = New.Map3DView(bs).Show()
-	mp.ReadOnly = True
-	mp.GlyphSet = SeqMap_GLYPHSET
-	mp.ShowBoundingBox = False
-	mp.GlyphSize = 1.0
-	mp.GlyphOpacity = 0.75
-	mp.NormalizeView()
-	mp.NormalizeView()
+	ShowBodyList(bs, gSize=1.0, gOpacity=0.75)
 
 def Merge2DList(atlas):
 	bs = New.BodyList()
