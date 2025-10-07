@@ -77,12 +77,10 @@ def ShowSphere4(repeats=5, contracting=0.9):
 def NotExits(vw):
 	return (vw == None) or vw.TheForm.IsDisposed
 
-def SphereUnfold(bList, cf):
+def SphereUnfold(bList, cf, n):
 	global tgtView
 	cf = max(0, min(1, cf))
 	bList = New.BodyListClone(bList)
-	for b in bList:
-		b.Mult(15)
 	cs.ShrinkSphere(bList, cf)
 	bs = New.BodyList()
 	bx = New.Body('A999.0')
@@ -98,41 +96,47 @@ def SphereUnfold(bList, cf):
 	bs = Interpolate1Chain(bs, rp=5, hidIntp=True)
 	cs.NormalizeChain(bs)
 	if NotExits(tgtView):
-		tgtView = ShowBodyList(New.BodyListClone(bs), gSize=2.0, gOpacity=0.5, hSize=3)
+		tgtView = ShowBodyList(New.BodyListClone(bs), gSize=1.5, gOpacity=0.5, hSize=3)
 	tgtView.MoveBodiesTo(bs, 5, 50, 0, 0)
+	if n%25==0: 
+		tgtView.CentralizeView(False)
 
-def ShrinkSphere(bList, cf):
+def ShrinkSphere(bList, cf, n):
 	global tgtView	
 	cf = max(0, min(1, cf))
 	bList = New.BodyListClone(bList)
-	for b in bList: 
-		b.Mult(40.0)
 	cs.ShrinkSphere(bList, cf)
 	bList = Interpolate1Chain(bList, rp=6, hidIntp=True)
 	if NotExits(tgtView):
 		tgtView = ShowBodyList(bList, gSize=2.0, gOpacity=0.5, hSize=3)
 		cs.NormalizeChain(tgtView.BodyList)
 		tgtView.Show()
-		tgtView.CentralizeView(False)		
+		tgtView.CentralizeView(False)
+	for b in bList: 
+		b.Add(200, 120, 0)
 	tgtView.MoveBodiesTo(bList, 5, 50, 0, 0)
 
-
-def SphereView(pId, unfolding, gopacity=1.0):
+def SphereView(pId, unfolding):
 	global tgtView
 	tgtView = None
 	bList = GetSphereDataset(pId, interRp=0)
 	if bList.Count > 1:
 		maxSz = 0.75*(bList[0].Length + bList[1].Length)
 		bList = New.BodyList([b for b in bList if b.Length<maxSz])
+	for b in bList: 
+		b.Mult(20.0 if unfolding else 80.0)
 	tstFct = SphereUnfold if unfolding else ShrinkSphere
 	cfList = [0.01 * k for k in range(100)]
 	cfList = 9*(cfList + cfList[::-1])
 	for k, cf in enumerate(cfList):
-		tstFct(bList, cf)
-		tgtView.Title = f'CF: {k}: {cf}'
+		tstFct(bList, cf, k)
+		tgtView.Title = f'CF: {k}: {cf:.3}'
+		if k == 0:
+			info = MapInfo().Set('pId', pId)
+			tgtView.Description = info.ToStr()
 		vv.DoEvents()
-		if (k%19==0) and tstFct==SphereUnfold: tgtView.CentralizeView(False)
-		if vv.ModifierKeys.AltPressed: break	
+		if vv.ModifierKeys.AltPressed: 
+			break	
 
 def TorsionMap(pList):
 	for pId in pList:

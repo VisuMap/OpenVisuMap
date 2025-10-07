@@ -1,4 +1,4 @@
-#MenuLabels ChmX Web Siblings vsSz SeqMap Open UniqSeq TypeProtein P-Map P-S2 P-2D 3D 3Dx Align 3Ds S2 sS sU sT TT
+#MenuLabels ChmX Web Siblings vsSz SeqMap Open UniqSeq TypeProtein Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 sS sU sT TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -83,10 +83,10 @@ def MainMain(menuKey):
 		case 'P-S2':
 			ProteinS2Map(pList, atlasName, samplingDist=0.0, ctrF=0.85)
 		case 'sS':
-			SphereView(pId, False)
+			SphereView(pId, unfolding=False)
 		case 'sU':
-			SphereView(pId, True)
-		case 'sT':
+			SphereView(pId, unfolding=True)
+		case 'sT': # show torsion info.
 			TorsionMap(pList[:1])
 			ShowChain(pId, gopacity=0.5)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
