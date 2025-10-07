@@ -95,18 +95,27 @@ def MainMain(menuKey):
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'TT':
-			'''
-			ShowChain(pId, gopacity=0.5)
-			ShowSphere2(pId, 0.95, gopacity=0.5)
-			ShowSphere3(pId)
-			vt = 'tMF'
-			PM2(tSNE=(0.05, 6.0, 1.0), tP=(1000, 20, 2, 0.5,     2, 0.25, 5.0, 1.5))
-			ShowChain(pId)
-			ShowSphere4()
-			'''
-			SphereView(pId, False)
+			bList = LoadChain0(pId)
+			bList.AddRange( NewHelix(36) )
+			bList = Interpolate(bList, 3, True)
+			cs.NormalizeChain(bList, -1)
+			ShowBodyList(bList, normalize=False)
 
 MainMain(vv.EventSource.Item)
+
+def NewHelix(residues):
+	angleSpeed = ALPHA_ANGLE
+	R = ALPHA_DIAM/2
+	xSpeed = 1.5  # Translation per residue
+	bList = New.BodyList()
+	for k in range(residues):
+		b = New.Body('t'+str(k))			
+		b.Type = 1
+		b.Name = '..Hlx'
+		a = -k * angleSpeed
+		b.SetXYZ(k*xSpeed, R*math.sin(a), R*math.cos(a))				
+		bList.Add(b)
+	return bList
 
 import random
 def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=0, createPMap=True, createAtlas=False):

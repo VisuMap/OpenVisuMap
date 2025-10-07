@@ -150,6 +150,14 @@ namespace VisuMap {
             const short SeqMap_HEAD = 155;
             const short SeqMap_TAIL = 171;
             bList[0].Type = SeqMap_HEAD;
+            for(int k=0; k<bList.Count-1; k++) {
+                IBody b0 = bList[k];
+                IBody b1 = bList[k + 1];
+                if (b0.Name.Split('.')[2] != b1.Name.Split('.')[2]) {
+                    b0.Type = SeqMap_TAIL;
+                    b1.Type = SeqMap_HEAD;
+                }
+            }
             bList[bList.Count - 1].Type = SeqMap_TAIL;
             return bList;
         }

@@ -631,6 +631,7 @@ def ShowBodyList(bList, gSize=1.5, gOpacity=0.5, hSize=3, normalize=True):
 	mp.GlyphOpacity = gOpacity
 	mp.HiddenBodySize = hSize
 	mp.HiddenBodyColor = New.Color('White')
+	mp.MapDepth = max(mp.MapHeight, mp.MapWidth)
 	mp.Show()
 	if normalize:
 		mp.NormalizeView()
