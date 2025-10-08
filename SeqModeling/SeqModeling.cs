@@ -750,7 +750,9 @@ namespace VisuMap {
             return A[cols];
         }
 
-        public List<IBody> ToSphere(List<IBody> bList, double contracting = 0, bool normalizing=false) {
+        const double BOND_LENGTH = 3.8015;  // Average bond length. with std ca 0.1
+
+        public List<IBody> ToSphere(List<IBody> bList, double contracting = 0) {
             for (int k = 0; k < (bList.Count - 1); k++) {
                 var b = bList[k];
                 var b1 = bList[k + 1];
@@ -758,13 +760,10 @@ namespace VisuMap {
             }
             bList.RemoveAt(bList.Count - 1);
 
-            if (normalizing) {
-                foreach (var b in bList) {
-                    double len = b.Length;
-                    if (len > 0)
-                        b.Mult(1000.0 / len);
-                }
-            }
+            // Scale the points into the range (0, BOND_LENGTH).
+            double fct = BOND_LENGTH / bList.Average(b => b.Length);
+            foreach (var b in bList)
+               b.Mult(fct);
 
             if (contracting != 0) {
                 ShrinkSphere(bList, (float)contracting);
@@ -773,7 +772,6 @@ namespace VisuMap {
             return bList;
         }
 
-        const double BOND_LENGTH = 3.8015;  // Average bond length. with std ca 0.1
 
         public INumberTable ToTorsionList(List<IBody> bList) {
             int L = bList.Count;

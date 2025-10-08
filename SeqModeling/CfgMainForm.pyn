@@ -95,29 +95,15 @@ def MainMain(menuKey):
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'TT':
-			bList = LoadChain0(pId)
-			x, y, z = -bList[0].X - 10.0, -bList[0].Y, -bList[0].Z
-			for b in bList: b.Add(x,y,z)
-			bList.AddRange( NewHelix(36) )
+			bList = LoadChain0(pId);
+			ss.ShiftChain(bList, -bList[0].X - 5.0, -bList[0].Y, -bList[0].Z)
+			ss.Concatenate(bList, ss.NewHelix(36))
+			#bList.AddRange( ss.NewHelix(36) )
 			bList = Interpolate(bList, 3, True)
 			cs.NormalizeChain(bList, -1)
 			ShowBodyList(bList)
 
 MainMain(vv.EventSource.Item)
-
-def NewHelix(residues):
-	angleSpeed = ALPHA_ANGLE
-	R = ALPHA_DIAM/2
-	xSpeed = 1.5  # Translation per residue
-	bList = New.BodyList()
-	for k in range(residues):
-		b = New.Body('A'+str(k))			
-		b.Type = 1
-		b.Name = '..Hlx'
-		a = -k * angleSpeed
-		b.SetXYZ(k*xSpeed, R*math.sin(a), R*math.cos(a))				
-		bList.Add(b)
-	return bList
 
 import random
 def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=0, createPMap=True, createAtlas=False):

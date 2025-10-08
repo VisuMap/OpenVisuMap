@@ -1,14 +1,14 @@
 #SphericalProj.pyn
 import math
 
-def GetSphereDataset(cId, interRp=0, contracting=0, normalizing=False):
+def GetSphereDataset(cId, interRp=0, contracting=0):
 	bList = LoadChain0(cId)
 	if bList.Count < 3:
 		return None
 	bType = vv.Dataset.BodyForId(cId).Type
 	for b in bList: 
 		b.Type = bType
-	bList = cs.ToSphere(bList, contracting, normalizing)
+	bList = cs.ToSphere(bList, contracting)
 	if interRp>0:
 		bList = Interpolate(bList, interRp)
 		for b in bList: 
@@ -25,7 +25,7 @@ def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0):
 
 def ShowSphere2(pId, cf, hsize=4, gsize=4.0, gopacity=1.0, iRp=5):
 	info = MapInfo().Set('pId', pId)
-	bList = GetSphereDataset(pId, interRp=iRp, contracting=cf, normalizing=False)
+	bList = GetSphereDataset(pId, interRp=iRp, contracting=cf)
 	cs.NormalizeChain(bList)
 	mp = ShowSphere(bList, info, hsize, gsize, gopacity)
 	mp.EditMode = True

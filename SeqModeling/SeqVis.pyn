@@ -16,6 +16,7 @@ PMap_GLYPHSET = 'Ordered 64|36 Clusters|Red Green'
 BOND_LENGTH = 3.8015
 ALPHA_ANGLE = 2*math.pi/3.6   # angle between two alpha atoms in the axis direction.
 ALPHA_DIAM = 5.4    # the average diameter of alpha hex.
+HELIX_TRANSLATION = 1.5   # translation per residue alone helix direction
 
 vv.RightHanded3D = True
 
@@ -73,6 +74,36 @@ public List<IBody> SetBodyType(List<IBody> bList, string pId=null, int bType=1) 
 	}
 	return bList;
 }
+
+public List<IBody> NewHelix(int residues) {
+	double angleSpeed = 2*Math.PI/3.6;
+	double R = 5.4/2;
+	double dx = 1.5;  // Translation per residue
+	List<IBody> bList = New.BodyList();
+	for(int k=0; k<residues; k++) {
+		IBody b = New.Body("A"+k);
+		b.Type = 1;
+		b.Name = "..Hlx";
+		double a = -k * angleSpeed;
+		b.SetXYZ(k*dx, R*Math.Sin(a), R*Math.Cos(a));
+		bList.Add(b);
+	}
+	return bList;
+}
+
+public List<IBody> ShiftChain(List<IBody> bList, double dx, double dy, double dz) {
+	foreach(var b in bList)
+		b.Add(dx, dy, dz);
+	return bList;
+}
+
+public List<IBody> Concatenate(List<IBody> bList1, List<IBody> bList2) {
+	var last = bList1[bList1.Count-1];
+	bList2 = bList2.GetRange(1, bList2.Count-1);
+	ShiftChain(bList2, last.X, last.Y, last.Z);
+	bList1.AddRange(bList2);
+	return bList1;
+} 
 
 ''')
 
@@ -1062,7 +1093,7 @@ def VisChainSize(szType=2):
 			case 2: # entity-id
 				typeIdx = int(ds.DoubleAt(b.Id, 3)/100)
 				b.Type = min(63, typeIdx)
-			case 3:
+			case 3: # the chain length
 				typeIdx = int(ds.DoubleAt(b.Id, 1))
 				b.Type = 64 + typeIdx
 			case 4: # default initial
