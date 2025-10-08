@@ -1,9 +1,9 @@
-#MenuLabels P-Seq SelectPID
+#MenuLabels P-Seq PID
 vv.Import('SeqVis.pyn')
 
 match vv.EventSource.Item:
 	case 'P-Seq':
 		ShowAASeq(pp)
-	case 'SelectPID':
+	case 'PID':
 		vv.SelectedItems = [MapInfo(pp.Description).pId]
 

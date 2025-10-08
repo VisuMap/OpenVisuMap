@@ -1,4 +1,4 @@
-#MenuLabels Scanning Smoothen P-2D HideIPO MarkHelix MarkBeta RnaChain Flipping Looping SelectPID Tr S2 TT
+#MenuLabels Scanning Smoothen P-2D HideIPO MarkHelix MarkBeta RnaChain Flipping Looping PID Tr S2 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -24,7 +24,7 @@ match vv.EventSource.Item:
 		FlippingChains(pp)
 	case 'Looping':
 		cs.LoopSection(pp, secLen=25)
-	case 'SelectPID':
+	case 'PID':
 		vv.SelectedItems = [MapInfo(pp.Description).pId]
 	case 'Tr':
 		ob = New.Body()

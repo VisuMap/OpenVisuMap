@@ -60,7 +60,8 @@ def ShowSphere4(repeats=5, contracting=0.9):
 		case _:
 			pId = MapInfo(pp.Description).pId
 			bList = pp.BodyList
-
+	if pId == None:
+		pId = 'X'
 	bList = New.BodyListClone([b for b in bList if b.Id.startswith('A')])
 	bList = cs.ToSphere(bList, contracting)
 
@@ -70,8 +71,9 @@ def ShowSphere4(repeats=5, contracting=0.9):
 	bList = Interpolate(bList, repeats, hidIntp=True)	
 	for b in bList: b.Mult(1000.0)
 	cs.NormalizeChain(bList)
+
 	info = MapInfo('pId:'+pId)
-	ShowSphere(bList, info, gsize=2.0, hsize=3, gopacity=0.75)
+	ShowSphere(bList, info, gsize=2.0, hsize=2, gopacity=0.5)
 
 
 def NotExits(vw):

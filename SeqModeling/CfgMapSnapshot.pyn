@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-ChmX P-3D P-3Dx HideIPO MarkHelix MarkBeta 'RNA/DNA' Align SelectPID S2
+#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-ChmX P-3D P-3Dx HideIPO MarkHelix MarkBeta 'RNA/DNA' Align PID S2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -49,7 +49,7 @@ match vv.EventSource.Item:
 		OpenCifFile(MapInfo(pp.Description).pId)
 	case 'Align':
 		AlignSeqPair(pp)
-	case 'SelectPID':
+	case 'PID':
 		vv.SelectedItems = [MapInfo(pp.Description).pId]
 	case 'S2':
 		ShowSphere4()
