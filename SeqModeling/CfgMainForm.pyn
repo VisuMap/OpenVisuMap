@@ -91,17 +91,53 @@ def MainMain(menuKey):
 			ShowChain(pId, gopacity=0.5)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
 		case 'vsSz':
-			VisChainSize(szType=3)
+			VisChainSize(szType=4)
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'TT':
-			bList = LoadChain0(pId);
-			ss.ShiftChain(bList, -bList[0].X - 5.0, -bList[0].Y, -bList[0].Z)
-			ss.Concatenate(bList, ss.NewHelix(36))
-			#bList.AddRange( ss.NewHelix(36) )
-			bList = Interpolate(bList, 3, True)
-			cs.NormalizeChain(bList, -1)
-			ShowBodyList(bList)
+			ShowRnaDnaBond('d')
+
+def ShowRnaDnaBond(chType):
+	chTypeIdx = 97 if chType=='d' else 99
+	rnaList = [ b.Id for b in vv.Dataset.BodyListEnabled() if b.Type == chTypeIdx ] 
+	dt = {}
+	for chId in rnaList:
+		bList = LoadChain0(chId)
+		b0 = bList[0]
+		bList = bList.GetRange(1, bList.Count-1)
+		for k, b in enumerate(bList):
+			if k > 0:
+				nn = b0.Name[2] + b.Name[2]
+				if nn not in dt: dt[nn] = []
+				dt[nn].append(b0.DistanceTo(b))
+			b0 = b
+	maxCol = max([len(dt[nn]) for nn in dt])
+	nt = New.NumberTable(len(dt), maxCol)
+	for row, nn in enumerate(dt.keys()):
+		rowValues = dt[nn]
+		nt.RowSpecList[row].Id = nn
+		for col, v in enumerate(dt[nn]):
+			nt.Matrix[row][col] = v			
+	vw = nt.ShowAsBarBand()
+	nnList = ';'.join(dt.keys())
+	vw.Title = f'{nt.Rows}x{nt.Columns}: {nnList}'
+
+def HelixTest():
+	bPID = LoadChain0(pId);
+	b0 = bPID[0]
+	ss.ShiftChain(bPID, -b0.X - 5.0, -b0.Y, -b0.Z)
+	bList = ss.NewHelix(36)
+	ss.Concatenate(bList, bPID)
+	bList = Interpolate(bList, 3, True)
+	cs.NormalizeChain(bList, -1)
+	mp = ShowBodyList(bList)
+	bs = mp.BodyList
+	firstCN = ChainName(bs[0])	
+	pChain = New.BodyList([b for b in bs if ChainName(b)==firstCN])
+	for k in range(1000):
+		cs.RotateBodyList(pChain, 0.01, 0, 1, 0)
+		mp.RedrawAll()
+		vv.Sleep(10)
 
 MainMain(vv.EventSource.Item)
 

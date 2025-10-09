@@ -872,24 +872,11 @@ namespace VisuMap {
             }
         }
 
-        public void SetChainEndings(List<IBody> bsList) {
-            if (bsList.Count < 2)
-                return;
-            const short SeqMap_HEAD = 155;
-            const short SeqMap_TAIL = 171;
-            bsList[0].Type = SeqMap_HEAD;
-            bool[] chainEnds = new bool[bsList.Count];
-            for (int k = 1; k < bsList.Count - 1; k++)
-                chainEnds[k] = bsList[k].Name.Split('.')[2] !=
-                                    bsList[k + 1].Name.Split('.')[2];
-
-            for (int k = 1; k < bsList.Count - 1; k++)
-                if (chainEnds[k]) {
-                    bsList[k].Type = SeqMap_TAIL;
-                    bsList[k + 1].Type = SeqMap_HEAD;
-                }
-            bsList[bsList.Count - 1].Type = SeqMap_TAIL;
-        }
+        public void RotateBodyList(List<IBody> bList, float angle, float dx, float dy, float dz ) {
+            Quaternion T = Quaternion.RotationAxis(new Vector3(dx, dy, dz), angle);
+            foreach(var b in bList) 
+                b.SetXYZ(Vector3.Transform(b.ToV3(), T));
+        }        
 
         #region Load chains from chain cache files
 
