@@ -95,11 +95,16 @@ def MainMain(menuKey):
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'TT':
-			ShowRnaDnaBond('d')
+			ShowBondLength2('r')
 
-def ShowRnaDnaBond(chType):
-	chTypeIdx = 97 if chType=='d' else 99
-	rnaList = [ b.Id for b in vv.Dataset.BodyListEnabled() if b.Type == chTypeIdx ] 
+def ShowBondLength(chType):
+	if chType =='d':
+		chTypeIdx = 97
+	elif chType == 'r':
+		chTypeIdx = 99
+	else:
+		chTypeIdx = 0
+	rnaList = [ b.Id for b in vv.Map.SelectedBodies if b.Type == chTypeIdx ] 
 	dt = {}
 	for chId in rnaList:
 		bList = LoadChain0(chId)
@@ -119,8 +124,29 @@ def ShowRnaDnaBond(chType):
 		for col, v in enumerate(dt[nn]):
 			nt.Matrix[row][col] = v			
 	vw = nt.ShowAsBarBand()
-	nnList = ';'.join(dt.keys())
-	vw.Title = f'{nt.Rows}x{nt.Columns}: {nnList}'
+	vw.Title = f'{nt.Rows}x{nt.Columns}'
+
+def ShowBondLength2(chType):
+	if chType =='d':
+		chTypeIdx = 97
+	elif chType == 'r':
+		chTypeIdx = 99
+	else:
+		chTypeIdx = 0
+	nnList = [ b.Id for b in vv.Map.SelectedBodies if b.Type == chTypeIdx ] 
+	ds = vv.Dataset
+	maxCol = max([ds.IntAt(id, 3) for id in nnList])
+	nt = New.NumberTable(len(nnList), maxCol)
+	for row, chId in enumerate(nnList):
+		bList = LoadChain0(chId)
+		nt.RowSpecList[row].Id = chId
+		b0 = bList[0]
+		for k, b in enumerate(bList):
+			if k > 0:
+				nt.Matrix[row][k] = b0.DistanceTo(b)
+			b0 = b
+	vw = nt.ShowAsBarBand()
+	vw.Title = f'{nt.Rows}x{nt.Columns}'
 
 def HelixTest():
 	bPID = LoadChain0(pId);

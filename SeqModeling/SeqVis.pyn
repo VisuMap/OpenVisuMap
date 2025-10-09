@@ -310,7 +310,7 @@ def GetTsneRD_old(pList, vType, tP):
 	return D
 
 def MaxRows(ds, pList, intRp):
-	maxV = int( max([ds.DoubleAt(p, 3) for p in pList]) )
+	maxV = max([ds.IntAt(p, 3) for p in pList])
 	return min(vv.GpuCacheLimit, 2**intRp*(maxV - 1) + 1)
 
 def GetTsneRD(pList, vType, tP):
@@ -359,7 +359,7 @@ def GetS2MF(pList, tP):
 	if doTSNE:
 		outDim = 2
 		ds = vv.Dataset
-		maxV = int( max([ds.DoubleAt(p, 3) for p in pList]) )
+		maxV = max([ds.IntAt(p, 3) for p in pList])
 		maxPoints = min(vv.GpuCacheLimit, maxV)
 		tsne = FastTsne(maxPoints, 3, outDim, epochs, ppl, initExag, finalExag)
 
@@ -431,9 +431,9 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
 
 	samplingDist, minLen, maxLen = filterP
 	if minLen > 0:
-		pList = [ pId for pId in pList if int(vv.Dataset.DoubleAt(pId, 3)) >= minLen ]
+		pList = [ pId for pId in pList if vv.Dataset.IntAt(pId, 3) >= minLen ]
 	if maxLen > 0:
-		pList = [ pId for pId in pList if int(vv.Dataset.DoubleAt(pId, 3)) <= maxLen ]
+		pList = [ pId for pId in pList if vv.Dataset.IntAt(pId, 3) <= maxLen ]
 	if samplingDist > 0.0:
 		pList = cs.FlatSampling(pList, samplingDist)
 		vv.Title = f'Sampled {len(pList)} chains!'
@@ -1091,10 +1091,10 @@ def VisChainSize(szType=2):
 				typeIdx = int(p2sz[b.Id[:4]]/500)
 				b.Type = min(63, typeIdx)
 			case 2: # entity-id
-				typeIdx = int(ds.DoubleAt(b.Id, 3)/100)
+				typeIdx = ds.IntAt(b.Id, 3)/100
 				b.Type = min(63, typeIdx)
 			case 3: # the chain length
-				typeIdx = int(ds.DoubleAt(b.Id, 1))
+				typeIdx = ds.IntAt(b.Id, 1)
 				b.Type = 64 + typeIdx
 			case 4: # default initial
 				chType = ds.StringAt(b.Id, 0)
