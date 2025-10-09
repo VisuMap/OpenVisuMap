@@ -91,29 +91,24 @@ def MainMain(menuKey):
 			ShowChain(pId, gopacity=0.5)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
 		case 'vsSz':
-			VisChainSize(szType=4)
+			VisChainSize(szType=2)
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'TT':
-			ShowBondLength2('r')
+			ShowBondLength('d')
 
 def ShowBondLength(chType):
-	if chType =='d':
-		chTypeIdx = 97
-	elif chType == 'r':
-		chTypeIdx = 99
-	else:
-		chTypeIdx = 0
-	rnaList = [ b.Id for b in vv.Map.SelectedBodies if b.Type == chTypeIdx ] 
+	ds = vv.Dataset
+	nnList = vv.Map.SelectedBodies
+	nnList = [b.Id for b in nnList if ds.StringAt(b.Id, 0) == chType] 
 	dt = {}
-	for chId in rnaList:
+	for chId in nnList:
 		bList = LoadChain0(chId)
-		b0 = bList[0]
-		bList = bList.GetRange(1, bList.Count-1)
 		for k, b in enumerate(bList):
 			if k > 0:
 				nn = b0.Name[2] + b.Name[2]
-				if nn not in dt: dt[nn] = []
+				if nn not in dt: 
+					dt[nn] = []
 				dt[nn].append(b0.DistanceTo(b))
 			b0 = b
 	maxCol = max([len(dt[nn]) for nn in dt])
@@ -127,20 +122,14 @@ def ShowBondLength(chType):
 	vw.Title = f'{nt.Rows}x{nt.Columns}'
 
 def ShowBondLength2(chType):
-	if chType =='d':
-		chTypeIdx = 97
-	elif chType == 'r':
-		chTypeIdx = 99
-	else:
-		chTypeIdx = 0
-	nnList = [ b.Id for b in vv.Map.SelectedBodies if b.Type == chTypeIdx ] 
 	ds = vv.Dataset
+	nnList = vv.Map.SelectedBodies
+	nnList = [b.Id for b in nnList if ds.StringAt(b.Id, 0) == chType] 
 	maxCol = max([ds.IntAt(id, 3) for id in nnList])
 	nt = New.NumberTable(len(nnList), maxCol)
 	for row, chId in enumerate(nnList):
 		bList = LoadChain0(chId)
 		nt.RowSpecList[row].Id = chId
-		b0 = bList[0]
 		for k, b in enumerate(bList):
 			if k > 0:
 				nt.Matrix[row][k] = b0.DistanceTo(b)

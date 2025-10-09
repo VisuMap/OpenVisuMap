@@ -1090,10 +1090,10 @@ def VisChainSize(szType=2):
 			case 1: # complex size
 				typeIdx = int(p2sz[b.Id[:4]]/500)
 				b.Type = min(63, typeIdx)
-			case 2: # entity-id
-				typeIdx = ds.IntAt(b.Id, 3)/100
+			case 2: # the chain length
+				typeIdx = ds.IntAt(b.Id, 3)//100
 				b.Type = min(63, typeIdx)
-			case 3: # the chain length
+			case 3: # entity-id
 				typeIdx = ds.IntAt(b.Id, 1)
 				b.Type = 64 + typeIdx
 			case 4: # default initial
