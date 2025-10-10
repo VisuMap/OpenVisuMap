@@ -676,7 +676,7 @@ New.DataDetails(dsInfo).Show()
 dsList = []
 ds = vv.Dataset
 for k in range(ds.Rows):
-	dsList.append( (ds.ValueAtAsString(k, 0), ds.ValueAtAsString(k, 1)) )
+	dsList.append( (ds.StringAt(k, 0), ds.StringAt(k, 1)) )
 dsList = dsList[5:]
 for dn, sList in dsList:
 	print(dn, len(sList.split(',')))

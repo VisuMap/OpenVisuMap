@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen P-Seq P-Open P-Web P-ChmX P-3D P-3Dx HideIPO MarkHelix MarkBeta 'RNA/DNA' Align PID S2
+#MenuLabels ShowData Scanning ReCreateMap Smoothen Seq Open Web ChmX 3D 3Dx HideIPO MarkHelix MarkBeta vsSz 'RNA/DNA' Align PID S2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -8,7 +8,7 @@ match vv.EventSource.Item:
 		ShowMapData(pp)
 	case 'Scanning':
 		Scanning(pp, stride=50, stepSize=2, broadcasting=vv.ModifierKeys.ControlPressed)
-	case 'P-Seq':
+	case 'Seq':
 		ShowAASeq(pp)
 	case 'ReCreateMap':
 		AssertSeqMap(pp)
@@ -17,13 +17,13 @@ match vv.EventSource.Item:
 		SmoothenCurve(pp, 10)
 	case 'RNA/DNA':
 		pp.SelectedItems = [b.Id for b in pp.BodyList if (b.Name[0] == 'r') or (b.Name[0] == 'd') ]
-	case 'P-Web':
+	case 'Web':
 		pId = MapInfo(pp.Description).pId
 		ShowWeb(pId)
-	case 'P-ChmX':
+	case 'ChmX':
 		pId = MapInfo(pp.Description).pId
 		ShowChimeraX(pId)
-	case 'P-3D':
+	case '3D':
 		info = MapInfo(pp.Description)				
 		if info.pId == None:
 			pId = pp.SelectedItems[0]
@@ -32,7 +32,7 @@ match vv.EventSource.Item:
 			pId = info.pId
 			chainNames = info.Get('CNs').split('|') if info.Has('CNs') else None
 		ShowPDB(pId, rp=3, includeHA=False, chainNames=chainNames) 
-	case 'P-3Dx':
+	case '3Dx':
 		info = MapInfo(pp.Description)				
 		if info.pId == None:
 			pId = pp.SelectedItems[0]
@@ -45,7 +45,7 @@ match vv.EventSource.Item:
 		ShowHelix()
 	case 'MarkBeta':
 		ShowBetaSheet()
-	case 'P-Open':
+	case 'Open':
 		OpenCifFile(MapInfo(pp.Description).pId)
 	case 'Align':
 		AlignSeqPair(pp)
@@ -53,6 +53,9 @@ match vv.EventSource.Item:
 		vv.SelectedItems = [MapInfo(pp.Description).pId]
 	case 'S2':
 		ShowSphere4()
+	case 'vsSz':
+		VisChainSize(4 if vv.ModifierKeys.ControlPressed else 2)
+
 
 
 

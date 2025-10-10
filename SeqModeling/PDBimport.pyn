@@ -76,10 +76,10 @@ def MergeDatasets(dstDatasetName, dsList):
 			b = ds.BodyList[k]
 			if b.Id in included:
 				continue
-			sLen = ds.ValueAtAsString(k, 3)
+			sLen = ds.StringAt(k, 3)
 			if sLen == '0':
 				continue
-			vList = New.StringArray([b.Id, b.Name, ds.ValueAtAsString(k,2), sLen, ds.ValueAtAsString(k, 4)])
+			vList = New.StringArray([b.Id, b.Name, ds.StringAt(k,2), sLen, ds.StringAt(k, 4)])
 			vv.Dataset.AddRow(b.Id, b.Name, 0, vList)
 			included.add(b.Id)
 	vv.Dataset.CommitChanges()

@@ -1079,10 +1079,14 @@ def VisChainSize(szType=2):
 		p2sz = {}			
 		for k, b in enumerate(pDS.BodyList):
 			if b.Id not in p2sz:
-				p2sz[b.Id] = int( pDS.ValueAtAsDouble(k, szType) )
-	vv.GuiManager.RememberCurrentMap()
+				p2sz[b.Id] = pDS.IntAt(k, szType)
+	if pp.Name == 'MainForm':
+		vv.GuiManager.RememberCurrentMap()
+		bList = vv.Map.BodyListEnabled()
+	else:
+		bList = pp.BodyListEnabled()
 	ds = vv.Dataset
-	for b in ds.BodyListEnabled():
+	for b in bList:
 		match szType:
 			case 0: # chains
 				typeIdx = int(p2sz[b.Id[:4]])
@@ -1100,7 +1104,7 @@ def VisChainSize(szType=2):
 				chType = ds.StringAt(b.Id, 0)
 				typeIdx = 0 if chType=='A' else ( 99 if chType=='r' else 97 )
 				b.Type = typeIdx		
-	vv.Map.RedrawAll()
+	pp.Map.Redraw()
 
 def AlignSeqPair(parentWin):
 	from Bio.Align import PairwiseAligner

@@ -95,7 +95,7 @@ def MainMain(menuKey):
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'TT':
-			ShowBondLength('r')
+			ShowBondLength2('r')
 
 def SelectChains(chType):
 	ds = vv.Dataset
