@@ -757,7 +757,9 @@ def ShowAASeq(pMap):
 		pSeq = ''.join(pSeq)
 		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}: {info.PT}', pSeq)
 	else:
-		pSeq = ''.join([b.Name[0] for b in pSelected]).upper()
+		ch = pSelected[0].Name[0]
+		chIdx = 0 if ch in {'r', 'd'} else 2
+		pSeq = ''.join([b.Name[chIdx] for b in pSelected]).upper()
 		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
 		tp.Tag = pMap
 		tp.OnSelection = '@OnSeqSelection()'

@@ -95,14 +95,18 @@ def MainMain(menuKey):
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'TT':
-			ShowBondLength2('r')
+			ShowBondLength('r')
 
 def SelectChains(chType):
 	ds = vv.Dataset
 	nnList = vv.Map.SelectedBodies
-	return [b.Id for b in nnList if ds.StringAt(b.Id, 0) == chType] 
+	nnList = [b.Id for b in nnList if ds.StringAt(b.Id, 0) == chType] 
+	if len(nnList) == 0:
+		vv.Message('No data selected')
+		vv.Return()
+	return nnList
 	
-def ShowBondLength(chType='A'):
+def ShowBondLength(chType='r'):
 	nnList = SelectChains(chType)
 	dt = {}
 	idIdx = 0 if chType == 'A' else 2

@@ -64,10 +64,6 @@ def ShowSphere4(repeats=5, contracting=0.9):
 		pId = 'X'
 	bList = New.BodyListClone([b for b in bList if b.Id.startswith('A')])
 	bList = cs.ToSphere(bList, contracting)
-
-	bList[0].Type = bList[1].Type
-	bList[bList.Count-1].Type = bList[bList.Count-2].Type
-
 	bList = Interpolate(bList, repeats, hidIntp=True)	
 	for b in bList: b.Mult(1000.0)
 	cs.NormalizeChain(bList)
