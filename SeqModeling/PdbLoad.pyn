@@ -359,29 +359,16 @@ def LoadSeq(pId):
 		return cs.LoadChainSeq(cacheFile)
 	else:
 		seq = []
-		nt = LoadChain(pId)
-		for rs in nt.RowSpecList:
-			seq.append(rs.Name[0])
+		bList = LoadChain0(pId)
+		c = bList[0].Name[0]
+		idx = 2 if ( c=='r' or c=='d') else 0
+		for b in bList:
+			seq.append(b.Name[idx])
 		return ''.join(seq)
 
 def ChainName(body):
 	return body.Name.split('.')[2]
 
-
-'''
-from scipy.interpolate import make_interp_spline as spline
-def PyInterpolate(P0, P1, intp):
-	P0 = mm.ToNumpy(New.NumberTable(P0, 3))
-	tP0 = np.array([i*1.0 for i in range(P0.shape[0])])
-	spDim = 3
-	sX = spline(tP0, P0[:,0], k=spDim)
-	sY = spline(tP0, P0[:,1], k=spDim)
-	sZ = spline(tP0, P0[:,2], k=spDim)
-	tP1 = np.linspace(tP0.min(), tP0.max(), P1.Count)
-	pX, pY, pZ = sX(tP1), sY(tP1), sZ(tP1)
-	for k, b in enumerate(P1):	
-		b.X, b.Y, b.Z = pX[k], pY[k], pZ[k]
-'''
 
 def Interpolate(bList, rp=3, hidIntp=False):
 	EPS = 0.085

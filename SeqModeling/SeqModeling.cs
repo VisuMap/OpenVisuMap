@@ -915,7 +915,10 @@ namespace VisuMap {
                     if (line == null)
                         break;
                     int idx = line.IndexOf('|');
-                    sb.Append(line[idx + 1]);
+                    char c = line[idx + 1];  // The first char of the Name field.
+                    if ((c == 'r') || (c == 'd'))
+                        c = line[idx + 3];
+                    sb.Append(c);
                 }
             }
             return sb.ToString();

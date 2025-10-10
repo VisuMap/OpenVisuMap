@@ -4,14 +4,13 @@ vv.Import('PdbLoad.pyn')
 
 match vv.EventSource.Item:
 	case 'Scanning':
-		Scanning(pp, stepSize=2, broadcasting=vv.ModifierKeys.ControlPressed)
+		Scanning(pp, stepSize=5, broadcasting=vv.ModifierKeys.ControlPressed)
 	case 'Smoothen':
 		SmoothenCurve(pp, repeats=50)
 	case 'P-2D':
 		pMap = pp
-		UnFoldMap(pMap, repeats=0, epochs=3000, initExag=10.0, ppl=0.15, stretch=1.0, clusterStretch=0, expandFactor=1.0)
-		#for s in [0, 0.1, 0.2, 0.4]:
-		#for s in [1.0]: UnFoldMap(pMap, repeats=1, epochs=3000, initExag=10.0, ppl=0.15, stretch=s, clusterStretch=0.5, expandFactor=1.0)
+		UnFoldMap(pMap, repeats=0, epochs=3000, initExag=10.0, ppl=0.15, 
+			stretch=1.0, clusterStretch=0, expandFactor=1.0)
 	case 'HideIPO':
 		HideInterpolates()
 	case 'MarkHelix':

@@ -91,41 +91,63 @@ def MainMain(menuKey):
 			ShowChain(pId, gopacity=0.5)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
 		case 'vsSz':
-			VisChainSize(szType=2)
+			VisChainSize(4 if ctrPressed else 2)
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'TT':
-			ShowBondLength('d')
+			ShowBondLength('r')
 
-def ShowBondLength(chType):
+def SelectChains(chType):
 	ds = vv.Dataset
 	nnList = vv.Map.SelectedBodies
-	nnList = [b.Id for b in nnList if ds.StringAt(b.Id, 0) == chType] 
+	return [b.Id for b in nnList if ds.StringAt(b.Id, 0) == chType] 
+	
+def ShowBondLength(chType='A'):
+	nnList = SelectChains(chType)
 	dt = {}
+	idIdx = 0 if chType == 'A' else 2
 	for chId in nnList:
 		bList = LoadChain0(chId)
 		for k, b in enumerate(bList):
 			if k > 0:
-				nn = b0.Name[2] + b.Name[2]
+				nn = b0.Name[idIdx] + b.Name[idIdx]
 				if nn not in dt: 
 					dt[nn] = []
 				dt[nn].append(b0.DistanceTo(b))
 			b0 = b
+
+	if chType == 'A':
+		abt = ALPHABET
+		dim = 20
+	else:		
+		abt = 'AGCT' if chType=='d' else 'AGCU'
+		dim = 4
+	nt = New.NumberTable(dim, dim)
+	for k in range(dim):
+		nt.RowSpecList[k].Id = abt[k]
+		nt.ColumnSpecList[k].Id = abt[k]
+	for row in range(dim):
+		for col in range(dim):
+			pairId = nt.RowSpecList[row].Id + nt.ColumnSpecList[col].Id
+			if pairId in dt:
+				nt.Matrix[row][col] = sum(dt[pairId])/len(dt[pairId])
+
+	'''
 	maxCol = max([len(dt[nn]) for nn in dt])
 	nt = New.NumberTable(len(dt), maxCol)
 	for row, nn in enumerate(dt.keys()):
 		rowValues = dt[nn]
 		nt.RowSpecList[row].Id = nn
 		for col, v in enumerate(dt[nn]):
-			nt.Matrix[row][col] = v			
+			nt.Matrix[row][col] = v
+	'''
+
 	vw = nt.ShowAsBarBand()
 	vw.Title = f'{nt.Rows}x{nt.Columns}'
 
-def ShowBondLength2(chType):
-	ds = vv.Dataset
-	nnList = vv.Map.SelectedBodies
-	nnList = [b.Id for b in nnList if ds.StringAt(b.Id, 0) == chType] 
-	maxCol = max([ds.IntAt(id, 3) for id in nnList])
+def ShowBondLength2(chType='A'):
+	nnList = SelectChains(chType)
+	maxCol = max([vv.Dataset.IntAt(id, 3) for id in nnList])
 	nt = New.NumberTable(len(nnList), maxCol)
 	for row, chId in enumerate(nnList):
 		bList = LoadChain0(chId)

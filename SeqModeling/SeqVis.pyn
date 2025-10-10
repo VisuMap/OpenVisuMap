@@ -727,7 +727,7 @@ def Scanning(pMap, stride=100, stepSize=20, broadcasting=False):
 				vv.EventManager.RaiseItemsSelected(selected)
 			else:
 				pMap.SelectedItems = selected
-			vv.Sleep(20)
+			vv.Sleep(10)
 			if vv.ModifierKeys.AltPressed or pMap.SelectedItems.Count == 0: 
 				return
 		vv.Sleep(1000)
