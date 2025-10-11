@@ -720,7 +720,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 
 def Scanning(pMap, stride=100, stepSize=20, broadcasting=False):
 	bsList = [b.Id for b in pMap.BodyList]
-	for rp in [0,1]:
+	for rp in range(5):
 		for k in range(0, len(bsList), stepSize):
 			selected = bsList[k:k+stride]
 			if broadcasting:
@@ -730,7 +730,7 @@ def Scanning(pMap, stride=100, stepSize=20, broadcasting=False):
 			vv.Sleep(10)
 			if vv.ModifierKeys.AltPressed or pMap.SelectedItems.Count == 0: 
 				return
-		vv.Sleep(1000)
+		vv.Sleep(500)
 
 #-------------------------------------------------------------------
 
@@ -968,25 +968,6 @@ def AtlasTileAll(atlas, aaGroups, using3DInfo=False, waveLen=128, waveCount=16):
 	atlas.ArrangeItems(False)
 	mds.Close()
 
-
-def TypeProteinList(pList):
-	ft = New.FreeTable()
-	ft.AddColumn('Len', True)
-	ft.AddRows('A', len(pList))
-	for k, pId in enumerate(pList):
-		if k % 500 == 0:
-			vv.Title = f'Loading: {k}-th seq. of {len(pList)}'
-			vv.DoEvents()
-		sLen = len( LoadSeq(pId) )
-		ft.RowSpecList[k].Id = pId
-		ft.Matrix[k][0] = str(sLen)
-	tb = ft.ShowAsTable()
-	tb.SortOnColumn('Len', True)
-	tb.SelectedItems = [ 'Len' ]
-	tb.AssignMethod = 0
-	tb.ClusterData()
-	tb.Close()
-
 def SeqMod(op, seq):
 	return ''.join( [modOp[c] for c in seq] )
 
@@ -1065,15 +1046,6 @@ def Merge2DList(atlas):
 	mp.CentralizeView()
 	mp.Show()
 
-def SelectUniqSeq():
-	idSet = set()
-	seqSet = set()
-	for id in pp.AllItems:
-		seq = vv.Dataset.StringAt(id, 2)
-		if seq not in seqSet:
-			idSet.add(id)
-			seqSet.add(seq)
-	vv.SelectedItems = list(idSet)
 
 def VisChainSize(szType=2):
 	if szType < 2:
@@ -1117,15 +1089,16 @@ def AlignSeqPair(parentWin):
 	if len(pIds) < 2:
 		vv.Message(f'Please select a pair of proteins!')
 		return
-	s0 = vv.Dataset.StringAt(pIds[0], 2)
-	s1 = vv.Dataset.StringAt(pIds[1], 2)
+	ds = vv.Dataset
+	s0 = ds.StringAt(pIds[0], 2)
+	s1 = ds.StringAt(pIds[1], 2)
 
 	isAASeq = s0[0].isupper()
-	if s0[0].islower(): s0 = s0.upper()
-	if s1[0].islower(): s1 = s1.upper()
-	if not isAASeq:
-		s0 = s0.replace('U', 'T')
-		s1 = s1.replace('U', 'T')
+	if s0[0].islower(): 
+		s0 = s0.upper()
+	if s1[0].islower(): 
+		s1 = s1.upper()
+	
 	scType = 'blastp' if isAASeq else 'blastn'
 
 	aligner = PairwiseAligner(scoring=scType)

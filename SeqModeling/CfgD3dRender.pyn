@@ -4,7 +4,7 @@ vv.Import('PdbLoad.pyn')
 
 match vv.EventSource.Item:
 	case 'Scanning':
-		Scanning(pp, stepSize=5, broadcasting=vv.ModifierKeys.ControlPressed)
+		Scanning(pp, stepSize=2, broadcasting=vv.ModifierKeys.ControlPressed)
 	case 'Smoothen':
 		SmoothenCurve(pp, repeats=50)
 	case 'P-2D':

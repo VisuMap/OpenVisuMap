@@ -1,4 +1,4 @@
-#MenuLabels ChmX Web Siblings vsSz SeqMap Open UniqSeq TypeProtein Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 sS sU sT TT
+#MenuLabels ChmX Web Siblings vsSz SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 sS sU sT TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -71,22 +71,24 @@ def MainMain(menuKey):
 						PM2(tSNE=(0.05, 6.0, 1.0), tP=(1000, 20, 2, 0.5,     2, 0.25, 5.0, 1.5))
 					case '2D': 
 						MainMain('P-2D')
-		case 'TypeProtein':
-			TypeProteinList(pList)
 		case 'Siblings':
 			vv.SelectedItems, _ = Siblings(selected)
 			vv.Title = f'Selected: {len(selected)}, Expanded: {vv.SelectedItems.Count}'
-		case 'UniqSeq':
-			SelectUniqSeq()
 		case 'Align':
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
 			ProteinS2Map(pList, atlasName, samplingDist=0.0, ctrF=0.85)
 		case 'sS':
+			if pId == None:
+				raise Exception('No data selected!')
 			SphereView(pId, unfolding=False)
 		case 'sU':
+			if pId == None:
+				raise Exception('No data selected!')
 			SphereView(pId, unfolding=True)
 		case 'sT': # show torsion info.
+			if pId == None:
+				raise Exception('No data selected!')
 			TorsionMap(pList[:1])
 			ShowChain(pId, gopacity=0.5)
 			ShowSphere2(pId, 0.95, gopacity=0.5)
@@ -95,7 +97,7 @@ def MainMain(menuKey):
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'TT':
-			ShowBondLength('r')
+			ShowBondLength('d')
 
 def SelectChains(chType):
 	ds = vv.Dataset
