@@ -107,10 +107,9 @@ def SelectChains(chType):
 	return nnList
 	
 def ShowBondLength(chType='r'):
-	nnList = SelectChains(chType)
 	dt = {}
 	idIdx = 0 if chType == 'A' else 2
-	for chId in nnList:
+	for chId in SelectChains(chType):
 		bList = LoadChain0(chId)
 		for k, b in enumerate(bList):
 			if k > 0:
@@ -119,35 +118,11 @@ def ShowBondLength(chType='r'):
 					dt[nn] = []
 				dt[nn].append(b0.DistanceTo(b))
 			b0 = b
-
-	if chType == 'A':
-		abt = ALPHABET
-		dim = 20
-	else:		
-		abt = 'AGCT' if chType=='d' else 'AGCU'
-		dim = 4
-	nt = New.NumberTable(dim, dim)
-	for k in range(dim):
-		nt.RowSpecList[k].Id = abt[k]
-		nt.ColumnSpecList[k].Id = abt[k]
-	for row in range(dim):
-		for col in range(dim):
-			pairId = nt.RowSpecList[row].Id + nt.ColumnSpecList[col].Id
-			if pairId in dt:
-				nt.Matrix[row][col] = sum(dt[pairId])/len(dt[pairId])
-
-	'''
-	maxCol = max([len(dt[nn]) for nn in dt])
-	nt = New.NumberTable(len(dt), maxCol)
-	for row, nn in enumerate(dt.keys()):
-		rowValues = dt[nn]
-		nt.RowSpecList[row].Id = nn
-		for col, v in enumerate(dt[nn]):
-			nt.Matrix[row][col] = v
-	'''
-
-	vw = nt.ShowAsBarBand()
-	vw.Title = f'{nt.Rows}x{nt.Columns}'
+	vList = New.ValueItemList()
+	for key in dt.keys():
+		v = vv.Math.StdDeviation(dt[key])
+		vList.Add( New.ValueItem(key, key, v) )
+	New.BarView(vList).Show();
 
 def ShowBondLength2(chType='A'):
 	nnList = SelectChains(chType)

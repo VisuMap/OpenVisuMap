@@ -410,7 +410,7 @@ def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount):
 	for pId in pList:
 		rowIdx = pTable.IndexOfRow(pId)
 		if rowIdx >= 0:
-			seqList.append( pTable.GetDataAt(rowIdx, 2) )
+			seqList.append( pTable.StringAt(rowIdx, 2) )
 	return cs.VectorizeProtein(seqList, aaGroups, tm)
 
 def GetMFSeq(pList, aaGroups, mfL):
@@ -419,7 +419,7 @@ def GetMFSeq(pList, aaGroups, mfL):
 	for pId in pList:
 		rowIdx = ds.IndexOfRow(pId)
 		if rowIdx >= 0:
-			seqList.append( ds.GetDataAt(rowIdx, 2) )
+			seqList.append( ds.StringAt(rowIdx, 2) )
 	return cs.MFVectorize(seqList, aaGroups, mfL)
 
 

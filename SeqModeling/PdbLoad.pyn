@@ -103,7 +103,7 @@ def ShowProteinList(pList, includeHA, atName=None, gsize=1.0, gopacity=0.75, int
 def GetChainName(pId):
 	rowIdx = vv.Dataset.BodyIndexForId(pId)
 	if rowIdx >= 0:
-		return [ vv.Dataset.GetDataAt(rowIdx, 4) ]
+		return [ vv.Dataset.StringAt(rowIdx, 4) ]
 	else:
 		vv.Message(f'Cannot find chain {pId} in current dataset.')
 		return None
