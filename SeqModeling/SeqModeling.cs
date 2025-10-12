@@ -1252,6 +1252,7 @@ namespace VisuMap {
                             secType = "h";
                         else if (betaSet.Contains(rsIdx))
                             secType = "b";
+                        rsName = "_";
                     } else if (RNA_set.Contains(rsName) && atName.StartsWith("P") ) {
                         p1 = "r";
                     } else if (DNA_set.Contains(rsName) && atName.StartsWith("C1") ) {
