@@ -890,7 +890,8 @@ namespace VisuMap {
                 double angle = Math.Acos(Vector3.Dot(S[k - 1], S[k]));
                 var Q = Quaternion.RotationAxis(axis, (float)(contracting * angle));
                 T = T * Q;
-                P[k] = Vector3.Transform(S[k], T);
+                Vector3 V = bList[k+1].ToV3() - bList[k].ToV3();
+                P[k] = Vector3.Transform(V, T);
             }
 
             // Convert the points back to initial 3D coordinator.
