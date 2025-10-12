@@ -97,9 +97,14 @@ def MainMain(menuKey):
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'U3':
-			bList = LoadChain0(pId)
-			bList = UnfoldChain(bList, 0.5)
+			bList0 = LoadChain0(pId)
+			bList = cs.TorsionUnfold(bList0, 0.5)
 			bList = Interpolate(bList, 3, True)
+			cs.NormalizeChain(bList)
+			info=MapInfo().Set('pId', pId)
+			ShowBodyList(bList, info=info)
+
+			bList = Interpolate(bList0, 3, True)
 			cs.NormalizeChain(bList)
 			ShowBodyList(bList)
 		case 'TT':

@@ -652,7 +652,7 @@ def RunMds(mds, repeats=1, info=None, nt=None):
 		return mds.ShowSnapshot()
 	return mds
 
-def ShowBodyList(bList, gSize=1.5, gOpacity=0.5, hSize=3, normalize=True):
+def ShowBodyList(bList, gSize=1.5, gOpacity=0.5, hSize=3, normalize=True, info=None):
 	mp = New.Map3DView(bList)
 	mp.GlyphSet = SeqMap_GLYPHSET
 	mp.ReadOnly = True
@@ -666,6 +666,8 @@ def ShowBodyList(bList, gSize=1.5, gOpacity=0.5, hSize=3, normalize=True):
 	mp.Show()
 	if normalize:
 		mp.NormalizeView()
+	if info != None:
+		mp.Description = info.ToStr()
 	return mp
 
 #-------------------------------------------------------------------

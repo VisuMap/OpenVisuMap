@@ -874,6 +874,38 @@ namespace VisuMap {
             }
         }
 
+        public List<IBody> TorsionUnfold(List<IBody> bList, double contracting = 0.5) {
+            // convert bList to the spherical coordinates.
+            Vector3[] S = new Vector3[bList.Count - 1];
+            for (int k = 1; k < bList.Count; k++) {
+                S[k - 1] = bList[k].ToV3() - bList[k-1].ToV3();
+                S[k - 1].Normalize();
+            }
+
+            // contracting the points
+            Vector3[] P = new Vector3[S.Length];
+            Quaternion T = Quaternion.Identity;
+            for (int k = 1; k < S.Length; k++) {
+                Vector3 axis = Vector3.Cross(S[k], S[k - 1]);
+                double angle = Math.Acos(Vector3.Dot(S[k - 1], S[k]));
+                var Q = Quaternion.RotationAxis(axis, (float)(contracting * angle));
+                T = T * Q;
+                P[k] = Vector3.Transform(S[k], T);
+            }
+
+            // Convert the points back to initial 3D coordinator.
+            var newList = new List<IBody>();
+            newList.Add(bList[0].Clone());
+            Vector3 p = bList[0].ToV3();
+            for (int k = 0; k < S.Length; k++) {
+                p += P[k];
+                IBody b = bList[k+1].Clone() as IBody;
+                b.SetXYZ(p);
+                newList.Add(b);
+            }
+            return newList;
+        }
+
         public void RotateBodyList(List<IBody> bList, float angle, float dx, float dy, float dz ) {
             Quaternion T = Quaternion.RotationAxis(new Vector3(dx, dy, dz), angle);
             foreach(var b in bList) 
