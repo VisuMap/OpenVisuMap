@@ -97,7 +97,9 @@ def MainMain(menuKey):
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'TT':
-			ShowBondLength('A')
+			bList = GetSphereDataset(pId, interRp=0)
+			for b in bList: b.Mult(20.0)
+			SphereUnfold(bList, 0.5, 0)
 
 def SelectChains(chType):
 	ds = vv.Dataset

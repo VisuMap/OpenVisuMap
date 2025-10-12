@@ -1197,23 +1197,6 @@ namespace VisuMap {
             Dictionary<string, int> ch2idx = new Dictionary<string, int>() {
                 { "HOH", maxChainIndex + 3 },
                 { "NAG", maxChainIndex + 11 } } ;
-            int headIndex = 0;
-            const int MAX_CHAINS = 2000;  // maximal chain number in a complex.
-            int Lookup(string chName) {
-                if (!ch2idx.ContainsKey(chName)) {
-                    for (int k = headIndex; k < MAX_CHAINS; k++) {
-                        if (!ch2idx.ContainsValue(k)) {
-                            ch2idx[chName] = k;
-                            headIndex = k + 1;
-                            break;
-                        }
-                    }
-                    if (!ch2idx.ContainsKey(chName))
-                        ch2idx[chName] = MAX_CHAINS;
-                }
-                return ch2idx[chName];
-            }
-
             List<IBody> bsList = vv.New.BodyList();
             List<IBody> bsList2 = vv.New.BodyList();
             int rsIdxPre = -1;
@@ -1252,7 +1235,7 @@ namespace VisuMap {
                             secType = "h";
                         else if (betaSet.Contains(rsIdx))
                             secType = "b";
-                        rsName = p1;
+                        rsName = "";
                     } else if (RNA_set.Contains(rsName) && atName.StartsWith("P") ) {
                         p1 = "r";
                     } else if (DNA_set.Contains(rsName) && atName.StartsWith("C1") ) {

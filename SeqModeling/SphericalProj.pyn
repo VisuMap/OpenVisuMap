@@ -118,9 +118,6 @@ def SphereView(pId, unfolding):
 	global tgtView
 	tgtView = None
 	bList = GetSphereDataset(pId, interRp=0)
-	if bList.Count > 1:
-		maxSz = 0.75*(bList[0].Length + bList[1].Length)
-		bList = New.BodyList([b for b in bList if b.Length<maxSz])
 	for b in bList: 
 		b.Mult(20.0 if unfolding else 80.0)
 	tstFct = SphereUnfold if unfolding else ShrinkSphere
