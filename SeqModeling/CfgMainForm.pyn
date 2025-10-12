@@ -1,4 +1,4 @@
-#MenuLabels ChmX Web Siblings vsSz SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 sS sU sT TT
+#MenuLabels ChmX Web Siblings vsSz SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 sS sU sT U3 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -96,10 +96,14 @@ def MainMain(menuKey):
 			VisChainSize(4 if ctrPressed else 2)
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
+		case 'U3':
+			bList = LoadChain0(pId)
+			bList = UnfoldChain(bList, 0.5)
+			bList = Interpolate(bList, 3, True)
+			cs.NormalizeChain(bList)
+			ShowBodyList(bList)
 		case 'TT':
-			bList = GetSphereDataset(pId, interRp=0)
-			for b in bList: b.Mult(20.0)
-			SphereUnfold(bList, 0.5, 0)
+			ShowBondVariation(chType='A')
 
 def SelectChains(chType):
 	ds = vv.Dataset
@@ -110,7 +114,7 @@ def SelectChains(chType):
 		vv.Return()
 	return nnList
 	
-def ShowBondLength(chType='r'):
+def ShowBondVariation(chType='r'):
 	dt = {}
 	idIdx = 0 if chType == 'A' else 2
 	for chId in SelectChains(chType):
@@ -128,7 +132,7 @@ def ShowBondLength(chType='r'):
 		vList.Add( New.ValueItem(key, key, v) )
 	New.BarView(vList).Show();
 
-def ShowBondLength2(chType='A'):
+def ShowBondLength(chType='A'):
 	nnList = SelectChains(chType)
 	maxCol = max([vv.Dataset.IntAt(id, 3) for id in nnList])
 	nt = New.NumberTable(len(nnList), maxCol)

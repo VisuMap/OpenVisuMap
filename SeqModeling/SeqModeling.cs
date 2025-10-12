@@ -753,23 +753,25 @@ namespace VisuMap {
         const double BOND_LENGTH = 3.8015;  // Average bond length. with std ca 0.1
 
         public List<IBody> ToSphere(List<IBody> bList, double contracting = 0) {
-            for (int k = 0; k < (bList.Count - 1); k++) {
-                var b = bList[k];
-                var b1 = bList[k + 1];
-                b.SetXYZ(b1.X - b.X, b1.Y - b.Y, b1.Z - b.Z);
+            var newList = new List<IBody>();
+            for (int k = 1; k < bList.Count; k++) {
+                var b = bList[k-1];
+                var b1 = bList[k];
+                IBody body = new Body(b1.Id, b1.Type, b1.X - b.X, b1.Y - b.Y, b1.Z - b.Z);
+                body.Name = b1.Name;
+                newList.Add(body);
             }
-            bList.RemoveAt(bList.Count - 1);
-
+            
             // Scale the points into the range (0, BOND_LENGTH).
-            double fct = BOND_LENGTH / bList.Average(b => b.Length);
-            foreach (var b in bList)
+            double fct = BOND_LENGTH / newList.Average(b => b.Length);
+            foreach (var b in newList)
                b.Mult(fct);
 
             if (contracting != 0) {
-                ShrinkSphere(bList, (float)contracting);
+                ShrinkSphere(newList, (float)contracting);
             }
 
-            return bList;
+            return newList;
         }
 
 

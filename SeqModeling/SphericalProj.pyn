@@ -99,6 +99,21 @@ def SphereUnfold(bList, cf, n):
 	if n%25==0: 
 		tgtView.CentralizeView(False)
 
+# convert spherical chain to initial 3D space.
+def UnfoldChain(bList, cf=0):
+	bx = bList[0].Clone()
+	bx.Type = 0
+	bList = cs.ToSphere(bList, cf)
+	bs = New.BodyList()
+	bs.Add(bx.Clone())
+	for b in bList:
+		bx.Add(b.X, b.Y, b.Z)
+		bx.Name = b.Name
+		bx.Id = b.Id
+		bx.Type = 0		
+		bs.Add(bx.Clone())
+	return bs
+
 def ShrinkSphere(bList, cf, n):
 	global tgtView	
 	cf = max(0, min(1, cf))
