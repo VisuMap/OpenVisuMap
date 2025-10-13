@@ -875,30 +875,36 @@ namespace VisuMap {
         }
 
         public List<IBody> TorsionUnfold(List<IBody> bList, double contracting = 0.5) {
+            int N = bList.Count - 1;
             // convert bList to the spherical coordinates.
-            Vector3[] S = new Vector3[bList.Count - 1];
-            for (int k = 1; k < bList.Count; k++) {
-                S[k - 1] = bList[k].ToV3() - bList[k-1].ToV3();
-                S[k - 1].Normalize();
-            }
+            Vector3[] S = new Vector3[N];
+            Vector3[] B = new Vector3[N];  // Bonds vector.
+            MT.Loop(0, N, k => {
+                S[k] = B[k] = bList[k + 1].ToV3() - bList[k].ToV3();
+                S[k].Normalize();
+            });
 
-            // contracting the points
-            Vector3[] P = new Vector3[S.Length];
+            // Calculate the roations for each bond
             Quaternion T = Quaternion.Identity;
-            for (int k = 1; k < S.Length; k++) {
-                Vector3 axis = Vector3.Cross(S[k], S[k - 1]);
-                double angle = Math.Acos(Vector3.Dot(S[k - 1], S[k]));
-                var Q = Quaternion.RotationAxis(axis, (float)(contracting * angle));
-                T = T * Q;
-                Vector3 V = bList[k+1].ToV3() - bList[k].ToV3();
-                P[k] = Vector3.Transform(V, T);
+            Vector3[] axisList = new Vector3[N - 1];
+            float[] angleList = new float[N - 1];
+            MT.Loop(0, N - 1, k => {
+                axisList[k] = Vector3.Cross(S[k + 1], S[k]);
+                angleList[k] = (float)(contracting * Math.Acos(Vector3.Dot(S[k], S[k + 1])));
+            });
+
+            // Apply the rotation successively to all bonds.
+            Vector3[] P = new Vector3[N];
+            for (int k = 0; k < N-1; k++) {
+                T = T * Quaternion.RotationAxis(axisList[k], angleList[k]);
+                P[k+1] = Vector3.Transform(B[k+1], T);
             }
 
-            // Convert the points back to initial 3D coordinator.
+            // Convert the points from sphere back to 3D space.
             var newList = new List<IBody>();
             newList.Add(bList[0].Clone());
             Vector3 p = bList[0].ToV3();
-            for (int k = 0; k < S.Length; k++) {
+            for (int k = 0; k < N; k++) {
                 p += P[k];
                 IBody b = bList[k+1].Clone() as IBody;
                 b.SetXYZ(p);
