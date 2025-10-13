@@ -98,8 +98,7 @@ def ShrinkSphere(bList, cf, n):
 		cs.NormalizeChain(tgtView.BodyList)
 		tgtView.Show()
 		tgtView.CentralizeView(False)
-	for b in bList: 
-		b.Add(200, 120, 0)
+	ss.ShiftChain(bList, 200, 120, 0)
 	tgtView.MoveBodiesTo(bList, 5, 50, 0, 0)
 
 def SphereView(pId, unfolding):
