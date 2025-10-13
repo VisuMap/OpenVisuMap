@@ -77,20 +77,8 @@ def NotExits(vw):
 
 def SphereUnfold(bList, cf, n):
 	global tgtView
-	cf = max(0, min(1, cf))
-	bList = New.BodyListClone(bList)
-	cs.ShrinkSphere(bList, cf)
-	bs = New.BodyList()
-	bx = New.Body('A999.0')
-	bx.Name = bList[0].Name
-	bx.Type = 0
-	bs.Add(bx.Clone())
-	for b in bList:
-		bx.Add(b.X, b.Y, b.Z)
-		bx.Name = b.Name
-		bx.Id = b.Id
-		bx.Type = 0		
-		bs.Add(bx.Clone())
+	cf = max(0, min(1, cf))	
+	bs = cs.TorsionUnfold(bList, cf)
 	bs = Interpolate1Chain(bs, rp=5, hidIntp=True)
 	cs.NormalizeChain(bs)
 	if NotExits(tgtView):
@@ -117,7 +105,11 @@ def ShrinkSphere(bList, cf, n):
 def SphereView(pId, unfolding):
 	global tgtView
 	tgtView = None
-	bList = GetSphereDataset(pId, interRp=0)
+
+	bList = LoadChain0(pId)
+	if not unfolding:
+		bList = cs.ToSphere(bList, 0)
+
 	for b in bList: 
 		b.Mult(20.0 if unfolding else 80.0)
 	tstFct = SphereUnfold if unfolding else ShrinkSphere
