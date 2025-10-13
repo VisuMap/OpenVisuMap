@@ -879,8 +879,11 @@ namespace VisuMap {
             // convert bList to the spherical coordinates.
             Vector3[] S = new Vector3[N];
             Vector3[] B = new Vector3[N];  // Bonds vector.
-            MT.Loop(0, N, k => {
-                S[k] = B[k] = bList[k + 1].ToV3() - bList[k].ToV3();
+            MT.Loop(0, N, k => {                
+                B[k].X = (float)(bList[k + 1].X - bList[k].X);
+                B[k].Y = (float)(bList[k + 1].Y - bList[k].Y);
+                B[k].Z = (float)(bList[k + 1].Z - bList[k].Z);
+                S[k] = B[k];
                 S[k].Normalize();
             });
 
@@ -889,14 +892,12 @@ namespace VisuMap {
             MT.Loop(0, N - 1, k => {
                 Vector3 axis = Vector3.Cross(S[k + 1], S[k]);
                 float angle = (float)(contracting * Math.Acos(Vector3.Dot(S[k], S[k + 1])));
-                rotationList[k] = Quaternion.RotationAxis(axis, angle);
+                Quaternion.RotationAxis(ref axis, angle, out rotationList[k]);
             });
 
             // Apply the rotations successively to all bonds;
             // and convert the points from sphere back to 3D space.
-            var newList = new List<IBody>();
-            newList.Add(bList[0].Clone());
-            newList.Add(bList[1].Clone());
+            var newList = new List<IBody>() { bList[0].Clone(), bList[1].Clone() };
             Vector3 P = bList[1].ToV3();
             Quaternion T = Quaternion.Identity;
             for (int k = 1; k < N; k++) {
