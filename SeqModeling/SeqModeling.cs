@@ -885,29 +885,25 @@ namespace VisuMap {
             });
 
             // Calculate the roations for each bond
-            Quaternion T = Quaternion.Identity;
-            Vector3[] axisList = new Vector3[N - 1];
-            float[] angleList = new float[N - 1];
+            Quaternion[] rotationList = new Quaternion[N - 1];
             MT.Loop(0, N - 1, k => {
-                axisList[k] = Vector3.Cross(S[k + 1], S[k]);
-                angleList[k] = (float)(contracting * Math.Acos(Vector3.Dot(S[k], S[k + 1])));
+                Vector3 axis = Vector3.Cross(S[k + 1], S[k]);
+                float angle = (float)(contracting * Math.Acos(Vector3.Dot(S[k], S[k + 1])));
+                rotationList[k] = Quaternion.RotationAxis(axis, angle);
             });
 
-            // Apply the rotation successively to all bonds.
-            Vector3[] P = new Vector3[N];
-            for (int k = 0; k < N-1; k++) {
-                T = T * Quaternion.RotationAxis(axisList[k], angleList[k]);
-                P[k+1] = Vector3.Transform(B[k+1], T);
-            }
-
-            // Convert the points from sphere back to 3D space.
+            // Apply the rotations successively to all bonds;
+            // and convert the points from sphere back to 3D space.
             var newList = new List<IBody>();
             newList.Add(bList[0].Clone());
-            Vector3 p = bList[0].ToV3();
-            for (int k = 0; k < N; k++) {
-                p += P[k];
+            newList.Add(bList[1].Clone());
+            Vector3 P = bList[1].ToV3();
+            Quaternion T = Quaternion.Identity;
+            for (int k = 1; k < N; k++) {
+                T = T * rotationList[k-1];
+                P += Vector3.Transform(B[k], T);
                 IBody b = bList[k+1].Clone() as IBody;
-                b.SetXYZ(p);
+                b.SetXYZ(P);
                 newList.Add(b);
             }
             return newList;
