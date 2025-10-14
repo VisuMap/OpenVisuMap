@@ -869,23 +869,21 @@ namespace VisuMap {
                 P0 = P1;
             }
         }
-        public List<IBody> TorsionUnfold(List<IBody> bList, double contracting = 0.5) {
-            var newList = new List<IBody>() { bList[0].Clone(), bList[1].Clone() };
+        public List<IBody> TorsionUnfold(List<IBody> bList, double contracting) {
+            var newList = New.BodyListClone(bList);            
             Vector3 P = bList[1].ToV3();
-            Vector3 S0 = Vector3.Normalize( P - bList[0].ToV3() );
+            Vector3 S0 = Vector3.Normalize(P - bList[0].ToV3());
             Quaternion T = Quaternion.Identity;
             for (int k = 2; k < bList.Count; k++) {
-                IBody b = bList[k];
+                IBody b2 = bList[k];
                 IBody b1 = bList[k - 1];
-                Vector3 B = new Vector3( (float)(b.X - b1.X), (float)(b.Y - b1.Y), (float)(b.Z - b1.Z));
+                Vector3 B = new Vector3((float)(b2.X - b1.X), (float)(b2.Y - b1.Y), (float)(b2.Z - b1.Z));
                 Vector3 S1 = Vector3.Normalize(B);
                 Vector3 axis = Vector3.Cross(S1, S0);
                 float angle = (float)(contracting * Math.Acos(Vector3.Dot(S0, S1)));
                 T = T * Quaternion.RotationAxis(axis, angle);
                 P += Vector3.Transform(B, T);
-                b = b.Clone();
-                b.SetXYZ(P);
-                newList.Add(b);
+                newList[k].SetXYZ(P);
                 S0 = S1;
             }
             return newList;
