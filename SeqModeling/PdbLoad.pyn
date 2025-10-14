@@ -348,10 +348,6 @@ def LoadChain0(pId):
 		UnpackChain(pId[:4])
 	return cs.LoadChain3D(cacheFile)
 
-def LoadChain(pId):
-	bList = LoadChain0(pId)
-	return New.NumberTable(bList, 3)
-
 def LoadSeq(pId):
 	from os.path import exists
 	cacheFile = ChainCacheFile(pId)
@@ -368,7 +364,6 @@ def LoadSeq(pId):
 
 def ChainName(body):
 	return body.Name.split('.')[2]
-
 
 def Interpolate(bList, rp=3, hidIntp=False):
 	EPS = 0.085

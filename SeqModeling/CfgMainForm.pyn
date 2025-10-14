@@ -1,4 +1,4 @@
-#MenuLabels ChmX Web Siblings vsSz SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 sS sU sT U3 TT
+#MenuLabels ChmX Web Siblings vsSz SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 U3 sS sU sT TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -49,11 +49,11 @@ def MainMain(menuKey):
 					samplingDist=0.0, atName=atlasName, ppl=0.10, initExag=4.0, finalExag=1.0,
 					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0)
 			else:
-				CreateProteinMaps(pList, samplingDist=2.0, atlasName=atlasName, 
+				CreateProteinMaps(pList, samplingDist=1.0, atlasName=atlasName, 
 					tP = (1000, 3, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
-			vList = ['tMF']
+			vList = ['pMF']
 			for vt in vList:
 				match vt:
 					case 'pMF':	
@@ -103,10 +103,11 @@ def MainMain(menuKey):
 			cs.NormalizeChain(bList)
 			info=MapInfo().Set('pId', pId)
 			ShowBodyList(bList, info=info)
-
+			'''
 			bList = Interpolate(bList0, 3, True)
 			cs.NormalizeChain(bList)
 			ShowBodyList(bList)
+			'''
 		case 'TT':
 			ShowBondVariation(chType='A')
 
@@ -231,10 +232,8 @@ dnList = list(vv.Folder.DatasetNameList)[1:]
 dnIndex = dnList.index('Archaea')
 dnList = dnList[dnIndex:]
 
-DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=10000, createPMap=True,  createAtlas=False )
+DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=10000, createPMap=True, createAtlas=True)
 
-DoDatasetList(dnList, initMap=1, sampleSize=0,   closure=False, createPMap=False, createAtlas=True )
-
-DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=50,  createPMap=True, createAtlas=False )
+DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=1000, closure=True, maxSize=20000, createPMap=True, createAtlas=True)
 
 '''
