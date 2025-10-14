@@ -12,13 +12,6 @@ def MainMain(menuKey):
 	pList = selected if len(selected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
 	atlasName = None if len(pList) == 1 else f'{vv.Dataset.Name}/{vv.Map.Name}.{len(pList)}'
 	ctrPressed = vv.ModifierKeys.ControlPressed	
-
-	def PM2(*args, **kwargs):
-		mp = ProteinMap2(pList, vt, 4000, filterP=(0.0, 2, 0), *args, **kwargs)
-		vv.Dataset.AddMap(vt)
-		mp.NormalizeView().CopyMap()
-		vv.Map.Redraw()
-		mp.Close()
 			
 	match menuKey:
 		case 'ChmX': ShowChimeraX(pId)
@@ -49,15 +42,18 @@ def MainMain(menuKey):
 					samplingDist=0.0, atName=atlasName, ppl=0.10, initExag=4.0, finalExag=1.0,
 					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0)
 			else:
-				CreateProteinMaps(pList, samplingDist=1.0, atlasName=atlasName, 
+				CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, 
 					tP = (1000, 3, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
+			def PM2(*args, **kwargs):
+				mp = ProteinMap2(pList, vt, 4000, filterP=(0.0, 2, 0), *args, **kwargs)
+				vv.Dataset.AddMap(vt); mp.NormalizeView().CopyMap(); vv.Map.Redraw(); mp.Close()
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
 			vList = ['pMF']
 			for vt in vList:
 				match vt:
-					case 'pMF':	
-						PM2(mfL=20, tSNE=(0.05, 4.0, 0.8))
+					case 'pMF':
+						PM2(mfL=20, cf=0, tSNE=(0.1, 4.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=33, tSNE=(0.05, 4.0, 1.0))	
 					case 'sFT':	
@@ -99,15 +95,11 @@ def MainMain(menuKey):
 		case 'U3':
 			bList0 = LoadChain(pId)
 			bList = cs.TorsionUnfold(bList0, 0.5)
-			bList = Interpolate(bList, 3, True)
+			bList = Interpolate(bList, 4, True)
 			cs.NormalizeChain(bList)
 			info=MapInfo().Set('pId', pId)
 			ShowBodyList(bList, info=info)
-			'''
-			bList = Interpolate(bList0, 3, True)
-			cs.NormalizeChain(bList)
-			ShowBodyList(bList)
-			'''
+
 		case 'TT':
 			ShowBondVariation(chType='A')
 
@@ -236,4 +228,5 @@ DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=10000, c
 
 DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=1000, closure=True, maxSize=20000, createPMap=True, createAtlas=True)
 
+DoDatasetList(dnList, initMap=0, sampleSize=0, closure=False, maxSize=0, createPMap=True, createAtlas=False)
 '''

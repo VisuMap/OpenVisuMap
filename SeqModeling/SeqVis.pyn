@@ -255,16 +255,17 @@ def SelectHelixAA(nt):
 		nt = nt.SelectRows(idxList)
 	return nt
 
-def GetMeanFieldTrans(pList, L=20):
+def GetMeanFieldTrans(pList, L=20, cf=0.0):
 	bList = vv.Dataset.BodyListForId(pList)
 	D = New.NumberTable(bList, L*3)
 	for k, pId in enumerate(pList):
 		if (k>0) and (k%200 == 0):
-			vv.Title = f'Reading: {k}:{pId}'
+			vv.Title = f'Reading: {k}:{pId} of {len(pList)}'
 			vv.DoEvents()
 		bList = LoadChain(pId)
 
-		# bList = cs.TorsionUnfold(bList, 0.125)
+		if cf != 0.0:
+			bList = cs.TorsionUnfold(bList, cf)
 
 		nt = New.NumberTable(bList, 3)
 		cs.PcaNormalizePositive(nt)
@@ -315,7 +316,7 @@ def MaxRows(ds, pList, intRp):
 	maxV = max([ds.IntAt(p, 3) for p in pList])
 	return min(vv.GpuCacheLimit, 2**intRp*(maxV - 1) + 1)
 
-def GetTsneRD(pList, vType, tP):
+def GetTsneRD(pList, vType, tP, cf=0):
 	epochs, waveN, intRp, stretch, outDim, ppl, initExag, finalExag = tP
 	ds = vv.Dataset
 
@@ -334,7 +335,8 @@ def GetTsneRD(pList, vType, tP):
 		if (k+1) % 10 == 0:
 			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
 
-		# bList = cs.TorsionUnfold(bList, 0.125)
+		if cf != 0:
+			bList = cs.TorsionUnfold(bList, cf)
 
 		ss.SetBodyType(bList, None, ds.BodyForId(pId).Type)
 		bList = Interpolate1Chain(bList, rp=intRp)
@@ -370,7 +372,7 @@ def GetS2MF(pList, tP):
 
 	for k, pId in enumerate(pList):
 		if k>0 and k%200==0:
-			vv.Title = f'Reading: {k}:{pId}'
+			vv.Title = f'Reading: {k}:{pId} of {len(pList)}'
 		nt = New.NumberTable( LoadChain(pId),  3)
 		cs.ToSphere(nt, sf)
 		if tsne!=None and nt.Rows>1:
@@ -394,7 +396,7 @@ def GetFourierTrans(pList, waveLen, waveCount):
 	pD = New.NumberTable(vv.Dataset.BodyListForId(pList), L)
 	for k, pId in enumerate(pList):
 		if (k>0) and (k%200 == 0):
-			vv.Title = f'Reading: {k}:{pId}'
+			vv.Title = f'Reading: {k}:{pId} of {len(pList)}'
 			vv.DoEvents()
 		nt = New.NumberTable( LoadChain(pId),  3)
 		#nt = SelectHelixAA(nt)
@@ -428,7 +430,7 @@ def GetMFSeq(pList, aaGroups, mfL):
 	return cs.MFVectorize(seqList, aaGroups, mfL)
 
 
-def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
+def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None, cf=0.0,
 		aaGroups='A', waveLen=1024, waveCount=33, mfL=20, staged=False, filterP=(0.0,2,0)):
 	pTable = AssertProteinTable()	
 	ppl, initExag, finalExag = tSNE
@@ -446,7 +448,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
 	# vectorizing the sequence to a table.
 	match vType:
 		case 'pMF':
-			dt = GetMeanFieldTrans(pList, L=mfL)
+			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf)
 		case 'pFT':
 			dt = GetFourierTrans(pList, waveLen, waveCount)
 		case 'sFT': 
@@ -456,7 +458,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
 		case 'rMF':
 			dt = GetS2MF(pList, tP=tP)
 		case 'tMF'|'tFT':
-			dt = GetTsneRD(pList, vType, tP=tP)
+			dt = GetTsneRD(pList, vType, tP=tP, cf=cf)
 		case _:
 			vv.Message('Invalid vectorization type: ' + vType)
 			return
@@ -1127,6 +1129,5 @@ def ResetAtlas():
 	pp.ResetView()
 
 '''
-at = New.Atlas().Show()
-at.Close()
+
 '''
