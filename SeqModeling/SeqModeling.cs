@@ -858,19 +858,15 @@ namespace VisuMap {
         }
 
         public void ShrinkSphere(List<IBody> bList, float fct) {
-            Vector3[] P = new Vector3[bList.Count];
-            for (int k = 0; k < bList.Count; k++) {
-                P[k] = bList[k].ToV3();
-                P[k].Normalize();
-            }
             Quaternion T = Quaternion.Identity;
+            Vector3 P0 = Vector3.Normalize( bList[0].ToV3() );
             for (int k = 1; k < bList.Count; k++) {
-                Vector3 axis = Vector3.Cross(P[k], P[k-1]);
-                double angle = Math.Acos(Vector3.Dot(P[k - 1], P[k]));
-                var Q = Quaternion.RotationAxis(axis, (float)(fct * angle));
-                T = T * Q;
-                var p = bList[k].ToV3();
-                bList[k].SetXYZ(Vector3.Transform(p, T));
+                Vector3 P1 = Vector3.Normalize(bList[k].ToV3());
+                Vector3 axis = Vector3.Cross(P1, P0);
+                float angle = (float) ( fct * Math.Acos(Vector3.Dot(P1, P0)) );
+                T = T * Quaternion.RotationAxis(axis, angle);
+                bList[k].SetXYZ(Vector3.Transform(bList[k].ToV3(), T));
+                P0 = P1;
             }
         }
         public List<IBody> TorsionUnfold(List<IBody> bList, double contracting = 0.5) {
