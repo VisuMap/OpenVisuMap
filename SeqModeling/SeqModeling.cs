@@ -873,39 +873,24 @@ namespace VisuMap {
                 bList[k].SetXYZ(Vector3.Transform(p, T));
             }
         }
-
         public List<IBody> TorsionUnfold(List<IBody> bList, double contracting = 0.5) {
-            int N = bList.Count - 1;
-            // convert bList to the spherical coordinates.
-            Vector3[] S = new Vector3[N];
-            Vector3[] B = new Vector3[N];  // Bonds vector.
-            MT.Loop(0, N, k => {                
-                B[k].X = (float)(bList[k + 1].X - bList[k].X);
-                B[k].Y = (float)(bList[k + 1].Y - bList[k].Y);
-                B[k].Z = (float)(bList[k + 1].Z - bList[k].Z);
-                S[k] = B[k];
-                S[k].Normalize();
-            });
-
-            // Calculate the roations for each bond
-            Quaternion[] rotationList = new Quaternion[N - 1];
-            MT.Loop(0, N - 1, k => {
-                Vector3 axis = Vector3.Cross(S[k + 1], S[k]);
-                float angle = (float)(contracting * Math.Acos(Vector3.Dot(S[k], S[k + 1])));
-                Quaternion.RotationAxis(ref axis, angle, out rotationList[k]);
-            });
-
-            // Apply the rotations successively to all bonds;
-            // and convert the points from sphere back to 3D space.
             var newList = new List<IBody>() { bList[0].Clone(), bList[1].Clone() };
             Vector3 P = bList[1].ToV3();
+            Vector3 S0 = Vector3.Normalize( P - bList[0].ToV3() );
             Quaternion T = Quaternion.Identity;
-            for (int k = 1; k < N; k++) {
-                T = T * rotationList[k-1];
-                P += Vector3.Transform(B[k], T);
-                IBody b = bList[k+1].Clone() as IBody;
+            for (int k = 2; k < bList.Count; k++) {
+                IBody b = bList[k];
+                IBody b1 = bList[k - 1];
+                Vector3 B = new Vector3( (float)(b.X - b1.X), (float)(b.Y - b1.Y), (float)(b.Z - b1.Z));
+                Vector3 S1 = Vector3.Normalize(B);
+                Vector3 axis = Vector3.Cross(S1, S0);
+                float angle = (float)(contracting * Math.Acos(Vector3.Dot(S0, S1)));
+                T = T * Quaternion.RotationAxis(axis, angle);
+                P += Vector3.Transform(B, T);
+                b = b.Clone();
                 b.SetXYZ(P);
                 newList.Add(b);
+                S0 = S1;
             }
             return newList;
         }
