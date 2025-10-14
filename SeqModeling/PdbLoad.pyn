@@ -71,7 +71,7 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 
 
 def ShowChain(cId, gsize=2.1, gopacity=0.75, hsize=3, intRp=5):
-	bList = LoadChain0(cId)
+	bList = LoadChain(cId)
 	bList = Interpolate1Chain(bList, rp=intRp)
 	for b in bList: b.Hidden = (b.Id[0] == 'i')
 	cs.NormalizeChain(bList)
@@ -211,7 +211,7 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 	mapStore = AtlasMapStore(atlasName) if L > 10 else None
 	t0 = time.time()
 	for k, pId in enumerate(pList):
-		bList = LoadChain0(pId)
+		bList = LoadChain(pId)
 		bList = Interpolate1Chain(bList, intRp)
 		nt = cs.AugmentByStretch(bList, stretch, intRp)
 		nt = tsne.Fit(nt)
@@ -341,7 +341,7 @@ def ShowBetaSheet():
 	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.b')]
 
 
-def LoadChain0(pId):
+def LoadChain(pId):
 	from os.path import exists
 	cacheFile = ChainCacheFile(pId)
 	if not exists(cacheFile):
@@ -355,7 +355,7 @@ def LoadSeq(pId):
 		return cs.LoadChainSeq(cacheFile)
 	else:
 		seq = []
-		bList = LoadChain0(pId)
+		bList = LoadChain(pId)
 		c = bList[0].Name[0]
 		idx = 2 if ( c=='r' or c=='d') else 0
 		for b in bList:

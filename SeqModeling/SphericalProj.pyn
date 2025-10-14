@@ -2,7 +2,7 @@
 import math
 
 def GetSphereDataset(cId, interRp=0, contracting=0):
-	bList = LoadChain0(cId)
+	bList = LoadChain(cId)
 	if bList.Count < 3:
 		return None
 	bType = vv.Dataset.BodyForId(cId).Type
@@ -34,7 +34,7 @@ def ShowSphere2(pId, cf, hsize=4, gsize=4.0, gopacity=1.0, iRp=5):
 	return mp
 
 def ShowSphere3(pId):
-	bList = LoadChain0(pId)
+	bList = LoadChain(pId)
 	bList = cs.ToSphere(bList, 0)
 	bList = cs.ToSphere(bList, 0.9)
 	bList = Interpolate(bList, 5, hidIntp=True)
@@ -50,10 +50,10 @@ def ShowSphere4(repeats=5, contracting=0.9):
 	match pp.Name:
 		case 'MainForm' | 'MapSnapshot':
 			pId = pp.SelectedItems[0]
-			bList = LoadChain0(pId)
+			bList = LoadChain(pId)
 		case 'Atlas':
 			pId = pp.SelectedItems[0].Id
-			bList = LoadChain0(pId)
+			bList = LoadChain(pId)
 		case 'D3dRender':
 			pId = MapInfo(pp.Description).pId
 			bList = pp.BodyList
@@ -105,7 +105,7 @@ def SphereView(pId, unfolding):
 	global tgtView
 	tgtView = None
 
-	bList = LoadChain0(pId)
+	bList = LoadChain(pId)
 	if not unfolding:
 		bList = cs.ToSphere(bList, 0)
 
@@ -127,7 +127,7 @@ def SphereView(pId, unfolding):
 def TorsionMap(pList):
 	for pId in pList:
 		info = MapInfo().Set('pId', pId)
-		bs = LoadChain0(pId)
+		bs = LoadChain(pId)
 		nt = cs.ToTorsionList(bs).Transpose2()
 		bb = New.BarBand(nt)
 		bb.Description = info.ToStr()
