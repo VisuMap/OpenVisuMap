@@ -42,7 +42,7 @@ def MainMain(menuKey):
 					samplingDist=0.0, atName=atlasName, ppl=0.10, initExag=4.0, finalExag=1.0,
 					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0)
 			else:
-				CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, 
+				CreateProteinMaps(pList, samplingDist=1.0, atlasName=atlasName, 
 					tP = (1000, 3, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
@@ -53,9 +53,9 @@ def MainMain(menuKey):
 			for vt in vList:
 				match vt:
 					case 'pMF':
-						PM2(mfL=20, cf=0, tSNE=(0.1, 4.0, 1.0))
+						PM2(mfL=20, cf=0.0, tSNE=(0.1, 4.0, 1.0))
 					case 'pFT':	
-						PM2(waveCount=33, tSNE=(0.05, 4.0, 1.0))	
+						PM2(waveCount=30, cf=0.5, tSNE=(0.1, 4.0, 1.0))	
 					case 'sFT':	
 						PM2(aaGroups=GetAAGroup(20), tSNE=(0.05, 6.0, 0.9))
 					case 'sMF':	
@@ -221,12 +221,13 @@ for dn in dnList:
 		vv.Dataset.DeleteMap(mp)
 
 dnList = list(vv.Folder.DatasetNameList)[1:]
-dnIndex = dnList.index('Archaea')
+dnIndex = dnList.index('Virus10K') + 1
 dnList = dnList[dnIndex:]
 
 DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=10000, createPMap=True, createAtlas=True)
 
-DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=1000, closure=True, maxSize=20000, createPMap=True, createAtlas=True)
+DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=500, closure=True, maxSize=0, createPMap=True, createAtlas=True)
 
 DoDatasetList(dnList, initMap=0, sampleSize=0, closure=False, maxSize=0, createPMap=True, createAtlas=False)
+
 '''

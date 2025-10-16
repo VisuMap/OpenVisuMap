@@ -386,19 +386,22 @@ def GetS2MF(pList, tP):
 		cs.MeanFieldTrans(nt, D.Matrix[k])
 	return D
 
-def GetFourierTrans(pList, waveLen, waveCount):
+def GetFourierTrans(pList, waveLen, waveCount, cf=0.0):
 	# The first component of the FT is the sume of all components which
 	# will be zero because of the centerization before apply FT. Thus, we remove
 	# the useless first FT component.
 	tm = GetFourier(waveLen, waveCount+1)
-	tm = tm.RemoveColumns(New.IntArray(0))
+	tm = tm.RemoveColumns([0])
 	L = 3*waveCount
 	pD = New.NumberTable(vv.Dataset.BodyListForId(pList), L)
 	for k, pId in enumerate(pList):
 		if (k>0) and (k%200 == 0):
 			vv.Title = f'Reading: {k}:{pId} of {len(pList)}'
 			vv.DoEvents()
-		nt = New.NumberTable( LoadChain(pId),  3)
+		bList = LoadChain(pId)
+		if  cf != 0.0:
+			bList = cs.TorsionUnfold(bList, cf)
+		nt = New.NumberTable(bList,  3)
 		#nt = SelectHelixAA(nt)
 		#cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
 		cs.PcaNormalizePositive(nt)
@@ -450,7 +453,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
 		case 'pMF':
 			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf)
 		case 'pFT':
-			dt = GetFourierTrans(pList, waveLen, waveCount)
+			dt = GetFourierTrans(pList, waveLen, waveCount, cf=cf)
 		case 'sFT': 
 			dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
 		case 'sMF': 
@@ -1027,11 +1030,14 @@ def Merge3DList(pList):
 		bList[0].Type = SeqMap_HEAD
 		bList[bList.Count-1].Type = SeqMap_TAIL
 		bs.AddRange(bList)
-	ShowBodyList(bs, gSize=1.0, gOpacity=0.75)
+	info = MapInfo().Set('pId', ','.join(pList))
+	info.Set('pCnt', len(pList))
+	ShowBodyList(bs, gSize=1.0, gOpacity=0.75, info=info)
 
 def Merge2DList(atlas):
 	bs = New.BodyList()
 	ds = vv.Dataset
+	pList = [item.Id for item in atlas.SelectedItems]
 	for k, item in enumerate(atlas.SelectedItems):
 		mp = item.Load()
 		bList = New.BodyListClone(mp.BodyList)
@@ -1046,8 +1052,11 @@ def Merge2DList(atlas):
 		cs.NormalizeChain(bList, chType=-1, hidIntp=False)
 		bs.AddRange(bList)
 		mp.Close()
+	info = MapInfo().Set('pId', ','.join(pList))
+	info.Set('pCnt', len(pList))
 	mp = New.MapSnapshot(bs)
 	mp.ReadOnly = True
+	mp.Description = info.ToStr()
 	mp.GlyphSet = SeqMap_GLYPHSET
 	mp.GlyphSize = 0.75
 	mp.GlyphOpacity = 0.75

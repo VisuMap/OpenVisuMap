@@ -50,7 +50,7 @@ match vv.EventSource.Item:
 	case 'Align':
 		AlignSeqPair(pp)
 	case 'PID':
-		vv.SelectedItems = [MapInfo(pp.Description).pId]
+		vv.SelectedItems = MapInfo(pp.Description).pId.split(',')
 	case 'S2':
 		ShowSphere4()
 	case 'vsSz':

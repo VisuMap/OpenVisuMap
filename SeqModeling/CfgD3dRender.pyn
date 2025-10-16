@@ -24,7 +24,7 @@ match vv.EventSource.Item:
 	case 'Looping':
 		cs.LoopSection(pp, secLen=25)
 	case 'PID':
-		vv.SelectedItems = [MapInfo(pp.Description).pId]
+		vv.SelectedItems = MapInfo(pp.Description).pId.split(',')
 	case 'Tr':
 		ob = New.Body()
 		pp.ShowBoundingBox = False
