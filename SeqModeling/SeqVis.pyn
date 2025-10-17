@@ -1078,21 +1078,27 @@ def VisChainSize(szType=2):
 	else:
 		bList = pp.BodyListEnabled()
 	ds = vv.Dataset
-	for b in bList:
-		match szType:
-			case 0: # chains
+	match szType:
+		case 0: # chains
+			for b in bList:
 				typeIdx = int(p2sz[b.Id[:4]])
 				b.Type = min(63, typeIdx)
-			case 1: # complex size
+		case 1: # complex size
+			for b in bList:
 				typeIdx = int(p2sz[b.Id[:4]]/500)
 				b.Type = min(63, typeIdx)
-			case 2: # the chain length
-				typeIdx = ds.IntAt(b.Id, 3)//100
+		case 2: # the chain length
+			mxLen = max([ds.IntAt(b.Id, 3) for b in ds.BodyListEnabled()])
+			secLen = mxLen//64
+			for b in bList:
+				typeIdx = ds.IntAt(b.Id, 3)//secLen
 				b.Type = min(63, typeIdx)
-			case 3: # entity-id
+		case 3: # entity-id
+			for b in bList:
 				typeIdx = ds.IntAt(b.Id, 1)
 				b.Type = 64 + typeIdx
-			case 4: # default initial
+		case 4: # default initial
+			for b in bList:
 				chType = ds.StringAt(b.Id, 0)
 				typeIdx = 0 if chType=='A' else ( 99 if chType=='r' else 97 )
 				b.Type = typeIdx		
