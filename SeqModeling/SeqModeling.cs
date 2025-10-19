@@ -1222,28 +1222,70 @@ namespace VisuMap {
             char[] fSeparator = new char[] { ' ' };
             char[] dbQuoats = new char[] { '"' };
 
+            int C_ATOM_ID = -1;
+            int C_COMP_ID = -1;
+            int C_ENTITY_ID = -1;
+            int C_SEQ_ID = -1;
+            int C_CARTN_X = -1;
+            int C_CARTN_Y = -1;
+            int C_CARTN_Z = -1;
+            int C_ASYM_ID = -1;
+            int C_MODEL_NUM = -1;
+            Dictionary<string, int> colName2Idx = new Dictionary<string, int>();
+            int idxF = 1;
+            int cntF = -1;
+
             while (true) {
                 string L = tr.ReadLine();
-                if ( (L == null) || (L[0] == '#') )
+                if ((L == null) || (L[0] == '#'))
                     break;
-                if (L[0] == '_')
+                if ( L.StartsWith("_atom_site.") ){
+                    string cName = L.Substring(L.IndexOf('.') + 1).TrimEnd();
+                    colName2Idx[cName] = idxF++;
                     continue;
-                string[] fs = L.Split(fSeparator, StringSplitOptions.RemoveEmptyEntries);
-                if (fs.Length < 21) {
-                    //vv.Message("Invalid record: " + fs.Length + ": |" + L + "|");
-                    vv.LastError = "Invalid record: " + fs.Length + ": |" + L + "|";
-                    return null;
                 }
-                string chName = fs[18] + "_" + fs[20];
-                string atName = fs[3].Trim(dbQuoats);
-                string rsName = fs[5];
-                int entityId = int.Parse(fs[7]);
+                if (C_ATOM_ID < 0) {
+                    try {
+                        C_ATOM_ID = colName2Idx["label_atom_id"];  //3
+                        C_COMP_ID = colName2Idx["label_comp_id"];  // 5
+                        C_ENTITY_ID = colName2Idx["label_entity_id"];  // 7
+                        C_SEQ_ID = colName2Idx["label_seq_id"];  // 8
+                        C_CARTN_X = colName2Idx["Cartn_x"];  // 10
+                        C_CARTN_Y = colName2Idx["Cartn_y"];  // 11
+                        C_CARTN_Z = colName2Idx["Cartn_z"];  // 12
+                        C_ASYM_ID = colName2Idx["auth_asym_id"]; // 18
+                        C_MODEL_NUM = colName2Idx["pdbx_PDB_model_num"]; // 20
+                        cntF = colName2Idx.Count + 1;
+                    } catch(Exception ex) {
+                        vv.LastError = "Invalid ATOM sections" + ex.ToString();
+                        return null;
+                    }
+                }
+
+                // Ignore comments withing ATOM rows.
+                if (L[0] == '_') 
+                    continue;
+
+                string[] fs = L.Split(fSeparator, StringSplitOptions.RemoveEmptyEntries);
+                if ( fs.Length < cntF) { // The row extends to the next line.
+                    L = tr.ReadLine();
+                    var fs2 = fs.ToList();
+                    fs2.AddRange(L.Split(fSeparator, StringSplitOptions.RemoveEmptyEntries));
+                    fs = fs2.ToArray();
+                    if (fs.Length < cntF)
+                        continue;
+                }
+
+                string chName = fs[C_ASYM_ID] + "_" + fs[C_MODEL_NUM];
+                string atName = fs[C_ATOM_ID].Trim(dbQuoats);
+                string rsName = fs[C_COMP_ID];
+                int entityId = int.Parse(fs[C_ENTITY_ID]);
                 string secType = "x";
                 string p1 = "x";
-                string bId = null;
+                string bId = null;               
 
                 if (fs[0] == "ATOM") {
-                    int rsIdx = int.Parse(fs[8]) - 1;
+                    int rsIdx = int.Parse(fs[C_SEQ_ID]) - 1;
                     if (rsIdx == rsIdxPre)
                         continue;
                     if (P3.ContainsKey(rsName) && ((atName == "CA") || (atName == "C2"))) {
@@ -1269,15 +1311,15 @@ namespace VisuMap {
                     bId = $"A{rsIdx}.{bsList.Count}";
                     rsIdxPre = rsIdx;
                 } else if (fs[0] == "HETATM") {
-                    bId = $"H.{fs[3]}.{bsList2.Count}";
-                    p1 = fs[3];
+                    bId = $"H.{fs[C_ATOM_ID]}.{bsList2.Count}";
+                    p1 = fs[C_ATOM_ID];
                 } else
                     continue;
 
                 IBody b = vv.New.Body(bId);
-                b.X = float.Parse(fs[10]);
-                b.Y = float.Parse(fs[11]);
-                b.Z = float.Parse(fs[12]);
+                b.X = float.Parse(fs[C_CARTN_X]);
+                b.Y = float.Parse(fs[C_CARTN_Y]);
+                b.Z = float.Parse(fs[C_CARTN_Z]);
 
                 b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType;
                 b.Type = (short)(entityId - 1);
