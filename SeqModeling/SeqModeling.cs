@@ -1206,7 +1206,8 @@ namespace VisuMap {
             {"THR", 'T' },
             {"TRP", 'W' },
             {"TYR", 'Y' },
-            {"VAL", 'V'}
+            {"VAL", 'V' },
+            {"UNK", 'x' }
         };
 
         const int maxChainIndex = 144; // 4x36 of "36 Clusters" 

@@ -375,7 +375,7 @@ def Interpolate(bList, rp=3, hidIntp=False):
 		if (k == bList.Count) or (ChainName(bList[k]) != t0):
 			P0 = bList.GetRange(k0, k-k0)
 			P1 = cs.Interpolate3D(P0, rp, EPS, bs.Count, chIdx)
-			chIdx+=1
+			chIdx += 1
 			#PyInterpolate(P0, P1,  2**rp)
 			bs.AddRange(P1)
 			if k < bList.Count:
@@ -424,14 +424,16 @@ def LoadChains(pId):
 		return None, None, None
 	try:
 		_, bList, _, pdbTitle = LoadCifData(pId)
-		if bList == None:
-			return None, None, None
 	except Exception as ex :
 		return None, None, None
-	
+
+	if (bList == None) or (len(bList) == 0):
+		return None, None, None
+
 	chainList = cs.SplitByChainName(bList)
 	totalLength = sum([ch.Count for ch in chainList])
 	chainList = [ ch for ch in chainList if ch.Count>1 ]
+	chIdx = None
 	for chIdx, ch in enumerate(chainList):
 		b = ch[0]
 		entityId = b.Type + 1
@@ -591,7 +593,9 @@ def ImportPDBList(sList, dsName, dsDescription=''):
 	vv.Map.Redraw()
 	if len(skipped) > 0:
 		skList = ','.join(skipped[:100])		
-		vv.Message(f'Skipped {len(skipped)} cif files: {skList}')
+		msg = f'Skipped {len(skipped)} cif files: {skList}'
+		print(msg)
+		vv.Message(msg)
 
 def GetAAGroup(idx=0):
 	aaHydrophobic = 'AVILMFYW'
@@ -655,6 +659,9 @@ for f in os.listdir(CHAIN_CACHE):
 		fList.append(f)
 for f in fList:
 	os.remove(f'{CHAIN_CACHE}/{f}')
+
+sList = ','.join([f[:4] for f in os.listdir(PDB_CACHE)])
+ImportPDBList(sList, 'TT')
 
 # Extract a chain list for each dataset:
 dnList = list(vv.Folder.DatasetNameList)[1:]
