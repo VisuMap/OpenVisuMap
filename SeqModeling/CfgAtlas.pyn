@@ -1,4 +1,4 @@
-#MenuLabels ConfigMaps MatchMap ChmX Web IntMaps Open 3D 3Dx 3Ds 2D 2Ds S2 TileAll Seq Align sT TT
+#MenuLabels CfgMaps MatchMap ChmX Web Open Seq Align 3D 3Dx 3Ds 2D 2Ds S2 sT TT
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -11,15 +11,6 @@ def HighlightItems():
 		sIds = set(vv.SelectedItems)
 		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])	
 
-def InterpolateAllMaps(atlas, intRp):
-	itemList = atlas.Items if atlas.SelectedItems.Count == 0 else atlas.SelectedItems
-	for item in itemList:
-		mp = item.Open()
-		bList = Interpolate(bList=mp.BodyList, rp=intRp)
-		mp.BodyList.Clear()
-		mp.BodyList.AddRange(bList)
-		mp.Close()
-
 def AtlasMain(menuKey):
 	pSelected = pp.GetSelectedItems()
 	if pSelected.Count >= 1:
@@ -28,13 +19,11 @@ def AtlasMain(menuKey):
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
 	match vv.EventSource.Item:
-		case 'IntMaps':
-			InterpolateAllMaps(pp, 5)
-		case 'ConfigMaps':
+		case 'CfgMaps':
 			ConfigAtlasMaps(pp, 1000, 700, gSize=5.0, gOpacity=1.0, iconWidth=None, hiddenSize=4, reset=False)			
 		case '3D':
 			for pId in [item.Id for item in pSelected]:
-				mp = ShowPDB(pId, rp=5, includeHA=False, hidIntp=True)
+				mp = ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
 				mp.NormalizeView()
 		case '3Dx':
 			for e in pSelected:
@@ -51,9 +40,6 @@ def AtlasMain(menuKey):
 			OpenCifFile(pId)
 		case 'MatchMap':
 			MatchProteinMap(pp, iconWidth=None)
-		case 'TileAll':
-			aaGroups = 'AVILMFYW|STNQ|CGP|RHK|DE'
-			AtlasTileAll(pp, aaGroups, using3DInfo=False, waveLen=256, waveCount=32)
 		case 'Seq':
 			for item in pp.SelectedItems:
 				mp = item.Open()
@@ -73,7 +59,6 @@ def AtlasMain(menuKey):
 			ShowSphere4()
 		case 'sT':
 			ShowChain(pId, gopacity=0.35).RotateXYZ(0, 0.0025, 0).StartAnimation(0).EditMode=False
-			ShowSphere2(pId, cf=0.9, gsize=2.0, gopacity=0.5, hsize=3)
 			TorsionMap(pList)
 
 			

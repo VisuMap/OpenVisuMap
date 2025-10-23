@@ -25,10 +25,13 @@ def CheckCacheDir():
 def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 		setChainId=False,	typeByChainIdx=False, glyphSize=1.0, glyphOpacity=0.75):
 
-	localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, chainNames=chainNames)
+	if includeHA or chainNames==None or len(chainNames)>1:
+		localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, chainNames=chainNames)
+	else:
+		localPath, bsList, bsList2, pdbTitle = None, LoadChain(pId), None, "???"
+
 	bsList = Interpolate(bsList, rp, hidIntp=hidIntp)
 	
-
 	if setChainId:
 		ds = vv.Dataset
 		chId = pId[:4]
@@ -201,10 +204,15 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 
 # CreateProteinMaps() is a fast version of UnFoldProteinList(), it is limited to sequences with less than 23K PP.
 def CreateProteinMaps(pList, samplingDist, atlasName, tP):
+	global ctrPressed
+
 	epochs, intRp, stretch, ppl, initE, finalE = tP
 	if samplingDist > 0:
 		pList = cs.FlatSampling(pList, samplingDist)
 		vv.Title = f'Sampled {len(pList)} chains!'
+		if ctrPressed:
+			return
+
 	maxRows = MaxRows(vv.Dataset, pList, intRp)
 	tsne = FastTsne(maxRows, 4, 2, epochs, ppl, initE, finalE)
 	L = len(pList)

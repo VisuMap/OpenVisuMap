@@ -7,6 +7,7 @@ def SortByPosX(idList):
 	idList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
 
 def MainMain(menuKey):
+	global ctrPressed
 	selected = list(vv.Map.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None
 	pList = selected if len(selected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
@@ -43,7 +44,7 @@ def MainMain(menuKey):
 					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0)
 			else:
 				CreateProteinMaps(pList, samplingDist=1.0, atlasName=atlasName, 
-					tP = (1000, 3, 0.0, 0.1, 4.0, 1.0))			
+					tP = (1000, 2, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
 				mp = ProteinMap2(pList, vt, 4000, filterP=(0.0, 2, 0), *args, **kwargs)
@@ -229,5 +230,8 @@ DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=10000, c
 DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=500, closure=True, maxSize=0, createPMap=True, createAtlas=True)
 
 DoDatasetList(dnList, initMap=0, sampleSize=0, closure=False, maxSize=0, createPMap=True, createAtlas=False)
+
+selected = [ '6KRD', '6KRE', '6KS6']
+for pId in selected: ShowPDB(pId)
 
 '''

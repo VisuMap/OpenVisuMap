@@ -274,44 +274,6 @@ def GetMeanFieldTrans(pList, L=20, cf=0.0):
 	return D
 
 # t-SNE reduced data
-
-def GetTsneRD_old(pList, vType, tP):
-	epochs, waveN, intRp, stretch, ppl, initExag, finalExag = tP
-	mds = NewMds(nt=None, epochs=epochs, is3D=False, initExag=initExag, finalExag=finalExag, 
-		ppl=ppl, repeats=0, metric='EuclideanMetric', refreshFreq=0, glyphSet=vv.Map.GlyphSet, 
-		glyphSize=6.0, glyphOpacity=1.0)
-	mds.GlyphScale = 5.0
-	mds.Resize(0,0,800,800)
-	mds.AutoNormalizing = False
-	#mds.Force1DtSNE()
-	outDim = 2
-
-	if vType == 'tFT':
-		tm = GetFourier(1024, waveN+1)
-		tm = tm.RemoveColumns(New.IntArray(0))
-	D = New.NumberTable(vv.Dataset.BodyListForId(pList), waveN*outDim)
-	L = len(pList)
-
-	for k, pId in enumerate(pList):
-		bList = LoadChain(pId)
-		if bList.Count <= 2:	continue
-		if (k+1) % 10 == 0:
-			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
-		ss.SetBodyType(bList, None, vv.Dataset.BodyForId(pId).Type)
-		bList = Interpolate1Chain(bList, rp=intRp)
-		nt = cs.AugmentByStretch(bList, stretch, intRp)
-		mds.Description = f'pId:{pId}'
-		RunMds(mds, repeats=0, nt=nt)	
-
-		nt = New.NumberTable(mds.BodyList, outDim)
-		cs.PcaNormalize2D(nt)
-		if vType == 'tMF':
-			cs.MeanFieldTrans(nt, D.Matrix[k])
-		else:
-			cs.FourierTrans(tm, nt, D.Matrix[k])
-	mds.Close()
-	return D
-
 def MaxRows(ds, pList, intRp):
 	maxV = max([ds.IntAt(p, 3) for p in pList])
 	return min(vv.GpuCacheLimit, 2**intRp*(maxV - 1) + 1)
@@ -770,8 +732,8 @@ def ShowAASeq(pMap):
 		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}: {info.PT}', pSeq)
 	else:
 		ch = pSelected[0].Name[0]
-		chIdx = 0 if ch in {'r', 'd'} else 2
-		pSeq = ''.join([b.Name[chIdx] for b in pSelected]).upper()
+		chIdx = 2 if ch in {'r', 'd'} else 0
+		pSeq = ''.join([b.Name[chIdx] for b in pSelected if b.Id[0] == 'A']).upper()
 		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
 		tp.Tag = pMap
 		tp.OnSelection = '@OnSeqSelection()'
