@@ -42,8 +42,11 @@ def MainMain(menuKey):
 				tP = (1000, 2, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
-				mp = ProteinMap2(pList, vt, 1000, filterP=(0.0, 400, 0), *args, **kwargs)
-				vv.Dataset.AddMap(); mp.NormalizeView().CopyMap(); vv.Map.Redraw(); mp.Close()
+                mpName = vv.Map.Name
+				for mnL, mxL in [(0, 100), (100, 200), (400, 500), (500, 0), (200,300), (300, 400)]:
+					mp = ProteinMap2(pList, vt, 1000, filterP=(0.0, mnL, mxL), *args, **kwargs)
+					mpNm = f'{mpName}.{mnL}-{mxL}'
+					vv.Dataset.AddMap(mpNm); mp.NormalizeView().CopyMap(); vv.Map.Redraw(); mp.Close()
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
 			vList = ['pMF']
 			for vt in vList:

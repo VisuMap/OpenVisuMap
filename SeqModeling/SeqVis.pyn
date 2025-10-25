@@ -6,9 +6,9 @@ GENE_TABLE = 'Gene Features'
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
 P = {ALPHABET[k]:k for k in range(len(ALPHABET))}
 P3 = {'ALA':'A', 'ARG':'R', 'ASN':'N', 'ASP':'D', 'CYS':'C',
-      'GLU':'E', 'GLN':'Q', 'GLY':'G', 'HIS':'H', 'ILE':'I',
-		'LEU':'L', 'LYS':'K', 'MET':'M', 'PHE':'F', 'PRO':'P',
-		'SER':'S', 'THR':'T', 'TRP':'W', 'TYR':'Y', 'VAL':'V'}
+    'GLU':'E', 'GLN':'Q', 'GLY':'G', 'HIS':'H', 'ILE':'I',
+	'LEU':'L', 'LYS':'K', 'MET':'M', 'PHE':'F', 'PRO':'P',		
+    'SER':'S', 'THR':'T', 'TRP':'W', 'TYR':'Y', 'VAL':'V'}
 SeqMap_GLYPHSET = '36 Clusters||||Colored Balls|Ordered Glyphs'
 SeqMap_HEAD = 155
 SeqMap_TAIL = 171
@@ -437,6 +437,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
 
 	for k, b in enumerate(pTable.BodyListForId(pList)):
 		dt.RowSpecList[k].CopyFromBody(b)
+		dt.RowSpecList[k].Disabled = False
 
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=1.5, glyphOpacity=1.0, staged=staged, 
 		initExag=initExag, finalExag=finalExag, ppl=ppl)
