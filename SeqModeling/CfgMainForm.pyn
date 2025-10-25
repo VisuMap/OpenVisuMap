@@ -38,17 +38,12 @@ def MainMain(menuKey):
 				vv.Return()
 			OpenCifFile(pId)
 		case 'P-2D':
-			if False:
-				UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False, 
-					samplingDist=0.0, atName=atlasName, ppl=0.10, initExag=4.0, finalExag=1.0,
-					stretch=0.0, clusterStretch=0.0, iconWidth=50, glyphSize=6.0)
-			else:
-				CreateProteinMaps(pList, samplingDist=1.0, atlasName=atlasName, 
-					tP = (1000, 2, 0.0, 0.1, 4.0, 1.0))			
+			CreateProteinMaps(pList, samplingDist=1.0, atlasName=atlasName, 
+				tP = (1000, 2, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
-				mp = ProteinMap2(pList, vt, 4000, filterP=(0.0, 2, 0), *args, **kwargs)
-				vv.Dataset.AddMap(vt); mp.NormalizeView().CopyMap(); vv.Map.Redraw(); mp.Close()
+				mp = ProteinMap2(pList, vt, 1000, filterP=(0.0, 400, 0), *args, **kwargs)
+				vv.Dataset.AddMap(); mp.NormalizeView().CopyMap(); vv.Map.Redraw(); mp.Close()
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
 			vList = ['pMF']
 			for vt in vList:
@@ -221,13 +216,13 @@ for dn in dnList:
 	for mp in mpList[1:]:
 		vv.Dataset.DeleteMap(mp)
 
-dnList = list(vv.Folder.DatasetNameList)[1:]
-dnIndex = dnList.index('Virus10K') + 1
+dnList = list(vv.Folder.DatasetNameList)[1:-2]
+dnIndex = dnList.index('CATH Ribbon') + 1
 dnList = dnList[dnIndex:]
 
 DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=10000, createPMap=True, createAtlas=True)
 
-DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=500, closure=True, maxSize=0, createPMap=True, createAtlas=True)
+DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=1000, closure=True, maxSize=0, createPMap=True, createAtlas=True)
 
 DoDatasetList(dnList, initMap=0, sampleSize=0, closure=False, maxSize=0, createPMap=True, createAtlas=False)
 

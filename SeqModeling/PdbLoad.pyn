@@ -216,7 +216,12 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 	maxRows = MaxRows(vv.Dataset, pList, intRp)
 	tsne = FastTsne(maxRows, 4, 2, epochs, ppl, initE, finalE)
 	L = len(pList)
-	mapStore = AtlasMapStore(atlasName) if L > 10 else None
+	if L > 10:
+		mapStore = AtlasMapStore(atlasName)
+		if L > 5000:
+			mapStore.hideItems = True
+	else:
+		mapStore = None
 	t0 = time.time()
 	for k, pId in enumerate(pList):
 		bList = LoadChain(pId)
@@ -235,6 +240,8 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 			if (k+1)%10==0: 
 				vv.Title = f'2D Fitted {pId}/{bList.Count}: {k+1}-th of {L}'
 		vv.DoEvents()
+		if vv.GuiManager.StopFlag:
+			break
 	if mapStore != None:
 		info = MapInfo()
 		info.Set('TM', round(time.time()-t0, 3))
@@ -669,7 +676,7 @@ for f in fList:
 	os.remove(f'{CHAIN_CACHE}/{f}')
 
 sList = ','.join([f[:4] for f in os.listdir(PDB_CACHE)])
-ImportPDBList(sList, 'TT')
+ImportPDBList(sList, 'All2')
 
 # Extract a chain list for each dataset:
 dnList = list(vv.Folder.DatasetNameList)[1:]

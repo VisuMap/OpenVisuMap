@@ -160,6 +160,7 @@ class AtlasMapStore():
 		self.atlas.EventEnabled = True
 		self.atlas.OnItemsSelected = "ResetAtlas()"
 		self.atlas.HiddenItemSize = 3
+		self.hideItems = False
 		self.rawMap = None
 		if clearAtlas:
 			self.atlas.Clear()
@@ -171,6 +172,7 @@ class AtlasMapStore():
 			item = self.atlas.CaptureItem(fm)
 			item.Name = info.pId
 			item.Id = info.pId
+			item.IsHidden = self.hideItems
 			item.CacheImage = True
 			return fm
 		else:
@@ -187,6 +189,7 @@ class AtlasMapStore():
 		item = self.atlas.CaptureItem(mp)
 		item.Name = id
 		item.Id = id
+		item.IsHidden = self.hideItems
 		item.CacheImage = True
 		csz = mp.TheForm.ClientSize
 		ratio = csz.Width/csz.Height
@@ -260,7 +263,7 @@ def GetMeanFieldTrans(pList, L=20, cf=0.0):
 	D = New.NumberTable(bList, L*3)
 	for k, pId in enumerate(pList):
 		if (k>0) and (k%200 == 0):
-			vv.Title = f'Reading: {k}:{pId} of {len(pList)}'
+			vv.Title = f'Reading: {k:,}:{pId} of {len(pList):,}'
 			vv.DoEvents()
 		bList = LoadChain(pId)
 
@@ -334,7 +337,7 @@ def GetS2MF(pList, tP):
 
 	for k, pId in enumerate(pList):
 		if k>0 and k%200==0:
-			vv.Title = f'Reading: {k}:{pId} of {len(pList)}'
+			vv.Title = f'Reading: {k:,}:{pId} of {len(pList):,}'
 		nt = New.NumberTable( LoadChain(pId),  3)
 		cs.ToSphere(nt, sf)
 		if tsne!=None and nt.Rows>1:
@@ -358,7 +361,7 @@ def GetFourierTrans(pList, waveLen, waveCount, cf=0.0):
 	pD = New.NumberTable(vv.Dataset.BodyListForId(pList), L)
 	for k, pId in enumerate(pList):
 		if (k>0) and (k%200 == 0):
-			vv.Title = f'Reading: {k}:{pId} of {len(pList)}'
+			vv.Title = f'Reading: {k:,}:{pId} of {len(pList):,}'
 			vv.DoEvents()
 		bList = LoadChain(pId)
 		if  cf != 0.0:
@@ -409,6 +412,10 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
 	if samplingDist > 0.0:
 		pList = cs.FlatSampling(pList, samplingDist)
 		vv.Title = f'Sampled {len(pList)} chains!'
+
+	if len(pList) == 0:
+		vv.Message('No data selected after filtering!')
+		vv.Return()
 
 	# vectorizing the sequence to a table.
 	match vType:
@@ -1107,5 +1114,7 @@ def ResetAtlas():
 	pp.ResetView()
 
 '''
+
+print(f'{1234566:,}')
 
 '''
