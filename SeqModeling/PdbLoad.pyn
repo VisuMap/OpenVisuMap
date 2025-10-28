@@ -58,18 +58,15 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 
 	if includeHA:
 		bsList.AddRange(bsList2)
-	
-	mp = ShowBodyList(bsList, gSize=glyphSize, gOpacity=glyphOpacity)
 
 	info = MapInfo()
 	info.pId = pId
 	info.pLen = bsList.Count
 	info.Mtd = 'PDB'
 	info.PT = SimplifyTitle(pdbTitle)
-	info.Set('HA', includeHA)
-	mp.Description = info.ToStr()
+	info.Set('HA', includeHA)	
+	mp = ShowBodyList(bsList, gSize=glyphSize, gOpacity=glyphOpacity, info=info)
 	mp.Title = f'{pId}, Len:{bsList.Count}:  {info.PT}'
-
 	return mp
 
 

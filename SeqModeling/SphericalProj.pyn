@@ -17,32 +17,13 @@ def GetSphereDataset(cId, interRp=0, contracting=0):
 	bList[bList.Count-1].Type = SeqMap_TAIL
 	return bList
 
-def ShowSphere(bList, info=None, hsize=1, gsize=3.0, gopacity=1.0):
-	mp = ShowBodyList(bList, gSize=gsize, gOpacity=gopacity, hSize=hsize)
-	if info != None:
-		mp.Description = info.ToStr()
-	return mp
-
-def ShowSphere2(pId, cf, hsize=4, gsize=4.0, gopacity=1.0, iRp=5):
-	info = MapInfo().Set('pId', pId)
-	bList = GetSphereDataset(pId, interRp=iRp, contracting=cf)
-	cs.NormalizeChain(bList)
-	mp = ShowSphere(bList, info, hsize, gsize, gopacity)
-	mp.EditMode = True
-	mp.ShowBoundingBox = False
-	mp.NormalizeView()
-	return mp
-
 def ShowSphere3(pId):
 	bList = LoadChain(pId)
 	bList = cs.ToSphere(bList, 0)
 	bList = cs.ToSphere(bList, 0.9)
 	bList = Interpolate(bList, 5, hidIntp=True)
-
 	cs.NormalizeChain(bList)
-
-	info = MapInfo('pId:'+pId)
-	mp = ShowSphere(bList, info, 2, 3.0, 0.5)
+	mp = ShowBodyList(bList, hSize=2, gSize=3.0, gOpacity=0.5, info=MapInfo('pId:'+pId))
 	mp.ShowBoundingBox = False
 	mp.RedrawAll()
 
@@ -67,10 +48,8 @@ def ShowSphere4(repeats=5, contracting=0.9):
 	bList = Interpolate(bList, repeats, hidIntp=True)	
 	for b in bList: b.Mult(1000.0)
 	cs.NormalizeChain(bList)
-	bList.Insert(0, New.Body('ic', bList[0].Name, 175) )
-	info = MapInfo('pId:'+pId)
-	ShowSphere(bList, info, gsize=2.0, hsize=2, gopacity=0.5)
-
+	bList.Insert(0, New.Body('ic', bList[0].Name, 176) )
+	ShowBodyList(bList, gSize=2.0, hSize=2, gOpacity=0.5, info=MapInfo('pId:'+pId))
 
 def NotExits(vw):
 	return (vw == None) or vw.TheForm.IsDisposed

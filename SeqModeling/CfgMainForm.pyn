@@ -42,11 +42,15 @@ def MainMain(menuKey):
 				tP = (1000, 2, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
-                mpName = vv.Map.Name
-				for mnL, mxL in [(0, 100), (100, 200), (400, 500), (500, 0), (200,300), (300, 400)]:
+				'''
+				for mnL, mxL in [(0,100),(100,200),(200,300),(300,400),(400,500),(500,0)]:
 					mp = ProteinMap2(pList, vt, 1000, filterP=(0.0, mnL, mxL), *args, **kwargs)
-					mpNm = f'{mpName}.{mnL}-{mxL}'
-					vv.Dataset.AddMap(mpNm); mp.NormalizeView().CopyMap(); vv.Map.Redraw(); mp.Close()
+					vv.Dataset.AddMap(f'X.{mnL}-{mxL}')
+					mp.NormalizeView().CopyMap().Close()
+				'''
+				mp = ProteinMap2(vv.AllItems, vt, 1000, filterP=(0.0, 10, 0), *args, **kwargs)
+				vv.Dataset.AddMap('X')
+				mp.NormalizeView().CopyMap().Close()
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
 			vList = ['pMF']
 			for vt in vList:
@@ -58,12 +62,13 @@ def MainMain(menuKey):
 					case 'sFT':	
 						PM2(aaGroups=GetAAGroup(20), tSNE=(0.05, 6.0, 0.9))
 					case 'sMF':	
-						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(0.05, 6.0, 0.8))
+						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(0.05,6.0,0.8))
 					case 'rMF':	
-						PM2(tSNE=(0.1, 4.0, 1.0), tP=(20, 0.85, True, 1000, 0.15, 4.0, 1.0))
+						PM2(tSNE=(0.1,4.0,1.0), tP=(20,0.85,True,1000,0.15,4.0,1.0))
 					case 'tMF' | 'tFT':	
-						# tSNE=(ppl,initE,finalE)  tp=(epochs,waveN,intRp,stretch,   outDim,ppl,initE,finalE)
-						PM2(tSNE=(0.05, 6.0, 1.0), tP=(1000, 20, 2, 0.5,     2, 0.25, 5.0, 1.5))
+						# tSNE=(ppl,initE,finalE)  
+						# tp=(epochs,waveN,intRp,stretch,  outDim,ppl,initE,finalE)
+						PM2(tSNE=(0.05,6.0,1.0), tP=(1000,20,2,0.5,   2,0.25,5.0,1.5))
 					case '2D': 
 						MainMain('P-2D')
 		case 'Siblings':
@@ -86,7 +91,7 @@ def MainMain(menuKey):
 				raise Exception('No data selected!')
 			TorsionMap(pList[:1])
 			ShowChain(pId, gopacity=0.5)
-			ShowSphere2(pId, 0.95, gopacity=0.5)
+			ShowSphere4()
 		case 'vsSz':
 			VisChainSize(4 if ctrPressed else 2)
 		case 'S2':
@@ -170,7 +175,8 @@ def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=0, c
 		vv.Folder.OpenDataset(dn)
 		ds = vv.Dataset
 		cmpCnt = 0
-		ds.OpenMap(ds.MapNameList[initMap])
+		if initMap >= 0:
+			ds.OpenMap(ds.MapNameList[initMap])
 
 		if sampleSize > 0:
 			bs = [b.Id for b in ds.BodyListEnabled()]
@@ -225,11 +231,41 @@ dnList = dnList[dnIndex:]
 
 DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=10000, createPMap=True, createAtlas=True)
 
-DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=1000, closure=True, maxSize=0, createPMap=True, createAtlas=True)
+DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=0, closure=True, maxSize=0, createPMap=True, createAtlas=True)
 
 DoDatasetList(dnList, initMap=0, sampleSize=0, closure=False, maxSize=0, createPMap=True, createAtlas=False)
 
 selected = [ '6KRD', '6KRE', '6KS6']
 for pId in selected: ShowPDB(pId)
+
+import inspect
+import numpy as np
+x = np.array([1,2,3,4])
+print(x)
+print(x.reshape)
+
+print(dir(x.reshape))
+print(x.reshape.__str__())
+sig = inspect.signature(x.reshape)
+sig = inspect.signature(np.ndarray.reshape)
+
+sig = inspect.signature(numpy.ndarray.reshape)
+print(sig)
+
+info = MapInfo()
+info
+
+selected = [ '6KRD', '6KRE', '6KS6']
+selected.
+
+bList = vv.Dataset.BodyList
+bList[0].
+
+
+cs.FitByPCA(IMapSnapshot map, Double scale)
+
+nt = vv.GetNumberTable()
+
+print(mm.ToNumpy(nt).shape)
 
 '''

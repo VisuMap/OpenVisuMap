@@ -1,4 +1,3 @@
-import numpy as np
 import math, random, time
 vv.Import('PdbLoad.pyn')
 
@@ -535,6 +534,7 @@ def AugmentData(nt, augCfg='a|400|0.02|0.02'):
 
 
 def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
+	import numpy as np
 	L = max(aaClusters.values()) + 1
 	hv = np.zeros((L))  # head-vector.
 	stepSz = np.ones((L))
@@ -544,17 +544,11 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 		if c in aaClusters:
 			dt[k] = hv
 			hv[aaClusters[c]] = 0
-
 	for i in range(dt.shape[0]):
 		for j in range(dt.shape[1]):
 			if dt[i, j] != 0:
 				dt[i, j] = 1.0/(dt[i, j] + decay)
-
-	#moment = 0.8
-	#for k in range(1, dt.shape[0]): dt[k, :] = moment*dt[k-1] + (1.0 - moment)*dt[k]	
-
-	dt = AugmentData(dt, augCfg)
-	
+	dt = AugmentData(dt, augCfg)	
 	# add interpolation
 	repeats = 3
 	if repeats == 0:
@@ -984,6 +978,7 @@ def FlippingChains(pMap, loopSize=60, loops=5):
 	pMap.Redraw()	
 
 def Merge3DList(pList):
+	import statistics
 	bs = New.BodyList()
 	ds = vv.Dataset
 	for k, pId in enumerate(pList):
@@ -991,9 +986,9 @@ def Merge3DList(pList):
 		bList = cs.PcaNormalizePositive(New.NumberTable(bList, 3)).ToBodyList()	
 		bList = Interpolate(bList, 4)
 		if k == 0:
-			xc = np.average([b.X for b in bList])
-			yc = np.average([b.Y for b in bList])
-			zc = np.average([b.Z for b in bList])
+			xc = statistics.mean([b.X for b in bList])
+			yc = statistics.mean([b.Y for b in bList])
+			zc = statistics.mean([b.Z for b in bList])
 		else:
 			cs.CenteringBodyList(bList, xc, yc, zc)
 		bList = ss.SetBodyType(bList, pId=pId, bType=k)
@@ -1005,6 +1000,7 @@ def Merge3DList(pList):
 	ShowBodyList(bs, gSize=1.0, gOpacity=0.75, info=info)
 
 def Merge2DList(atlas):
+	import statistics
 	bs = New.BodyList()
 	ds = vv.Dataset
 	pList = [item.Id for item in atlas.SelectedItems]
@@ -1013,8 +1009,8 @@ def Merge2DList(atlas):
 		bList = New.BodyListClone(mp.BodyList)
 		cs.NormalizeByFlipping(bList)
 		if k == 0:
-			xc = np.average([b.X for b in bList])
-			yc = np.average([b.Y for b in bList])
+			xc = statistics.mean([b.X for b in bList])
+			yc = statistics.mean([b.Y for b in bList])
 		else:
 			cs.CenteringBodyList(bList, xc, yc, 0)
 		cs.NormalizeChain(bList, chType=-1, hidIntp=True)
