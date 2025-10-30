@@ -1,11 +1,12 @@
-#MenuLabels P-3D SelectId
+#MenuLabels P-3D PID
 vv.Import('SeqVis.pyn')
 
 pId = MapInfo(pp.Description).pId
+
 match vv.EventSource.Item:
 	case 'P-3D':		
 		ShowProteinList([pId], includeHA=True, intRp=5, gsize=1.5, gopacity=0.5)
-	case 'SelectId':
+	case 'PID':
 		vv.SelectedItems = [pId]
 
 

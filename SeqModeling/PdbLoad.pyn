@@ -239,6 +239,7 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 		vv.DoEvents()
 		if vv.GuiManager.StopFlag:
 			break
+
 	if mapStore != None:
 		info = MapInfo()
 		info.Set('TM', round(time.time()-t0, 3))
@@ -659,6 +660,16 @@ def GetAAGroup(idx=0):
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
 ImportPDBList(sList, 'TT')
+
+for dn in dnList:
+	vv.Folder.OpenDataset(dn+str(1))
+	vv.Dataset.Name = dn
+
+	sList = set([p[:4] for p in vv.AllItems])
+	sList = ','.join(list(sList))
+	ImportPDBList(sList, dn)
+	MainMain('P-Map')
+
 
 # remove all chain cache files of a pList:
 import os

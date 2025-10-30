@@ -1,4 +1,4 @@
-#MenuLabels CfgMaps MatchMap ChmX Web Open Seq Align 3D 3Dx 3Ds 2D 2Ds S2 sT TT
+#MenuLabels CfgMp MatchMp ChmX Web Open Seq Align 3D 3Dx 3Ds 2D 2Ds S2 sT TT
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -19,7 +19,7 @@ def AtlasMain(menuKey):
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
 	match vv.EventSource.Item:
-		case 'CfgMaps':
+		case 'CfgMp':
 			ConfigAtlasMaps(pp, 1000, 700, gSize=5.0, gOpacity=1.0, iconWidth=None, hiddenSize=4, reset=False)			
 		case '3D':
 			for pId in [item.Id for item in pSelected]:
@@ -38,7 +38,7 @@ def AtlasMain(menuKey):
 			ShowChimeraX(pId)
 		case 'Open':  
 			OpenCifFile(pId)
-		case 'MatchMap':
+		case 'MatchMp':
 			MatchProteinMap(pp, iconWidth=None)
 		case 'Seq':
 			for item in pp.SelectedItems:
@@ -53,15 +53,30 @@ def AtlasMain(menuKey):
 			Merge2DList(pp)
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
-		case 'TT':
-			#ShowChain(pId, gopacity=0.35)
-			ShowSphere3(pId)
-			#ShowSphere4()
 		case 'sT':
 			ShowChain(pId, gopacity=0.35).RotateXYZ(0, 0.0025, 0).StartAnimation(0).EditMode=False
 			TorsionMap(pList)
-
+		case 'TT':
+			ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
+			ShowBond(pId)
 			
+
+def ShowBond(pId, f=0.99):
+	itemList = New.ValueItemList()
+	bList = list( LoadChain(pId) )
+	mP = New.Body( bList[0] )
+	g = 1 - f
+	for b in bList[1:]:
+		vItem = New.ValueItem(b)
+		vItem.Value = b.DistanceTo(mP)
+		itemList.Add(vItem)
+		mP.Mult(f).Add(g*b.X, g*b.Y, g*b.Z)
+	vw = New.BarView(itemList)
+	vw.LowerLimit = 0
+	vw.UpperLimit = 50.0	
+	vw.UsingColorPalette = False
+	vw.BarLabelType = 0
+	vw.Show()
 
 AtlasMain(vv.EventSource.Item)
 

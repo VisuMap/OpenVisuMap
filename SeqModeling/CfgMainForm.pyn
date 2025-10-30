@@ -20,7 +20,7 @@ def MainMain(menuKey):
 		case '3D':
 			if atlasName != None: atlasName += '-3D'
 			SortByPosX(pList)
-			ShowProteinList(pList, includeHA=True, intRp=5, atName=atlasName, gsize=1.5, gopacity=0.5)
+			ShowProteinList(pList, includeHA=False, intRp=5, atName=atlasName, gsize=1.5, gopacity=0.5)
 		case '3Dx':
 			if vv.ModifierKeys.ControlPressed:
 				pId = vv.PromptMessage('Protein ID: ', '????')
@@ -44,13 +44,10 @@ def MainMain(menuKey):
 			def PM2(*args, **kwargs):
 				'''
 				for mnL, mxL in [(0,100),(100,200),(200,300),(300,400),(400,500),(500,0)]:
-					mp = ProteinMap2(pList, vt, 1000, filterP=(0.0, mnL, mxL), *args, **kwargs)
-					vv.Dataset.AddMap(f'X.{mnL}-{mxL}')
-					mp.NormalizeView().CopyMap().Close()
+					mp = ProteinMap2(pList, vt, 4000, save2Map=f'X.{mnL}-{mxL}', 
+						filterP=(0.0, mnL, mxL), *args, **kwargs)
 				'''
-				mp = ProteinMap2(vv.AllItems, vt, 1000, filterP=(0.0, 10, 0), *args, **kwargs)
-				vv.Dataset.AddMap('X')
-				mp.NormalizeView().CopyMap().Close()
+				mp = ProteinMap2(vv.AllItems,vt, 1000, save2Map='X', filterP=(0.0, 10,0), *args,**kwargs)
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
 			vList = ['pMF']
 			for vt in vList:
@@ -90,8 +87,8 @@ def MainMain(menuKey):
 			if pId == None:
 				raise Exception('No data selected!')
 			TorsionMap(pList[:1])
-			ShowChain(pId, gopacity=0.5)
-			ShowSphere4()
+			#ShowChain(pId, gopacity=0.5)
+			#ShowSphere4()
 		case 'vsSz':
 			VisChainSize(4 if ctrPressed else 2)
 		case 'S2':
@@ -103,9 +100,11 @@ def MainMain(menuKey):
 			cs.NormalizeChain(bList)
 			info=MapInfo().Set('pId', pId)
 			ShowBodyList(bList, info=info)
-
 		case 'TT':
-			ShowBondVariation(chType='A')
+			#vv.Map.SelectedItems = [ pId ]
+			ShowBondLength2()
+			MainMain('3D')
+			#MainMain('sT')
 
 def SelectChains(chType):
 	ds = vv.Dataset
@@ -145,8 +144,36 @@ def ShowBondLength(chType='A'):
 			if k > 0:
 				nt.Matrix[row][k] = b0.DistanceTo(b)
 			b0 = b
+		if row==0:
+			csList = nt.ColumnSpecList
+			for k, b in enumerate(bList):
+				csList[k].CopyFromBody(b)
 	vw = nt.ShowAsBarBand()
 	vw.Title = f'{nt.Rows}x{nt.Columns}'
+
+def ShowBondLength2(chType='A'):
+	nnList = SelectChains(chType)
+	maxCol = max([vv.Dataset.IntAt(id, 3) for id in nnList])
+	nt = New.NumberTable(len(nnList), maxCol)
+	f, g = 0.99, 0.01
+	for row, chId in enumerate(nnList):
+		bList = LoadChain(chId)
+		nt.RowSpecList[row].Id = chId
+		for k, b in enumerate(bList):
+			if k == 0 :
+				mP = New.Body(b)
+			else:
+				nt.Matrix[row][k] = b.DistanceTo(mP)
+			mP.Mult(f).Add(g*b.X, g*b.Y, g*b.Z)
+		if row==0:
+			csList = nt.ColumnSpecList
+			for k, b in enumerate(bList):
+				csList[k].CopyFromBody(b)
+	vw = nt.ShowAsBarBand()
+	vw.LowerLimit = 0
+	vw.UpperLimit = 50.0	
+	vw.Title = f'{nt.Rows}x{nt.Columns}'
+
 
 def HelixTest():
 	bPID = LoadChain(pId);
@@ -170,11 +197,14 @@ MainMain(vv.EventSource.Item)
 import random
 def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=0, createPMap=True, createAtlas=False):
 	tm0 = time.time()
+	if len(dnList) == 0:
+		dnList = [ vv.Dataset.Name ]
 	for n, dn in enumerate(dnList):
 		t0 = time.time()
 		vv.Folder.OpenDataset(dn)
 		ds = vv.Dataset
 		cmpCnt = 0
+
 		if initMap >= 0:
 			ds.OpenMap(ds.MapNameList[initMap])
 
@@ -218,54 +248,18 @@ def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=0, c
 
 '''
 
+dnList = list(vv.Folder.DatasetNameList)[1:]
+dnIndex = dnList.index(vv.Dataset.Name)
+dnList = dnList[dnIndex:]
+dnList = [] # just the current dataset.
+print(dnList)
+
+DoDatasetList(dnList, initMap=1, sampleSize=0, closure=False, maxSize=0, createPMap=False, createAtlas=True)
 
 for dn in dnList:
 	vv.Folder.OpenDataset(dn)
 	mpList = list(vv.Dataset.MapNameList)
 	for mp in mpList[1:]:
 		vv.Dataset.DeleteMap(mp)
-
-dnList = list(vv.Folder.DatasetNameList)[1:-2]
-dnIndex = dnList.index('CATH Ribbon') + 1
-dnList = dnList[dnIndex:]
-
-DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=10000, createPMap=True, createAtlas=True)
-
-DoDatasetList([vv.Dataset.Name], initMap=0, sampleSize=0, closure=True, maxSize=0, createPMap=True, createAtlas=True)
-
-DoDatasetList(dnList, initMap=0, sampleSize=0, closure=False, maxSize=0, createPMap=True, createAtlas=False)
-
-selected = [ '6KRD', '6KRE', '6KS6']
-for pId in selected: ShowPDB(pId)
-
-import inspect
-import numpy as np
-x = np.array([1,2,3,4])
-print(x)
-print(x.reshape)
-
-print(dir(x.reshape))
-print(x.reshape.__str__())
-sig = inspect.signature(x.reshape)
-sig = inspect.signature(np.ndarray.reshape)
-
-sig = inspect.signature(numpy.ndarray.reshape)
-print(sig)
-
-info = MapInfo()
-info
-
-selected = [ '6KRD', '6KRE', '6KS6']
-selected.
-
-bList = vv.Dataset.BodyList
-bList[0].
-
-
-cs.FitByPCA(IMapSnapshot map, Double scale)
-
-nt = vv.GetNumberTable()
-
-print(mm.ToNumpy(nt).shape)
 
 '''

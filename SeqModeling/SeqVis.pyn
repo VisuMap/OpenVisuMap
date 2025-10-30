@@ -397,7 +397,7 @@ def GetMFSeq(pList, aaGroups, mfL):
 	return cs.MFVectorize(seqList, aaGroups, mfL)
 
 
-def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None, cf=0.0,
+def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE=None, tP=None, cf=0.0,
 		aaGroups='A', waveLen=1024, waveCount=33, mfL=20, staged=False, filterP=(0.0,2,0)):
 	pTable = AssertProteinTable()	
 	ppl, initExag, finalExag = tSNE
@@ -458,7 +458,18 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, tSNE=None, tP=None,
 
 	info.Set('TM', round(time.time()-t0, 3))
 	snMap.Description = info.ToStr()
-	return snMap
+
+	if save2Map != None:
+		vv.Dataset.AddMap(save2Map)
+		snMap.NormalizeView()
+		if snMap.Name == 'D3dRender':
+			snMap.CaptureMap().Close()
+		else:
+			snMap.CopyMap().Close()
+		return None
+	else:
+		return snMap
+
 
 #-----------------------------------------------------------------------------
 
