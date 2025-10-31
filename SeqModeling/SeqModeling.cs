@@ -390,8 +390,11 @@ namespace VisuMap {
 
             Array.Clear(R, 0, R.Length);
             MT.Loop(0, L, sI => {
+                var S = secIdxes[sI];
+                if ( (S == null) || (S.Count == 0))
+                    return;
                 int i0 = sI * DIM;
-                foreach (int k in secIdxes[sI]) {
+                foreach (int k in S) {
                     double[] Mk = dt.Matrix[k] as double[];
                     for (int i = 0; i < DIM; i++)
                         R[i0 + i] += Mk[i];
