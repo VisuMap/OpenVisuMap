@@ -377,13 +377,26 @@ namespace VisuMap {
             int secLen = dt.Rows / L;  // section length
             if (dt.Rows % L != 0)
                 secLen++;
-            Array.Clear(R, 0, R.Length);
-            for (int k = 0; k < dt.Rows; k++) {
-                double[] Mr = dt.Matrix[k] as double[];
-                int i0 = (k / secLen) * DIM;
-                for (int i=0; i<DIM; i++)
-                    R[i0 + i] += Mr[i];
+
+            List<int>[] secIdxes = new List<int>[L];  // row indexes in the sections.                    
+            int sIdx = 0;
+            for (int k = 0; k<dt.Rows; k+=secLen) {
+                var ss = new List<int>();
+                int sL = Math.Min(secLen, dt.Rows - k);
+                for (int i = 0; i < sL; i++)
+                    ss.Add(k + i);
+                secIdxes[sIdx++] = ss;
             }
+
+            Array.Clear(R, 0, R.Length);
+            MT.Loop(0, L, sI => {
+                int i0 = sI * DIM;
+                foreach (int k in secIdxes[sI]) {
+                    double[] Mk = dt.Matrix[k] as double[];
+                    for (int i = 0; i < DIM; i++)
+                        R[i0 + i] += Mk[i];
+                }
+            });            
         }
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
             if ((bList.Count <= 1) || (repeats == 0))
