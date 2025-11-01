@@ -389,11 +389,11 @@ namespace VisuMap {
         }
 
         public void GlobeChainTrans(List<IBody> bList, double[] R) {
-            const int DIM = 3; 
-            int L = R.Length / DIM;    // number of sections
+            int L = R.Length / 3;    // number of sections
             int secLen = bList.Count / L;  // section length
             if (bList.Count % L != 0)
                 secLen++;
+
             List<List<IBody>> globeList = new List<List<IBody>>();  // row indexes in the sections.
             for (int k = 0; k<bList.Count; k+=secLen) {
                 var G = new List<IBody>();
@@ -411,7 +411,7 @@ namespace VisuMap {
                 double[][] M = G.Select(b => new double[] { b.X, b.Y, b.Z }).ToArray();
                 MathUtil.DoPca(M, 3, out eValues);                
                 for (int i = 0; i < eValues.Length; i++)
-                    R[DIM*sI + i] = eValues[i];
+                    R[3*sI + i] = eValues[i];
             });
         }
 
