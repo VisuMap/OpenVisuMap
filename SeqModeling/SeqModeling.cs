@@ -8,6 +8,8 @@ using Quaternion = SharpDX.Quaternion;
 using EntityInfo = System.Tuple<int, string, string, int>;
 using System.IO;
 using MathNet.Numerics.Interpolation;
+using MathNet.Numerics.LinearAlgebra.Factorization;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace VisuMap {
     public class SeqModeling {
@@ -392,20 +394,22 @@ namespace VisuMap {
             int secLen = bList.Count / L;  // section length
             if (bList.Count % L != 0)
                 secLen++;
-            List<List<double[]>> secRows = new List<List<double[]>>();  // row indexes in the sections.
-            double[][] M = bList.Select(b=>new double[] { b.X, b.Y, b.Z }).ToArray();
-            for (int k = 0; k<M.Length; k+=secLen) {
-                var S = new List<double[]>();
-                int sL = Math.Min(secLen, M.Length - k);
+            List<List<IBody>> globeList = new List<List<IBody>>();  // row indexes in the sections.
+            for (int k = 0; k<bList.Count; k+=secLen) {
+                var G = new List<IBody>();
+                int sL = Math.Min(secLen, bList.Count - k);
                 for (int i = 0; i < sL; i++)
-                    S.Add(M[k + i]);
+                    G.Add(bList[k+i]);
+                globeList.Add(G);
             }
+
             Array.Clear(R, 0, R.Length);
-            MT.ForEach(secRows, (S, sI) => {
-                if (S.Count == 1)  // singleton globe have zero dimension, and will be discarded.
+            MT.ForEach(globeList, (G, sI) => {
+                if (G.Count == 1)  // singleton globe have zero dimension, and will be discarded.
                     return;
                 double[] eValues;
-                MathUtil.DoPca(S.ToArray(), 3, out eValues);
+                double[][] M = G.Select(b => new double[] { b.X, b.Y, b.Z }).ToArray();
+                MathUtil.DoPca(M, 3, out eValues);                
                 for (int i = 0; i < eValues.Length; i++)
                     R[DIM*sI + i] = eValues[i];
             });
