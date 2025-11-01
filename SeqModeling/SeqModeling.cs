@@ -377,30 +377,41 @@ namespace VisuMap {
             int secLen = dt.Rows / L;  // section length
             if (dt.Rows % L != 0)
                 secLen++;
-
-            List<int>[] secIdxes = new List<int>[L];  // row indexes in the sections.                    
-            int sIdx = 0;
-            for (int k = 0; k<dt.Rows; k+=secLen) {
-                var ss = new List<int>();
-                int sL = Math.Min(secLen, dt.Rows - k);
-                for (int i = 0; i < sL; i++)
-                    ss.Add(k + i);
-                secIdxes[sIdx++] = ss;
-            }
-
             Array.Clear(R, 0, R.Length);
-            MT.Loop(0, L, sI => {
-                var S = secIdxes[sI];
-                if ( (S == null) || (S.Count == 0))
-                    return;
-                int i0 = sI * DIM;
-                foreach (int k in S) {
-                    double[] Mk = dt.Matrix[k] as double[];
-                    for (int i = 0; i < DIM; i++)
-                        R[i0 + i] += Mk[i];
-                }
-            });            
+            for (int k = 0; k < dt.Rows; k++) {
+                double[] Mr = dt.Matrix[k] as double[];
+                int i0 = (k / secLen) * DIM;
+                for (int i = 0; i < DIM; i++)
+                    R[i0 + i] += Mr[i];
+            }
         }
+
+        public void GlobeChainTrans(List<IBody> bList, double[] R) {
+            const int DIM = 3; 
+            int L = R.Length / DIM;    // number of sections
+            int secLen = bList.Count / L;  // section length
+            if (bList.Count % L != 0)
+                secLen++;
+            List<List<double[]>> secRows = new List<List<double[]>>();  // row indexes in the sections.
+            double[][] M = bList.Select(b=>new double[] { b.X, b.Y, b.Z }).ToArray();
+            for (int k = 0; k<M.Length; k+=secLen) {
+                var S = new List<double[]>();
+                int sL = Math.Min(secLen, M.Length - k);
+                for (int i = 0; i < sL; i++)
+                    S.Add(M[k + i]);
+            }
+            Array.Clear(R, 0, R.Length);
+            MT.ForEach(secRows, (S, sI) => {
+                if (S.Count == 1)  // singleton globe have zero dimension, and will be discarded.
+                    return;
+                double[] eValues;
+                MathUtil.DoPca(S.ToArray(), 3, out eValues);
+                for (int i = 0; i < eValues.Length; i++)
+                    R[DIM*sI + i] = eValues[i];
+            });
+        }
+
+
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
             if ((bList.Count <= 1) || (repeats == 0))
                 return bList;

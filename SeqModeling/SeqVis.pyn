@@ -271,8 +271,17 @@ def GetMeanFieldTrans(pList, L=20, cf=0.0):
 
 		nt = New.NumberTable(bList, 3)
 		cs.PcaNormalizePositive(nt)
-		#cs.RowDifferentiation(nt)
 		cs.MeanFieldTrans(nt, D.Matrix[k])
+	return D
+
+def GetGlobeChainTrans(pList, L=4):
+	bList = vv.Dataset.BodyListForId(pList)
+	D = New.NumberTable(bList, L*3)
+	for k, pId in enumerate(pList):
+		if (k>0) and (k%200 == 0):
+			vv.Title = f'Reading: {k:,}:{pId} of {len(pList):,}'
+			vv.DoEvents()
+		cs.GlobeChainTrans(LoadChain(pId), D.Matrix[k])
 	return D
 
 # t-SNE reduced data
@@ -420,6 +429,8 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE
 	match vType:
 		case 'pMF':
 			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf)
+		case 'pGC':
+			dt = GetGlobeChainTrans(pList, L=4)
 		case 'pFT':
 			dt = GetFourierTrans(pList, waveLen, waveCount, cf=cf)
 		case 'sFT': 

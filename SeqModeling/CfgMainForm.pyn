@@ -38,7 +38,7 @@ def MainMain(menuKey):
 				vv.Return()
 			OpenCifFile(pId)
 		case 'P-2D':
-			CreateProteinMaps(pList, samplingDist=1.0, atlasName=atlasName, 
+			CreateProteinMaps(pList, samplingDist=2.0, atlasName=atlasName, 
 				tP = (1000, 2, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
@@ -47,13 +47,16 @@ def MainMain(menuKey):
 					mp = ProteinMap2(pList, vt, 4000, save2Map=f'X.{mnL}-{mxL}', 
 						filterP=(0.0, mnL, mxL), *args, **kwargs)
 				'''
-				mp = ProteinMap2(vv.AllItems,vt, 1000, save2Map='X', filterP=(0.0, 10,0), *args,**kwargs)
-			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', '2D']
-			vList = ['pMF']
+				#pList = vv.AllItems
+				mp = ProteinMap2(pList,vt, 1000, save2Map='X', filterP=(0.0, 10,0), *args,**kwargs)
+			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', 'pBC']
+			vList = ['pGC']
 			for vt in vList:
 				match vt:
 					case 'pMF':
 						PM2(mfL=20, cf=0.0, tSNE=(0.1, 4.0, 1.0))
+					case 'pGC':
+						PM2(tSNE=(0.1, 4.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, cf=0.5, tSNE=(0.1, 4.0, 1.0))	
 					case 'sFT':	
@@ -66,8 +69,6 @@ def MainMain(menuKey):
 						# tSNE=(ppl,initE,finalE)  
 						# tp=(epochs,waveN,intRp,stretch,  outDim,ppl,initE,finalE)
 						PM2(tSNE=(0.05,6.0,1.0), tP=(1000,20,2,0.5,   2,0.25,5.0,1.5))
-					case '2D': 
-						MainMain('P-2D')
 		case 'Siblings':
 			vv.SelectedItems, _ = Siblings(selected)
 			vv.Title = f'Selected: {len(selected)}, Expanded: {vv.SelectedItems.Count}'
