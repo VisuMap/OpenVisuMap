@@ -8,8 +8,6 @@ using Quaternion = SharpDX.Quaternion;
 using EntityInfo = System.Tuple<int, string, string, int>;
 using System.IO;
 using MathNet.Numerics.Interpolation;
-using MathNet.Numerics.LinearAlgebra.Factorization;
-using MathNet.Numerics.LinearAlgebra;
 
 namespace VisuMap {
     public class SeqModeling {
@@ -806,15 +804,23 @@ namespace VisuMap {
         }
 
 
-        public INumberTable ToTorsionList(List<IBody> bList) {
+        public INumberTable ToTorsionList(List<IBody> bList, double fct = 0.99) {
             int L = bList.Count;
             if (L < 7)
                 return null;
+
             Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();            
             double DD(int i, int j) => Vector3.Distance(V[i], V[j]);
-            INumberTable nt = New.NumberTable(L, 5);
-            for (int k = 0; k < L; k++)
-                nt.RowSpecList[k].CopyFromBody(bList[k]);
+
+            INumberTable nt = New.NumberTable(L, 7);
+            for (int k = 0; k < L; k++)  nt.RowSpecList[k].CopyFromBody(bList[k]);
+            nt.ColumnSpecList[0].Id = "CurvatureNb1";
+            nt.ColumnSpecList[1].Id = "CurvatureNb2";
+            nt.ColumnSpecList[2].Id = "CurvatureNb3";
+            nt.ColumnSpecList[3].Id = "TorsionA";
+            nt.ColumnSpecList[4].Id = "TorsionB";
+            nt.ColumnSpecList[5].Id = "Bnd_LenRatio";
+            nt.ColumnSpecList[6].Id = "Cnt_Bnd_Dist";
 
             for (int k = 1; k < L-1; k++) {
                 double[] R = nt.Matrix[k] as double[];
@@ -855,6 +861,26 @@ namespace VisuMap {
                 M[k][3] = M[L - 4][3];
                 M[k][4] = M[L - 4][4];
             }
+
+            for (int k = 1; k < L; k++) 
+                M[k][5] = Vector3.Distance(V[k], V[k - 1]);
+
+            float f = (float)fct;
+            float g = 1.0f - f;
+            Vector3 mP = bList[0].ToV3();
+            for (int k = 1; k < L; k++) {
+                var bP = bList[k].ToV3();
+                M[k][6] = Vector3.Distance(bP, mP);
+                mP = f*mP + g*bP;
+            }
+
+            double[] cMax = new double[nt.Columns];
+            for(int row=0; row<nt.Rows; row++)
+                for (int col = 0; col < nt.Columns; col++)
+                    cMax[col] = Math.Max(cMax[col], nt.Matrix[row][col]);
+            for (int row = 0; row < nt.Rows; row++) 
+                for (int col = 0; col < nt.Columns; col++)
+                    nt.Matrix[row][col] /= cMax[col];
 
             return nt;
         }

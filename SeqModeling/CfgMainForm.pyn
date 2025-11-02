@@ -49,7 +49,7 @@ def MainMain(menuKey):
 				'''
 				#pList = vv.AllItems
 				mp = ProteinMap2(pList,vt, 1000, save2Map='X', filterP=(0.0, 10,0), *args,**kwargs)
-			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', 'pBC']
+			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', 'pGC']
 			vList = ['pGC']
 			for vt in vList:
 				match vt:
@@ -103,7 +103,9 @@ def MainMain(menuKey):
 			ShowBodyList(bList, info=info)
 		case 'TT':
 			#vv.Map.SelectedItems = [ pId ]
-			ShowBondLength2()
+			#ShowBondLength()
+			#ShowBondLength2()
+			TorsionMap(pList[:1])
 			MainMain('3D')
 			#MainMain('sT')
 
@@ -149,8 +151,10 @@ def ShowBondLength(chType='A'):
 			csList = nt.ColumnSpecList
 			for k, b in enumerate(bList):
 				csList[k].CopyFromBody(b)
-	vw = nt.ShowAsBarBand()
+	vw = New.BarBand(nt)
+	vw.AutoScaling = True
 	vw.Title = f'{nt.Rows}x{nt.Columns}'
+	vw.Show()
 
 def ShowBondLength2(chType='A'):
 	nnList = SelectChains(chType)
@@ -170,9 +174,9 @@ def ShowBondLength2(chType='A'):
 			csList = nt.ColumnSpecList
 			for k, b in enumerate(bList):
 				csList[k].CopyFromBody(b)
-	vw = nt.ShowAsBarBand()
-	vw.LowerLimit = 0
-	vw.UpperLimit = 50.0	
+	vw = New.BarBand(nt)
+	vw.AutoScaling = True
+	vw.Show()
 	vw.Title = f'{nt.Rows}x{nt.Columns}'
 
 

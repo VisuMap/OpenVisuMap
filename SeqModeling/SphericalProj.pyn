@@ -115,7 +115,7 @@ def TorsionMap(pList):
 	for pId in pList:
 		info = MapInfo().Set('pId', pId)
 		bs = LoadChain(pId)
-		nt = cs.ToTorsionList(bs).Transpose2()
+		nt = cs.ToTorsionList(bs, 0.99).Transpose2()
 		bb = New.BarBand(nt)
 		bb.Description = info.ToStr()
 		bb.Vertical = True
@@ -128,7 +128,9 @@ def TorsionMap(pList):
 		bb.BaseLineType = 4
 		bb.BaseValueExplicit = 0.0
 		bb.FineSelection = True
-		bb.Show2()	
+		bb.ShowLabels = True
+		bb.AutoScaling = True
+		bb.Show2()
 	if len(pList)>5 :
 		atlas = New.Atlas()
 		atlas.Clear()
