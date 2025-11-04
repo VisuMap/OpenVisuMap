@@ -38,17 +38,20 @@ def MainMain(menuKey):
 				vv.Return()
 			OpenCifFile(pId)
 		case 'P-2D':
-			CreateProteinMaps(pList, samplingDist=2.0, atlasName=atlasName, 
+			CreateProteinMaps(pList, samplingDist=0.1, atlasName=atlasName, 
 				tP = (1000, 2, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
 				'''
-				for mnL, mxL in [(0,100),(100,200),(200,300),(300,400),(400,500),(500,0)]:
-					mp = ProteinMap2(pList, vt, 4000, save2Map=f'X.{mnL}-{mxL}', 
-						filterP=(0.0, mnL, mxL), *args, **kwargs)
+				#secList = [(0,100),(100,200),(200,300),(300,400),(400,500),(500,0)]
+				secList = [(200, 250)]
+				pList = vv.AllItems
+				pfx = vt
+				for mnL, mxL in secList:
+					ProteinMap2(pList,vt,4000,save2Map=f'{pfx}.{mnL}-{mxL}', filterP=(0.0,mnL,mxL),*args,**kwargs)	
 				'''
-				#pList = vv.AllItems
-				mp = ProteinMap2(pList,vt, 1000, save2Map='X', filterP=(0.0, 10,0), *args,**kwargs)
+				pfx, mnL, mxL = vt, 10, 0
+				ProteinMap2(pList,vt,2000, save2Map=pfx, filterP=(0.0, mnL,mxL), *args,**kwargs)
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', 'pGC']
 			vList = ['pGC']
 			for vt in vList:
@@ -56,7 +59,7 @@ def MainMain(menuKey):
 					case 'pMF':
 						PM2(mfL=20, cf=0.0, tSNE=(0.1, 4.0, 1.0))
 					case 'pGC':
-						PM2(tSNE=(0.1, 4.0, 1.0))
+						PM2(mfL=7, tSNE=(0.1, 4.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, cf=0.5, tSNE=(0.1, 4.0, 1.0))	
 					case 'sFT':	
@@ -102,11 +105,9 @@ def MainMain(menuKey):
 			info=MapInfo().Set('pId', pId)
 			ShowBodyList(bList, info=info)
 		case 'TT':
-			#vv.Map.SelectedItems = [ pId ]
-			#ShowBondLength()
-			#ShowBondLength2()
-			TorsionMap(pList[:1])
-			MainMain('3D')
+			ShowBondLength2(mom=0.99)
+			#TorsionMap(pList[:1], mom=0.9)
+			#MainMain('3D')
 			#MainMain('sT')
 
 def SelectChains(chType):
@@ -156,20 +157,17 @@ def ShowBondLength(chType='A'):
 	vw.Title = f'{nt.Rows}x{nt.Columns}'
 	vw.Show()
 
-def ShowBondLength2(chType='A'):
+def ShowBondLength2(chType='A', mom=0.99):
 	nnList = SelectChains(chType)
 	maxCol = max([vv.Dataset.IntAt(id, 3) for id in nnList])
 	nt = New.NumberTable(len(nnList), maxCol)
-	f, g = 0.99, 0.01
+	g = 1 - mom
 	for row, chId in enumerate(nnList):
 		bList = LoadChain(chId)
-		nt.RowSpecList[row].Id = chId
-		for k, b in enumerate(bList):
-			if k == 0 :
-				mP = New.Body(b)
-			else:
-				nt.Matrix[row][k] = b.DistanceTo(mP)
-			mP.Mult(f).Add(g*b.X, g*b.Y, g*b.Z)
+		nt.RowSpecList[row].Id = chId		
+		vs = cs.GlobeDistances(bList, mom)
+		R = nt.Matrix[row]
+		for k in range(bList.Count): R[k] = vs[k]
 		if row==0:
 			csList = nt.ColumnSpecList
 			for k, b in enumerate(bList):
@@ -266,5 +264,7 @@ for dn in dnList:
 	mpList = list(vv.Dataset.MapNameList)
 	for mp in mpList[1:]:
 		vv.Dataset.DeleteMap(mp)
+
+ttt.SneTest()
 
 '''

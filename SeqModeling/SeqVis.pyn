@@ -430,7 +430,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE
 		case 'pMF':
 			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf)
 		case 'pGC':
-			dt = GetGlobeChainTrans(pList, L=4)
+			dt = GetGlobeChainTrans(pList, L=mfL)
 		case 'pFT':
 			dt = GetFourierTrans(pList, waveLen, waveCount, cf=cf)
 		case 'sFT': 

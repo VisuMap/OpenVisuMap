@@ -804,7 +804,7 @@ namespace VisuMap {
         }
 
 
-        public INumberTable ToTorsionList(List<IBody> bList, double fct = 0.99) {
+        public INumberTable ToTorsionList(List<IBody> bList, double mom = 0.99) {
             int L = bList.Count;
             if (L < 7)
                 return null;
@@ -865,14 +865,9 @@ namespace VisuMap {
             for (int k = 1; k < L; k++) 
                 M[k][5] = Vector3.Distance(V[k], V[k - 1]);
 
-            float f = (float)fct;
-            float g = 1.0f - f;
-            Vector3 mP = bList[0].ToV3();
-            for (int k = 1; k < L; k++) {
-                var bP = bList[k].ToV3();
-                M[k][6] = Vector3.Distance(bP, mP);
-                mP = f*mP + g*bP;
-            }
+            double[] vs = GlobeDistances(bList, mom);
+            for (int k = 0; k < L; k++)
+                M[k][6] = vs[k];
 
             double[] cMax = new double[nt.Columns];
             for(int row=0; row<nt.Rows; row++)
@@ -883,6 +878,34 @@ namespace VisuMap {
                     nt.Matrix[row][col] /= cMax[col];
 
             return nt;
+        }
+
+        public double[] GlobeDistances(List<IBody> bList, double mom = 0.99) {
+            int L = bList.Count;
+            double[] vs = new double[L];
+            double g = 1.0f - mom;
+            IBody mp = bList[0].Clone();
+            for (int k = 1; k < L; k++) {
+                IBody b = bList[k];
+                vs[k] = b.DistanceSquared(mp);               
+                mp.X = mom * mp.X + g * b.X;
+                mp.Y = mom * mp.Y + g * b.Y;
+                mp.Z = mom * mp.Z + g * b.Z;
+            }
+
+            //
+            // Smoothen the series.
+            //
+            double pv = vs[0];
+            vs[0] = 0.5 * (pv + vs[0]);
+            for (int k = 1; k < L - 1; k++) {
+                double vk = (pv + vs[k] + vs[k + 1]);
+                pv = vs[k];
+                vs[k] = vk;
+            }
+            vs[L - 1] = 0.5 * (pv + vs[L - 1]);
+
+            return vs;
         }
 
         public void ToSphere(INumberTable nt, double fct = 0.0) {

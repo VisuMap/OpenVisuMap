@@ -111,11 +111,11 @@ def SphereView(pId, unfolding):
 		if vv.ModifierKeys.AltPressed: 
 			break	
 
-def TorsionMap(pList):
+def TorsionMap(pList, mom=0.9):
 	for pId in pList:
 		info = MapInfo().Set('pId', pId)
 		bs = LoadChain(pId)
-		nt = cs.ToTorsionList(bs, 0.99).Transpose2()
+		nt = cs.ToTorsionList(bs, mom).Transpose2()
 		bb = New.BarBand(nt)
 		bb.Description = info.ToStr()
 		bb.Vertical = True
