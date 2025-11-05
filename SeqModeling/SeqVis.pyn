@@ -284,13 +284,11 @@ def GetGlobeChainTrans2(pList, L=4):
 		cs.GlobeChainTrans(LoadChain(pId), D.Matrix[k])
 	return D
 
-def GetGlobeChainTrans(pList, L=4, mom=0.99):
+def GetGlobeChainTrans(pList, waveCount=20, waveLen=256, mom=0.99):
 	bList = vv.Dataset.BodyListForId(pList)
-	D = New.NumberTable(bList, L)
-	waveLen = 256
-	waveCount = L
-	tm = GetFourier(waveLen, waveCount+1)
-	tm = tm.RemoveColumns([0])
+	D = New.NumberTable(bList, waveCount)
+	tm = GetFourier(waveLen, waveCount)
+	#tm = GetFourier(waveLen, waveCount+1).RemoveColumns([0])
 	for k, pId in enumerate(pList):
 		if (k>0) and (k%200 == 0):
 			vv.Title = f'Reading: {k:,}:{pId} of {len(pList):,}'
@@ -298,7 +296,6 @@ def GetGlobeChainTrans(pList, L=4, mom=0.99):
 		bDist = cs.GlobeDistances(LoadChain(pId), mom)
 		cs.GlobeChainTransFT(bDist, tm, D.Matrix[k])
 	return D
-
 
 # t-SNE reduced data
 def MaxRows(ds, pList, intRp):
@@ -446,7 +443,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE
 		case 'pMF':
 			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf)
 		case 'pGC':
-			dt = GetGlobeChainTrans(pList, L=mfL)
+			dt = GetGlobeChainTrans(pList, waveCount, waveLen, mom=0.99)
 		case 'pFT':
 			dt = GetFourierTrans(pList, waveLen, waveCount, cf=cf)
 		case 'sFT': 

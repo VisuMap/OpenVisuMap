@@ -848,6 +848,7 @@ namespace VisuMap {
             //
             // Smoothen the series.
             //
+            /*
             double pv = vs[0];
             vs[0] = 0.5 * (pv + vs[0]);
             for (int k = 1; k < L - 1; k++) {
@@ -856,6 +857,7 @@ namespace VisuMap {
                 vs[k] = vk;
             }
             vs[L - 1] = 0.5 * (pv + vs[L - 1]);
+            */
 
             return vs;
         }
