@@ -1093,8 +1093,9 @@ def VisChainSize(szType=2):
 			mnLen, mxLen = min(szList), max(szList)
 			secLen = (mxLen - mnLen)//64 + 1
 			for b in bList:
-				b.Type = (ds.IntAt(b.Id, 3) - mnLen)//secLen
-			vv.Message(f'Min Size: {mnLen}, Max Size: {mxLen}, Step-Size: {secLen}')
+				if b.Type != 99 and b.Type != 97:
+					b.Type = (ds.IntAt(b.Id, 3) - mnLen)//secLen
+			print(f'Min Size: {mnLen}, Max Size: {mxLen}, Step-Size: {secLen}')
 		case 3: # entity-id
 			for b in bList:
 				typeIdx = ds.IntAt(b.Id, 1)

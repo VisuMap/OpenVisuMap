@@ -43,7 +43,8 @@ def MainMain(menuKey):
 		case 'P-Map':
 			def PM2(*args, **kwargs):
 				pfx = vt
-				ProteinMap2(pList,vt,4000, save2Map=pfx, filterP=(0.0, 10, 0), *args,**kwargs)
+				ProteinMap2(pList,vt,1000, save2Map=pfx, filterP=(0.0, 50, 0), *args,**kwargs)
+				VisChainSize(2)
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', 'pGC']
 			vList = ['pGC']
 			for vt in vList:
@@ -97,7 +98,8 @@ def MainMain(menuKey):
 			info=MapInfo().Set('pId', pId)
 			ShowBodyList(bList, info=info)
 		case 'TT':
-			ShowBondLength2(mom=0.99)
+			ShowBondLength3(pId)
+			#ShowBondLength2(mom=0.99)
 			#TorsionMap(pList[:1], mom=0.9)
 			#MainMain('3D')
 			#MainMain('sT')
@@ -157,9 +159,7 @@ def ShowBondLength2(chType='A', mom=0.99):
 	for row, chId in enumerate(nnList):
 		bList = LoadChain(chId)
 		nt.RowSpecList[row].Id = chId		
-		vs = cs.GlobeDistances(bList, mom)
-		R = nt.Matrix[row]
-		for k in range(bList.Count): R[k] = vs[k]
+		vs = cs.GlobeDistances(bList, mom, nt.Matrix[row])
 		if row==0:
 			csList = nt.ColumnSpecList
 			for k, b in enumerate(bList):
@@ -169,6 +169,21 @@ def ShowBondLength2(chType='A', mom=0.99):
 	vw.Show()
 	vw.Title = f'{nt.Rows}x{nt.Columns}'
 
+
+def ShowBondLength3(pId):
+	bList = LoadChain(pId)
+	momList = [0.999 - k*0.01 for k in range(20)]
+	nt = New.NumberTable(len(momList), len(bList))
+	vsList = []
+	for k, mom in enumerate(momList):
+		vs = cs.GlobeDistances(bList, mom, nt.Matrix[k])
+		nt.RowSpecList[k].Id = f'{mom:.3}'
+	nt.NormalizeRows()
+	vw = New.BarBand(nt)
+	vw.AutoScaling = True
+	vw.Description = f'pId:{pId}'
+	vw.Show()
+	
 
 def HelixTest():
 	bPID = LoadChain(pId);
@@ -243,13 +258,13 @@ def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=0, c
 
 '''
 
-dnList = list(vv.Folder.DatasetNameList)[1:]
+dnList = list(vv.Folder.DatasetNameList)[3:21]
 dnIndex = dnList.index(vv.Dataset.Name)
 dnList = dnList[dnIndex:]
 dnList = [] # just the current dataset.
 print(dnList)
 
-DoDatasetList(dnList, initMap=1, sampleSize=0, closure=False, maxSize=0, createPMap=False, createAtlas=True)
+DoDatasetList(dnList, initMap=0, sampleSize=0, closure=False, maxSize=0, createPMap=True, createAtlas=True)
 
 for dn in dnList:
 	vv.Folder.OpenDataset(dn)
