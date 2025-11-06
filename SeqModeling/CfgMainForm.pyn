@@ -43,7 +43,7 @@ def MainMain(menuKey):
 		case 'P-Map':
 			def PM2(*args, **kwargs):
 				pfx = vt
-				ProteinMap2(pList,vt,1000, save2Map=pfx, filterP=(0.0, 50, 0), *args,**kwargs)
+				ProteinMap2(pList,vt,1000, save2Map=pfx, filterP=(0.0, 20, 0), *args,**kwargs)
 				VisChainSize(2)
 			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', 'pGC']
 			vList = ['pGC']
@@ -52,7 +52,7 @@ def MainMain(menuKey):
 					case 'pMF':
 						PM2(mfL=20, cf=0.0, tSNE=(0.1, 4.0, 1.0))
 					case 'pGC':
-						PM2(waveCount=16, waveLen=256, tSNE=(0.15, 6.0, 1.0))
+						PM2(waveCount=16, waveLen=256, mom=0.9, tSNE=(0.2, 4.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, cf=0.5, tSNE=(0.1, 4.0, 1.0))	
 					case 'sFT':	

@@ -274,21 +274,10 @@ def GetMeanFieldTrans(pList, L=20, cf=0.0):
 		cs.MeanFieldTrans(nt, D.Matrix[k])
 	return D
 
-def GetGlobeChainTrans2(pList, L=4):
-	bList = vv.Dataset.BodyListForId(pList)
-	D = New.NumberTable(bList, L*3)
-	for k, pId in enumerate(pList):
-		if (k>0) and (k%200 == 0):
-			vv.Title = f'Reading: {k:,}:{pId} of {len(pList):,}'
-			vv.DoEvents()
-		cs.GlobeChainTrans(LoadChain(pId), D.Matrix[k])
-	return D
-
 def GetGlobeChainTrans(pList, waveCount=20, waveLen=256, mom=0.99):
 	bList = vv.Dataset.BodyListForId(pList)
 	D = New.NumberTable(bList, waveCount)
 	tm = GetFourier(waveLen, waveCount)
-	#tm = GetFourier(waveLen, waveCount+1).RemoveColumns([0])
 	for k, pId in enumerate(pList):
 		if (k>0) and (k%200 == 0):
 			vv.Title = f'Reading: {k:,}:{pId} of {len(pList):,}'
@@ -420,7 +409,7 @@ def GetMFSeq(pList, aaGroups, mfL):
 
 
 def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE=None, tP=None, cf=0.0,
-		aaGroups='A', waveLen=1024, waveCount=33, mfL=20, staged=False, filterP=(0.0,2,0)):
+		aaGroups='A', waveLen=1024, waveCount=33, mfL=20, mom=0.9, staged=False, filterP=(0.0,2,0)):
 	pTable = AssertProteinTable()	
 	ppl, initExag, finalExag = tSNE
 	t0 = time.time()
@@ -443,7 +432,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE
 		case 'pMF':
 			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf)
 		case 'pGC':
-			dt = GetGlobeChainTrans(pList, waveCount, waveLen, mom=0.99)
+			dt = GetGlobeChainTrans(pList, waveCount, waveLen, mom=mom)
 		case 'pFT':
 			dt = GetFourierTrans(pList, waveLen, waveCount, cf=cf)
 		case 'sFT': 
@@ -472,6 +461,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE
 	info.Set('wvL', waveLen)
 	info.Set('wvCnt', waveCount)
 	info.Set('mfL', mfL)
+	info.Set('mom', mom)
 	info.Set('pCnt', dt.Rows)
 	info.Set('tP', tP)	
 	info.Set('fP', filterP)
