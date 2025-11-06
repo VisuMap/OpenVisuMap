@@ -834,7 +834,7 @@ namespace VisuMap {
 
         public double[] GlobeDistances(List<IBody> bList, double mom = 0.99, double[] distances = null) {
             int L = bList.Count;
-            if ((distances != null) && (distances.Length != L))
+            if ((distances != null) && (distances.Length < L))
                 return null;
             double[] vs = (distances==null) ? new double[L] : distances;
             double g = 1.0f - mom;
