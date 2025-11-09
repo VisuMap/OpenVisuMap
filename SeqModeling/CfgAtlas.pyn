@@ -1,4 +1,4 @@
-#MenuLabels CfgMp MatchMp ChmX Web Open Seq Align 3D 3Dx 3Ds 2D 2Ds S2 sT TT
+#MenuLabels Cfg Match ChmX Web Open Seq Align 3D 3Dx 3Ds 2D 2Ds S2 sT TT
 import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -19,7 +19,7 @@ def AtlasMain(menuKey):
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
 	match vv.EventSource.Item:
-		case 'CfgMp':
+		case 'Cfg':
 			ConfigAtlasMaps(pp, 1000, 700, gSize=5.0, gOpacity=1.0, iconWidth=None, hiddenSize=4, reset=False)			
 		case '3D':
 			for pId in [item.Id for item in pSelected]:
@@ -38,7 +38,7 @@ def AtlasMain(menuKey):
 			ShowChimeraX(pId)
 		case 'Open':  
 			OpenCifFile(pId)
-		case 'MatchMp':
+		case 'Match':
 			MatchProteinMap(pp, iconWidth=None)
 		case 'Seq':
 			for item in pp.SelectedItems:

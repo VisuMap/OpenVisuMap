@@ -278,6 +278,7 @@ def GetGlobeChainTrans(pList, waveCount=20, waveLen=256, mom=0.99):
 	bList = vv.Dataset.BodyListForId(pList)
 	D = New.NumberTable(bList, waveCount)
 	tm = GetFourier(waveLen, waveCount)
+	for row in range(tm.Rows):	tm.Matrix[row][0] *= 0.75
 	for k, pId in enumerate(pList):
 		if (k>0) and (k%200 == 0):
 			vv.Title = f'Reading: {k:,}:{pId} of {len(pList):,}'
@@ -451,7 +452,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE
 		dt.RowSpecList[k].CopyFromBody(b)
 		dt.RowSpecList[k].Disabled = False
 
-	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=1.5, glyphOpacity=1.0, staged=staged, 
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=0.7, glyphOpacity=0.2, staged=staged, 
 		initExag=initExag, finalExag=finalExag, ppl=ppl)
 
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
@@ -469,7 +470,6 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE
 	snMap = RunMds(mds, repeats=1, info=info)
 	snMap.Dataset = dt.ToDataset()
 	mds.Close()
-
 	info.Set('TM', round(time.time()-t0, 3))
 	snMap.Description = info.ToStr()
 
@@ -648,7 +648,8 @@ def RunMds(mds, repeats=1, info=None, nt=None):
 		mds.Description = info.ToStr()
 	if repeats == 1:
 		mds.SelectedItems = None
-		return mds.ShowSnapshot()
+		snMap = mds.ShowSnapshot()
+		return snMap
 	return mds
 
 def ShowBodyList(bList, gSize=1.5, gOpacity=0.5, hSize=3, normalize=True, info=None):
