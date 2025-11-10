@@ -390,24 +390,56 @@ namespace VisuMap {
             }
         }
 
-        public void GlobeChainTrans(List<IBody> bList, double[] R) {
-            int L = R.Length / 3;    // number of sections
-            int secLen = bList.Count / L;  // section length
-            if (bList.Count % L != 0)
-                secLen++;
+        public double[] GlobeDistances2(List<IBody> bList, double mom) {
+            int L = bList.Count;
+            double[] vs = new double[L];
+            double g = 1.0f - mom;
 
-            List<List<IBody>> globeList = new List<List<IBody>>();  // row indexes in the sections.
-            for (int k = 0; k<bList.Count; k+=secLen) {
-                var G = new List<IBody>();
-                int sL = Math.Min(secLen, bList.Count - k);
-                for (int i = 0; i < sL; i++)
-                    G.Add(bList[k+i]);
-                globeList.Add(G);
+            IBody mp = bList[0].Clone();
+            for (int k = 1; k < L; k++) {
+                IBody b = bList[k];
+                vs[k] = b.DistanceSquared(mp);
+                mp.X = mom * mp.X + g * b.X;
+                mp.Y = mom * mp.Y + g * b.Y;
+                mp.Z = mom * mp.Z + g * b.Z;
             }
+
+            mp = bList[L-1].Clone();
+            for (int k = L-2; k >=0; k--) {
+                IBody b = bList[k];
+                vs[k] = b.DistanceSquared(mp);
+                mp.X = mom * mp.X + g * b.X;
+                mp.Y = mom * mp.Y + g * b.Y;
+                mp.Z = mom * mp.Z + g * b.Z;
+            }
+
+            //
+            // Smoothen the series.
+            //
+            double pv = vs[0];
+            vs[0] = 0.5 * (pv + vs[0]);
+            for (int k = 1; k < L - 1; k++) {
+                double vk = (pv + vs[k] + vs[k + 1]);
+                pv = vs[k];
+                vs[k] = vk;
+            }
+            vs[L - 1] = 0.5 * (pv + vs[L - 1]);
+
+            return vs;
+        }
+
+
+        public void GlobeChainTrans(List<IBody> bList, double[] R) {
+            int clusters = R.Length / 3;    // number of sections            
+            List<List<IBody>> globeList = new List<List<IBody>>();
+            double[] gd = GlobeDistances2(bList, 0.95);
+            int maxIdx = Array.IndexOf(gd, gd.Max());
+            globeList.Add( bList.GetRange(0, maxIdx) );
+            globeList.Add( bList.GetRange(maxIdx, bList.Count - maxIdx) );
 
             Array.Clear(R, 0, R.Length);
             MT.ForEach(globeList, (G, sI) => {
-                if (G.Count == 1)  // singleton globe have zero dimension, and will be discarded.
+                if (G.Count <= 1)  // singleton globe have zero dimension, and will be discarded.
                     return;
                 double[] eValues;
                 double[][] M = G.Select(b => new double[] { b.X, b.Y, b.Z }).ToArray();

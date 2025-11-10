@@ -52,7 +52,8 @@ def MainMain(menuKey):
 					case 'pMF':
 						PM2(mfL=20, cf=0.0, tSNE=(0.1, 4.0, 1.0))
 					case 'pGC':
-						PM2(waveCount=15, waveLen=256, mom=0.95, tSNE=(0.1, 3.0, 1.0))
+						#PM2(waveCount=15, waveLen=256, mom=0.95, tSNE=(0.1, 3.0, 1.0))
+						PM2(waveCount=2, tSNE=(0.1, 3.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, cf=0.5, tSNE=(0.1, 4.0, 1.0))	
 					case 'sFT':	
