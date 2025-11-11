@@ -3,9 +3,6 @@ vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
 
-def SortByPosX(idList):
-	idList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
-
 def MainMain(menuKey):
 	global ctrPressed
 	selected = list(vv.Map.SelectedItems)
@@ -15,10 +12,13 @@ def MainMain(menuKey):
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 			
 	match menuKey:
-		case 'ChmX': ShowChimeraX(pId)
-		case 'Web':  ShowWeb(pId)
+		case 'ChmX': 
+			ShowChimeraX(pId)
+		case 'Web':  
+			ShowWeb(pId)
 		case '3D':
-			if atlasName != None: atlasName += '-3D'
+			if atlasName != None: 
+				atlasName += '-3D'
 			SortByPosX(pList)
 			ShowProteinList(pList, includeHA=False, intRp=5, atName=atlasName, gsize=1.5, gopacity=0.5)
 		case '3Dx':
@@ -30,7 +30,8 @@ def MainMain(menuKey):
 			Merge3DList(pList)
 		case 'SeqMap':
 			aaGroups = GetAAGroup(idx=0)
-			if atlasName != None: atlasName += '-Seq'
+			if atlasName != None: 
+				atlasName += '-Seq'
 			CreateSeqMaps(pList, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
 		case 'Open': 
 			if pId == None:
@@ -53,7 +54,7 @@ def MainMain(menuKey):
 						PM2(mfL=20, cf=0.0, tSNE=(0.1, 4.0, 1.0))
 					case 'pGC':
 						#PM2(waveCount=15, waveLen=256, mom=0.95, tSNE=(0.1, 3.0, 1.0))
-						PM2(waveCount=2, tSNE=(0.1, 3.0, 1.0))
+						PM2(tSNE=(0.2, 6.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, cf=0.5, tSNE=(0.1, 4.0, 1.0))	
 					case 'sFT':	
@@ -104,6 +105,11 @@ def MainMain(menuKey):
 			#TorsionMap(pList[:1], mom=0.9)
 			#MainMain('3D')
 			#MainMain('sT')
+
+# ---------------------------------------------------------------------------------------
+
+def SortByPosX(idList):
+	idList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
 
 def SelectChains(chType):
 	ds = vv.Dataset
@@ -170,24 +176,18 @@ def ShowBondLength2(chType='A', mom=0.99):
 	vw.Show()
 	vw.Title = f'{nt.Rows}x{nt.Columns}'
 
-
 def ShowBondLength3(pId):
 	bList = LoadChain(pId)
-	momList = [0.999 - k*0.01 for k in range(20)]
-	nt = New.NumberTable(len(momList), len(bList))
-	vsList = []
-	for k, mom in enumerate(momList):
-		vs = cs.GlobeDistances(bList, mom, nt.Matrix[k])
-		nt.RowSpecList[k].Id = f'{mom:.3}'
+	mom = 0.95
+	vs = cs.GlobeDistances2(bList, mom)
+	bv = New.BarView(vs)
 	for col, b in enumerate(bList):
-		nt.ColumnSpecList[col].CopyFromBody(b)
-	nt.NormalizeRows()
-	vw = New.BarBand(nt)
-	vw.AutoScaling = True
-	vw.Description = f'pId:{pId}'
-	vw.Show()
+		bv.ItemList[col].Id = b.Id
+	bv.Description = f'pId:{pId}'
+	bv.Horizontal = False
+	bv.NormalizeView()
+	bv.Show()
 	
-
 def HelixTest():
 	bPID = LoadChain(pId);
 	b0 = bPID[0]
@@ -205,10 +205,8 @@ def HelixTest():
 		mp.RedrawAll()
 		vv.Sleep(10)
 
-MainMain(vv.EventSource.Item)
-
-import random
 def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=0, createPMap=True, createAtlas=False):
+	import random
 	tm0 = time.time()
 	if len(dnList) == 0:
 		dnList = [ vv.Dataset.Name ]
@@ -259,9 +257,11 @@ def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=0, c
 	print(f'Total Time: {tm0:.2f}hr')
 	vv.Folder.Save()
 
+MainMain(vv.EventSource.Item)
+
 '''
 
-dnList = list(vv.Folder.DatasetNameList)[2:]
+dnList = list(vv.Folder.DatasetNameList)[1:]
 dnIndex = dnList.index(vv.Dataset.Name)
 dnList = dnList[dnIndex:]
 dnList = [] # just the current dataset.
@@ -274,7 +274,5 @@ for dn in dnList:
 	mpList = list(vv.Dataset.MapNameList)
 	for mp in mpList[1:]:
 		vv.Dataset.DeleteMap(mp)
-
-ttt.SneTest()
 
 '''
