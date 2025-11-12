@@ -441,12 +441,11 @@ namespace VisuMap {
             var bList = vv.Dataset.BodyListForId(pList);
             var D = New.NumberTable(bList, (PK+1) * 3);
             for(int k=0; k<pList.Count; k++) {
-                if ( (k>0) && (k%200==0) ) {
-                    vv.Title = $"Reading: {k} of {pList.Count}";
+                if ((k > 0) && (k % 200 == 0)) {                    
+                    vv.Title = $"Reading chains: {k} of {pList.Count}";
                     vv.DoEvents();
                 }
-                string filePath = $"C:/temp/ChainCache/{pList[k]}.pmc";
-                var bs = LoadChain3D(filePath);
+                var bs = LoadChain3D($"C:/temp/ChainCache/{pList[k]}.pmc");
                 GlobeChainTrans(bs, D.Matrix[k] as double[], PK);
             }
             return D;
@@ -464,38 +463,43 @@ namespace VisuMap {
                 if ((v > vs[k - 1]) && (v < vs[k + 1]) && (v > sm))
                     peaks.Add(k);
             }
-            const int minStride = 20;
-            List<int> peaks2 = new List<int>() { peaks[0] };
-            for (int k = 1; k < peaks.Count; k++) {
-                int prePeak = peaks2[peaks2.Count - 1];
-                int pk = peaks[k];
-                if ((pk - prePeak) < minStride) {
-                    if (vs[pk] > vs[prePeak])
-                        peaks2[peaks2.Count - 1] = pk;
-                } else {
-                    if ((pk > minStride) && (L - pk) > minStride)
-                        peaks2.Add(pk);
+
+            if (peaks.Count == 0) {
+                globeList.Add(bList);
+            } else {
+                const int minStride = 20;
+                List<int> peaks2 = new List<int>() { peaks[0] };
+                for (int k = 1; k < peaks.Count; k++) {
+                    int prePeak = peaks2[peaks2.Count - 1];
+                    int pk = peaks[k];
+                    if ((pk - prePeak) < minStride) {
+                        if (vs[pk] > vs[prePeak])
+                            peaks2[peaks2.Count - 1] = pk;
+                    } else {
+                        if ((pk > minStride) && (L - pk) > minStride)
+                            peaks2.Add(pk);
+                    }
+                }
+
+                if (peaks2.Count > PK) {
+                    peaks2.Sort( delegate(int i, int j) {
+                        double dv = vs[j] - vs[i];
+                        return (dv == 0) ? 0 : (dv > 0) ? 1 : -1;
+                    });
+                    peaks2 = peaks2.GetRange(0, PK);
+                }
+                peaks2.Sort();
+                peaks2.Add(L - 1);
+
+                int k0 = 0;
+                foreach (int k1 in peaks2) {
+                    List<IBody> G = new List<IBody>();
+                    for (int k = k0; k <= k1; k++)
+                        G.Add(bList[k]);
+                    globeList.Add(G);
                 }
             }
 
-            if (peaks2.Count > PK) {
-                int[] peaks3 = peaks2.ToArray();
-                double[] keys = peaks3.Select(i => -vs[i]).ToArray();
-                Array.Sort(peaks3, keys);
-                peaks2 = peaks3.Take(PK).ToList();
-            }
-            peaks2.Sort();
-            peaks2.Add(L - 1);
-
-            int k0 = 0;
-            foreach(int k1 in peaks2) {
-                List<IBody> G = new List<IBody>();
-                for(int k=k0; k<=k1; k++)
-                    G.Add(bList[k]);
-                globeList.Add(G);
-            }
-
-            Array.Clear(R, 0, R.Length);
             MT.ForEach(globeList, (G, sI) => {
                 if (G.Count <= 1)  // singleton globe have zero dimension, and will be discarded.
                     return;
