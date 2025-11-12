@@ -100,7 +100,7 @@ def MainMain(menuKey):
 			info=MapInfo().Set('pId', pId)
 			ShowBodyList(bList, info=info)
 		case 'TT':
-			ShowBondLength3(pId)
+			ShowBondLength3(selected)
 			#ShowBondLength2(mom=0.99)
 			#TorsionMap(pList[:1], mom=0.9)
 			#MainMain('3D')
@@ -176,17 +176,57 @@ def ShowBondLength2(chType='A', mom=0.99):
 	vw.Show()
 	vw.Title = f'{nt.Rows}x{nt.Columns}'
 
-def ShowBondLength3(pId):
-	bList = LoadChain(pId)
-	mom = 0.95
-	vs = cs.GlobeDistances2(bList, mom)
-	bv = New.BarView(vs)
-	for col, b in enumerate(bList):
-		bv.ItemList[col].Id = b.Id
-	bv.Description = f'pId:{pId}'
-	bv.Horizontal = False
-	bv.NormalizeView()
-	bv.Show()
+def ClusterGlobes(bv):
+	import numpy as np
+	vs = bv.ItemList
+	L = vs.Count
+	vList = [e.Value for e in vs]
+	sm = sum(vList)/L + np.std(vList)
+	
+	bv.BaseValueExplicit = sm
+	bv.BaseLineType=6
+	bv.UsingColorPalette = True
+	
+	peaks = []
+	for k in range(1, L-1):
+		v = vs[k].Value
+		if (v>vs[k-1].Value) and (v>vs[k+1].Value) and (v > sm):
+			peaks.append(k)
+	
+	minStep = 16
+	peaks2 = [peaks[0]]
+	prePeak = peaks[0]
+	for k in range(1, len(peaks)):
+		pk = peaks[k]
+		if (pk-prePeak > minStep) and (pk>minStep) and (L-pk)>minStep:
+			peaks2.append( pk )
+			prePeak = pk
+
+	'''
+	peaks2 = sorted(peaks2, key=lambda k: -vs[k].Value)	
+	if len(peaks2) > 2:
+		peaks2=peaks2[:2]
+	'''
+
+	for k in peaks2:
+		vs[k].Group = 4
+	bv.Redraw()
+
+def ShowBondLength3(selected):
+	for pId in selected[:5]:
+		bList = LoadChain(pId)
+		vs = cs.GlobeDistances2(bList, 0.95)
+		bv = New.BarView(vs)
+		for col, b in enumerate(bList):
+			bv.ItemList[col].Id = b.Id
+		bv.Description = f'pId:{pId}'
+		bv.Horizontal = False
+		bv.NormalizeView()
+		ClusterGlobes(bv)
+		bv.Title = 'Chain: ' + pId
+		bv.Show()
+		#bList = cs.NormalizeChain(Interpolate(bList, hidIntp=True))
+		#ShowBodyList(bList, gOpacity=0.2)
 	
 def HelixTest():
 	bPID = LoadChain(pId);
