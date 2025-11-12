@@ -275,7 +275,7 @@ def GetMeanFieldTrans(pList, L=20, cf=0.0):
 	return D
 
 def GetGlobeChainTrans2(pList):
-	L = 2
+	L = 3
 	bList = vv.Dataset.BodyListForId(pList)
 	D = New.NumberTable(bList, L*3)
 	for k, pId in enumerate(pList):
@@ -445,7 +445,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE
 			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf)
 		case 'pGC':
 			#dt = GetGlobeChainTrans(pList, waveCount, waveLen, mom=mom)
-			dt = GetGlobeChainTrans2(pList)
+			dt = cs.GlobeChainTransList(pList, PK=2)
 		case 'pFT':
 			dt = GetFourierTrans(pList, waveLen, waveCount, cf=cf)
 		case 'sFT': 

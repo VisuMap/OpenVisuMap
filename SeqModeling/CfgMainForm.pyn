@@ -190,23 +190,24 @@ def ClusterGlobes(bv):
 	peaks = []
 	for k in range(1, L-1):
 		v = vs[k].Value
-		if (v>vs[k-1].Value) and (v>vs[k+1].Value) and (v > sm):
+		if (v>vList[k-1]) and (v>vList[k+1]) and (v > sm):
 			peaks.append(k)
 	
-	minStep = 16
+	minStride = 20
 	peaks2 = [peaks[0]]
-	prePeak = peaks[0]
 	for k in range(1, len(peaks)):
+		prePeak = peaks2[-1]
 		pk = peaks[k]
-		if (pk-prePeak > minStep) and (pk>minStep) and (L-pk)>minStep:
+		if (pk-prePeak) < minStride:
+			if (vList[pk]>vList[prePeak]):
+				peaks2.pop()
+				peaks2.append(pk)
+		elif (pk>minStride) and (L-pk)>minStride:
 			peaks2.append( pk )
-			prePeak = pk
 
-	'''
-	peaks2 = sorted(peaks2, key=lambda k: -vs[k].Value)	
+	peaks2 = sorted(peaks2, key=lambda k: -vList[k])	
 	if len(peaks2) > 2:
 		peaks2=peaks2[:2]
-	'''
 
 	for k in peaks2:
 		vs[k].Group = 4
