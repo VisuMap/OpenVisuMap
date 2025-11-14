@@ -440,14 +440,12 @@ namespace VisuMap {
         public INumberTable GlobeChainTransList(List<string> pList, int PK) {
             var bList = vv.Dataset.BodyListForId(pList);
             var D = New.NumberTable(bList, (PK+1) * 3);
-            for(int k=0; k<pList.Count; k++) {
-                if ((k > 0) && (k % 200 == 0)) {                    
-                    vv.Title = $"Reading chains: {k} of {pList.Count}";
-                    vv.DoEvents();
-                }
+            MT.LoopNoblocking(0, bList.Count, k => {
                 var bs = LoadChain3D($"C:/temp/ChainCache/{pList[k]}.pmc");
                 GlobeChainTrans(bs, D.Matrix[k] as double[], PK);
-            }
+                if ((k > 0) && (k % 500 == 0))
+                    vv.Title = $"Reading chains: {k} of {pList.Count}";
+            });
             return D;
         }
 
@@ -460,7 +458,7 @@ namespace VisuMap {
             List<int> peaks = new List<int>();
             for (int k = 1; k < L - 1; k++) {
                 double v = vs[k];
-                if ((v > vs[k - 1]) && (v < vs[k + 1]) && (v > sm))
+                if ((v > vs[k - 1]) && (v > vs[k + 1]) && (v > sm))
                     peaks.Add(k);
             }
 
@@ -489,25 +487,23 @@ namespace VisuMap {
                     peaks2 = peaks2.GetRange(0, PK);
                 }
                 peaks2.Sort();
-                peaks2.Add(L - 1);
+                peaks2.Add(L);
 
                 int k0 = 0;
                 foreach (int k1 in peaks2) {
-                    List<IBody> G = new List<IBody>();
-                    for (int k = k0; k <= k1; k++)
-                        G.Add(bList[k]);
-                    globeList.Add(G);
+                    globeList.Add(bList.GetRange(k0, k1 - k0));
+                    k0 = k1;
                 }
             }
 
-            MT.ForEach(globeList, (G, sI) => {
+            MT.ForEach(globeList, (G, gIdx) => {
                 if (G.Count <= 1)  // singleton globe have zero dimension, and will be discarded.
                     return;
                 double[] eValues;
                 double[][] M = G.Select(b => new double[] { b.X, b.Y, b.Z }).ToArray();
-                MathUtil.DoPca(M, 3, out eValues);                
+                MathUtil.DoPca(M, 3, out eValues);
                 for (int i = 0; i < eValues.Length; i++)
-                    R[3*sI + i] = eValues[i];
+                    R[3 * gIdx + i] = eValues[i];
             });
         }
 

@@ -46,16 +46,17 @@ def MainMain(menuKey):
 				pfx = vt
 				ProteinMap2(pList,vt,1000, save2Map=pfx, filterP=(0.0, 20, 0), *args,**kwargs)
 				VisChainSize(2)
-			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', 'pGC']
-			vList = ['pGC']
+			vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', 'gFT' 'gSZ']
+			vList = ['gSZ']
 			for vt in vList:
 				match vt:
 					case 'pMF':
 						PM2(mfL=20, cf=0.0, tSNE=(0.1, 4.0, 1.0))
-					case 'pGC':
-						#PM2(waveCount=15, waveLen=256, mom=0.95, tSNE=(0.1, 3.0, 1.0))
-						for eg in [2.0, 3.0, 4.0, 5.0, 6.0]:
-							PM2(tSNE=(0.15, eg, 1.0))
+					case 'gFT':
+						PM2(waveCount=15, waveLen=256, mom=0.95, tSNE=(0.1, 3.0, 1.0))
+					case 'gSZ':
+						for ex in [2, 4, 6, 8]:
+							PM2(tSNE=(0.15, ex, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, cf=0.5, tSNE=(0.1, 4.0, 1.0))	
 					case 'sFT':	
