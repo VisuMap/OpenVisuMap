@@ -55,8 +55,7 @@ def MainMain(menuKey):
 					case 'gFT':
 						PM2(waveCount=15, waveLen=256, mom=0.95, tSNE=(0.1, 3.0, 1.0))
 					case 'gSZ':
-						for ex in [2, 4, 6, 8]:
-							PM2(tSNE=(0.15, ex, 1.0))
+						PM2(tSNE=(0.15, 6.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, cf=0.5, tSNE=(0.1, 4.0, 1.0))	
 					case 'sFT':	
