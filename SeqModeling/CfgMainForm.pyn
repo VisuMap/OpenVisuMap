@@ -39,7 +39,7 @@ def MainMain(menuKey):
 				vv.Return()
 			OpenCifFile(pId)
 		case 'P-2D':
-			CreateProteinMaps(pList, samplingDist=1.5, atlasName=atlasName, 
+			CreateProteinMaps(pList, samplingDist=1.0, atlasName=atlasName, 
 				tP = (1000, 2, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
@@ -177,54 +177,18 @@ def ShowBondLength2(chType='A', mom=0.99):
 	vw.Show()
 	vw.Title = f'{nt.Rows}x{nt.Columns}'
 
-def ClusterGlobes(bv):
-	import numpy as np
-	vs = bv.ItemList
-	L = vs.Count
-	vList = [e.Value for e in vs]
-	sm = sum(vList)/L + np.std(vList)
-	
-	bv.BaseValueExplicit = sm
-	bv.BaseLineType=6
-	bv.UsingColorPalette = True
-	
-	peaks = []
-	for k in range(1, L-1):
-		v = vs[k].Value
-		if (v>vList[k-1]) and (v>vList[k+1]) and (v > sm):
-			peaks.append(k)
-	
-	minStride = 20
-	peaks2 = [peaks[0]]
-	for k in range(1, len(peaks)):
-		prePeak = peaks2[-1]
-		pk = peaks[k]
-		if (pk-prePeak) < minStride:
-			if (vList[pk]>vList[prePeak]):
-				peaks2.pop()
-				peaks2.append(pk)
-		elif (pk>minStride) and (L-pk)>minStride:
-			peaks2.append( pk )
-
-	peaks2 = sorted(peaks2, key=lambda k: -vList[k])	
-	if len(peaks2) > 2:
-		peaks2=peaks2[:2]
-
-	for k in peaks2:
-		vs[k].Group = 4
-	bv.Redraw()
-
 def ShowBondLength3(selected):
 	for pId in selected[:5]:
 		bList = LoadChain(pId)
-		vs = cs.GlobeDistances2(bList, 0.95)
+		vs = cs.GlobeDistances2(bList, mom=0.95)
 		bv = New.BarView(vs)
 		for col, b in enumerate(bList):
 			bv.ItemList[col].Id = b.Id
+		for k in cs.GetGlobePeaks(bList, PK=2, mom=0.95):
+			bv.ItemList[k].Group = 4
 		bv.Description = f'pId:{pId}'
 		bv.Horizontal = False
 		bv.NormalizeView()
-		ClusterGlobes(bv)
 		bv.Title = 'Chain: ' + pId
 		bv.Show()
 		#bList = cs.NormalizeChain(Interpolate(bList, hidIntp=True))

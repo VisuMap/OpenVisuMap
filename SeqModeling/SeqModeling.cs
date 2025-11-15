@@ -390,11 +390,9 @@ namespace VisuMap {
             }
         }
 
-        public double[] GlobeDistances2(List<IBody> bList, double mom, double[] distances = null) {
+        public double[] GlobeDistances2(List<IBody> bList, double mom) {
             int L = bList.Count;
-            if ((distances != null) && (distances.Length < L))
-                return null;
-            double[] vs = (distances == null) ? new double[L] : distances;
+            double[] vs = new double[L];
 
             double g = 1.0f - mom;
 
@@ -437,22 +435,20 @@ namespace VisuMap {
             return vs;
         }
 
-        public INumberTable GlobeChainTransList(List<string> pList, int PK) {
+        public INumberTable GlobeChainTransList(List<string> pList, int PK, double mom) {
             var bList = vv.Dataset.BodyListForId(pList);
             var D = New.NumberTable(bList, (PK+1) * 3);
             MT.LoopNoblocking(0, bList.Count, k => {
                 var bs = LoadChain3D($"C:/temp/ChainCache/{pList[k]}.pmc");
-                GlobeChainTrans(bs, D.Matrix[k] as double[], PK);
+                GlobeChainTrans(bs, D.Matrix[k] as double[], PK, mom);
                 if ((k > 0) && (k % 500 == 0))
                     vv.Title = $"Reading chains: {k} of {pList.Count}";
             });
             return D;
         }
 
-        public void GlobeChainTrans(List<IBody> bList, double[] R, int PK) {
-            List<List<IBody>> globeList = new List<List<IBody>>();
-            double[] vs = GlobeDistances2(bList, 0.95);
-
+        public List<int> GetGlobePeaks(List<IBody> bList, int PK, double mom) {
+            double[] vs = GlobeDistances2(bList, mom);
             int L = vs.Length;
             double sm = vs.Average() + MathUtil.StdDeviation(vs);
             List<int> peaks = new List<int>();
@@ -462,38 +458,47 @@ namespace VisuMap {
                     peaks.Add(k);
             }
 
+            if (peaks.Count == 0) 
+                return new List<int>();
+
+            const int minStride = 20;
+            List<int> peaks2 = new List<int>() { peaks[0] };
+            for (int k = 1; k < peaks.Count; k++) {
+                int prePeak = peaks2[peaks2.Count - 1];
+                int pk = peaks[k];
+                if ((pk - prePeak) < minStride) {
+                    if (vs[pk] > vs[prePeak])
+                        peaks2[peaks2.Count - 1] = pk;
+                } else {
+                    if ((pk > minStride) && (L - pk) > minStride)
+                        peaks2.Add(pk);
+                }
+            }
+
+            if (peaks2.Count > PK) {
+                peaks2.Sort(delegate (int i, int j) {
+                    double dv = vs[j] - vs[i];
+                    return (dv == 0) ? 0 : (dv > 0) ? 1 : -1;
+                });
+                peaks2 = peaks2.GetRange(0, PK);
+            }
+            peaks2.Sort();
+            return peaks2;
+        }
+
+        public void GlobeChainTrans(List<IBody> bList, double[] R, int PK, double mom) {
+            var peaks = GetGlobePeaks(bList, PK, mom);       
+            List<List<IBody>> globeList = new List<List<IBody>>();
+
             if (peaks.Count == 0) {
                 globeList.Add(bList);
             } else {
-                const int minStride = 20;
-                List<int> peaks2 = new List<int>() { peaks[0] };
-                for (int k = 1; k < peaks.Count; k++) {
-                    int prePeak = peaks2[peaks2.Count - 1];
-                    int pk = peaks[k];
-                    if ((pk - prePeak) < minStride) {
-                        if (vs[pk] > vs[prePeak])
-                            peaks2[peaks2.Count - 1] = pk;
-                    } else {
-                        if ((pk > minStride) && (L - pk) > minStride)
-                            peaks2.Add(pk);
-                    }
-                }
-
-                if (peaks2.Count > PK) {
-                    peaks2.Sort( delegate(int i, int j) {
-                        double dv = vs[j] - vs[i];
-                        return (dv == 0) ? 0 : (dv > 0) ? 1 : -1;
-                    });
-                    peaks2 = peaks2.GetRange(0, PK);
-                }
-                peaks2.Sort();
-                peaks2.Add(L);
-
                 int k0 = 0;
-                foreach (int k1 in peaks2) {
+                foreach (int k1 in peaks) {
                     globeList.Add(bList.GetRange(k0, k1 - k0));
                     k0 = k1;
                 }
+                globeList.Add(bList.GetRange(k0, bList.Count-k0));
             }
 
             MT.ForEach(globeList, (G, gIdx) => {

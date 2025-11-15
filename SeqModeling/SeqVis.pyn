@@ -435,7 +435,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE
 		case 'gFT':
 			dt = GetGlobeChainTrans(pList, waveCount, waveLen, mom=mom)
 		case 'gSZ':
-			dt = cs.GlobeChainTransList(pList, PK=PK)
+			dt = cs.GlobeChainTransList(pList, PK=PK, mom=0.95)
 		case 'pFT':
 			dt = GetFourierTrans(pList, waveLen, waveCount, cf=cf)
 		case 'sFT': 
