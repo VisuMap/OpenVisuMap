@@ -215,7 +215,7 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 	L = len(pList)
 	if L > 10:
 		mapStore = AtlasMapStore(atlasName)
-		if L > 2000:
+		if L > 1000:
 			mapStore.hideItems = True
 	else:
 		mapStore = None
