@@ -395,7 +395,6 @@ namespace VisuMap {
             double[] vs = new double[L];
 
             double g = 1.0f - mom;
-
             IBody mp = bList[0].Clone();
             for (int k = 1; k < L; k++) {
                 IBody b = bList[k];
@@ -404,17 +403,6 @@ namespace VisuMap {
                 mp.Y = mom * mp.Y + g * b.Y;
                 mp.Z = mom * mp.Z + g * b.Z;
             }
-
-            /*
-            mp = bList[L-1].Clone();
-            for (int k = L-2; k >=0; k--) {
-                IBody b = bList[k];
-                vs[k] = b.DistanceSquared(mp);
-                mp.X = mom * mp.X + g * b.X;
-                mp.Y = mom * mp.Y + g * b.Y;
-                mp.Z = mom * mp.Z + g * b.Z;
-            }
-            */
 
             //
             // Smoothen the series.
@@ -429,9 +417,6 @@ namespace VisuMap {
                 }
                 vs[L - 1] = 0.5 * (pv + vs[L - 1]);
             }
-
-
-
             return vs;
         }
 
@@ -941,21 +926,6 @@ namespace VisuMap {
                 mp.Y = mom * mp.Y + g * b.Y;
                 mp.Z = mom * mp.Z + g * b.Z;
             }
-
-            //
-            // Smoothen the series.
-            //
-            /*
-            double pv = vs[0];
-            vs[0] = 0.5 * (pv + vs[0]);
-            for (int k = 1; k < L - 1; k++) {
-                double vk = (pv + vs[k] + vs[k + 1]);
-                pv = vs[k];
-                vs[k] = vk;
-            }
-            vs[L - 1] = 0.5 * (pv + vs[L - 1]);
-            */
-
             return vs;
         }
 
