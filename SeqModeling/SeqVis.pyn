@@ -278,7 +278,7 @@ def GetGlobeChainTrans(pList, waveCount=20, waveLen=256, mom=0.99):
 	bList = vv.Dataset.BodyListForId(pList)
 	D = New.NumberTable(bList, waveCount)
 	tm = GetFourier(waveLen, waveCount)
-	for row in range(tm.Rows):	tm.Matrix[row][0] *= 0.75
+	#for row in range(tm.Rows):	tm.Matrix[row][0] *= 0.75
 	for k, pId in enumerate(pList):
 		if (k>0) and (k%200 == 0):
 			vv.Title = f'Reading: {k:,}:{pId} of {len(pList):,}'
@@ -410,7 +410,7 @@ def GetMFSeq(pList, aaGroups, mfL):
 
 
 def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE=None, tP=None, cf=0.0,
-		aaGroups='A', waveLen=1024, waveCount=33, mfL=20, mom=0.9, PK=2, staged=False, filterP=(0.0,2,0)):
+		aaGroups='A', waveLen=1024, waveCount=33, mfL=20, mom=0.95, PK=2, staged=False, filterP=(0.0,2,0)):
 	pTable = AssertProteinTable()	
 	ppl, initExag, finalExag = tSNE
 	t0 = time.time()
@@ -430,12 +430,12 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE
 
 	# vectorizing the sequence to a table.
 	match vType:
-		case 'pMF':
-			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf)
+		case 'gSZ':
+			dt = cs.GlobeChainTransList(pList, PK=PK, mom=mom)
 		case 'gFT':
 			dt = GetGlobeChainTrans(pList, waveCount, waveLen, mom=mom)
-		case 'gSZ':
-			dt = cs.GlobeChainTransList(pList, PK=PK, mom=0.95)
+		case 'pMF':
+			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf)
 		case 'pFT':
 			dt = GetFourierTrans(pList, waveLen, waveCount, cf=cf)
 		case 'sFT': 
