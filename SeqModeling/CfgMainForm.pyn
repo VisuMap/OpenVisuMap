@@ -43,8 +43,7 @@ def MainMain(menuKey):
 				tP = (1000, 2, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
-				pfx = vt
-				ProteinMap2(pList,vt,1000, save2Map=pfx, filterP=(0.0, 20, 0), *args,**kwargs)
+				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), *args,**kwargs)
 				VisChainSize(2)
 			#vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', 'gFT', 'gSZ']
 			vList = ['gSZ']
