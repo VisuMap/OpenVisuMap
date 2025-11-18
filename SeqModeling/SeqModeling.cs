@@ -2,12 +2,13 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
-using VisuMap.Script;
 using Vector3 = SharpDX.Vector3;
 using Quaternion = SharpDX.Quaternion;
 using EntityInfo = System.Tuple<int, string, string, int>;
 using System.IO;
 using MathNet.Numerics.Interpolation;
+using VisuMap.Clustering;
+using VisuMap.Script;
 
 namespace VisuMap {
     public class SeqModeling {
@@ -621,26 +622,16 @@ namespace VisuMap {
         }
 
         public List<string> FlatSampling(List<string> chIds, double minDist) {
-            IList<IBody> bsList = vv.Dataset.BodyListForId(chIds);
-            List<IBody> sampling = New.BodyList();
-            double limit = minDist * minDist;
-            foreach (IBody b in bsList) {
-                bool isSampled = false;
-                double bX = b.X;
-                double bY = b.Y;
-                for (int k = 0; k < sampling.Count; k++) {
-                    IBody a = sampling[k];
-                    double dx = a.X - bX;
-                    double dy = a.Y - bY;
-                    if ((dx * dx + dy * dy) < limit) {
-                        isSampled = true;
-                        break;
-                    }
-                }
-                if (!isSampled)
-                    sampling.Add(b);
+            IList<IBody> bList = vv.Dataset.BodyListForId(chIds);
+            KdTree2D kd = new KdTree2D(bList);
+            HashSet<string> sampling = new HashSet<string>();
+            for(int k=0; k<bList.Count; k++) {
+                int[] nbIdxes = kd.FindNeighbors(bList[k], minDist, 1000);
+                bool isSampled = nbIdxes.Any(idx => sampling.Contains(chIds[idx]));
+                if (! isSampled )
+                    sampling.Add(chIds[k]);
             }
-            return sampling.Select(b => b.Id).ToList();
+            return sampling.ToList();
         }
 
         public void LoopSection(IMap3DView mp, int selLen = 25) {
