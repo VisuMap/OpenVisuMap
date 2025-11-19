@@ -445,17 +445,20 @@ namespace VisuMap {
             }
             if (peaks.Count == 0) 
                 return peaks;
-            const int minStride = 20;
+
+            // Filter out some irregular peaks, i.e. too close located peaks.
+            const int minDist = 20;
             List<int> peaks2 = new List<int>() { peaks[0] };
             for (int k = 1; k < peaks.Count; k++) {
                 int prePeak = peaks2[peaks2.Count - 1];
                 int pk = peaks[k];
-                if ((pk - prePeak) < minStride)
+                if ((pk - prePeak) < minDist) {
                     if (vs[pk] > vs[prePeak])
                         peaks2[peaks2.Count - 1] = pk;
-                else
-                    if ((pk > minStride) && (L - pk) > minStride)
+                } else {  // Make sure that the peak is not too close to the begin or end of the seq.
+                    if ((pk > minDist) && (L - pk) > minDist)
                         peaks2.Add(pk);
+                }
             }
 
             if (peaks2.Count > PK) {
