@@ -177,15 +177,15 @@ def ShowBondLength2(chType='A', mom=0.99):
 
 def ShowBondLength3(selected):
 	import numpy as np
-
 	for pId in selected[:5]:
 		bList = LoadChain(pId)
 		vs = cs.GlobeDistances2(bList, mom=0.95)
+		peaks = cs.GetGlobePeaks(bList, PK=3, mom=0.95)
 		sm = np.mean(vs) + np.std(vs)
-		bv = New.BarView(vs)
-		for col, b in enumerate(bList):
-			bv.ItemList[col].Id = b.Id
-		for k in cs.GetGlobePeaks(bList, PK=5, mom=0.95):
+		bv = New.BarView( vs )	
+		for k in range(vs.Length):
+			bv.ItemList[k].Id = bList[k].Id
+		for k in peaks: 
 			bv.ItemList[k].Group = 4
 		bv.Description = f'pId:{pId}'
 		bv.Horizontal = False
@@ -195,8 +195,6 @@ def ShowBondLength3(selected):
 		bv.BaseLineType=6
 		bv.UsingColorPalette = True
 		bv.Show()
-		#bList = cs.NormalizeChain(Interpolate(bList, hidIntp=True))
-		#ShowBodyList(bList, gOpacity=0.2)
 	
 def HelixTest():
 	bPID = LoadChain(pId);

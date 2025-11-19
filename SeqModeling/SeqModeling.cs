@@ -434,6 +434,9 @@ namespace VisuMap {
         }
 
         public List<int> GetGlobePeaks(List<IBody> bList, int PK, double mom) {
+            if (PK <= 0)
+                return new List<int>();
+
             double[] vs = GlobeDistances2(bList, mom);
             int L = vs.Length;
             List<int> peaks = new List<int>();
@@ -443,11 +446,12 @@ namespace VisuMap {
                 if ( (v > sm) && (v > vs[k - 1]) && (v > vs[k + 1]))
                     peaks.Add(k);
             }
+
+            const int minDist = 20;
             if (peaks.Count == 0) 
                 return peaks;
 
             // Filter out some irregular peaks, i.e. too close located peaks.
-            const int minDist = 20;
             List<int> peaks2 = new List<int>() { peaks[0] };
             for (int k = 1; k < peaks.Count; k++) {
                 int prePeak = peaks2[peaks2.Count - 1];
@@ -459,6 +463,14 @@ namespace VisuMap {
                     if ((pk > minDist) && (L - pk) > minDist)
                         peaks2.Add(pk);
                 }
+            }
+
+            if (peaks2.Count == 1) {
+                int pk = peaks2[0];
+                if ((pk > minDist) && (L - pk) > minDist)
+                    return peaks2;
+                else
+                    return new List<int>();
             }
 
             if (peaks2.Count > PK) {
