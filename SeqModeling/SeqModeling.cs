@@ -436,29 +436,26 @@ namespace VisuMap {
         public List<int> GetGlobePeaks(List<IBody> bList, int PK, double mom) {
             double[] vs = GlobeDistances2(bList, mom);
             int L = vs.Length;
-            double sm = vs.Average() + MathUtil.StdDeviation(vs);
             List<int> peaks = new List<int>();
+            double sm = vs.Average() + MathUtil.StdDeviation(vs);            
             for (int k = 1; k < L - 1; k++) {
                 double v = vs[k];
-                if ((v > vs[k - 1]) && (v > vs[k + 1]) && (v > sm))
+                if ( (v > sm) && (v > vs[k - 1]) && (v > vs[k + 1]))
                     peaks.Add(k);
             }
-
             if (peaks.Count == 0) 
-                return new List<int>();
-
+                return peaks;
             const int minStride = 20;
             List<int> peaks2 = new List<int>() { peaks[0] };
             for (int k = 1; k < peaks.Count; k++) {
                 int prePeak = peaks2[peaks2.Count - 1];
                 int pk = peaks[k];
-                if ((pk - prePeak) < minStride) {
+                if ((pk - prePeak) < minStride)
                     if (vs[pk] > vs[prePeak])
                         peaks2[peaks2.Count - 1] = pk;
-                } else {
+                else
                     if ((pk > minStride) && (L - pk) > minStride)
                         peaks2.Add(pk);
-                }
             }
 
             if (peaks2.Count > PK) {

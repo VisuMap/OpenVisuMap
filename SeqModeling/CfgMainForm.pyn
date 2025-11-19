@@ -215,7 +215,7 @@ def HelixTest():
 		mp.RedrawAll()
 		vv.Sleep(10)
 
-def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=0, createPMap=True, createAtlas=False):
+def DoDatasetList(dnList, initMap=0, sampleSize=0, closure=False, maxSize=0, createPMap=True, createAtlas=False):
 	import random
 	tm0 = time.time()
 	if len(dnList) == 0:
@@ -250,7 +250,7 @@ def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=0, c
 			#print(f'\t\t\tP-Complexes: {cmpCnt}; Siblings: {len(chList)}')
 
 		if createPMap:
-			bs = [b.Id for b in ds.BodyListEnabled()]
+			chList = [b.Id for b in ds.BodyListEnabled()]
 			vv.SelectedItems = chList
 			MainMain('P-Map')
 
@@ -260,7 +260,7 @@ def DoDatasetList(dnList, initMap=0, sampleSize=1000, closure=True, maxSize=0, c
 				vv.LastView.Close()
 
 		t0 = time.time()-t0
-		print(f'{n}: {dn}\t{t0:.1f}s;\t\tcmp:{cmpCnt}, chains:{len(chList)}')
+		print(f'{n}: {dn}\t{t0:.1f}s; chains:{len(chList)}')
 		if vv.GuiManager.StopFlag:
 			break
 	tm0 = (time.time() - tm0)/3600.0
@@ -271,13 +271,13 @@ MainMain(vv.EventSource.Item)
 
 '''
 
-dnList = list(vv.Folder.DatasetNameList)[1:]
+dnList = list(vv.Folder.DatasetNameList)[6:]
 dnIndex = dnList.index(vv.Dataset.Name)
 dnList = dnList[dnIndex:]
 dnList = [] # just the current dataset.
 print(dnList)
 
-DoDatasetList(dnList, initMap=0, sampleSize=0, closure=False, maxSize=0, createPMap=True, createAtlas=False)
+DoDatasetList(dnList, createPMap=True, createAtlas=True)
 
 for dn in dnList:
 	vv.Folder.OpenDataset(dn)
