@@ -58,18 +58,14 @@ def GlobeClustering():
 	bList = [b for b in pp.BodyList if b.Id[0]=='A']
 	peaks = cs.GetGlobePeaks(bList, PK=3, mom=0.95)
 	peakIds = [bList[k].Id for k in peaks]	
-	pId = peakIds.pop() if len(peakIds)>0 else ''
+	pId = peakIds.pop(0) if peakIds else ''
 	cIdx = 0
 	for b in pp.BodyList:
 		if b.Id == pId:
-			cIdx +=1
-			pId = peakIds.pop() if len(peakIds)>0 else ''
+			cIdx += 1
+			pId = peakIds.pop(0) if peakIds else ''
 		b.Type = cIdx
 	pp.Redraw()
 
-			
-
 
 Map3DMain(vv.EventSource.Item)
-
-
