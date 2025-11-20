@@ -111,42 +111,25 @@ def SphereView(pId, unfolding):
 		if vv.ModifierKeys.AltPressed: 
 			break	
 
-def TorsionMap(pList, mom=0.9):
-	for pId in pList:
-		info = MapInfo().Set('pId', pId)
-		bs = LoadChain(pId)
-		nt = cs.ToTorsionList(bs, mom).Transpose2()
-		bb = New.BarBand(nt)
-		bb.Description = info.ToStr()
-		bb.Vertical = True
-		bb.CompactMode = False
-		bb.ReadOnly = True
-		bb.ShowLabels = False
-		bb.Resize(0, 0, min(1800, 10*bs.Count), 400)
-		bb.AutoScaling = True
-		bb.AttributeMode = True
-		bb.BaseLineType = 4
-		bb.BaseValueExplicit = 0.0
-		bb.FineSelection = True
-		bb.ShowLabels = True
-		bb.AutoScaling = True
-		bb.Show2()
-	if len(pList)>5 :
-		atlas = New.Atlas()
-		atlas.Clear()
-		atlas.CaptureAllOpenViews(10, 10, "BarBandView")
-		for item in atlas.Items: 
-			item.Transparent = True
-			item.ShowBorder = True
-			item.IconHeight = 180
-			item.IconWidth = 0
-			bb = item.Load()
-			item.Id = MapInfo(bb.Description).pId
-			item.Name = item.Id
-			bb.Close()
-		atlas.BackgroundColor = New.Color(255, 0, 0, 64)
-		atlas.Show()
-		atlas.ArrangeItems(False)
+def TorsionMap(pId, mom=0.9):
+	info = MapInfo().Set('pId', pId)
+	bs = LoadChain(pId)
+	nt = cs.ToTorsionList(bs, mom).Transpose2()
+	bb = New.BarBand(nt)
+	bb.Description = info.ToStr()
+	bb.Vertical = True
+	bb.CompactMode = False
+	bb.ReadOnly = True
+	bb.ShowLabels = False
+	bb.Resize(0, 0, min(1800, 10*bs.Count), 400)
+	bb.AutoScaling = True
+	bb.AttributeMode = True
+	bb.BaseLineType = 4
+	bb.BaseValueExplicit = 0.0
+	bb.FineSelection = True
+	bb.ShowLabels = True
+	bb.AutoScaling = True
+	bb.Show2()
 
 def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 	mds = NewMds(None, epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 

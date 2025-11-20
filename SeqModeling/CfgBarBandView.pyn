@@ -1,12 +1,13 @@
 #MenuLabels 3D PID
 vv.Import('SeqVis.pyn')
 
-pId = pp.SelectedItems[0]
+pId = pp.SelectedItems[0] if pp.SelectedItems.Count > 0 else ''
+pId0 = MapInfo(pp.Description).pId
 
 match vv.EventSource.Item:
-	case '3D':		
-		ShowProteinList([pId], includeHA=False, intRp=5, gsize=1.5, gopacity=0.5)
+	case '3D':
+		ShowProteinList([pId0], includeHA=False, intRp=5, gsize=1.5, gopacity=0.5)
 	case 'PID':
-		vv.SelectedItems = [pId]
+		vv.SelectedItems = [pId0]
 
 

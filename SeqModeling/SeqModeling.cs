@@ -391,6 +391,18 @@ namespace VisuMap {
             }
         }
 
+        void SmoothenSeries(double[] vs) {
+            int L = vs.Length;
+            double pv = vs[0];
+            vs[0] = 0.5 * (pv + vs[0]);
+            for (int k = 1; k < L - 1; k++) {
+                double vk = (pv + vs[k] + vs[k + 1]);
+                pv = vs[k];
+                vs[k] = vk;
+            }
+            vs[L - 1] = 0.5 * (pv + vs[L - 1]);
+        }
+
         public double[] GlobeDistances2(List<IBody> bList, double mom) {
             int L = bList.Count;
             double[] vs = new double[L];
@@ -408,16 +420,9 @@ namespace VisuMap {
             //
             // Smoothen the series.
             //
-            for (int rp = 0; rp < 2; rp++) {
-                double pv = vs[0];
-                vs[0] = 0.5 * (pv + vs[0]);
-                for (int k = 1; k < L - 1; k++) {
-                    double vk = (pv + vs[k] + vs[k + 1]);
-                    pv = vs[k];
-                    vs[k] = vk;
-                }
-                vs[L - 1] = 0.5 * (pv + vs[L - 1]);
-            }
+            SmoothenSeries(vs);
+            SmoothenSeries(vs);
+
             return vs;
         }
 
@@ -839,7 +844,7 @@ namespace VisuMap {
         }
 
 
-        public INumberTable ToTorsionList(List<IBody> bList, double mom = 0.99) {
+        public INumberTable ToTorsionList(List<IBody> bList, double mom = 0.99, double nbEps= 1.0) {
             int L = bList.Count;
             if (L < 7)
                 return null;
@@ -847,7 +852,7 @@ namespace VisuMap {
             Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();            
             double DD(int i, int j) => Vector3.Distance(V[i], V[j]);
 
-            INumberTable nt = New.NumberTable(L, 7);
+            INumberTable nt = New.NumberTable(L, 8);
             for (int k = 0; k < L; k++)  nt.RowSpecList[k].CopyFromBody(bList[k]);
             nt.ColumnSpecList[0].Id = "CurvatureNb1";
             nt.ColumnSpecList[1].Id = "CurvatureNb2";
@@ -856,6 +861,7 @@ namespace VisuMap {
             nt.ColumnSpecList[4].Id = "TorsionB";
             nt.ColumnSpecList[5].Id = "Bnd_LenRatio";
             nt.ColumnSpecList[6].Id = "Cnt_Bnd_Dist";
+            nt.ColumnSpecList[7].Id = "NB_Size";
 
             for (int k = 1; k < L-1; k++) {
                 double[] R = nt.Matrix[k] as double[];
@@ -903,6 +909,18 @@ namespace VisuMap {
             double[] vs = GlobeDistances(bList, mom);
             for (int k = 0; k < L; k++)
                 M[k][6] = vs[k];
+
+
+            var kd = new VisuMap.Clustering.KdTree3D(bList);
+            const int BL = 7;
+            for (int k = 0; k < L; k++) {
+                int[] nbs = kd.FindNeighbors(bList[k], BL*BOND_LENGTH, 1000);
+                vs[k] = (nbs.Length - 2*BL)/(0.5*BL*BL);
+            }
+            SmoothenSeries(vs);
+            for (int k = 0; k < L; k++)
+                M[k][7] = vs[k];
+
 
             double[] cMax = new double[nt.Columns];
             for(int row=0; row<nt.Rows; row++)

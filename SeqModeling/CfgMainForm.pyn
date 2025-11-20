@@ -84,9 +84,8 @@ def MainMain(menuKey):
 		case 'sT': # show torsion info.
 			if pId == None:
 				raise Exception('No data selected!')
-			TorsionMap(pList[:1])
 			#ShowChain(pId, gopacity=0.5)
-			#ShowSphere4()
+			ShowSphere4()
 		case 'vsSz':
 			VisChainSize(4 if ctrPressed else 2)
 		case 'S2':
@@ -100,10 +99,8 @@ def MainMain(menuKey):
 			ShowBodyList(bList, info=info)
 		case 'TT':
 			ShowBondLength3(selected)
-			#ShowBondLength2(mom=0.99)
-			#TorsionMap(pList[:1], mom=0.9)
-			#MainMain('3D')
-			#MainMain('sT')
+			#ShowBondLength2(mom=0.95)
+			TorsionMap(pId, mom=0.9)
 
 # ---------------------------------------------------------------------------------------
 

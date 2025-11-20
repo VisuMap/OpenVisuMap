@@ -55,7 +55,6 @@ def AtlasMain(menuKey):
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'sT':
 			ShowChain(pId, gopacity=0.35).RotateXYZ(0, 0.0025, 0).StartAnimation(0).EditMode=False
-			TorsionMap(pList)
 		case 'TT':
 			ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
 			ShowBond(pId)
