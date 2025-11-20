@@ -403,7 +403,7 @@ namespace VisuMap {
             vs[L - 1] = 0.5 * (pv + vs[L - 1]);
         }
 
-        public double[] GlobeDistances2(List<IBody> bList, double mom) {
+        public double[] GlobeDistances2(IList<IBody> bList, double mom) {
             int L = bList.Count;
             double[] vs = new double[L];
 
@@ -438,10 +438,9 @@ namespace VisuMap {
             return D;
         }
 
-        public List<int> GetGlobePeaks(List<IBody> bList, int PK, double mom) {
+        public List<int> GetGlobePeaks(IList<IBody> bList, int PK, double mom) {
             if (PK <= 0)
                 return new List<int>();
-
             double[] vs = GlobeDistances2(bList, mom);
             int L = vs.Length;
             List<int> peaks = new List<int>();

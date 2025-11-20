@@ -1,52 +1,75 @@
-#MenuLabels Scanning Smoothen P-2D HideIPO MarkHelix MarkBeta RnaChain Flipping Looping PID Tr S2 TT
+#MenuLabels Scanning Smoothen P-2D HideIPO MarkHelix MarkBeta RnaChain Flipping Looping Gb PID Tr S2 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
-match vv.EventSource.Item:
-	case 'Scanning':
-		Scanning(pp, stepSize=2, broadcasting=vv.ModifierKeys.ControlPressed)
-	case 'Smoothen':
-		SmoothenCurve(pp, repeats=50)
-	case 'P-2D':
-		pMap = pp
-		UnFoldMap(pMap, repeats=0, epochs=3000, initExag=10.0, ppl=0.15, 
-			stretch=1.0, clusterStretch=0, expandFactor=1.0)
-	case 'HideIPO':
-		HideInterpolates()
-	case 'MarkHelix':
-		ShowHelix()
-	case 'MarkBeta':
-		ShowBetaSheet()
-	case 'RnaChain':
-		pp.SelectedItems = [b.Id for b in pp.BodyList if b.Name[0] == 'r']
-	case 'Flipping':		
-		FlippingChains(pp)
-	case 'Looping':
-		cs.LoopSection(pp, secLen=25)
-	case 'PID':
-		vv.SelectedItems = MapInfo(pp.Description).pId.split(',')
-	case 'Tr':
-		ob = New.Body()
-		pp.ShowBoundingBox = False
-		pp.NormalizeView()
-		pp.RotateXYZ(0, 0.001, 0, 1, 10)	
-		#pp.StartAnimation(0)
-		hType = 70 if pp.GlyphSet.startswith('Ordered 64') else 177
-		for b in pp.BodyList:
-			ob.CopyFrom(b)
-			b.Type = hType
-			b.Hidden = False
-			if b.Id[0] != 'i':
-				vv.SelectedItems = [ b.Id ]
-			pp.Redraw()
-			vv.Sleep(10)
-			b.CopyFrom(ob)
-			if vv.ModifierKeys.AltPressed:
-				break
+def Map3DMain(menuKey):
+	match menuKey:
+		case 'Scanning':
+			Scanning(pp, stepSize=2, broadcasting=vv.ModifierKeys.ControlPressed)
+		case 'Smoothen':
+			SmoothenCurve(pp, repeats=50)
+		case 'P-2D':
+			UnFoldMap(pp, repeats=0, epochs=3000, initExag=10.0, ppl=0.15, 
+				stretch=1.0, clusterStretch=0, expandFactor=1.0)
+		case 'HideIPO':
+			HideInterpolates()
+		case 'MarkHelix':
+			ShowHelix()
+		case 'MarkBeta':
+			ShowBetaSheet()
+		case 'RnaChain':
+			pp.SelectedItems = [b.Id for b in pp.BodyList if b.Name[0] == 'r']
+		case 'Flipping':		
+			FlippingChains(pp)
+		case 'Looping':
+			cs.LoopSection(pp, secLen=25)
+		case 'PID':
+			vv.SelectedItems = MapInfo(pp.Description).pId.split(',')
+		case 'Tr':
+			Tracing()
+		case 'S2':
+			ShowSphere4(contracting=0.9)
+		case 'Gb':
+			GlobeClustering()
+		case 'TT':
+			ShowSphere4(contracting=0.9)
+
+def Tracing():
+	ob = New.Body()
+	pp.ShowBoundingBox = False
+	pp.NormalizeView()
+	pp.RotateXYZ(0, 0.001, 0, 1, 10)	
+	#pp.StartAnimation(0)
+	hType = 70 if pp.GlyphSet.startswith('Ordered 64') else 177
+	for b in pp.BodyList:
+		ob.CopyFrom(b)
+		b.Type = hType
+		b.Hidden = False
+		if b.Id[0] != 'i':
+			vv.SelectedItems = [ b.Id ]
 		pp.Redraw()
-	case 'S2':
-		ShowSphere4(contracting=0.9)
-	case 'TT':
-		ShowSphere4(contracting=0.9)
+		vv.Sleep(10)
+		b.CopyFrom(ob)
+		if vv.ModifierKeys.AltPressed:
+			break
+	pp.Redraw()
+
+def GlobeClustering():
+	bList = [b for b in pp.BodyList if b.Id[0]=='A']
+	peaks = cs.GetGlobePeaks(bList, PK=3, mom=0.95)
+	peakIds = [bList[k].Id for k in peaks]	
+	pId = peakIds.pop() if len(peakIds)>0 else ''
+	cIdx = 0
+	for b in pp.BodyList:
+		if b.Id == pId:
+			cIdx +=1
+			pId = peakIds.pop() if len(peakIds)>0 else ''
+		b.Type = cIdx
+	pp.Redraw()
+
+			
+
+
+Map3DMain(vv.EventSource.Item)
 
 

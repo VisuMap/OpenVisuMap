@@ -266,13 +266,13 @@ MainMain(vv.EventSource.Item)
 
 '''
 
-dnList = list(vv.Folder.DatasetNameList)[6:]
+dnList = list(vv.Folder.DatasetNameList)[2:]
 dnIndex = dnList.index(vv.Dataset.Name)
 dnList = dnList[dnIndex:]
 dnList = [] # just the current dataset.
 print(dnList)
 
-DoDatasetList(dnList, createPMap=True, createAtlas=True)
+DoDatasetList(dnList, createPMap=True, createAtlas=False)
 
 for dn in dnList:
 	vv.Folder.OpenDataset(dn)
