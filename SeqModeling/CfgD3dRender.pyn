@@ -66,6 +66,13 @@ def GlobeClustering():
 			pId = peakIds.pop(0) if peakIds else ''
 		b.Type = cIdx
 	pp.Redraw()
-
+	pp.ClickMenu('Edit/Cluster Scaling')
+	clk = -1
+	for k in range(10*50):
+		if k % 50 == 0: 
+			clk = -clk
+		vv.GuiManager.MouseWheelScroll(clk)
+		vv.Sleep(20)
 
 Map3DMain(vv.EventSource.Item)
+
