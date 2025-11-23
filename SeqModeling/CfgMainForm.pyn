@@ -98,9 +98,10 @@ def MainMain(menuKey):
 			info=MapInfo().Set('pId', pId)
 			ShowBodyList(bList, info=info)
 		case 'TT':
+			#ShowBondLength4(selected)
 			ShowBondLength3(selected)
 			#ShowBondLength2(mom=0.95)
-			TorsionMap(pId, mom=0.9)
+			#TorsionMap(pId, mom=0.9)
 
 # ---------------------------------------------------------------------------------------
 
@@ -192,6 +193,21 @@ def ShowBondLength3(selected):
 		bv.BaseLineType=6
 		bv.UsingColorPalette = True
 		bv.Show()
+
+def ShowBondLength4(selected):
+	import numpy as np
+	pList = selected
+	itemList = New.ValueItemList(vv.Dataset.BodyListForId(pList))
+	for item in itemList:
+		bList = LoadChain(item.Id)
+		vs = cs.GlobeDistances2(bList, mom=0.95)
+		item.Value = math.sqrt( np.mean(vs) ) + math.sqrt( np.std(vs) )
+	bv = New.BarView(itemList)
+	bv.BaseLineType = 1
+	bv.Horizontal = False
+	bv.NormalizeView()
+	bv.Show()
+
 	
 def HelixTest():
 	bPID = LoadChain(pId);

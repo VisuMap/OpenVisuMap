@@ -469,6 +469,9 @@ namespace VisuMap {
                 }
             }
 
+            if ( (peaks2.Count>0) && (peaks2[0] < minDist) )
+                peaks2.RemoveAt(0);
+
             if (peaks2.Count == 1) {
                 int pk = peaks2[0];
                 if ((pk > minDist) && (L - pk) > minDist)
@@ -485,6 +488,21 @@ namespace VisuMap {
                 peaks2 = peaks2.GetRange(0, PK);
             }
             peaks2.Sort();
+
+            // Move the peaks back to the left for half peak-interval:
+            for (int k = peaks2.Count - 1; k >= 0; k--) {
+                int p0 = (k == 0) ? 0 : peaks2[k - 1];
+                int p1 = peaks2[k];
+                if ((p1 - p0) >= 2) {
+                    for (int p = p1; p > p0; p--) {
+                        if (vs[p] < vs[p - 1]) {
+                            peaks2[k] = (p1 + p) / 2;
+                            break;
+                        }
+                    }
+                }
+            }
+ 
             return peaks2;
         }
 

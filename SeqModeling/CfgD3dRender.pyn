@@ -72,7 +72,8 @@ def GlobeClustering():
 		if k % 50 == 0: 
 			clk = -clk
 		vv.GuiManager.MouseWheelScroll(clk)
-		vv.Sleep(20)
+		vv.Sleep(50)
+	vv.GuiManager.MouseDoubleClick(0,0)
 
 Map3DMain(vv.EventSource.Item)
 
