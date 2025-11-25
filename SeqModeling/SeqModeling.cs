@@ -434,7 +434,6 @@ namespace VisuMap {
                 GlobeChainTrans(bs, D.Matrix[k] as double[], PK, mom);
                 if ((k > 0) && (k % 500 == 0)) {
                     vv.Title = $"Reading chains: {k} of {pList.Count}";
-                    vv.DoEvents();
                 }
             });
             return D;
@@ -446,11 +445,22 @@ namespace VisuMap {
             double[] vs = GlobeDistances2(bList, mom);
             int L = vs.Length;
             List<int> peaks = new List<int>();
-            double sm = vs.Average() + MathUtil.StdDeviation(vs);            
+            double brokenLimit = BOND_LENGTH * 1.5;
+            brokenLimit *= brokenLimit;
+            HashSet<int> brokenSet = new HashSet<int>();
+            double sm = vs.Average() + MathUtil.StdDeviation(vs);
+
             for (int k = 1; k < L - 1; k++) {
                 double v = vs[k];
-                if ( (v > sm) && (v > vs[k - 1]) && (v > vs[k + 1]))
+                if (bList[k].DistanceSquared(bList[k - 1]) > brokenLimit) {
+                    // The chain is broken at k-th position.
                     peaks.Add(k);
+                    brokenSet.Add(k);
+                    vs[k] *= 10; // increase the peak's distance to give it more weight for latter filtering steps.
+                } else {
+                    if ((v > sm) && (v > vs[k - 1]) && (v > vs[k + 1]))
+                        peaks.Add(k);
+                }
             }
 
             const int minDist = 20;
@@ -495,7 +505,9 @@ namespace VisuMap {
             for (int k = peaks2.Count - 1; k >= 0; k--) {
                 int p0 = (k == 0) ? 0 : peaks2[k - 1];
                 int p1 = peaks2[k];
-                if ((p1 - p0) >= 2) {
+                if (brokenSet.Contains(p1)) // Don't shift the chain-broken peaks.
+                    continue;
+                if ( (p1 - p0) >= 2 ) {
                     for (int p = p1; p > p0; p--) {
                         if (vs[p] < vs[p - 1]) {
                             peaks2[k] = (p1 + p) / 2;
