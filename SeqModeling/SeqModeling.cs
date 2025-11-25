@@ -432,8 +432,10 @@ namespace VisuMap {
             MT.LoopNoblocking(0, bList.Count, k => {
                 var bs = LoadChain3D($"C:/temp/ChainCache/{pList[k]}.pmc");
                 GlobeChainTrans(bs, D.Matrix[k] as double[], PK, mom);
-                if ((k > 0) && (k % 500 == 0))
+                if ((k > 0) && (k % 500 == 0)) {
                     vv.Title = $"Reading chains: {k} of {pList.Count}";
+                    vv.DoEvents();
+                }
             });
             return D;
         }

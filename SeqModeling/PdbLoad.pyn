@@ -208,6 +208,7 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 		pList = cs.FlatSampling(pList, samplingDist)
 		vv.Title = f'Sampled {len(pList)} chains!'
 		if ctrPressed:
+			vv.SelectedItems = pList
 			return
 
 	maxRows = MaxRows(vv.Dataset, pList, intRp)

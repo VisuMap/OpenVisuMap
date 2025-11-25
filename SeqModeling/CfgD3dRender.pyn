@@ -55,16 +55,23 @@ def Tracing():
 	pp.Redraw()
 
 def GlobeClustering():
-	bList = [b for b in pp.BodyList if b.Id[0]=='A']
+	bs = list(pp.BodyList);
+	bList = [b for b in bs if b.Id[0]=='A']
 	peaks = cs.GetGlobePeaks(bList, PK=3, mom=0.95)
 	peakIds = [bList[k].Id for k in peaks]	
 	pId = peakIds.pop(0) if peakIds else ''
 	cIdx = 0
-	for b in pp.BodyList:
+	for b in bs:
 		if b.Id == pId:
 			cIdx += 1
 			pId = peakIds.pop(0) if peakIds else ''
 		b.Type = cIdx
+		if b.Type == 3: 
+			b.Type = 45
+	for k in range(20):
+		bs[k].Hidden = False
+		bs[-k].Hidden = False
+	
 	pp.Redraw()
 	pp.ClickMenu('Edit/Cluster Scaling')
 	clk = -1

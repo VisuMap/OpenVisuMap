@@ -50,7 +50,7 @@ def MainMain(menuKey):
 			for vt in vList:
 				match vt:
 					case 'gSZ':
-						PM2(PK=3, mom=0.95, tSNE=(0.15, 6.0, 1.0))
+						PM2(PK=3, tSNE=(0.15, 6.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=32, waveLen=32, mom=0.95, tSNE=(0.1, 3.0, 1.0))
 					case 'pMF':
@@ -226,11 +226,9 @@ def HelixTest():
 		mp.RedrawAll()
 		vv.Sleep(10)
 
-def DoDatasetList(dnList, initMap=0, sampleSize=0, closure=False, maxSize=0, createPMap=True, createAtlas=False):
+def DoDatasetList(dnList = [vv.Dataset.Name], initMap=0, sampleSize=0, closure=False, maxSize=0, createPMap=True, createAtlas=False):
 	import random
 	tm0 = time.time()
-	if len(dnList) == 0:
-		dnList = [ vv.Dataset.Name ]
 	for n, dn in enumerate(dnList):
 		t0 = time.time()
 		vv.Folder.OpenDataset(dn)
@@ -282,10 +280,8 @@ MainMain(vv.EventSource.Item)
 
 '''
 
-dnList = list(vv.Folder.DatasetNameList)[2:]
-dnIndex = dnList.index(vv.Dataset.Name)
-dnList = dnList[dnIndex:]
-dnList = [] # just the current dataset.
+dnList = list(vv.Folder.DatasetNameList)[1:]
+dnList = dnList[dnList.index(vv.Dataset.Name):]
 print(dnList)
 
 DoDatasetList(dnList, createPMap=True, createAtlas=False)
