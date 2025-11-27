@@ -448,7 +448,8 @@ namespace VisuMap {
             double brokenLimit = BOND_LENGTH * 1.5;
             brokenLimit *= brokenLimit;
             HashSet<int> brokenSet = new HashSet<int>();
-            double sm = vs.Average() + MathUtil.StdDeviation(vs);
+            double meanPk = MathUtil.Mean(vs);
+            double upLimit = meanPk + MathUtil.StdDeviation(vs);
 
             for (int k = 1; k < L - 1; k++) {
                 double v = vs[k];
@@ -458,7 +459,7 @@ namespace VisuMap {
                     brokenSet.Add(k);
                     vs[k] *= 10; // increase the peak's distance to give it more weight for latter filtering steps.
                 } else {
-                    if ((v > sm) && (v > vs[k - 1]) && (v > vs[k + 1]))
+                    if ((v > upLimit) && (v > vs[k - 1]) && (v > vs[k + 1]))
                         peaks.Add(k);
                 }
             }
@@ -486,9 +487,7 @@ namespace VisuMap {
 
             if (peaks2.Count == 1) {
                 int pk = peaks2[0];
-                if ((pk > minDist) && (L - pk) > minDist)
-                    return peaks2;
-                else
+                if ((pk <= minDist) || (L - pk) <= minDist)
                     return new List<int>();
             }
 
@@ -509,7 +508,7 @@ namespace VisuMap {
                     continue;
                 if ( (p1 - p0) >= 2 ) {
                     for (int p = p1; p > p0; p--) {
-                        if (vs[p] < vs[p - 1]) {
+                        if ( (vs[p] < vs[p - 1]) && (vs[p]<meanPk) ) {
                             peaks2[k] = (p1 + p) / 2;
                             break;
                         }
@@ -875,7 +874,7 @@ namespace VisuMap {
         }
 
 
-        public INumberTable ToTorsionList(List<IBody> bList, double mom = 0.99, double nbEps= 1.0) {
+        public INumberTable ToTorsionList(List<IBody> bList, double mom = 0.95, double nbEps= 1.0) {
             int L = bList.Count;
             if (L < 7)
                 return null;
@@ -883,7 +882,7 @@ namespace VisuMap {
             Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();            
             double DD(int i, int j) => Vector3.Distance(V[i], V[j]);
 
-            INumberTable nt = New.NumberTable(L, 8);
+            INumberTable nt = New.NumberTable(L, 9);
             for (int k = 0; k < L; k++)  nt.RowSpecList[k].CopyFromBody(bList[k]);
             nt.ColumnSpecList[0].Id = "CurvatureNb1";
             nt.ColumnSpecList[1].Id = "CurvatureNb2";
@@ -893,6 +892,7 @@ namespace VisuMap {
             nt.ColumnSpecList[5].Id = "Bnd_LenRatio";
             nt.ColumnSpecList[6].Id = "Cnt_Bnd_Dist";
             nt.ColumnSpecList[7].Id = "NB_Size";
+            nt.ColumnSpecList[8].Id = "NB_Cnt";
 
             for (int k = 1; k < L-1; k++) {
                 double[] R = nt.Matrix[k] as double[];
@@ -952,6 +952,32 @@ namespace VisuMap {
             for (int k = 0; k < L; k++)
                 M[k][7] = vs[k];
 
+            KdTree3D kd3d = new VisuMap.Clustering.KdTree3D(bList);
+            double nbDist = 5.25 * BOND_LENGTH;
+            const int maxNB = 30;
+            for (int k = 1; k < L; k++) {
+                int[] nbList = kd3d.FindNeighbors(bList[k], nbDist, maxNB);
+                double x = 0;
+                double y = 0;
+                double z = 0;
+                int n = 0;
+                foreach (int i in nbList) {
+                    if ((i < k) && (i > 0)) {
+                        IBody b = bList[i];
+                        x += b.X;
+                        y += b.Y;
+                        z += b.Z;
+                        n++;
+                    }
+                }
+                if (n > 0) {
+                    IBody b = bList[k];
+                    x = x / n - b.X;
+                    y = y / n - b.Y;
+                    z = z / n - b.Z;
+                    M[k][8] = x * x + y * y + z * z;
+                }
+            }
 
             double[] cMax = new double[nt.Columns];
             for(int row=0; row<nt.Rows; row++)
