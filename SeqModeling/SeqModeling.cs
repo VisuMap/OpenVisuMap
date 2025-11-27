@@ -990,7 +990,7 @@ namespace VisuMap {
             return nt;
         }
 
-        public double[] GlobeDistances(List<IBody> bList, double mom = 0.99, double[] distances = null) {
+        public double[] GlobeDistances(IList<IBody> bList, double mom = 0.99, double[] distances = null) {
             int L = bList.Count;
             if ((distances != null) && (distances.Length < L))
                 return null;
