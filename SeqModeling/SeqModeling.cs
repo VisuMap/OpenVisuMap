@@ -458,17 +458,15 @@ namespace VisuMap {
                     peaks.Add(k);
                     brokenSet.Add(k);
                     vs[k] *= 10; // increase the peak's distance to give it more weight for latter filtering steps.
-                } else {
-                    if ((v > upLimit) && (v > vs[k - 1]) && (v > vs[k + 1]))
-                        peaks.Add(k);
+                } else if ((v > upLimit) && (v > vs[k - 1]) && (v > vs[k + 1])) { 
+                    peaks.Add(k);
                 }
             }
-
-            const int minDist = 20;
             if (peaks.Count == 0) 
                 return peaks;
 
             // Filter out peaks which are too close other peaks.
+            const int minDist = 20;
             List<int> peaks2 = new List<int>() { peaks[0] };
             for (int k = 1; k < peaks.Count; k++) {
                 int prePeak = peaks2[peaks2.Count - 1];
@@ -516,7 +514,6 @@ namespace VisuMap {
                     }
                 }
             }
- 
             return peaks;
         }
 
