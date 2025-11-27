@@ -468,7 +468,7 @@ namespace VisuMap {
             if (peaks.Count == 0) 
                 return peaks;
 
-            // Filter out some irregular peaks, i.e. too close located peaks.
+            // Filter out peaks which are too close other peaks.
             List<int> peaks2 = new List<int>() { peaks[0] };
             for (int k = 1; k < peaks.Count; k++) {
                 int prePeak = peaks2[peaks2.Count - 1];
