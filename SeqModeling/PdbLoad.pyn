@@ -685,7 +685,9 @@ for f in fList:
 	os.remove(f'{CHAIN_CACHE}/{f}')
 
 sList = ','.join([f[:4] for f in os.listdir(PDB_CACHE)])
-ImportPDBList(sList, 'All2')
+sList = ','.join(pList)
+print(len(sList))
+ImportPDBList(sList, 'PSymmetry10K')
 
 # Extract a chain list for each dataset:
 dnList = list(vv.Folder.DatasetNameList)[1:]

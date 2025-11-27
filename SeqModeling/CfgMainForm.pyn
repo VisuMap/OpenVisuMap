@@ -101,7 +101,8 @@ def MainMain(menuKey):
 			#ShowBondLength4(selected)
 			ShowBondLength3(selected)
 			#ShowBondLength2(mom=0.95)
-			#TorsionMap(pId, mom=0.9)
+			TorsionMap(pId, mom=0.95)
+			MainMain('3D')
 
 # ---------------------------------------------------------------------------------------
 

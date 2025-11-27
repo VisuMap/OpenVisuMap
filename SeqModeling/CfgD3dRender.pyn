@@ -30,7 +30,8 @@ def Map3DMain(menuKey):
 		case 'S2':
 			ShowSphere4(contracting=0.9)
 		case 'Gb':
-			GlobeClustering()
+			pk = 8 if vv.ModifierKeys.ControlPressed else 4
+			GlobeClustering(pk)
 		case 'TT':
 			ShowSphere4(contracting=0.9)
 
@@ -54,10 +55,10 @@ def Tracing():
 			break
 	pp.Redraw()
 
-def GlobeClustering():
+def GlobeClustering(pk):
 	bs = list(pp.BodyList);
 	bList = [b for b in bs if b.Id[0]=='A']
-	peaks = cs.GetGlobePeaks(bList, PK=3, mom=0.95)
+	peaks = cs.GetGlobePeaks(bList, PK=pk, mom=0.95)
 	peakIds = [bList[k].Id for k in peaks]	
 	pId = peakIds.pop(0) if peakIds else ''
 	cIdx = 0
@@ -75,7 +76,7 @@ def GlobeClustering():
 	pp.Redraw()
 	pp.ClickMenu('Edit/Cluster Scaling')
 	clk = -1
-	for k in range(10*50):
+	for k in range(3*50):
 		if k % 50 == 0: 
 			clk = -clk
 		vv.GuiManager.MouseWheelScroll(clk)
