@@ -481,42 +481,43 @@ namespace VisuMap {
                         peaks2.Add(pk);
                 }
             }
+            peaks = peaks2;
 
-            if ( (peaks2.Count>0) && (peaks2[0] < minDist) )
-                peaks2.RemoveAt(0);
+            if ( (peaks.Count>0) && (peaks[0] < minDist) )
+                peaks.RemoveAt(0);
 
-            if (peaks2.Count == 1) {
-                int pk = peaks2[0];
+            if (peaks.Count == 1) {
+                int pk = peaks[0];
                 if ((pk <= minDist) || (L - pk) <= minDist)
                     return new List<int>();
             }
 
-            if (peaks2.Count > PK) {
-                peaks2.Sort(delegate (int i, int j) {
+            if (peaks.Count > PK) {
+                peaks.Sort(delegate (int i, int j) {
                     double dv = vs[j] - vs[i];
                     return (dv == 0) ? 0 : (dv > 0) ? 1 : -1;
                 });
-                peaks2 = peaks2.GetRange(0, PK);
+                peaks = peaks.GetRange(0, PK);
             }
-            peaks2.Sort();
+            peaks.Sort();
 
             // Move the peaks back to the left for half peak-interval:
-            for (int k = peaks2.Count - 1; k >= 0; k--) {
-                int p0 = (k == 0) ? 0 : peaks2[k - 1];
-                int p1 = peaks2[k];
+            for (int k = peaks.Count - 1; k >= 0; k--) {
+                int p0 = (k == 0) ? 0 : peaks[k - 1];
+                int p1 = peaks[k];
                 if (brokenSet.Contains(p1)) // Don't shift the chain-broken peaks.
                     continue;
                 if ( (p1 - p0) >= 2 ) {
                     for (int p = p1; p > p0; p--) {
                         if ( (vs[p] < vs[p - 1]) && (vs[p]<meanPk) ) {
-                            peaks2[k] = (p1 + p) / 2;
+                            peaks[k] = (p1 + p) / 2;
                             break;
                         }
                     }
                 }
             }
  
-            return peaks2;
+            return peaks;
         }
 
         public void GlobeChainTrans(List<IBody> bList, double[] R, int PK, double mom) {
