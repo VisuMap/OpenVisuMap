@@ -44,7 +44,7 @@ def MainMain(menuKey):
 		case 'P-Map':
 			def PM2(*args, **kwargs):
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), *args,**kwargs)
-				VisChainSize(2)
+				#VisChainSize(2)
 			#vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', 'gFT', 'gSZ']
 			vList = ['gSZ']
 			for vt in vList:
@@ -284,7 +284,7 @@ MainMain(vv.EventSource.Item)
 dnList = dnList[dnList.index(vv.Dataset.Name):]
 print(dnList)
 
-dnList = list(vv.Folder.DatasetNameList)[2:]
+dnList = list(vv.Folder.DatasetNameList)[1:]
 DoDatasetList(dnList, createPMap=True, createAtlas=False)
 
 for dn in dnList:
