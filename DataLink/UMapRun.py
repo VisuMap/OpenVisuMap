@@ -73,7 +73,8 @@ def DoTest():
 #====================================================================================
 try:
   cmd = vm.DataLinkCmd()
-  for cfg in [4, 3, 0, 1, 2]:
+  #for cfg in [4, 3, 0, 1, 2]:
+  for cfg in [4]:
     ResetTest(cfg)
     DoTest()
     #cmd.RunScript('vv.GuiManager.TileAllWindows()')
