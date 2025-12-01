@@ -1133,17 +1133,19 @@ def AlignSeqPair(parentWin):
 def ResetAtlas():
 	srcName = vv.EventSource.Form.Name
 	mk = vv.ModifierKeys
-	n=pp.SelectedItems.Count
+	n = pp.SelectedItems.Count
 	if srcName not in ['MainForm', 'MdsCluster', 'Atlas']: 
 		return
-	if mk.AltPressed or mk.ControlPressed:
+	if mk.ControlPressed:
+		return
+	if mk.AltPressed and srcName == 'Atlas': 
+		pp.ClickMenu('More.../Show Selected')
+		pp.ResetView()
 		return
 	if n!=0 and n<6:
 		return
 	pp.ResetView()
 
 '''
-
-print(f'{1234566:,}')
 
 '''

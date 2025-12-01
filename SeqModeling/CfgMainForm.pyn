@@ -39,7 +39,7 @@ def MainMain(menuKey):
 				vv.Return()
 			OpenCifFile(pId)
 		case 'P-2D':
-			CreateProteinMaps(pList, samplingDist=0.0, atlasName=atlasName, 
+			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, 
 				tP = (1000, 2, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
