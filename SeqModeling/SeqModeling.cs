@@ -518,7 +518,9 @@ namespace VisuMap {
         }
 
         public void GlobeChainTrans(List<IBody> bList, double[] R, int PK, double mom) {
-            var peaks = GetGlobePeaks(bList, PK, mom);       
+            List<int> peaks = ( mom == 0) ? Enumerable.Range(0, PK).Select(k => (k + 1) * (bList.Count / (PK + 1))).ToList() 
+                : GetGlobePeaks(bList, PK, mom);
+
             List<List<IBody>> globeList = new List<List<IBody>>();
 
             if (peaks.Count == 0) {

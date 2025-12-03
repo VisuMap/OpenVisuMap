@@ -454,7 +454,13 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE
 		dt.RowSpecList[k].Disabled = False
 
 	if justShDt:
-		dt.ShowHeatMap()
+		hm = dt.ShowHeatMap()
+		'''
+		hm.MouseClick(5,5)
+		hm.ClickMenu('PyUtils/UMAP')
+		vv.Wait(1000)
+		hm.Close()
+		'''
 		return
 
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=0.7, glyphOpacity=0.2, staged=staged, 
@@ -1100,8 +1106,13 @@ def VisChainSize(szType=2):
 			for b in bList:
 				chType = ds.StringAt(b.Id, 0)
 				typeIdx = 0 if chType=='A' else ( 99 if chType=='r' else 97 )
-				b.Type = typeIdx		
-	pp.Map.Redraw()
+				b.Type = typeIdx
+	if pp.Name == 'MainForm':
+		pp.Map.Redraw()
+	else:
+		pp.RedrawAll()
+
+# VisChainSize(4)
 
 def AlignSeqPair(parentWin):
 	from Bio.Align import PairwiseAligner
@@ -1133,19 +1144,22 @@ def AlignSeqPair(parentWin):
 def ResetAtlas():
 	srcName = vv.EventSource.Form.Name
 	mk = vv.ModifierKeys
-	n = pp.SelectedItems.Count
-	if srcName not in ['MainForm', 'MdsCluster', 'Atlas']: 
+	if pp.SelectedItems.Count<6: return
+	atlas = pp
+
+	if srcName not in ['MainForm', 'MdsCluster', 'Atlas', 'MapSnapshot']: 
 		return
-	if mk.ControlPressed:
-		return
-	if mk.AltPressed and srcName == 'Atlas': 
-		pp.ClickMenu('More.../Show Selected')
-		pp.ResetView()
-		return
-	if n!=0 and n<6:
-		return
-	pp.ResetView()
+	if srcName == 'Atlas' and mk.AltPressed: 
+		atlas.ClickMenu('More.../Show Selected')
+		atlas.ResetView()
+	else:
+		if mk.ControlPressed or mk.ShiftPressed or mk.AltPressed:
+			return
+		atlas.ResetView()
 
 '''
+
+db = New.DbscanCluster()
+db.SetNumberTable(nt)
 
 '''

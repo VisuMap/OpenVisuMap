@@ -50,7 +50,7 @@ def MainMain(menuKey):
 			for vt in vList:
 				match vt:
 					case 'gSZ':
-						PM2(PK=4, tSNE=(0.025, 8.0, 1.0))
+						PM2(PK=4, mom=0, tSNE=(0.05, 4.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=32, waveLen=32, mom=0.95, tSNE=(0.1, 3.0, 1.0))
 					case 'pMF':
@@ -291,6 +291,8 @@ for dn in dnList:
 	vv.Folder.OpenDataset(dn)
 	mpList = list(vv.Dataset.MapNameList)
 	for mp in mpList[1:]:
-		vv.Dataset.DeleteMap(mp)
+		#vv.Dataset.DeleteMap(mp)
+		vv.Dataset.OpenMap(mp)
+		vv.Map.GlyphSet = 'Colored Particles||||'
 
 '''
