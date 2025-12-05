@@ -1139,15 +1139,23 @@ def AlignSeqPair(parentWin):
 		New.TextPanel(f'Alignment-{k+1}: {pIds[0]}:{pIds[1]}; Score={int(ag.score)}; Ratio={ratio:.3g}', str(ag)).Show()
 		if k >= 0: break
 
+preClickTime = 0
+def DoubleClicked():
+	global preClickTime
+	newClickTime = time.time()
+	timeSpan = newClickTime - preClickTime
+	preClickTime = newClickTime
+	return timeSpan < 0.4
+
 def ResetAtlas():
 	atlas = pp
 	srcName = vv.EventSource.Form.Name
 	mk = vv.ModifierKeys
+	n = atlas.SelectedItems.Count
 
-	n = atlas.SelectedItems.Count 
+	if DoubleClicked(): 
+		atlas.ResetView()
 	if n < 6: 
-		if n == 0 and mk.AltPressed:
-			atlas.ResetView()		
 		return
 
 	if srcName in [ 'Atlas' ]:
@@ -1158,8 +1166,7 @@ def ResetAtlas():
 			if mk.ControlPressed and mk.ShiftPressed:
 				pass
 			else:
-				atlas.ResetView()
-				atlas.SelectedItems = []			
+				atlas.ResetView(True)
 	elif scrName in ['MainForm', 'MdsCluster', 'MapSnapshot']: 
 		if mk.ControlPressed or mk.ShiftPressed or mk.AltPressed:
 			return
