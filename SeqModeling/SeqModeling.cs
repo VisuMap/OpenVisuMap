@@ -391,7 +391,7 @@ namespace VisuMap {
             }
         }
 
-        void SmoothenSeries(double[] vs) {
+        public double[] SmoothenSeries(double[] vs) {
             int L = vs.Length;
             double pv = vs[0];
             vs[0] = 0.5 * (pv + vs[0]);
@@ -401,6 +401,7 @@ namespace VisuMap {
                 vs[k] = vk;
             }
             vs[L - 1] = 0.5 * (pv + vs[L - 1]);
+            return vs;
         }
 
         public double[] GlobeDistances2(IList<IBody> bList, double mom) {

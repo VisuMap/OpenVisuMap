@@ -284,6 +284,7 @@ def GetGlobeChainTrans(pList, waveCount=20, waveLen=256, mom=0.99):
 			vv.Title = f'Reading: {k:,}:{pId} of {len(pList):,}'
 			vv.DoEvents()
 		bDist = cs.GlobeDistances(LoadChain(pId), mom)
+		#for n in range(3): cs.SmoothenSeries(bDist)
 		cs.GlobeChainTransFT(bDist, tm, D.Matrix[k])
 	return D
 
@@ -455,12 +456,9 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE
 
 	if justShDt:
 		hm = dt.ShowHeatMap()
-		'''
 		hm.MouseClick(5,5)
 		hm.ClickMenu('PyUtils/UMAP')
-		vv.Wait(1000)
 		hm.Close()
-		'''
 		return
 
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=0.7, glyphOpacity=0.2, staged=staged, 
@@ -1142,24 +1140,32 @@ def AlignSeqPair(parentWin):
 		if k >= 0: break
 
 def ResetAtlas():
+	atlas = pp
 	srcName = vv.EventSource.Form.Name
 	mk = vv.ModifierKeys
-	if pp.SelectedItems.Count<6: return
-	atlas = pp
 
-	if srcName not in ['MainForm', 'MdsCluster', 'Atlas', 'MapSnapshot']: 
+	n = atlas.SelectedItems.Count 
+	if n < 6: 
+		if n == 0 and mk.AltPressed:
+			atlas.ResetView()		
 		return
-	if srcName == 'Atlas' and mk.AltPressed: 
-		atlas.ClickMenu('More.../Show Selected')
-		atlas.ResetView()
-	else:
+
+	if srcName in [ 'Atlas' ]:
+		if mk.AltPressed: 
+			atlas.ClickMenu('More.../Show Selected')
+			atlas.ResetView()
+		else:
+			if mk.ControlPressed and mk.ShiftPressed:
+				pass
+			else:
+				atlas.ResetView()
+				atlas.SelectedItems = []			
+	elif scrName in ['MainForm', 'MdsCluster', 'MapSnapshot']: 
 		if mk.ControlPressed or mk.ShiftPressed or mk.AltPressed:
 			return
 		atlas.ResetView()
+		atlas.SelectedItems = None
 
 '''
-
-db = New.DbscanCluster()
-db.SetNumberTable(nt)
 
 '''
