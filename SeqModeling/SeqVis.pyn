@@ -257,13 +257,16 @@ def SelectHelixAA(nt):
 		nt = nt.SelectRows(idxList)
 	return nt
 
+def ReportLoop(k, pId, pList):
+	if (k>0) and (k%500 == 0):
+		vv.Title = f'Reading: {pId}; {k:,}-th of {len(pList):,}'
+		vv.DoEvents()
+
 def GetMeanFieldTrans(pList, L=20, cf=0.0):
 	bList = vv.Dataset.BodyListForId(pList)
 	D = New.NumberTable(bList, L*3)
 	for k, pId in enumerate(pList):
-		if (k>0) and (k%200 == 0):
-			vv.Title = f'Reading: {k:,}:{pId} of {len(pList):,}'
-			vv.DoEvents()
+		ReportLoop(k, pId, pList)
 		bList = LoadChain(pId)
 
 		if cf != 0.0:
@@ -280,11 +283,8 @@ def GetGlobeChainTrans(pList, waveCount=20, waveLen=256, mom=0.99):
 	tm = GetFourier(waveLen, waveCount)
 	#for row in range(tm.Rows):	tm.Matrix[row][0] *= 0.75
 	for k, pId in enumerate(pList):
-		if (k>0) and (k%200 == 0):
-			vv.Title = f'Reading: {k:,}:{pId} of {len(pList):,}'
-			vv.DoEvents()
+		ReportLoop(k, pId, pList)
 		bDist = cs.GlobeDistances(LoadChain(pId), mom)
-		#for n in range(3): cs.SmoothenSeries(bDist)
 		cs.GlobeChainTransFT(bDist, tm, D.Matrix[k])
 	return D
 
@@ -348,8 +348,7 @@ def GetS2MF(pList, tP):
 		tsne = FastTsne(maxPoints, 3, outDim, epochs, ppl, initExag, finalExag)
 
 	for k, pId in enumerate(pList):
-		if k>0 and k%200==0:
-			vv.Title = f'Reading: {k:,}:{pId} of {len(pList):,}'
+		ReportLoop(k, pId, pList)
 		nt = New.NumberTable( LoadChain(pId),  3)
 		cs.ToSphere(nt, sf)
 		if tsne!=None and nt.Rows>1:
@@ -372,9 +371,7 @@ def GetFourierTrans(pList, waveLen, waveCount, cf=0.0):
 	L = 3*waveCount
 	pD = New.NumberTable(vv.Dataset.BodyListForId(pList), L)
 	for k, pId in enumerate(pList):
-		if (k>0) and (k%200 == 0):
-			vv.Title = f'Reading: {k:,}:{pId} of {len(pList):,}'
-			vv.DoEvents()
+		ReportLoop(k, pId, pList)
 		bList = LoadChain(pId)
 		if  cf != 0.0:
 			bList = cs.TorsionUnfold(bList, cf)
@@ -1149,16 +1146,14 @@ def DoubleClicked():
 
 def ResetAtlas():
 	atlas = pp
-	srcName = vv.EventSource.Form.Name
 	mk = vv.ModifierKeys
-	n = atlas.SelectedItems.Count
+	srcName = vv.EventSource.Form.Name
 
-	if DoubleClicked(): 
-		atlas.ResetView()
-	if n < 6: 
+	if DoubleClicked() and srcName=='Atlas':
+		atlas.ResetView(True)
+	elif pp.SelectedItems.Count < 6: 
 		return
-
-	if srcName in [ 'Atlas' ]:
+	elif srcName == 'Atlas':
 		if mk.AltPressed: 
 			atlas.ClickMenu('More.../Show Selected')
 			atlas.ResetView()
@@ -1167,11 +1162,8 @@ def ResetAtlas():
 				pass
 			else:
 				atlas.ResetView(True)
-	elif scrName in ['MainForm', 'MdsCluster', 'MapSnapshot']: 
-		if mk.ControlPressed or mk.ShiftPressed or mk.AltPressed:
-			return
-		atlas.ResetView()
-		atlas.SelectedItems = None
+	elif srcName in ['MainForm', 'MdsCluster', 'MapSnapshot']: 
+		atlas.ResetView(True)
 
 '''
 
