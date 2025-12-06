@@ -1145,25 +1145,23 @@ def DoubleClicked():
 	return timeSpan < 0.4
 
 def ResetAtlas():
-	atlas = pp
 	mk = vv.ModifierKeys
-	srcName = vv.EventSource.Form.Name
-
-	if DoubleClicked() and srcName=='Atlas':
-		atlas.ResetView(True)
-	elif pp.SelectedItems.Count < 6: 
-		return
-	elif srcName == 'Atlas':
-		if mk.AltPressed: 
-			atlas.ClickMenu('More.../Show Selected')
-			atlas.ResetView()
+	if vv.EventSource.Form.Name == 'Atlas':  
+		# The event is initiated by an atlas view:
+		if DoubleClicked():
+			pp.ResetView(True)
+		elif pp.SelectedItems.Count < 6: 
+			return
+		elif mk.AltPressed: 
+			pp.ClickMenu('More.../Show Selected')
+			pp.ResetView()
 		else:
-			if mk.ControlPressed and mk.ShiftPressed:
-				pass
-			else:
-				atlas.ResetView(True)
-	elif srcName in ['MainForm', 'MdsCluster', 'MapSnapshot']: 
-		atlas.ResetView(True)
+			if not mk.ControlPressed:
+				pp.ResetView(True)
+	else:
+		# The event has been passed from another view to the atlas view
+		if pp.SelectedItems.Count >= 6:
+			pp.ResetView(False)
 
 '''
 
