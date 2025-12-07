@@ -407,7 +407,8 @@ def GetMFSeq(pList, aaGroups, mfL):
 	return cs.MFVectorize(seqList, aaGroups, mfL)
 
 
-def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE=None, tP=None, cf=0.0, justShDt=False,
+def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, 
+		gSize=0.7, gOpacity=0.2, tSNE=None, tP=None, cf=0.0, justShDt=False,
 		aaGroups='A', waveLen=1024, waveCount=33, mfL=20, mom=0.95, PK=2, staged=False, filterP=(0.0,2,0)):
 	pTable = AssertProteinTable()	
 	ppl, initExag, finalExag = tSNE
@@ -458,8 +459,8 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, tSNE
 		hm.Close()
 		return
 
-	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=0.7, glyphOpacity=0.2, staged=staged, 
-		initExag=initExag, finalExag=finalExag, ppl=ppl)
+	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=gSize, glyphOpacity=gOpacity, 
+		staged=staged, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Mtd = 'Hrm'  
 	info.Set('vType', vType)
@@ -1146,7 +1147,7 @@ def DoubleClicked():
 
 def ResetAtlas():
 	mk = vv.ModifierKeys
-	if vv.EventSource.Form.Name == 'Atlas':  
+	if vv.EventSource.Form.Name == 'Atlas':
 		# The event is initiated by an atlas view:
 		if DoubleClicked():
 			pp.ResetView(True)

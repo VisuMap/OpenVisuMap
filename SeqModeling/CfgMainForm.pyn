@@ -1,7 +1,8 @@
-#MenuLabels ChmX Web Siblings vsSz SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 U3 sS sU sT TT
+#MenuLabels ChmX Web Info Siblings vsSz SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 U3 sS sU sT TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
+import numpy as np
 
 def MainMain(menuKey):
 	global ctrPressed
@@ -50,7 +51,7 @@ def MainMain(menuKey):
 			for vt in vList:
 				match vt:
 					case 'gFT':
-						PM2(waveCount=8, waveLen=256, mom=0.95, tSNE=(0.05, 8.0, 1.0))
+						PM2(waveCount=16, waveLen=256, mom=0.95, tSNE=(0.05, 8.0, 1.0))
 					case 'gSZ':
 						PM2(PK=4, mom=0, tSNE=(0.05, 4.0, 1.0))
 					case 'pMF':
@@ -97,14 +98,25 @@ def MainMain(menuKey):
 			cs.NormalizeChain(bList)
 			info=MapInfo().Set('pId', pId)
 			ShowBodyList(bList, info=info)
+		case 'Info':
+			ShowMapInfo()	
 		case 'TT':
 			#ShowBondLength4(selected)
-			ShowBondLength3(selected)
+			#ShowBondLength3(selected)
 			#ShowBondLength2(mom=0.95)
 			TorsionMap(pId, mom=0.95)
-			MainMain('3D')
+			#MainMain('3D')
 
 # ---------------------------------------------------------------------------------------
+def ShowMapInfo():
+	info = MapInfo(pp.Map.Description)
+	title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name};  SeqCount:{vv.Dataset.Rows:,}'
+	tp = New.TextPanel(title, '')
+	for pn, pv in info.__dict__.items():
+		if pv != None:
+			tp.AddLine(f'{pn:>10}: {pv:<16}')
+	tp.Show()
+
 
 def SortByPosX(idList):
 	idList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
@@ -175,7 +187,6 @@ def ShowBondLength2(chType='A', mom=0.99):
 	vw.Title = f'{nt.Rows}x{nt.Columns}'
 
 def ShowBondLength3(selected):
-	import numpy as np
 	for pId in selected[:5]:
 		bList = LoadChain(pId)
 		vs = cs.GlobeDistances2(bList, mom=0.95)
@@ -196,7 +207,6 @@ def ShowBondLength3(selected):
 		bv.Show()
 
 def ShowBondLength4(selected):
-	import numpy as np
 	pList = selected
 	itemList = New.ValueItemList(vv.Dataset.BodyListForId(pList))
 	for item in itemList:
@@ -283,6 +293,7 @@ MainMain(vv.EventSource.Item)
 
 dnList = dnList[dnList.index(vv.Dataset.Name):]
 print(dnList)
+
 
 dnList = list(vv.Folder.DatasetNameList)[1:]
 DoDatasetList(dnList, createPMap=True, createAtlas=False)
