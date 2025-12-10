@@ -1,4 +1,4 @@
-#MenuLabels Scanning Smoothen P-2D HideIPO MarkHelix MarkBeta RnaChain Flipping Looping Gb PID Tr S2 TT
+#MenuLabels Scanning Smoothen 2D Seq HideIPO MarkHelix MarkBeta RnaChain Flipping Looping Gb PID Tr S2 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -8,9 +8,11 @@ def Map3DMain(menuKey):
 			Scanning(pp, stepSize=2, broadcasting=vv.ModifierKeys.ControlPressed)
 		case 'Smoothen':
 			SmoothenCurve(pp, repeats=50)
-		case 'P-2D':
+		case '2D':
 			UnFoldMap(pp, repeats=0, epochs=3000, initExag=10.0, ppl=0.15, 
 				stretch=1.0, clusterStretch=0, expandFactor=1.0)
+		case 'Seq':
+			ShowAASeq(pp)
 		case 'HideIPO':
 			HideInterpolates()
 		case 'MarkHelix':

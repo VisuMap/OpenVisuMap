@@ -110,7 +110,7 @@ public List<IBody> Concatenate(List<IBody> bList1, List<IBody> bList2) {
 # protein embedding map information
 class MapInfo():
 	def __init__(self, initStr = None):
-		for nm in 'pId,Gene,pLen,DS,Epochs,InitE,FinalE,PP,AugCfg,Is3D,Mtd,SF,CF,PT'.split(','):
+		for nm in 'pId,Gene,pLen,DS,Epochs,InitE,FinalE,PP,AugCfg,Is3D,SF,CF,PT'.split(','):
 			setattr(self, nm, None)
 		if initStr is not None:
 			self.ParseStr(initStr)
@@ -277,14 +277,17 @@ def GetMeanFieldTrans(pList, L=20, cf=0.0):
 		cs.MeanFieldTrans(nt, D.Matrix[k])
 	return D
 
-def GetGlobeChainTrans(pList, waveCount=20, waveLen=256, mom=0.99):
+def GetGlobeChainTrans(pList, waveCount=20, waveLen=256, mom=0.99, cf=0.0):
 	bList = vv.Dataset.BodyListForId(pList)
 	D = New.NumberTable(bList, waveCount)
 	tm = GetFourier(waveLen, waveCount)
 	#for row in range(tm.Rows):	tm.Matrix[row][0] *= 0.75
 	for k, pId in enumerate(pList):
 		ReportLoop(k, pId, pList)
-		bDist = cs.GlobeDistances(LoadChain(pId), mom)
+		bs = LoadChain(pId)
+		if  cf != 0.0:
+			bs = cs.TorsionUnfold(bs, cf)
+		bDist = cs.GlobeDistances(bs, mom)
 		cs.GlobeChainTransFT(bDist, tm, D.Matrix[k])
 	return D
 
@@ -432,7 +435,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None,
 		case 'gSZ':
 			dt = cs.GlobeChainTransList(pList, PK=PK, mom=mom)
 		case 'gFT':
-			dt = GetGlobeChainTrans(pList, waveCount, waveLen, mom=mom)
+			dt = GetGlobeChainTrans(pList, waveCount, waveLen, mom=mom, cf=cf)
 		case 'pMF':
 			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf)
 		case 'pFT':
@@ -462,13 +465,13 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None,
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=gSize, glyphOpacity=gOpacity, 
 		staged=staged, initExag=initExag, finalExag=finalExag, ppl=ppl)
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	info.Mtd = 'Hrm'  
 	info.Set('vType', vType)
 	info.Set('aaG', aaGroups)
 	info.Set('wvL', waveLen)
 	info.Set('wvCnt', waveCount)
 	info.Set('mfL', mfL)
 	info.Set('mom', mom)
+	info.Set('cf', cf)
 	info.Set('pCnt', dt.Rows)
 	info.Set('tP', tP)	
 	info.Set('fP', filterP)
@@ -699,7 +702,6 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 	mds.RefreshFreq = 500
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.AugCfg = augCfg
-	info.Mtd = 'Frg'
 	info.DS = vv.Dataset.Name
 	mapStore = NewMapStore(saveTo)
 
@@ -748,37 +750,32 @@ def ShowAASeq(pMap):
 	pSelected = pMap.GetSelectedBodies()
 	if pSelected.Count == 0:
 		pSelected = pMap.BodyListEnabled()
-	if info.Mtd == 'PDB':
-		pSeq = []
-		preType = -1
-		for b in pSelected:
-			if b.Type != preType:
-				if len(pSeq) > 0:
-					pSeq.append('\n')
-				preType = b.Type
-				pSeq.append(f'[{b.Type}]:')
-			if (b.Id[0] == 'A'):
-				nm = b.Name
-				if (nm[0] == 'r') or (nm[0] == 'd'):
-					pSeq.append(nm[2])
-				else:
-					pSeq.append(nm[0])
-		pSeq = ''.join(pSeq)
-		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}: {info.PT}', pSeq)
-	else:
-		ch = pSelected[0].Name[0]
-		chIdx = 2 if ch in {'r', 'd'} else 0
-		pSeq = ''.join([b.Name[chIdx] for b in pSelected if b.Id[0] == 'A']).upper()
-		tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}', pSeq)
-		tp.Tag = pMap
-		tp.OnSelection = '@OnSeqSelection()'
-		pMap.AddEventHandler('ItemsSelected', '@OnSeqSelected()')
-		bId2Idx = {pMap.BodyList[k].Id:k for k in range(pMap.BodyList.Count)}
-		pMap.Tag = (tp, bId2Idx)
+	for k, b in enumerate(pSelected):
+		if b.Type == SeqMap_HEAD and (k+1)<pSelected.Count:
+			b.Type = pSelected[k+1].Type
+		elif b.Type == SeqMap_TAIL and k > 0:
+			b.Type = pSelected[k-1].Type
+	pSeq = []
+	preType = -1
+	for b in pSelected:
+		if b.Type != preType:
+			if len(pSeq) > 0:
+				pSeq.append('\n')
+			preType = b.Type
+			pSeq.append(f'[{b.Type}]:')
+		if (b.Id[0] == 'A'):
+			nm = b.Name
+			if (nm[0] == 'r') or (nm[0] == 'd'):
+				pSeq.append(nm[2])
+			else:
+				pSeq.append(nm[0])
+	pSeq = ''.join(pSeq)
+	tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}: {info.PT}', pSeq)
+	cs.NormalizeChain(bList, 0, True)
 	tp.AddLine('\n')
 	for pn, pv in info.__dict__.items():
 		if pv != None:
-			tp.AddLine(f'{pn}\t{pv}')
+			tp.AddLine(f'{pn:>10}  {pv:<16}')
 	tp.Show()
 
 

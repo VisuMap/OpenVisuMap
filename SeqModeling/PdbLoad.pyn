@@ -62,7 +62,6 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 	info = MapInfo()
 	info.pId = pId
 	info.pLen = bsList.Count
-	info.Mtd = 'PDB'
 	info.PT = SimplifyTitle(pdbTitle)
 	info.Set('HA', includeHA)	
 	mp = ShowBodyList(bsList, gSize=glyphSize, gOpacity=glyphOpacity, info=info)
@@ -162,7 +161,6 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 			info.CF = expandFactor
 			info.pId = pId
 			info.pLen = bList.Count
-			info.Mtd = 'PDB'
 			info.PT = SimplifyTitle(pdbTitle)
 			info.DS = f'DS:{vv.Dataset.Name}'
 			info.Set('HA', includeHA)

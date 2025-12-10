@@ -46,18 +46,20 @@ def MainMain(menuKey):
 			def PM2(*args, **kwargs):
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
 				#VisChainSize(2)
-			#vList = ['pMF', 'pFT', 'sMF', 'sFT', 'rMF', 'tMF', 'tFT', 'gFT', 'gSZ']
+			#vList = ['gFT', 'gSZ', 'pFT',      'pMF', 'sMF', 'rMF', 'tMF', 'tFT',  'sFT']
 			vList = ['gFT']
 			for vt in vList:
 				match vt:
 					case 'gFT':
-						PM2(waveCount=16, waveLen=256, mom=0.95, tSNE=(0.05, 8.0, 1.0))
+						for v in [0.01, 0.025, 0.05, 0.1, 0.2]:
+							PM2(waveCount=20, waveLen=512, mom=0.95, cf=0.5, tSNE=(v, 8.0, 1.0))
 					case 'gSZ':
 						PM2(PK=4, mom=0, tSNE=(0.05, 4.0, 1.0))
 					case 'pMF':
 						PM2(mfL=20, cf=0.0, tSNE=(0.1, 4.0, 1.0))
 					case 'pFT':	
-						PM2(waveCount=30, cf=0.5, tSNE=(0.1, 4.0, 1.0))	
+						for v in [0.1, 0.15, 0.2, 0.25]:
+							PM2(waveCount=30, waveLen=512, cf=0.5, tSNE=(v, 4.0, 1.0))	
 					case 'sFT':	
 						PM2(aaGroups=GetAAGroup(20), tSNE=(0.05, 6.0, 0.9))
 					case 'sMF':	
@@ -245,29 +247,11 @@ def DoDatasetList(dnList = [vv.Dataset.Name], initMap=0, sampleSize=0, closure=F
 		vv.Folder.OpenDataset(dn)
 		ds = vv.Dataset
 		cmpCnt = 0
+		chList = []
 
 		if initMap >= 0:
 			ds.OpenMap(ds.MapNameList[initMap])
 
-		if sampleSize > 0:
-			bs = [b.Id for b in ds.BodyListEnabled()]
-			random.seed(321)
-			chList = random.sample(bs, min(sampleSize, len(bs)))
-			random.seed(time.time())
-		else:
-			chList = []
-
-		if closure:
-			chList, cmpCnt = Siblings(chList)
-			L = len(chList)
-			if (maxSize > 0) and (L > maxSize):
-				lastId =  chList[maxSize-1][:4]
-				for k in range(maxSize, L):
-					if not chList[k].startswith(lastId):
-						break
-				chList = chList[:k]
-				cmpCnt = len(set([p[:4] for p in chList]))
-			#print(f'\t\t\tP-Complexes: {cmpCnt}; Siblings: {len(chList)}')
 
 		if createPMap:
 			chList = [b.Id for b in ds.BodyListEnabled()]
@@ -300,7 +284,8 @@ DoDatasetList(dnList, createPMap=True, createAtlas=False)
 
 for dn in dnList:
 	vv.Folder.OpenDataset(dn)
-	mpList = list(vv.Dataset.MapNameList)
+	#VisChainSize(4)
+	mpList = list(vv.Dataset.MapNameList)	
 	for mp in mpList[1:]:
 		#vv.Dataset.DeleteMap(mp)
 		vv.Dataset.OpenMap(mp)

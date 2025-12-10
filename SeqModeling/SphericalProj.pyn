@@ -157,7 +157,6 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 		mds.RefreshFreq = 0
 		atlasName = 'S2.' + atlasName
 		mapStore = NewMapStore(atlasName)			
-		info.Mtd = 'S2'
 		info.Set('cF', ctrF)
 		if samplingDist != 0:
 			pList = cs.FlatSampling(pList, samplingDist=samplingDist)
