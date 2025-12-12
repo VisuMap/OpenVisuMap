@@ -278,18 +278,12 @@ def GetMeanFieldTrans(pList, L=20, cf=0.0):
 	return D
 
 def GetGlobeChainTrans(pList, waveCount=20, waveLen=256, mom=0.99, cf=0.0):
-	bList = vv.Dataset.BodyListForId(pList)
-	D = New.NumberTable(bList, waveCount)
+	from os.path import exists
+	for pId in pList:
+		if not exists(	f'{CHAIN_CACHE}/{pId}.pmc'):
+			UnpackChain(pId[:4])
 	tm = GetFourier(waveLen, waveCount)
-	#for row in range(tm.Rows):	tm.Matrix[row][0] *= 0.75
-	for k, pId in enumerate(pList):
-		ReportLoop(k, pId, pList)
-		bs = LoadChain(pId)
-		if  cf != 0.0:
-			bs = cs.TorsionUnfold(bs, cf)
-		bDist = cs.GlobeDistances(bs, mom)
-		cs.GlobeChainTransFT(bDist, tm, D.Matrix[k])
-	return D
+	return cs.GlobeTransFT(pList, mom, cf, tm)
 
 # t-SNE reduced data
 def MaxRows(ds, pList, intRp):

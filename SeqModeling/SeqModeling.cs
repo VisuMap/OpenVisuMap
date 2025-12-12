@@ -440,6 +440,24 @@ namespace VisuMap {
             return D;
         }
 
+        public INumberTable GlobeTransFT(List<string> pList, double mom, double cf, INumberTable tm) {
+            List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
+            INumberTable D = New.NumberTable(bList, tm.Columns);
+            double[][] M = D.Matrix as double[][];
+            MT.LoopNoblocking(0, pList.Count, k => {
+                string pId = pList[k];
+                var bs = LoadChain3D($"C:/temp/ChainCache/{pList[k]}.pmc");
+                if (cf != 0.0)
+                    bs = TorsionUnfold(bs, cf);
+                var bDist = GlobeDistances(bs, mom);
+                GlobeChainTransFT(bDist, tm, M[k]);
+                if ((k > 0) && (k % 500 == 0)) {
+                    vv.Title = $"Reading chains: {k} of {pList.Count}";
+                }
+            });
+            return D;
+        }
+
         public List<int> GetGlobePeaks(IList<IBody> bList, int PK, double mom) {
             if (PK <= 0)
                 return new List<int>();

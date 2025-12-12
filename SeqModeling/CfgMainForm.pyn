@@ -101,11 +101,8 @@ def MainMain(menuKey):
 		case 'Info':
 			ShowMapInfo()	
 		case 'TT':
-			#ShowBondLength4(selected)
-			#ShowBondLength3(selected)
-			#ShowBondLength2(mom=0.95)
-			TorsionMap(pId, mom=0.95)
-			#MainMain('3D')
+			ShowBondLength3(pId)
+			#TorsionMap(pId, mom=0.95)
 
 # ---------------------------------------------------------------------------------------
 def ShowMapInfo():
@@ -168,57 +165,23 @@ def ShowBondLength(chType='A'):
 	vw.Title = f'{nt.Rows}x{nt.Columns}'
 	vw.Show()
 
-def ShowBondLength2(chType='A', mom=0.99):
-	nnList = SelectChains(chType)
-	maxCol = max([vv.Dataset.IntAt(id, 3) for id in nnList])
-	nt = New.NumberTable(len(nnList), maxCol)
-	g = 1 - mom
-	for row, chId in enumerate(nnList):
-		bList = LoadChain(chId)
-		nt.RowSpecList[row].Id = chId		
-		vs = cs.GlobeDistances(bList, mom, nt.Matrix[row])
-		if row==0:
-			csList = nt.ColumnSpecList
-			for k, b in enumerate(bList):
-				csList[k].CopyFromBody(b)
-	vw = New.BarBand(nt)
-	vw.AutoScaling = True
-	vw.Show()
-	vw.Title = f'{nt.Rows}x{nt.Columns}'
 
-def ShowBondLength3(selected):
-	for pId in selected[:5]:
-		bList = LoadChain(pId)
-		vs = cs.GlobeDistances2(bList, mom=0.95)
-		peaks = cs.GetGlobePeaks(bList, PK=3, mom=0.95)
-		sm = np.mean(vs) + np.std(vs)
+def ShowBondLength3(pId):
+	bList0 = LoadChain(pId)
+	for cf in [-0.5, 0, 0.5]:
+		bList = cs.TorsionUnfold(bList0, cf)
+		momentum = 0.95
+		vs = cs.GlobeDistances(bList, mom=momentum)
 		bv = New.BarView( vs )	
 		for k in range(vs.Length):
 			bv.ItemList[k].Id = bList[k].Id
-		for k in peaks: 
-			bv.ItemList[k].Group = 4
 		bv.Description = f'pId:{pId}'
 		bv.Horizontal = False
 		bv.NormalizeView()
-		bv.Title = 'Chain: ' + pId
-		bv.BaseValueExplicit = sm
-		bv.BaseLineType=6
+		bv.Title = f'Chain: {pId}, Mom: {momentum:.3f};  cf: {cf}'
+		bv.BaseLineType=4
 		bv.UsingColorPalette = True
 		bv.Show()
-
-def ShowBondLength4(selected):
-	pList = selected
-	itemList = New.ValueItemList(vv.Dataset.BodyListForId(pList))
-	for item in itemList:
-		bList = LoadChain(item.Id)
-		vs = cs.GlobeDistances2(bList, mom=0.95)
-		item.Value = math.sqrt( np.mean(vs) ) + math.sqrt( np.std(vs) )
-	bv = New.BarView(itemList)
-	bv.BaseLineType = 1
-	bv.Horizontal = False
-	bv.NormalizeView()
-	bv.Show()
-
 	
 def HelixTest():
 	bPID = LoadChain(pId);
