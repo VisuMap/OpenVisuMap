@@ -655,26 +655,45 @@ def GetAAGroup(idx=0):
 			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
 
 
+ss2 = New.CsObject('''
+
+	Dictionary<char, int> ppIdx = null;
+
+	public void Init_ppIdx(string pepList) {
+		ppIdx = Enumerable.Range(0, pepList.Length).ToDictionary(k=>pepList[k], k=>k);
+	}
+
+	public void ToPepCount(string seq, double[] R) {
+		foreach( char c in seq ) {
+			int idx = ppIdx.ContainsKey(c) ? ppIdx[c] : ppIdx['x'];
+			R[idx] += 1.0;
+		}
+	}
+	
+	public string GetPepSeq(List<IBody> bList) {
+		StringBuilder sb = new StringBuilder();
+		foreach(var b in bList) {
+			char c = b.Name[0];
+			if ( c.Equals('r') || c.Equals('d') )
+				c = char.ToLower( b.Name[2] );
+			sb.Append(c);
+		}
+		return sb.ToString();
+	}
+
+''')
+
 def ShowPepCounts(pList):
-	S = ALPHABET + 'aucgtx'
-	ppIdx = {}
-	for k, c in enumerate(S): 
-		ppIdx[c] = k
-	nt = New.NumberTable(len(pList), len(S))
+	pepList = 'ARNDCEQGHILKMFPSTWYVaucgtx'
+	nt = New.NumberTable(len(pList), len(pepList))
 	for k in range(nt.Columns):
-		nt.ColumnSpecList[k].Id = S[k]
+		nt.ColumnSpecList[k].Id = pepList[k]
 	for row, pId in enumerate(pList):
 		nt.RowSpecList[row].Id = pId
-		R = nt.Matrix[row]
-		filePath = f'{PDB_CACHE}/{pId}.cif'
-		seq = cs.LoadCif(filePath, None)
-		for b in seq:
-			c = b.Name[0]
-			if c == 'r' or c=='d':
-				c = b.Name[2].lower()
-			if c not in ppIdx:
-				c = 'x'
-			R[ ppIdx[c] ] += 1
+	ss2.Init_ppIdx(pepList)
+	for row, pId in enumerate(pList):
+		bList = cs.LoadCif(f'{PDB_CACHE}/{pId}.cif', None)
+		ss2.ToPepCount(ss2.GetPepSeq(bList), nt.Matrix[row])
 		if row%50 == 0:
 			print(f'{row}: {pId}')
 		vv.DoEvents()
@@ -737,6 +756,6 @@ for dn, sList in dsList:
 
 ds = vv.Folder.ReadDataset("P-Info")
 pList = [b.Id for b in ds.BodyList]
-ShowPepCounts(pList)
+ShowPepCounts(pList[:100])
 
 '''
