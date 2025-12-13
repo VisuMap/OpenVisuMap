@@ -654,6 +654,33 @@ def GetAAGroup(idx=0):
 		case 22:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
 
+
+def ShowPepCounts(pList):
+	S = ALPHABET + 'aucgtx'
+	ppIdx = {}
+	for k, c in enumerate(S): 
+		ppIdx[c] = k
+	nt = New.NumberTable(len(pList), len(S))
+	for k in range(nt.Columns):
+		nt.ColumnSpecList[k].Id = S[k]
+	for row, pId in enumerate(pList):
+		nt.RowSpecList[row].Id = pId
+		R = nt.Matrix[row]
+		filePath = f'{PDB_CACHE}/{pId}.cif'
+		seq = cs.LoadCif(filePath, None)
+		for b in seq:
+			c = b.Name[0]
+			if c == 'r' or c=='d':
+				c = b.Name[2].lower()
+			if c not in ppIdx:
+				c = 'x'
+			R[ ppIdx[c] ] += 1
+		if row%50 == 0:
+			print(f'{row}: {pId}')
+		vv.DoEvents()
+	nt.ShowHeatMap()
+
+
 '''
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
@@ -707,4 +734,9 @@ dsList = dsList[5:]
 for dn, sList in dsList:
 	print(dn, len(sList.split(',')))
 	ImportPDBList(sList, dn)
+
+ds = vv.Folder.ReadDataset("P-Info")
+pList = [b.Id for b in ds.BodyList]
+ShowPepCounts(pList)
+
 '''
