@@ -371,7 +371,10 @@ def LoadSeq(pId):
 		c = bList[0].Name[0]
 		idx = 2 if ( c=='r' or c=='d') else 0
 		for b in bList:
-			seq.append(b.Name[idx])
+			c = b.Name[idx]
+			if idx == 2: 
+				c = c.lower()
+			seq.append(c)
 		return ''.join(seq)
 
 def ChainName(body):
@@ -683,6 +686,17 @@ ss2 = New.CsObject('''
 
 ''')
 
+def ToChainList(pList):
+	pSet = set(pList)
+	pChains = {}
+	for pId in vv.AllItems:
+		pId4 = pId[:4]
+		if pId4 in pSet:
+			if pId4 not in pChains:
+				pChains[pId4] = []
+			pChains[pId4].append(pId)
+	return pChains
+
 def ShowPepCounts(pList):
 	pepList = 'ARNDCEQGHILKMFPSTWYVaucgtx'
 	nt = New.NumberTable(len(pList), len(pepList))
@@ -691,14 +705,19 @@ def ShowPepCounts(pList):
 	for row, pId in enumerate(pList):
 		nt.RowSpecList[row].Id = pId
 	ss2.Init_ppIdx(pepList)
+	chainList = ToChainList(pList)
+	chainKeys = set(chainList.keys())
 	for row, pId in enumerate(pList):
-		bList = cs.LoadCif(f'{PDB_CACHE}/{pId}.cif', None)
-		ss2.ToPepCount(ss2.GetPepSeq(bList), nt.Matrix[row])
-		if row%50 == 0:
+		if pId in chainKeys:
+			R = nt.Matrix[row]
+			for chId in chainList[pId]:
+				ss2.ToPepCount(LoadSeq(chId), R)
+		#bList = cs.LoadCif(f'{PDB_CACHE}/{pId}.cif', None)
+		#ss2.ToPepCount(ss2.GetPepSeq(bList), nt.Matrix[row])
+		if row%100 == 0:
 			print(f'{row}: {pId}')
-		vv.DoEvents()
+			vv.DoEvents()
 	nt.ShowHeatMap()
-
 
 '''
 --- Steps to import a list of PDB id into VisuMap: ---
@@ -756,6 +775,6 @@ for dn, sList in dsList:
 
 ds = vv.Folder.ReadDataset("P-Info")
 pList = [b.Id for b in ds.BodyList]
-ShowPepCounts(pList[:100])
+ShowPepCounts(pList)
 
 '''
