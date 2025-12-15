@@ -51,7 +51,7 @@ def MainMain(menuKey):
 			for vt in vList:
 				match vt:
 					case 'gFT':
-						PM2(waveCount=20, waveLen=512, mom=0.95, cf=0.25, tSNE=(0.05, 8.0, 1.0))
+						PM2(waveCount=20, waveLen=512, mom=0.95, cf=0.25, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, waveLen=512, cf=0.25, tSNE=(0.05, 4.0, 1.0))	
 					case 'gSZ':
