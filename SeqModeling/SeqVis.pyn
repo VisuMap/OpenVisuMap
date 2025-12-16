@@ -239,6 +239,7 @@ def GetFourier(waveLen, waveCount):
 		vv.Return()
 	#ft = ft.NewHaar(waveLen)
 	#ft = ft.NewWaveletD4(waveLen)
+	#ft = ft.NewWalsh(waveLen)
 	ft = ft.NewFourier(waveLen)
 	tm = ft.BaseMatrix
 	# The columns of tm are the based vectors. The first half are real; the second half are imaginary.
@@ -430,10 +431,10 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None,
 
 	# vectorizing the sequence to a table.
 	match vType:
-		case 'gSZ':
-			dt = cs.GlobeChainTransList(pList, PK=PK, mom=mom)
 		case 'gFT':
 			dt = GetGlobeChainTrans(pList, waveCount, waveLen, mom=mom, cf=cf)
+		case 'gSZ':
+			dt = cs.GlobeChainTransList(pList, PK=PK, mom=mom)
 		case 'pMF':
 			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf)
 		case 'pFT':
@@ -1144,11 +1145,12 @@ def ResetAtlas():
 	mk = vv.ModifierKeys
 	if vv.EventSource.Form.Name == 'Atlas':
 		# The event is initiated by an atlas view:
-		if DoubleClicked():
+		# if DoubleClicked(): pp.ResetView(True)
+		if (not mk.ControlPressed) and (vv.GuiManager.MouseClickDuration < 150):
 			pp.ResetView(True)
 		elif pp.SelectedItems.Count < 6: 
 			return
-		elif mk.AltPressed: 
+		elif mk.AltPressed or vv.GuiManager.MouseClickDuration > 2000:
 			pp.ClickMenu('More.../Show Selected')
 			pp.ResetView()
 		else:
