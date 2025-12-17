@@ -770,7 +770,7 @@ def ShowAASeq(pMap):
 				pSeq.append(nm[0])
 	pSeq = ''.join(pSeq)
 	tp = New.TextPanel(f'Protein: {info.pId}, {len(pSeq)}: {info.PT}', pSeq)
-	cs.NormalizeChain(bList, 0, True)
+	cs.NormalizeChain(pSelected, 0, True)
 	tp.AddLine('\n')
 	for pn, pv in info.__dict__.items():
 		if pv != None:
@@ -1143,14 +1143,17 @@ def DoubleClicked():
 
 def ResetAtlas():
 	mk = vv.ModifierKeys
+	tm = vv.GuiManager.MouseClickDuration
+	cnt = pp.SelectedItems.Count
 	if vv.EventSource.Form.Name == 'Atlas':
 		# The event is initiated by an atlas view:
 		# if DoubleClicked(): pp.ResetView(True)
-		if (not mk.ControlPressed) and (vv.GuiManager.MouseClickDuration < 150):
-			pp.ResetView(True)
-		elif pp.SelectedItems.Count < 6: 
+		if (not mk.ControlPressed) and (tm > 150) and (tm<2000):
+			if (cnt == 0) or (cnt>=6):
+				pp.ResetView(True)
+		elif cnt < 6: 
 			return
-		elif mk.AltPressed or vv.GuiManager.MouseClickDuration > 2000:
+		elif tm > 2000:
 			pp.ClickMenu('More.../Show Selected')
 			pp.ResetView()
 		else:
@@ -1158,7 +1161,7 @@ def ResetAtlas():
 				pp.ResetView(True)
 	else:
 		# The event has been passed from another view to the atlas view
-		if pp.SelectedItems.Count >= 6:
+		if cnt >= 6:
 			pp.ResetView(False)
 
 '''

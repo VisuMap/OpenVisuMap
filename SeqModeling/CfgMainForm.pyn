@@ -1,4 +1,4 @@
-#MenuLabels ChmX Web Info Siblings vsSz SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 U3 sS sU sT TT
+#MenuLabels ChmX Web Info Siblings vsSz SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 U3 sS sU sT GB
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -47,7 +47,7 @@ def MainMain(menuKey):
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
 				#VisChainSize(2)
 			#vList = ['gFT', 'pFT',     'gSZ', 'pMF', 'sMF', 'rMF', 'tMF', 'tFT',  'sFT']
-			vList = ['gFT']
+			vList = ['sFT', 'sMF']
 			for vt in vList:
 				match vt:
 					case 'gFT':
@@ -100,9 +100,10 @@ def MainMain(menuKey):
 			ShowBodyList(bList, info=info)
 		case 'Info':
 			ShowMapInfo()	
+		case 'GB':
+			ShowGlobeDistances(pId)
 		case 'TT':
-			ShowBondLength3(pId)
-			#TorsionMap(pId, mom=0.95)
+			TorsionMap(pId, mom=0.95)
 
 # ---------------------------------------------------------------------------------------
 def ShowMapInfo():
@@ -166,19 +167,19 @@ def ShowBondLength(chType='A'):
 	vw.Show()
 
 
-def ShowBondLength3(pId):
+def ShowGlobeDistances(pId):
 	bList0 = LoadChain(pId)
-	for cf in [-0.5, 0, 0.5]:
+	for cf in [0, 0.1, 0.2, 0.3, 0.4, 0.5]:
 		bList = cs.TorsionUnfold(bList0, cf)
 		momentum = 0.95
 		vs = cs.GlobeDistances(bList, mom=momentum)
 		bv = New.BarView( vs )	
 		for k in range(vs.Length):
 			bv.ItemList[k].Id = bList[k].Id
-		bv.Description = f'pId:{pId}'
 		bv.Horizontal = False
 		bv.NormalizeView()
 		bv.Title = f'Chain: {pId}, Mom: {momentum:.3f};  cf: {cf}'
+		bv.Description = f'pId:{pId}'
 		bv.BaseLineType=4
 		bv.UsingColorPalette = True
 		bv.Show()
