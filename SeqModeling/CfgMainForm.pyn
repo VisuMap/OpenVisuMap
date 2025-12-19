@@ -47,11 +47,11 @@ def MainMain(menuKey):
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
 				#VisChainSize(2)
 			#vList = ['gFT', 'pFT',     'gSZ', 'pMF', 'sMF', 'rMF', 'tMF', 'tFT',  'sFT']
-			vList = ['sFT', 'sMF']
+			vList = ['gFT']
 			for vt in vList:
 				match vt:
 					case 'gFT':
-						PM2(waveCount=20, waveLen=512, mom=0.95, cf=0.25, tSNE=(0.025, 8.0, 1.0))
+						PM2(waveCount=20, waveLen=512, mom=0.99, cf=0.0, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, waveLen=512, cf=0.25, tSNE=(0.05, 4.0, 1.0))	
 					case 'gSZ':
@@ -101,8 +101,10 @@ def MainMain(menuKey):
 		case 'Info':
 			ShowMapInfo()	
 		case 'GB':
-			ShowGlobeDistances(pId)
-		case 'TT':
+			for id in selected[:2]:
+				ShowGlobeDistances(id, momentum=0.95, cf=0.1)
+			vv.ClickMenu('Window/Tile All Windows')
+		case 'TT':		
 			TorsionMap(pId, mom=0.95)
 
 # ---------------------------------------------------------------------------------------
@@ -166,23 +168,28 @@ def ShowBondLength(chType='A'):
 	vw.Title = f'{nt.Rows}x{nt.Columns}'
 	vw.Show()
 
+def GetGlobeDistances(pId, momentum, cf):
+	bList = LoadChain(pId)
+	bList = cs.TorsionUnfold(bList, cf)
+	vs = cs.GlobeDistances(bList, mom=momentum)
+	return vs, bList
 
-def ShowGlobeDistances(pId):
-	bList0 = LoadChain(pId)
-	for cf in [0, 0.1, 0.2, 0.3, 0.4, 0.5]:
-		bList = cs.TorsionUnfold(bList0, cf)
-		momentum = 0.95
-		vs = cs.GlobeDistances(bList, mom=momentum)
-		bv = New.BarView( vs )	
-		for k in range(vs.Length):
-			bv.ItemList[k].Id = bList[k].Id
-		bv.Horizontal = False
-		bv.NormalizeView()
-		bv.Title = f'Chain: {pId}, Mom: {momentum:.3f};  cf: {cf}'
-		bv.Description = f'pId:{pId}'
-		bv.BaseLineType=4
-		bv.UsingColorPalette = True
-		bv.Show()
+def ShowGlobeDistances(pId, momentum=0.95, cf=0.25):
+	vs, bList = GetGlobeDistances(pId, momentum, cf)
+	bv = New.BarView( vs )	
+	for k in range(vs.Length):
+		bv.ItemList[k].Id = bList[k].Id
+	bv.Horizontal = False
+	bv.NormalizeView()
+	bv.Title = f'Chain: {pId}, Mom: {momentum:.3f};  cf: {cf}'
+	info = MapInfo()
+	info.pId = pId
+	info.Set("mom", momentum)
+	info.Set("cf", cf)
+	bv.Description = info.ToStr()
+	bv.BaseLineType=4
+	bv.UsingColorPalette = True
+	bv.Show()
 	
 def HelixTest():
 	bPID = LoadChain(pId);

@@ -1099,6 +1099,7 @@ def VisChainSize(szType=2):
 				chType = ds.StringAt(b.Id, 0)
 				typeIdx = 0 if chType=='A' else ( 99 if chType=='r' else 97 )
 				b.Type = typeIdx
+			vv.Map.GlyphSet = PMap_GLYPHSET
 	if pp.Name == 'MainForm':
 		pp.Map.Redraw()
 	else:
@@ -1133,13 +1134,12 @@ def AlignSeqPair(parentWin):
 		New.TextPanel(f'Alignment-{k+1}: {pIds[0]}:{pIds[1]}; Score={int(ag.score)}; Ratio={ratio:.3g}', str(ag)).Show()
 		if k >= 0: break
 
-preClickTime = 0
 def DoubleClicked():
-	global preClickTime
 	newClickTime = time.time()
-	timeSpan = newClickTime - preClickTime
-	preClickTime = newClickTime
-	return timeSpan < 0.4
+	preClickTime = pp.Tag or 0
+	dbClicked =  (newClickTime - preClickTime < 0.4)
+	pp.Tag = newClickTime
+	return dbClicked
 
 def ResetAtlas():
 	mk = vv.ModifierKeys
@@ -1147,10 +1147,8 @@ def ResetAtlas():
 	cnt = pp.SelectedItems.Count
 	if vv.EventSource.Form.Name == 'Atlas':
 		# The event is initiated by an atlas view:
-		# if DoubleClicked(): pp.ResetView(True)
-		if (not mk.ControlPressed) and (tm > 150) and (tm<2000):
-			if (cnt == 0) or (cnt>=6):
-				pp.ResetView(True)
+		if DoubleClicked(): 
+			pp.ResetView(True)
 		elif cnt < 6: 
 			return
 		elif tm > 2000:
