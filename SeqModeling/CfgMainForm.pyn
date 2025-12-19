@@ -41,7 +41,7 @@ def MainMain(menuKey):
 			OpenCifFile(pId)
 		case 'P-2D':
 			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, 
-				tP = (1000, 2, 0.0, 0.1, 4.0, 1.0))			
+				tP = (2000, 2, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
@@ -102,8 +102,15 @@ def MainMain(menuKey):
 			ShowMapInfo()	
 		case 'GB':
 			for id in selected[:2]:
-				ShowGlobeDistances(id, momentum=0.95, cf=0.1)
-			vv.ClickMenu('Window/Tile All Windows')
+				bv = ShowGlobeDistances(id, momentum=0.95, cf=0.1)
+				vs = New.ValueSelector(0.5, 0.99, 0.95, 'Momentum', 'UpdateGlobeView(pp.Tag, 0.1, pp.CurrentValue)')
+				vs.Tag = bv
+				vs.ScanningPause = 24
+				vs.ScanningStepSize = 0.001
+				vs.Looping = True
+				vs.Show()
+				vs.StartScanning()
+			#vv.ClickMenu('Window/Tile All Windows')
 		case 'TT':		
 			TorsionMap(pId, mom=0.95)
 
@@ -168,15 +175,13 @@ def ShowBondLength(chType='A'):
 	vw.Title = f'{nt.Rows}x{nt.Columns}'
 	vw.Show()
 
-def GetGlobeDistances(pId, momentum, cf):
+
+def ShowGlobeDistances(pId, momentum=0.95, cf=0.25):
 	bList = LoadChain(pId)
 	bList = cs.TorsionUnfold(bList, cf)
 	vs = cs.GlobeDistances(bList, mom=momentum)
-	return vs, bList
-
-def ShowGlobeDistances(pId, momentum=0.95, cf=0.25):
-	vs, bList = GetGlobeDistances(pId, momentum, cf)
-	bv = New.BarView( vs )	
+	bv = New.BarView( vs )
+	bv.Tag = bList
 	for k in range(vs.Length):
 		bv.ItemList[k].Id = bList[k].Id
 	bv.Horizontal = False
@@ -190,6 +195,18 @@ def ShowGlobeDistances(pId, momentum=0.95, cf=0.25):
 	bv.BaseLineType=4
 	bv.UsingColorPalette = True
 	bv.Show()
+	return bv
+
+def UpdateGlobeView(barView, cf=None, mom=None):
+	info = MapInfo(barView.Description)
+	mom = mom or float( info.Get('mom') )
+	cf = cf or float( info.Get('cf') )
+	bList = cs.TorsionUnfold(barView.Tag, cf)
+	vs = cs.GlobeDistances(bList, mom=mom)
+	for k, v in enumerate(vs):
+		barView.ItemList[k].Value = v
+	barView.Title = f'Chain: {info.pId}, Mom: {mom:.3f};  cf: {cf}'
+	barView.Redraw()
 	
 def HelixTest():
 	bPID = LoadChain(pId);
