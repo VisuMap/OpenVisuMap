@@ -102,14 +102,7 @@ def MainMain(menuKey):
 			ShowMapInfo()	
 		case 'GB':
 			for id in selected[:2]:
-				bv = ShowGlobeDistances(id, momentum=0.95, cf=0.1)
-				vs = New.ValueSelector(0.5, 0.99, 0.95, 'Momentum', 'UpdateGlobeView(pp.Tag, 0.1, pp.CurrentValue)')
-				vs.Tag = bv
-				vs.ScanningPause = 24
-				vs.ScanningStepSize = 0.001
-				vs.Looping = True
-				vs.Show()
-				vs.StartScanning()
+				ShowGlobeDistances(id, momentum=0.95, cf=0.1, animation=ctrPressed)
 			#vv.ClickMenu('Window/Tile All Windows')
 		case 'TT':		
 			TorsionMap(pId, mom=0.95)
@@ -176,7 +169,7 @@ def ShowBondLength(chType='A'):
 	vw.Show()
 
 
-def ShowGlobeDistances(pId, momentum=0.95, cf=0.25):
+def ShowGlobeDistances(pId, momentum=0.95, cf=0.25, animation=True):
 	bList = LoadChain(pId)
 	bList = cs.TorsionUnfold(bList, cf)
 	vs = cs.GlobeDistances(bList, mom=momentum)
@@ -195,6 +188,14 @@ def ShowGlobeDistances(pId, momentum=0.95, cf=0.25):
 	bv.BaseLineType=4
 	bv.UsingColorPalette = True
 	bv.Show()
+	if animation:
+		vs = New.ValueSelector(0.8, 0.99, momentum, 'Momentum', f'UpdateGlobeView(pp.Tag, {cf}, pp.CurrentValue)')
+		vs.Tag = bv
+		vs.ScanningPause = 10
+		vs.ScanningStepSize = 0.001*(vs.MaxValue - vs.MinValue)
+		vs.Looping = True
+		vs.Show()
+		vs.StartScanning()
 	return bv
 
 def UpdateGlobeView(barView, cf=None, mom=None):
@@ -202,9 +203,7 @@ def UpdateGlobeView(barView, cf=None, mom=None):
 	mom = mom or float( info.Get('mom') )
 	cf = cf or float( info.Get('cf') )
 	bList = cs.TorsionUnfold(barView.Tag, cf)
-	vs = cs.GlobeDistances(bList, mom=mom)
-	for k, v in enumerate(vs):
-		barView.ItemList[k].Value = v
+	barView.SetValues( cs.GlobeDistances(bList, mom=mom) )
 	barView.Title = f'Chain: {info.pId}, Mom: {mom:.3f};  cf: {cf}'
 	barView.Redraw()
 	

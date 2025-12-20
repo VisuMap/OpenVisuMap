@@ -1068,7 +1068,9 @@ namespace VisuMap {
             }
         }
         public List<IBody> TorsionUnfold(List<IBody> bList, double contracting) {
-            var newList = New.BodyListClone(bList);            
+            if (contracting == 0)
+                return bList;
+            var newList = New.BodyListClone(bList);
             Vector3 P = bList[1].ToV3();
             Vector3 S0 = Vector3.Normalize(P - bList[0].ToV3());
             Quaternion T = Quaternion.Identity;
