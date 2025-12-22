@@ -14,6 +14,7 @@ namespace VisuMap {
     public class SeqModeling {
         IVisuMap vv;
         INew New;
+        const double BOND_LENGTH = 3.8015;  // Average bond length. with std ca 0.1
 
         public SeqModeling() {
             this.vv = VisuMapImp.GetVisuMapImp();
@@ -868,7 +869,6 @@ namespace VisuMap {
             return A[cols];
         }
 
-        const double BOND_LENGTH = 3.8015;  // Average bond length. with std ca 0.1
 
         public List<IBody> ToSphere(List<IBody> bList, double contracting = 0) {
             var newList = new List<IBody>();
@@ -1018,11 +1018,14 @@ namespace VisuMap {
             IBody mp = bList[0].Clone();
             for (int k = 1; k < L; k++) {
                 IBody b = bList[k];
-                vs[k] = b.DistanceSquared(mp);               
+                vs[k] = b.DistanceSquared(mp);
                 mp.X = mom * mp.X + g * b.X;
                 mp.Y = mom * mp.Y + g * b.Y;
                 mp.Z = mom * mp.Z + g * b.Z;
             }
+
+            // MT.Loop(0, L, k => vs[k] = Math.Sqrt(vs[k]));
+
             return vs;
         }
 
