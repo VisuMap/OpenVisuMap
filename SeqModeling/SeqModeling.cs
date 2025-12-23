@@ -1009,23 +1009,19 @@ namespace VisuMap {
             return nt;
         }
 
-        public double[] GlobeDistances(IList<IBody> bList, double mom = 0.99, double[] distances = null) {
-            int L = bList.Count;
-            if ((distances != null) && (distances.Length < L))
-                return null;
-            double[] vs = (distances==null) ? new double[L] : distances;
+        public double[] GlobeDistances(IList<IBody> bList, double mom = 0.99) {
+            int L = bList.Count-1;
+            double[] vs = new double[L];
             double g = 1.0f - mom;
-            IBody mp = bList[0].Clone();
-            for (int k = 1; k < L; k++) {
-                IBody b = bList[k];
+            IBody mp = bList[0].Clone(); // The mean-point.
+            for (int k =0; k < L; k++) {
+                IBody b = bList[k+1];
                 vs[k] = b.DistanceSquared(mp);
                 mp.X = mom * mp.X + g * b.X;
                 mp.Y = mom * mp.Y + g * b.Y;
                 mp.Z = mom * mp.Z + g * b.Z;
             }
-
-            // MT.Loop(0, L, k => vs[k] = Math.Sqrt(vs[k]));
-
+            MT.Loop(0, L, k => vs[k] = 1.0/vs[k]);
             return vs;
         }
 
