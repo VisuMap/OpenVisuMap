@@ -848,6 +848,22 @@ namespace VisuMap {
             }
         }
 
+        public List<IBody> SmoothenByExp(IList<IBody> bs, double mom) {
+            double f = mom;
+            double g = 1 - f;
+            IBody mp = bs[0].Clone();
+            List<IBody> bList = new List<IBody>() { mp };
+            for(int k=1; k<bs.Count; k++) { 
+                IBody p = bs[k].Clone();
+                p.X = f * mp.X + g * p.X;
+                p.Y = f * mp.Y + g * p.Y;
+                p.Z = f * mp.Z + g * p.Z;
+                bList.Add(p);
+                mp = p;
+            }
+            return bList;
+        }
+
         public unsafe double NWDistance(string sA, string sB, short gapCost = 2, short matchCost = 0, short mismatchCost = 1) {
             int rows = sA.Length;
             int cols = sB.Length;

@@ -106,24 +106,13 @@ def MainMain(menuKey):
 			#vv.ClickMenu('Window/Tile All Windows')
 		case 'TT':		
 			bList = LoadChain(pId)
+			cs.NormalizeChain(bList)
 			GlobeTrans(pId, bList, 0.9)
 
 # ---------------------------------------------------------------------------------------
 
-def ToGlobe(bList, mom):
-	f = mom
-	g = 1.0 - f
-	mp = bList[0]
-	bList2 = New.BodyList()
-	for k in range(1, bList.Count):
-		a = mp.Clone()
-		b = bList[k].Clone()
-		mp = a.Mult(f).Add( b.Mult(g) )
-		bList2.Add(mp)
-	return bList2
-
 def GlobeTrans(pId, bList0, mom):
-	bList = ToGlobe(bList0, mom)
+	bList = cs.SmoothenByExp(bList0, mom)
 	bList = InterpolateChain(bList, rp=3)
 	info = MapInfo()
 	info.pId = pId
@@ -139,7 +128,7 @@ def GlobeTrans(pId, bList0, mom):
 	vs.Show()
 
 def OnMomChanged(mp, bList0, mom):
-	bList = ToGlobe(bList0, mom)
+	bList = cs.SmoothenByExp(bList0, mom)
 	bList = InterpolateChain(bList, rp=3)
 	for k, b in enumerate(bList):
 		mp.BodyList[k].SetXYZ(b.X, b.Y, b.Z)
