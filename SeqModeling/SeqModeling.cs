@@ -864,6 +864,7 @@ namespace VisuMap {
             return bList;
         }
 
+        // In place version of GlobeSmoothen().
         public void GlobeSmoothen(IList<IBody> bs, double mom) {
             double f = mom;
             double g = 1 - f;
