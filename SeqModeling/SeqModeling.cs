@@ -848,7 +848,7 @@ namespace VisuMap {
             }
         }
 
-        public List<IBody> SmoothenByExp(IList<IBody> bs, double mom) {
+        public List<IBody> GlobeSmoothen2(IList<IBody> bs, double mom) {
             double f = mom;
             double g = 1 - f;
             IBody mp = bs[0].Clone();
@@ -862,6 +862,19 @@ namespace VisuMap {
                 mp = p;
             }
             return bList;
+        }
+
+        public void GlobeSmoothen(IList<IBody> bs, double mom) {
+            double f = mom;
+            double g = 1 - f;
+            IBody mp = bs[0];
+            for (int k = 1; k < bs.Count; k++) {
+                IBody b = bs[k];
+                b.X = f * mp.X + g * b.X;
+                b.Y = f * mp.Y + g * b.Y;
+                b.Z = f * mp.Z + g * b.Z;
+                mp = b;
+            }
         }
 
         public unsafe double NWDistance(string sA, string sB, short gapCost = 2, short matchCost = 0, short mismatchCost = 1) {

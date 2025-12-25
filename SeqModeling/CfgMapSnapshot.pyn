@@ -14,7 +14,9 @@ match vv.EventSource.Item:
 		AssertSeqMap(pp)
 		ReCreateMap(pp)
 	case 'Smoothen':
-		SmoothenCurve(pp, 10)
+		#SmoothenCurve(pp, 10)
+		cs.GlobeSmoothen(pp.BodyList, 0.9)
+		pp.RedrawBodies()		
 	case 'RNA/DNA':
 		pp.SelectedItems = [b.Id for b in pp.BodyList if (b.Name[0] == 'r') or (b.Name[0] == 'd') ]
 	case 'Web':
