@@ -71,7 +71,7 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 
 def ShowChain(cId, gsize=2.1, gopacity=0.75, hsize=3, intRp=5):
 	bList = LoadChain(cId)
-	bList = Interpolate1Chain(bList, rp=intRp)
+	bList = InterpolateChain(bList, rp=intRp)
 	for b in bList: b.Hidden = (b.Id[0] == 'i')
 	cs.NormalizeChain(bList)
 	return ShowBodyList(bList, gSize=gsize, gOpacity=gopacity, hSize=hsize)
@@ -221,7 +221,7 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 	t0 = time.time()
 	for k, pId in enumerate(pList):
 		bList = LoadChain(pId)
-		bList = Interpolate1Chain(bList, intRp)
+		bList = InterpolateChain(bList, intRp)
 		nt = cs.AugmentByStretch(bList, stretch, intRp)
 		nt = tsne.Fit(nt)
 		if nt == None:
@@ -401,7 +401,7 @@ def Interpolate(bList, rp=3, hidIntp=False):
 			b.Hidden = b.Id.startswith('i')
 	return bs
 
-def Interpolate1Chain(bList, rp=3, hidIntp=False):
+def InterpolateChain(bList, rp=3, hidIntp=False):
 	EPS = 0.085
 	marked = bList[0].Type == SeqMap_HEAD
 	if marked:

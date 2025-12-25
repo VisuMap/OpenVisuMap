@@ -64,7 +64,7 @@ def SphereUnfold(bList, n):
 	global tgtView
 	cf  = 1 - 0.95**ToCircle(60, n)
 	bs = cs.TorsionUnfold(bList, cf)
-	bs = Interpolate1Chain(bs, rp=5, hidIntp=True)
+	bs = InterpolateChain(bs, rp=5, hidIntp=True)
 	cs.NormalizeChain(bs)
 	if NotExits(tgtView):
 		tgtView = ShowBodyList(New.BodyListClone(bs), gSize=1.5, gOpacity=0.5, hSize=3)
@@ -81,7 +81,7 @@ def ShrinkSphere(bList, n):
 	cf  = 1 - 0.75*(0.9**ToCircle(60, n))
 	bList = New.BodyListClone(bList)
 	cs.ShrinkSphere(bList, cf)
-	bList = Interpolate1Chain(bList, rp=6, hidIntp=True)
+	bList = InterpolateChain(bList, rp=6, hidIntp=True)
 	if NotExits(tgtView):
 		tgtView = ShowBodyList(bList, gSize=2.0, gOpacity=0.5, hSize=3)
 		cs.NormalizeChain(tgtView.BodyList)

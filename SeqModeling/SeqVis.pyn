@@ -314,7 +314,7 @@ def GetTsneRD(pList, vType, tP, cf=0):
 			bList = cs.TorsionUnfold(bList, cf)
 
 		ss.SetBodyType(bList, None, ds.BodyForId(pId).Type)
-		bList = Interpolate1Chain(bList, rp=intRp)
+		bList = InterpolateChain(bList, rp=intRp)
 		nt = cs.AugmentByStretch(bList, stretch, intRp)
 		vv.DoEvents()
 
