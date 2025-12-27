@@ -21,23 +21,6 @@ namespace VisuMap {
             this.New = vv.New;
         }
 
-        public IBody MeanPoint(IList<IBody> bList) {
-            if (bList.Count == 0)
-                return null;
-            double mx = bList.Select(b => b.X).Average();
-            double my = bList.Select(b => b.Y).Average();
-            IBody mBody = null;
-            double mDist = 1.0e10;
-            foreach (IBody b in bList) {
-                double d2 = (b.X - mx) * (b.X - mx) + (b.Y - my) * (b.Y - my);
-                if (d2 < mDist) {
-                    mBody = b;
-                    mDist = d2;
-                }
-            }
-            return mBody;
-        }
-
         public List<IBody> LocalExpand(List<IBody> bList, double factor) {
             Dictionary<short, double[]> centers = new Dictionary<short, double[]>();
             foreach (var b in bList) {
@@ -63,24 +46,6 @@ namespace VisuMap {
                 b.Z = c[2] + factor * (b.Z - c[2]);
             }
             return bList;
-        }
-        public void LocalSmoothen(List<IBody> bList, double smoothenRatio, int repeats=8) {
-            if ((bList==null) || (bList.Count < 3) || (repeats <= 0))
-                return;
-            int N = bList.Count;
-            Vector3[] P = new Vector3[N];
-            for (int k = 0; k < N; k++)
-                P[k] = bList[k].ToV3();
-            Vector3[] Mean = new Vector3[N - 2];
-            float c = -(float)smoothenRatio;
-            for (int rp=0; rp<repeats; rp++) {
-                for(int k=0; k<Mean.Length; k++) 
-                    Mean[k] = 0.5f * (P[k] + P[k + 2]);
-                for (int k = 0; k < Mean.Length; k++)
-                    P[k+1] += c * (P[k+1] - Mean[k]);
-            }
-            for(int k=1; k<(N-1); k++)
-                bList[k].SetXYZ(P[k]);
         }
 
         public bool LocalSmoothen2(double[][] M, double smoothenRatio, int repeats = 8) {
