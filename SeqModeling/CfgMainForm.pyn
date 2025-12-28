@@ -102,7 +102,7 @@ def MainMain(menuKey):
 			ShowMapInfo()	
 		case 'GB':
 			for id in selected[:2]:
-				ShowGlobeDistances(id, momentum=0.95, cf=0, animation=True)
+				ShowGlobeDistances(id, momentum=0.95, animation=True)
 			#vv.ClickMenu('Window/Tile All Windows')
 		case 'TT':		
 			bList = LoadChain(pId)
@@ -130,8 +130,7 @@ def GlobeTrans(pId, bList0, mom):
 def OnMomChanged(mp, bList0, mom):
 	bList = cs.GlobeSmoothen2(bList0, mom)
 	bList = InterpolateChain(bList, rp=3)
-	for k, b in enumerate(bList):
-		mp.BodyList[k].SetXYZ(b.X, b.Y, b.Z)
+	ss.CopyXYZ(bList, mp.BodyList)
 	mp.RedrawAll()
 
 def ShowMapInfo():
@@ -194,9 +193,10 @@ def ShowBondLength(chType='A'):
 	vw.Show()
 
 
-def ShowGlobeDistances(pId, momentum=0.95, cf=0.25, animation=True):
+def ShowGlobeDistances(pId, momentum=0.95, animation=True):
 	bList = LoadChain(pId)
-	bList = cs.TorsionUnfold(bList, cf)
+	cs.NormalizeChain(bList)
+
 	vs = cs.GlobeDistances(bList, mom=momentum)
 	bv = New.BarView( vs )
 	bv.Tag = bList
@@ -204,30 +204,30 @@ def ShowGlobeDistances(pId, momentum=0.95, cf=0.25, animation=True):
 		bv.ItemList[k].Id = bList[k].Id
 	bv.Horizontal = False
 	bv.NormalizeView()
-	bv.Title = f'Chain: {pId}, Mom: {momentum:.5f};  cf: {cf}'
+	bv.Title = f'Chain: {pId}, Mom: {momentum:.5f}'
 	info = MapInfo()
 	info.pId = pId
 	info.Set("mom", momentum)
-	info.Set("cf", cf)
 	bv.Description = info.ToStr()
 	bv.BaseLineType=4
 	bv.UsingColorPalette = True
 	bv.Show()
+
 	if animation:
-		vs = New.ValueSelector(0.90, 1.0, momentum, 'Momentum')
+		vs = New.ValueSelector(0.0, 1.0, momentum, 'Momentum')
 		vs.Tag = bv
 		vs.Looping = True
-		vs.ValueChanged = f'UpdateGlobeView(pp.Tag, {cf}, pp.CurrentValue)'
+		vs.ValueChanged = f'UpdateGlobeView(pp.Tag, mom=pp.CurrentValue)'
 		vs.Show()
 	return bv
 
-def UpdateGlobeView(barView, cf=None, mom=None):
+def UpdateGlobeView(barView, mom=None):
 	info = MapInfo(barView.Description)
-	mom = mom or float( info.Get('mom') )
-	cf = cf or float( info.Get('cf') )
-	bList = cs.TorsionUnfold(barView.Tag, cf)
+	if mom == None:
+		mom = float( info.Get('mom') )
+	bList = barView.Tag
 	barView.SetValues( cs.GlobeDistances(bList, mom=mom) )
-	barView.Title = f'Chain: {info.pId}, Mom: {mom:.5f};  cf: {cf}'
+	barView.Title = f'Chain: {info.pId}, Mom: {mom:.5f}'
 	barView.Redraw()
 	
 def HelixTest():

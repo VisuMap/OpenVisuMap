@@ -104,6 +104,12 @@ public List<IBody> Concatenate(List<IBody> bList1, List<IBody> bList2) {
 	return bList1;
 } 
 
+public void CopyXYZ(List<IBody> bList1, List<IBody> bList2) {
+	for(int k=0; k<bList1.Count; k++) {
+		var b = bList1[k];
+		bList2[k].SetXYZ(b.X, b.Y, b.Z);
+	}
+} 
 ''')
 
 
