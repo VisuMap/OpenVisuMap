@@ -1016,7 +1016,9 @@ namespace VisuMap {
                 mp.Y = mom * mp.Y + g * b.Y;
                 mp.Z = mom * mp.Z + g * b.Z;
             }
+            //MT.Loop(0, L, k => vs[k] = Math.Sqrt(vs[k]));
             MT.Loop(0, L, k => vs[k] = 1.0/vs[k]);
+            //MT.Loop(0, L, k => vs[k] = 1.0 / Math.Sqrt(vs[k]));
             return vs;
         }
 

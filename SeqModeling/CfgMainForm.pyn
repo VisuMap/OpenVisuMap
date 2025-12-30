@@ -121,7 +121,8 @@ def GlobeTrans(pId, bList0, mom):
 	mp.CentralizeView(False)
 	mp.Title = info.ToStr()
 	mp.Tag = bList0
-	vs = New.ValueSelector(0, 1.0, mom, 'Momentumn')
+	vs = New.ValueSelector(0, 1.0, mom)
+	vs.Title = 'Momentumn'
 	vs.Tag = mp
 	vs.StepSize = 0.002
 	vs.ValueChanged = 'OnMomChanged(pp.Tag, pp.Tag.Tag, pp.CurrentValue)'
@@ -214,7 +215,8 @@ def ShowGlobeDistances(pId, momentum=0.95, animation=True):
 	bv.Show()
 
 	if animation:
-		vs = New.ValueSelector(0.0, 1.0, momentum, 'Momentum')
+		vs = New.ValueSelector(0.0, 1.0, momentum)
+		vs.Title = 'Momentum'
 		vs.Tag = bv
 		vs.Looping = True
 		vs.ValueChanged = f'UpdateGlobeView(pp.Tag, mom=pp.CurrentValue)'
