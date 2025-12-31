@@ -128,109 +128,50 @@ def SelectChains(chType):
 		vv.Return()
 	return nnList
 	
-def ShowBondVariation(chType='r'):
-	dt = {}
-	idIdx = 0 if chType == 'A' else 2
-	for chId in SelectChains(chType):
-		bList = LoadChain(chId)
-		for k, b in enumerate(bList):
-			if k > 0:
-				nn = b0.Name[idIdx] + b.Name[idIdx]
-				if nn not in dt: 
-					dt[nn] = []
-				dt[nn].append(b0.DistanceTo(b))
-			b0 = b
-	vList = New.ValueItemList()
-	for key in dt.keys():
-		v = vv.Math.StdDeviation(dt[key])
-		vList.Add( New.ValueItem(key, key, v) )
-	New.BarView(vList).Show();
-
-def ShowBondLength(chType='A'):
-	nnList = SelectChains(chType)
-	maxCol = max([vv.Dataset.IntAt(id, 3) for id in nnList])
-	nt = New.NumberTable(len(nnList), maxCol)
-	for row, chId in enumerate(nnList):
-		bList = LoadChain(chId)
-		nt.RowSpecList[row].Id = chId
-		for k, b in enumerate(bList):
-			if k > 0:
-				nt.Matrix[row][k] = b0.DistanceTo(b)
-			b0 = b
-		if row==0:
-			csList = nt.ColumnSpecList
-			for k, b in enumerate(bList):
-				csList[k].CopyFromBody(b)
-	vw = New.BarBand(nt)
-	vw.AutoScaling = True
-	vw.Title = f'{nt.Rows}x{nt.Columns}'
-	vw.Show()
-
 
 def ShowGlobeDistances(pId, momentum=0.95):
 	bList = LoadChain(pId)
 	cs.NormalizeChain(bList)
+	info = MapInfo().Set('pId', pId).Set("Mom", momentum)
 
-	info = MapInfo()
-	info.pId = pId
-	info.Set("Mom", momentum)
-	
 	vs = cs.GlobeDistances(bList, mom=momentum)
 	bv = New.BarView( vs )
-	bv.Tag = bList
 	for k in range(vs.Length):
-		bv.ItemList[k].Id = bList[k].Id
+		bv.ItemList[k].Id = bList[k+1].Id
 	bv.Horizontal = False
 	bv.NormalizeView()
-	bv.Title = info.ToStr()
-	bv.Description = info.ToStr()
 	bv.BaseLineType=4
 	bv.UsingColorPalette = True
+	bv.Description = bv.Title = info.ToStr()
 	bv.Show()
 
 	bList2 = cs.GlobeSmoothen2(bList, momentum)
 	bList2 = InterpolateChain(bList2, rp=3)
 	mp = ShowBodyList(bList2, info=info, normalize=False)
 	mp.CentralizeView(False)
-	mp.Title = info.ToStr()
+	mp.Title = mp.Description = info.ToStr()
 
-	vs = New.ValueSelector(0.4, 1.0, momentum)
+	vs = New.ValueSelector(0.4, 1.0, momentum, 'UpdateGlobeView(pp.Tag, mom=pp.CurrentValue)')
 	vs.Title = 'Momentum'
-	vs.Tag = (bList, bv, mp)
-	vs.ValueChanged = f'UpdateGlobeView(pp.Tag, mom=pp.CurrentValue)'
+	vs.Tag = (bList, bv, mp, info)
 	vs.Show()
 
-def UpdateGlobeView(tgtList, mom):
-	bList, bv, mp = tgtList
-	info = MapInfo(bv.Description)
-	info.Set('Mom', mom)
-	bv.Description = bv.Title = info.ToStr()
-	bv.SetValues( cs.GlobeDistances(bList, mom=mom) )
-	bv.Redraw()
+def UpdateGlobeView(targets, mom):
+	bList, bv, mp, info = targets
+	info.Set('Mom', f'{mom:.4g}')
 
-	mp.Description = mp.Title = info.ToStr()
-	bList2 = cs.GlobeSmoothen2(bList, mom)
-	bList2 = InterpolateChain(bList2, rp=3)
-	ss.CopyXYZ(bList2, mp.BodyList)
-	mp.RedrawAll()
-	
-def HelixTest():
-	bPID = LoadChain(pId);
-	b0 = bPID[0]
-	ss.ShiftChain(bPID, -b0.X - 5.0, -b0.Y, -b0.Z)
-	bList = ss.NewHelix(36)
-	ss.Concatenate(bList, bPID)
-	bList = Interpolate(bList, 3, True)
-	cs.NormalizeChain(bList, -1)
-	mp = ShowBodyList(bList)
-	bs = mp.BodyList
-	firstCN = ChainName(bs[0])	
-	pChain = New.BodyList([b for b in bs if ChainName(b)==firstCN])
-	for k in range(1000):
-		cs.RotateBodyList(pChain, 0.01, 0, 1, 0)
+	if (bv != None) and not bv.IsDisposed:
+		bv.Description = bv.Title = info.ToStr()
+		bv.SetValues( cs.GlobeDistances(bList, mom=mom) )
+		bv.Redraw()
+
+	if (mp != None) and not mp.IsDisposed:
+		mp.Description = mp.Title = info.ToStr()
+		bList2 = cs.GlobeSmoothen2(bList, mom)
+		bList2 = InterpolateChain(bList2, rp=3)
+		ss.CopyXYZ(bList2, mp.BodyList)
 		mp.RedrawAll()
-		vv.Sleep(10)
-
+	
 def DoDatasetList(dnList, createPMap=True, createAtlas=False):
 	vv.SelectedItems.Clear()
 	tm0 = time.time()
