@@ -189,7 +189,8 @@ class AtlasMapStore():
 			self.rawMap = mp
 		else:
 			mp.BodyList = bList
-		ConfigSeqMap(mp, id, gsize=6.0)
+		info = MapInfo().Set('pId', id)
+		ConfigSeqMap(mp, info, gsize=6.0)
 		cs.FitByPCA(mp, scale)
 		item = self.atlas.CaptureItem(mp)
 		item.Name = id
@@ -216,10 +217,10 @@ class FastTsne():
 	def Fit(self, nt):
 		return self.tsne.Fit(nt)
 
-def ConfigSeqMap(map, pId, gsize=6.0, redrawMap=False):
+def ConfigSeqMap(map, info=None, gsize=6.0, redrawMap=False):
 	map.GlyphSet = SeqMap_GLYPHSET
 	map.GlyphSize = gsize
-	map.Description = f'pId:{pId}'
+	if info != None: map.Description = info.ToStr()
 	map.GlyphOpacity = 1.0
 	cs.NormalizeChain(map.BodyList, 184)						
 	if redrawMap:

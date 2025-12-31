@@ -201,7 +201,7 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 	global ctrPressed
 
-	epochs, intRp, stretch, ppl, initE, finalE = tP
+	epochs, intRp, mom, ppl, initE, finalE = tP
 	if samplingDist > 0:
 		pList = cs.FlatSampling(pList, samplingDist)
 		vv.Title = f'Sampled {len(pList)} chains!'
@@ -221,15 +221,19 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 	t0 = time.time()
 	for k, pId in enumerate(pList):
 		bList = LoadChain(pId)
+		cs.GlobeSmoothen(bList, mom)
 		bList = InterpolateChain(bList, intRp)
-		nt = cs.AugmentByStretch(bList, stretch, intRp)
+		nt = New.NumberTable(bList, 3)
 		nt = tsne.Fit(nt)
 		if nt == None:
 			continue
 		bList = nt.ToBodyList()
 		if mapStore == None:
 			map = New.MapSnapshot(bList)
-			ConfigSeqMap(map, pId, gsize=1.0)
+			info = MapInfo()
+			info.pId = pId
+			info.Set('tP', tP)	
+			ConfigSeqMap(map, info, gsize=1.0)
 			cs.FitByPCA(map, 15.0).Show()
 		else:
 			mapStore.AddRawMap(pId, bList, scale=60)

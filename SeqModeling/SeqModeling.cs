@@ -814,6 +814,8 @@ namespace VisuMap {
         }
 
         public List<IBody> GlobeSmoothen2(IList<IBody> bs, double mom) {
+            if (mom == 0)
+                return bs as List<IBody>;
             double f = mom;
             double g = 1 - f;
             IBody mp = bs[0].Clone();
@@ -831,6 +833,8 @@ namespace VisuMap {
 
         // In place version of GlobeSmoothen().
         public void GlobeSmoothen(IList<IBody> bs, double mom) {
+            if (mom == 0)
+                return;
             double f = mom;
             double g = 1 - f;
             IBody mp = bs[0];
