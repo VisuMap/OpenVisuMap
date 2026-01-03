@@ -20,7 +20,7 @@ def MainMain(menuKey):
 		case '3D':
 			if atlasName != None: 
 				atlasName += '-3D'
-			SortByPosX(pList)
+			pList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
 			ShowProteinList(pList, includeHA=False, intRp=5, atName=atlasName, gsize=1.5, gopacity=0.5)
 		case '3Dx':
 			if vv.ModifierKeys.ControlPressed:
@@ -99,35 +99,15 @@ def MainMain(menuKey):
 			info=MapInfo().Set('pId', pId)
 			ShowBodyList(bList, info=info)
 		case 'Info':
-			ShowMapInfo()	
+			sInfo = MapInfo(pp.Map.Description).Show()
+			title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name};  SeqCount:{vv.Dataset.Rows:,}'
+			New.TextPanel(title, sInfo).Show()
 		case 'GB':
 			ShowGlobeDistances(pId, momentum=0.95)
 		case 'TT':
 			pass
 
 # ---------------------------------------------------------------------------------------
-
-def ShowMapInfo():
-	info = MapInfo(pp.Map.Description)
-	title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name};  SeqCount:{vv.Dataset.Rows:,}'
-	tp = New.TextPanel(title, '')
-	for pn, pv in info.__dict__.items():
-		if pv != None:
-			tp.AddLine(f'{pn:>10}: {pv:<16}')
-	tp.Show()
-
-def SortByPosX(idList):
-	idList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
-
-def SelectChains(chType):
-	ds = vv.Dataset
-	nnList = vv.Map.SelectedBodies
-	nnList = [b.Id for b in nnList if ds.StringAt(b.Id, 0) == chType] 
-	if len(nnList) == 0:
-		vv.Message('No data selected')
-		vv.Return()
-	return nnList
-	
 
 def ShowGlobeDistances(pId, momentum=0.95):
 	bList = LoadChain(pId)
@@ -172,42 +152,46 @@ def UpdateGlobeView(targets, mom):
 		ss.CopyXYZ(bList2, mp.BodyList)
 		mp.RedrawAll()
 	
-def DoDatasetList(dnList, createPMap=True, createAtlas=False):
+def DoDatasetList(dnList, maxItems=0, mpIdx=0, createPMap=True, createAtlas=False):
 	vv.SelectedItems.Clear()
 	tm0 = time.time()
 	for n, dn in enumerate(dnList):
 		t0 = time.time()
-		vv.Folder.OpenDataset(dn)
-		ds = vv.Dataset
-		ds.OpenMap(ds.MapNameList[0])
+		ds = vv.Folder.OpenDataset(dn)
+		ds.OpenMap( ds.MapNameList[mpIdx] )
+		bs = ds.BodyListEnabled()
+
+		if (maxItems>0) and (maxItems < bs.Count):
+			vv.SelectedItems = random.sample([b.Id for b in bs], k=maxItems)
+			bs = vv.SelectedItems
 		if createPMap:
 			MainMain('P-Map')
 		if createAtlas:
 			MainMain('P-2D')
-			vv.LastView.Close()
-		t0 = time.time()-t0
-		print(f'{n}:  {dn}\t{t0:.1f}s; {ds.BodyListEnabled().Count} chains')
-		if vv.GuiManager.StopFlag:
-			break
+			if vv.LastView.Name == "MapSnapshot":
+				vv.LastView.Close()
+			vv.Sleep(2000)
+
+		t0 = time.time() - t0
+		print(f'{n}:  {dn}\t{t0:.1f}s; {bs.Count} chains')
+		if vv.GuiManager.StopFlag: break
 	tm0 = (time.time() - tm0)/3600.0
 	print(f'Total Time: {tm0:.2f}hr')
 
 MainMain(vv.EventSource.Item)
 
 '''
-dnList = dnList[dnList.index(vv.Dataset.Name):]
 
-dnList = list(vv.Folder.DatasetNameList)[1:]
-DoDatasetList(dnList, createPMap=True, createAtlas=False)
+dnList = list(vv.Folder.DatasetNameList)[1:6]
+DoDatasetList(dnList, maxItems=20000, mpIdx=1, createPMap=False, createAtlas=True)
 vv.Folder.Save()
 
 for dn in dnList:
-	vv.Folder.OpenDataset(dn)
-	#VisChainSize(4)
-	mpList = list(vv.Dataset.MapNameList)	
+	ds = vv.Folder.OpenDataset(dn)
+	mpList = list(ds.MapNameList)	
 	for mp in mpList[1:]:
-		#vv.Dataset.DeleteMap(mp)
-		vv.Dataset.OpenMap(mp)
+		#ds.DeleteMap(mp)
+		ds.OpenMap(mp)
 		vv.Map.GlyphSet = 'Colored Particles||||'
 
 '''

@@ -151,6 +151,12 @@ class MapInfo():
 	def ToStr(self):
 		dic = self.__dict__
 		return ';'.join([f'{key}:{str(dic[key])}' for  key in dic if dic[key] is not None])
+	def Show(self):
+		sInfo = ''
+		for pn, pv in self.__dict__.items():
+			if pv != None:
+				sInfo += f'{pn:>10}: {pv:<16}\n'
+		return sInfo
 	def ParseStr(self, initStr):
 		dic = self.__dict__
 		for f in initStr.split(';'):
