@@ -131,7 +131,8 @@ def ShowGlobeDistances(pId, momentum=0.95):
 	mp.CentralizeView(False)
 	mp.Title = mp.Description = info.ToStr()
 
-	vs = New.ValueSelector(0.4, 1.0, momentum, 'UpdateGlobeView(pp.Tag, mom=pp.CurrentValue)')
+	vs = New.ValueSelector(0.4, 1.0, momentum, 
+		'UpdateGlobeView(pp.Tag, mom=pp.CurrentValue)')
 	vs.Title = 'Momentum'
 	vs.Tag = (bList, bv, mp, info)
 	vs.Show()
@@ -152,7 +153,8 @@ def UpdateGlobeView(targets, mom):
 		ss.CopyXYZ(bList2, mp.BodyList)
 		mp.RedrawAll()
 	
-def DoDatasetList(dxList, mpIdx=0, maxItems=0, createPMap=True, createAtlas=False):
+def DoDatasetList(dxList, mpIdx=0, maxItems=0, 
+		createPMap=True, createAtlas=False):
 	vv.SelectedItems.Clear()
 	tm0 = time.time()
 	for dsIdx in dxList:
@@ -160,36 +162,36 @@ def DoDatasetList(dxList, mpIdx=0, maxItems=0, createPMap=True, createAtlas=Fals
 		ds = vv.OpenDatasetMap(dsIdx, mpIdx)
 		bs = ds.BodyListEnabled()
 
-		if (maxItems>0) and (maxItems < bs.Count):
-			vv.SelectedItems = random.sample([b.Id for b in bs], k=maxItems)
-			bs = vv.SelectedItems
+		if maxItems>0 and maxItems < len(bs):
+			bs = random.sample([b.Id for b in bs], k=maxItems)
+			vv.SelectedItems = bs
 		if createPMap:
 			MainMain('P-Map')
 		if createAtlas:
 			MainMain('P-2D')
-			if vv.LastView.Name == "MapSnapshot": vv.LastView.Close()
-			vv.Sleep(1000)
+			if vv.LastView.Name == "MapSnapshot": 
+				vv.LastView.Close()
 
 		t0 = time.time() - t0
-		print(f'{dsIdx}:  {ds.Name}\t{t0:.1f}s; {bs.Count} chains')
+		print(f'{dsIdx}: {ds.Name:>20} {t0:.1f}s; {len(bs)} chains')
 		if vv.GuiManager.StopFlag: break
 	tm0 = (time.time() - tm0)/3600.0
-	print(f'Total Time: {tm0:.2f}hr')
+	print(f'Total Time: {tm0:.2f}Hr')
 
 MainMain(vv.EventSource.Item)
 
 '''
-
-dxList = list(range(vv.Folder.DatasetNameList.Count))[7:10]
-DoDatasetList(dxList, mpIdx=1, maxItems=20000, createPMap=True, createAtlas=True)
+dxList = list(range(vv.Folder.DatasetNameList.Count))
+DoDatasetList(dxList[5:], mpIdx=1, maxItems=20000, createPMap=False, createAtlas=True)
 vv.Folder.Save()
 
-for dn in dnList:
+for dn in list(vv.Folder.DatasetNameList)[1:]:
 	ds = vv.Folder.OpenDataset(dn)
-	mpList = list(ds.MapNameList)	
-	for mp in mpList[1:]:
+	mpList = list(ds.MapNameList)[1:]
+	for mp in mpList:
 		#ds.DeleteMap(mp)
 		ds.OpenMap(mp)
 		vv.Map.GlyphSet = 'Colored Particles||||'
+
 
 '''
