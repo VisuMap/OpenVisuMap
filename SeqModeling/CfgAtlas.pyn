@@ -1,5 +1,4 @@
 #MenuLabels Cfg Match ChmX Web Open Seq Align 3D 3Dx 3Ds 2D 2Ds S2 sT TT
-import random
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')

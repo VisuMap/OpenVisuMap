@@ -152,13 +152,12 @@ def UpdateGlobeView(targets, mom):
 		ss.CopyXYZ(bList2, mp.BodyList)
 		mp.RedrawAll()
 	
-def DoDatasetList(dnList, maxItems=0, mpIdx=0, createPMap=True, createAtlas=False):
+def DoDatasetList(dxList, mpIdx=0, maxItems=0, createPMap=True, createAtlas=False):
 	vv.SelectedItems.Clear()
 	tm0 = time.time()
-	for n, dn in enumerate(dnList):
+	for dsIdx in dxList:
 		t0 = time.time()
-		ds = vv.Folder.OpenDataset(dn)
-		ds.OpenMap( ds.MapNameList[mpIdx] )
+		ds = vv.OpenDatasetMap(dsIdx, mpIdx)
 		bs = ds.BodyListEnabled()
 
 		if (maxItems>0) and (maxItems < bs.Count):
@@ -168,12 +167,11 @@ def DoDatasetList(dnList, maxItems=0, mpIdx=0, createPMap=True, createAtlas=Fals
 			MainMain('P-Map')
 		if createAtlas:
 			MainMain('P-2D')
-			if vv.LastView.Name == "MapSnapshot":
-				vv.LastView.Close()
-			vv.Sleep(2000)
+			if vv.LastView.Name == "MapSnapshot": vv.LastView.Close()
+			vv.Sleep(1000)
 
 		t0 = time.time() - t0
-		print(f'{n}:  {dn}\t{t0:.1f}s; {bs.Count} chains')
+		print(f'{dsIdx}:  {ds.Name}\t{t0:.1f}s; {bs.Count} chains')
 		if vv.GuiManager.StopFlag: break
 	tm0 = (time.time() - tm0)/3600.0
 	print(f'Total Time: {tm0:.2f}hr')
@@ -182,8 +180,8 @@ MainMain(vv.EventSource.Item)
 
 '''
 
-dnList = list(vv.Folder.DatasetNameList)[1:6]
-DoDatasetList(dnList, maxItems=20000, mpIdx=1, createPMap=False, createAtlas=True)
+dxList = list(range(vv.Folder.DatasetNameList.Count))[7:10]
+DoDatasetList(dxList, mpIdx=1, maxItems=20000, createPMap=True, createAtlas=True)
 vv.Folder.Save()
 
 for dn in dnList:
