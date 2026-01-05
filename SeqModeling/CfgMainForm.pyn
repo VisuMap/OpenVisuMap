@@ -40,8 +40,8 @@ def MainMain(menuKey):
 				vv.Return()
 			OpenCifFile(pId)
 		case 'P-2D':
-			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName,
-				tP = (2000, 2, 0.5, 0.1, 4.0, 1.0))			
+			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName+'B',
+				tP = (2000, 2, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
@@ -92,8 +92,8 @@ def MainMain(menuKey):
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'U3':
-			bList0 = LoadChain(pId)
-			bList = cs.TorsionUnfold(bList0, 0.5)
+			bList = LoadChain(pId)
+			bList = cs.TorsionUnfold(bList, 0.5)
 			bList = Interpolate(bList, 4, True)
 			cs.NormalizeChain(bList)
 			info=MapInfo().Set('pId', pId)
@@ -140,12 +140,10 @@ def ShowGlobeDistances(pId, momentum=0.95):
 def UpdateGlobeView(targets, mom):
 	bList, bv, mp, info = targets
 	info.Set('Mom', f'{mom:.4g}')
-
 	if (bv != None) and not bv.IsDisposed:
 		bv.Description = bv.Title = info.ToStr()
 		bv.SetValues( cs.GlobeDistances(bList, mom=mom) )
 		bv.Redraw()
-
 	if (mp != None) and not mp.IsDisposed:
 		mp.Description = mp.Title = info.ToStr()
 		bList2 = cs.GlobeSmoothen2(bList, mom)
@@ -169,20 +167,18 @@ def DoDatasetList(dxList, mpIdx=0, maxItems=0,
 			MainMain('P-Map')
 		if createAtlas:
 			MainMain('P-2D')
-			if vv.LastView.Name == "MapSnapshot": 
-				vv.LastView.Close()
 
 		t0 = time.time() - t0
-		print(f'{dsIdx}: {ds.Name:>20} {t0:.1f}s; {len(bs)} chains')
+		print(f'{dsIdx}: {ds.Name:<24}\t{t0:.1f}s; {len(bs)} chains')
 		if vv.GuiManager.StopFlag: break
 	tm0 = (time.time() - tm0)/3600.0
-	print(f'Total Time: {tm0:.2f}Hr')
+	print(f'Total Time: {tm0:.2f}Hr\n')
 
 MainMain(vv.EventSource.Item)
 
 '''
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[5:], mpIdx=1, maxItems=20000, createPMap=False, createAtlas=True)
+DoDatasetList(dxList[1:], createPMap=False, createAtlas=False)
 vv.Folder.Save()
 
 for dn in list(vv.Folder.DatasetNameList)[1:]:
@@ -192,6 +188,7 @@ for dn in list(vv.Folder.DatasetNameList)[1:]:
 		#ds.DeleteMap(mp)
 		ds.OpenMap(mp)
 		vv.Map.GlyphSet = 'Colored Particles||||'
+
 
 
 '''

@@ -32,7 +32,7 @@ def Map3DMain(menuKey):
 		case 'Tr':
 			Tracing()
 		case 'S2':
-			ShowSphere4(contracting=0.9)
+			ShowSphere4(repeats=5, contracting=0.9)
 		case 'Gb':
 			pk = 8 if vv.ModifierKeys.ControlPressed else 4
 			GlobeClustering(pk)
