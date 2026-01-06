@@ -393,19 +393,6 @@ namespace VisuMap {
             return vs;
         }
 
-        public INumberTable GlobeChainTransList(List<string> pList, int PK, double mom) {
-            var bList = vv.Dataset.BodyListForId(pList);
-            var D = New.NumberTable(bList, (PK+1) * 3);
-            MT.LoopNoblocking(0, bList.Count, k => {
-                var bs = LoadChain3D($"C:/temp/ChainCache/{pList[k]}.pmc");
-                GlobeChainTrans(bs, D.Matrix[k] as double[], PK, mom);
-                if ((k > 0) && (k % 500 == 0)) {
-                    vv.Title = $"Reading chains: {k} of {pList.Count}";
-                }
-            });
-            return D;
-        }
-
         public INumberTable GlobeTransFT(List<string> pList, double mom, double cf, INumberTable tm) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
             INumberTable D = New.NumberTable(bList, tm.Columns);
@@ -424,88 +411,8 @@ namespace VisuMap {
             return D;
         }
 
-        public List<int> GetGlobePeaks(IList<IBody> bList, int PK, double mom) {
-            if (PK <= 0)
-                return new List<int>();
-            double[] vs = GlobeDistances2(bList, mom);
-            int L = vs.Length;
-            List<int> peaks = new List<int>();
-            double brokenLimit = BOND_LENGTH * 1.5;
-            brokenLimit *= brokenLimit;
-            HashSet<int> brokenSet = new HashSet<int>();
-            double meanPk = MathUtil.Mean(vs);
-            double upLimit = meanPk + MathUtil.StdDeviation(vs);
-
-            for (int k = 1; k < L - 1; k++) {
-                double v = vs[k];
-                if (bList[k].DistanceSquared(bList[k - 1]) > brokenLimit) {
-                    // The chain is broken at k-th position.
-                    peaks.Add(k);
-                    brokenSet.Add(k);
-                    vs[k] *= 10; // increase the peak's distance to give it more weight for latter filtering steps.
-                } else if ((v > upLimit) && (v > vs[k - 1]) && (v > vs[k + 1])) { 
-                    peaks.Add(k);
-                }
-            }
-            if (peaks.Count == 0) 
-                return peaks;
-
-            // Filter out peaks which are too close other peaks.
-            const int minDist = 20;
-            List<int> peaks2 = new List<int>() { peaks[0] };
-            for (int k = 1; k < peaks.Count; k++) {
-                int prePeak = peaks2[peaks2.Count - 1];
-                int pk = peaks[k];
-                if ((pk - prePeak) < minDist) {
-                    if (vs[pk] > vs[prePeak])
-                        peaks2[peaks2.Count - 1] = pk;
-                } else {  // Make sure that the peak is not too close to the begin or end of the seq.
-                    if ((pk > minDist) && (L - pk) > minDist)
-                        peaks2.Add(pk);
-                }
-            }
-            peaks = peaks2;
-
-            if ( (peaks.Count>0) && (peaks[0] < minDist) )
-                peaks.RemoveAt(0);
-
-            if (peaks.Count == 1) {
-                int pk = peaks[0];
-                if ((pk <= minDist) || (L - pk) <= minDist)
-                    return new List<int>();
-            }
-
-            if (peaks.Count > PK) {
-                peaks.Sort(delegate (int i, int j) {
-                    double dv = vs[j] - vs[i];
-                    return (dv == 0) ? 0 : (dv > 0) ? 1 : -1;
-                });
-                peaks = peaks.GetRange(0, PK);
-            }
-            peaks.Sort();
-
-            // Move the peaks back to the left for half peak-interval:
-            for (int k = peaks.Count - 1; k >= 0; k--) {
-                int p0 = (k == 0) ? 0 : peaks[k - 1];
-                int p1 = peaks[k];
-                if (brokenSet.Contains(p1)) // Don't shift the chain-broken peaks.
-                    continue;
-                if ( (p1 - p0) >= 2 ) {
-                    for (int p = p1; p > p0; p--) {
-                        if ( (vs[p] < vs[p - 1]) && (vs[p]<meanPk) ) {
-                            peaks[k] = (p1 + p) / 2;
-                            break;
-                        }
-                    }
-                }
-            }
-            return peaks;
-        }
-
         public void GlobeChainTrans(List<IBody> bList, double[] R, int PK, double mom) {
-            List<int> peaks = ( mom == 0) ? Enumerable.Range(0, PK).Select(k => (k + 1) * (bList.Count / (PK + 1))).ToList() 
-                : GetGlobePeaks(bList, PK, mom);
-
+            List<int> peaks = Enumerable.Range(0, PK).Select(k => (k + 1) * (bList.Count / (PK + 1))).ToList();
             List<List<IBody>> globeList = new List<List<IBody>>();
 
             if (peaks.Count == 0) {

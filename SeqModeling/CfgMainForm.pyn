@@ -46,7 +46,7 @@ def MainMain(menuKey, jobId=''):
 			def PM2(*args, **kwargs):
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
 				#VisChainSize(2)
-			#vList = ['gFT', 'pFT',     'gSZ', 'pMF', 'sMF', 'rMF', 'tMF', 'tFT',  'sFT']
+			#vList = ['gFT', 'pFT',     'pMF', 'sMF', 'rMF', 'tMF', 'tFT',  'sFT']
 			vList = ['gFT']
 			for vt in vList:
 				match vt:
@@ -178,8 +178,8 @@ MainMain(vv.EventSource.Item)
 
 '''
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[1:], mpIdx=1, maxItems=20000, jobId='A', 
-	createPMap=False, createAtlas=True)
+DoDatasetList(dxList[1:], mpIdx=0, maxItems=0, jobId='A', 
+	createPMap=False, createAtlas=False)
 vv.Folder.Save()
 
 for dn in list(vv.Folder.DatasetNameList)[1:]:

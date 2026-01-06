@@ -446,8 +446,6 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None,
 	match vType:
 		case 'gFT':
 			dt = GetGlobeChainTrans(pList, waveCount, waveLen, mom=mom, cf=cf)
-		case 'gSZ':
-			dt = cs.GlobeChainTransList(pList, PK=PK, mom=mom)
 		case 'pMF':
 			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf)
 		case 'pFT':
