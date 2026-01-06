@@ -4,7 +4,7 @@ vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
 import numpy as np
 
-def MainMain(menuKey):
+def MainMain(menuKey, jobId=''):
 	global ctrPressed
 	selected = list(vv.Map.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None
@@ -40,7 +40,7 @@ def MainMain(menuKey):
 				vv.Return()
 			OpenCifFile(pId)
 		case 'P-2D':
-			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName+'B',
+			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName+jobId,
 				tP = (2000, 2, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
@@ -131,7 +131,7 @@ def ShowGlobeDistances(pId, momentum=0.95):
 	mp.CentralizeView(False)
 	mp.Title = mp.Description = info.ToStr()
 
-	vs = New.ValueSelector(0.4, 1.0, momentum, 
+	vs = New.ValueSelector(0.0, 1.0, momentum, 
 		'UpdateGlobeView(pp.Tag, mom=pp.CurrentValue)')
 	vs.Title = 'Momentum'
 	vs.Tag = (bList, bv, mp, info)
@@ -151,7 +151,7 @@ def UpdateGlobeView(targets, mom):
 		ss.CopyXYZ(bList2, mp.BodyList)
 		mp.RedrawAll()
 	
-def DoDatasetList(dxList, mpIdx=0, maxItems=0, 
+def DoDatasetList(dxList, mpIdx=0, maxItems=0, jobId='', 
 		createPMap=True, createAtlas=False):
 	vv.SelectedItems.Clear()
 	tm0 = time.time()
@@ -166,10 +166,10 @@ def DoDatasetList(dxList, mpIdx=0, maxItems=0,
 		if createPMap:
 			MainMain('P-Map')
 		if createAtlas:
-			MainMain('P-2D')
+			MainMain('P-2D', jobId)
 
 		t0 = time.time() - t0
-		print(f'{dsIdx}: {ds.Name:<24}\t{t0:.1f}s; {len(bs)} chains')
+		print(f'{dsIdx}: {ds.Name:<16}\t{t0:.1f}s; {len(bs)} chains')
 		if vv.GuiManager.StopFlag: break
 	tm0 = (time.time() - tm0)/3600.0
 	print(f'Total Time: {tm0:.2f}Hr\n')
@@ -178,7 +178,8 @@ MainMain(vv.EventSource.Item)
 
 '''
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[1:], createPMap=False, createAtlas=False)
+DoDatasetList(dxList[1:], mpIdx=1, maxItems=20000, jobId='A', 
+	createPMap=False, createAtlas=True)
 vv.Folder.Save()
 
 for dn in list(vv.Folder.DatasetNameList)[1:]:
