@@ -48,35 +48,6 @@ namespace VisuMap {
             return bList;
         }
 
-        public bool LocalSmoothen2(double[][] M, double smoothenRatio, int repeats = 8) {
-            if ((M == null) || (M.Length < 3) || (M[0].Length != 3) || (repeats <= 0))
-                return false;
-            int N = M.Length;
-            Vector3[] P = new Vector3[N];
-            for (int k = 0; k < N; k++) {
-                double[] R = M[k];
-                P[k].X = (float)R[0];
-                P[k].Y = (float)R[1];
-                P[k].Z = (float)R[2];
-            }
-            Vector3[] Mean = new Vector3[N - 2];
-            float c = -(float)smoothenRatio;
-            for (int rp = 0; rp < repeats; rp++) {
-                for (int k = 0; k < Mean.Length; k++)
-                    Mean[k] = 0.5f * (P[k] + P[k + 2]);
-                for (int k = 0; k < Mean.Length; k++)
-                    P[k + 1] += c * (P[k + 1] - Mean[k]);
-            }
-
-            for (int k = 1; k < (N - 1); k++) {
-                double[] R = M[k];
-                R[0] = P[k].X;
-                R[1] = P[k].Y;
-                R[2] = P[k].Z;
-            }
-            return true;
-        }
-
         public void NormalizeByFlipping(List<IBody> bodyList) {
             int N = bodyList.Count;
             if (N < 2)
@@ -370,29 +341,6 @@ namespace VisuMap {
             return vs;
         }
 
-        public double[] GlobeDistances2(IList<IBody> bList, double mom) {
-            int L = bList.Count;
-            double[] vs = new double[L];
-
-            double g = 1.0f - mom;
-            IBody mp = bList[0].Clone();
-            for (int k = 1; k < L; k++) {
-                IBody b = bList[k];
-                vs[k] = b.DistanceSquared(mp);
-                mp.X = mom * mp.X + g * b.X;
-                mp.Y = mom * mp.Y + g * b.Y;
-                mp.Z = mom * mp.Z + g * b.Z;
-            }
-
-            //
-            // Smoothen the series.
-            //
-            SmoothenSeries(vs);
-            SmoothenSeries(vs);
-
-            return vs;
-        }
-
         public INumberTable GlobeTransFT(List<string> pList, double mom, double cf, INumberTable tm) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
             INumberTable D = New.NumberTable(bList, tm.Columns);
@@ -537,15 +485,6 @@ namespace VisuMap {
             return New.NumberTable(D.Select(v => v.Vector).ToArray());            
         }
 
-        // Returns a dictionary that maps aa to their aa-cluster indexes.
-        Dictionary<char, int> Cluster2Index(string aaGroups) {
-            string[] cList = aaGroups.Split('|');
-            Dictionary<char, int> P = new Dictionary<char, int>();
-            for (int cIdx = 0; cIdx < cList.Length; cIdx++)
-                foreach (char c in cList[cIdx])
-                    P[c] = cIdx;
-            return P;
-        }
 
         Dictionary<char, List<int>> Cluster2IdxList(string aaGroups) {
             string[] cList = aaGroups.Split('|');

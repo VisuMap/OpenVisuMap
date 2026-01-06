@@ -388,7 +388,6 @@ def GetFourierTrans(pList, waveLen, waveCount, cf=0.0):
 			bList = cs.TorsionUnfold(bList, cf)
 		nt = New.NumberTable(bList,  3)
 		#nt = SelectHelixAA(nt)
-		#cs.LocalSmoothen2(nt.Matrix, smoothenRatio=0.1, repeats=2)
 		cs.PcaNormalizePositive(nt)
 		#cs.RowDifferentiation(nt)
 		cs.FourierTrans(tm, nt, pD.Matrix[k])
