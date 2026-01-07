@@ -12,8 +12,8 @@ namespace VisuMap {
             return new Vector3((float)v[0], (float)v[1], (float)v[2]);
         }
 
-        public static void SetXYZ(this IBody b, Vector3 p) {
-            b.SetXYZ(p.X, p.Y, p.Z);
+        public static IBody SetXYZ(this IBody b, Vector3 p) {
+            return b.SetXYZ(p.X, p.Y, p.Z);
         }
 
         public static void SetXYZ(this IList<double> v, Vector3 p) {

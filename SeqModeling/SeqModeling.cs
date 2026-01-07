@@ -659,6 +659,52 @@ namespace VisuMap {
             }
         }
 
+        Vector3[] MovingWindowMean0(IList<IBody> bs, int winSize) {
+            if ((bs == null) || (bs.Count == 0) || (winSize < 0))
+                return null;
+            int L = bs.Count;
+            int N = 0; // Counts number of vectors within the window.
+            Vector3 P = new Vector3();  // the sum of current moving-window.
+            Vector3[] M = new Vector3[L];
+            for (int k=0; k<winSize; k++)
+                if (k < L) {
+                    P += bs[k].ToV3();
+                    N++;
+                }
+
+            // left and right are the index of window boundary inclusively.
+            int left = -winSize - 1;
+            int right = winSize - 1;
+            for (int k=0; k<L; k++) {  // k is the index of window center.
+                // Increaments the left end
+                if ( left>=0 ) {
+                    P -= bs[left].ToV3();
+                    N--;
+                }
+                left++;
+                // Increaments the right end
+                right++;
+                if ( right < L ) {
+                    P += bs[right].ToV3();
+                    N++;
+                }
+                M[k] = P/N;
+            }
+            return M;
+        }
+
+        public List<IBody> MovingWindowMean(IList<IBody> bs, int winSize) {
+            Vector3[] M = MovingWindowMean0(bs, winSize);
+            return M?.Select((v, k) => bs[k].Clone().SetXYZ(v)).ToList();
+        }
+
+        public double[] MovingWindowVariance(IList<IBody> bs, int winSize) {
+            Vector3[] M = MovingWindowMean0(bs, winSize);
+            return M?.Take(bs.Count - 1).Select(
+                (v, k) => (double)(bs[k + 1].ToV3() - v).LengthSquared()).ToArray();
+        }
+
+
         public List<IBody> GlobeSmoothen2(IList<IBody> bs, double mom) {
             if (mom == 0)
                 return bs as List<IBody>;
