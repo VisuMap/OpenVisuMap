@@ -44,18 +44,18 @@ def MainMain(menuKey, jobId=''):
 				tP = (2000, 2, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
-				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
+				ProteinMap2(pList,vt,2000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
 				#VisChainSize(2)
-			#vList = ['gFT', 'pFT',     'pMF', 'sMF', 'rMF', 'tMF', 'tFT',  'sFT']
+			#vList = ['mwV', 'gFT', 'pFT',     'pMF', 'sMF', 'rMF', 'tMF', 'tFT',  'sFT']
 			vList = ['gFT']
 			for vt in vList:
 				match vt:
+					case 'mwV':
+						PM2(waveCount=15, waveLen=512, winSize=10, tSNE=(0.075, 8.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, waveLen=512, cf=0.25, tSNE=(0.05, 4.0, 1.0))	
-					case 'gSZ':
-						PM2(PK=4, mom=0, tSNE=(0.05, 4.0, 1.0))
 					case 'pMF':
 						PM2(mfL=20, cf=0.0, tSNE=(0.1, 4.0, 1.0))
 					case 'sFT':	
@@ -103,12 +103,12 @@ def MainMain(menuKey, jobId=''):
 			title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name};  SeqCount:{vv.Dataset.Rows:,}'
 			New.TextPanel(title, sInfo).Show()
 		case 'GB':
-			ShowGlobeDistances(pId, momentum=0.95)
+			ShowGlobeDistances(pId, winSize=20)
 		case 'TT':
 			pass
 
 # ---------------------------------------------------------------------------------------
-
+'''
 def ShowGlobeDistances(pId, momentum=0.95):
 	bList = LoadChain(pId)
 	cs.NormalizeChain(bList)
@@ -150,7 +150,54 @@ def UpdateGlobeView(targets, mom):
 		bList2 = InterpolateChain(bList2, rp=3)
 		ss.CopyXYZ(bList2, mp.BodyList)
 		mp.RedrawAll()
-	
+'''
+
+
+def ShowGlobeDistances(pId, winSize):
+	bList = LoadChain(pId)
+	cs.NormalizeChain(bList)
+	info = MapInfo().Set('pId', pId).Set("WS", winSize)
+
+	vs = cs.MovingWindowVariance(bList, winSize=winSize)
+	bv = New.BarView( vs )
+	for k in range(vs.Length):
+		bv.ItemList[k].Id = bList[k+1].Id
+	bv.Horizontal = False
+	bv.NormalizeView()
+	bv.BaseLineType=4
+	bv.UsingColorPalette = True
+	bv.Description = bv.Title = info.ToStr()
+	bv.Show()
+
+	bList2 = cs.MovingWindowMean(bList, winSize=winSize)
+	bList2 = InterpolateChain(bList2, rp=3)
+	mp = ShowBodyList(bList2, info=info, normalize=False)
+	mp.CentralizeView(False)
+	mp.Title = mp.Description = info.ToStr()
+
+	vs = New.ValueSelector(0, 100, winSize, 
+		'UpdateGlobeView(pp.Tag, winSize=int(pp.CurrentValue))')
+	vs.Title = 'Window Size'
+	vs.StepSize = 1
+	vs.Tag = (bList, bv, mp, info)
+	vs.Show()
+
+def UpdateGlobeView(targets, winSize):
+	bList, bv, mp, info = targets
+	info.Set('WinSize', winSize)
+	if (bv != None) and not bv.IsDisposed:
+		bv.Description = bv.Title = info.ToStr()
+		vs = cs.MovingWindowVariance(bList, winSize=winSize)
+		bv.SetValues( vs )
+		bv.Redraw()
+	if (mp != None) and not mp.IsDisposed:
+		mp.Description = mp.Title = info.ToStr()
+		bList2 = cs.MovingWindowMean(bList, winSize)
+		bList2 = InterpolateChain(bList2, rp=3)
+		ss.CopyXYZ(bList2, mp.BodyList)
+		mp.RedrawAll()
+
+
 def DoDatasetList(dxList, mpIdx=0, maxItems=0, jobId='', 
 		createPMap=True, createAtlas=False):
 	vv.SelectedItems.Clear()
@@ -178,8 +225,7 @@ MainMain(vv.EventSource.Item)
 
 '''
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[1:], mpIdx=0, maxItems=0, jobId='A', 
-	createPMap=False, createAtlas=False)
+DoDatasetList(dxList[2:], mpIdx=0, maxItems=0, jobId='', createPMap=True, createAtlas=False)
 vv.Folder.Save()
 
 for dn in list(vv.Folder.DatasetNameList)[1:]:
@@ -189,7 +235,4 @@ for dn in list(vv.Folder.DatasetNameList)[1:]:
 		#ds.DeleteMap(mp)
 		ds.OpenMap(mp)
 		vv.Map.GlyphSet = 'Colored Particles||||'
-
-
-
 '''

@@ -682,15 +682,17 @@ namespace VisuMap {
             int N = 0; // Counts number of vectors within the window.
             Vector3 P = new Vector3();  // the sum of current moving-window.
             Vector3[] M = new Vector3[L];
-            for (int k=0; k<winSize; k++)
+
+            // left and right are the indexes of the moving window boundary inclusively.
+            int left = -winSize - 1;
+            int right = winSize - 1;
+            // right = -1;
+            for (int k=0; k<(right+1); k++)
                 if (k < L) {
                     P += bs[k].ToV3();
                     N++;
                 }
 
-            // left and right are the index of window boundary inclusively.
-            int left = -winSize - 1;
-            int right = winSize - 1;
             for (int k=0; k<L; k++) {  // k is the index of window center.
                 if ( left>=0 ) {
                     IBody b = bs[left];
@@ -704,7 +706,8 @@ namespace VisuMap {
                     N++;
                 }
                 M[k] = P;
-                M[k] /= N;
+                if ( N > 0 )
+                    M[k] /= N;
             }
             return M;
         }
@@ -935,7 +938,7 @@ namespace VisuMap {
                 mp.Z = mom * mp.Z + g * b.Z;
             }
             //MT.Loop(0, L, k => vs[k] = Math.Sqrt(vs[k]));
-            MT.Loop(0, L, k => vs[k] = 1.0/vs[k]);
+            MT.Loop(0, L, k => vs[k] = 1.0/(1+vs[k]));
             //MT.Loop(0, L, k => vs[k] = 1.0 / Math.Sqrt(vs[k]));
             return vs;
         }
