@@ -359,6 +359,22 @@ namespace VisuMap {
             return D;
         }
 
+        public INumberTable MovingWindowFT(List<string> pList, int winSize, INumberTable tm) {
+            List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
+            INumberTable D = New.NumberTable(bList, tm.Columns);
+            double[][] M = D.Matrix as double[][];
+            MT.LoopNoblocking(0, pList.Count, k => {
+                string pId = pList[k];
+                var bs = LoadChain3D($"C:/temp/ChainCache/{pList[k]}.pmc");
+                var bDist = MovingWindowVariance(bs, winSize);
+                GlobeChainTransFT(bDist, tm, M[k]);
+                if ((k > 0) && (k % 500 == 0)) {
+                    vv.Title = $"Reading chains: {k} of {pList.Count}";
+                }
+            });
+            return D;
+        }
+
         public void GlobeChainTrans(List<IBody> bList, double[] R, int PK, double mom) {
             List<int> peaks = Enumerable.Range(0, PK).Select(k => (k + 1) * (bList.Count / (PK + 1))).ToList();
             List<List<IBody>> globeList = new List<List<IBody>>();
@@ -676,19 +692,19 @@ namespace VisuMap {
             int left = -winSize - 1;
             int right = winSize - 1;
             for (int k=0; k<L; k++) {  // k is the index of window center.
-                // Increaments the left end
                 if ( left>=0 ) {
+                    IBody b = bs[left];
                     P -= bs[left].ToV3();
                     N--;
                 }
                 left++;
-                // Increaments the right end
                 right++;
                 if ( right < L ) {
                     P += bs[right].ToV3();
                     N++;
                 }
-                M[k] = P/N;
+                M[k] = P;
+                M[k] /= N;
             }
             return M;
         }
@@ -700,8 +716,14 @@ namespace VisuMap {
 
         public double[] MovingWindowVariance(IList<IBody> bs, int winSize) {
             Vector3[] M = MovingWindowMean0(bs, winSize);
-            return M?.Take(bs.Count - 1).Select(
-                (v, k) => (double)(bs[k + 1].ToV3() - v).LengthSquared()).ToArray();
+            if (M == null)
+                return null;
+            double[] varList = new double[bs.Count - 1];
+            MT.Loop(0, varList.Length, k => {
+                Vector3 dv = bs[k + 1].ToV3() - M[k];
+                varList[k] = 1.0 / (1 + dv.LengthSquared());
+            });
+            return varList;
         }
 
 
