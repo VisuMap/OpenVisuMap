@@ -1,4 +1,4 @@
-#MenuLabels Merge
+F#MenuLabels Merge
 vv.Import('SeqVis.pyn')
 
 def Map3DMain(menuKey):
@@ -12,13 +12,16 @@ def MergeCplChains():
 	cpl = {}
 	for row, rs in enumerate(nt.RS):
 		pId = rs.Id[:4]
-		if pId not in cpl: 
-			cpl[pId] = mt.NewArray(nt.Columns)
-		mt.AddTo(cpl[pId], nt.Matrix[row])
+		if pId in cpl: 
+			R = cpl[pId]
+		else:
+			R = mt.NewArray(nt.Columns)
+			cpl[pId] = R
+		mt.AddTo(R, nt.Matrix[row])
 	nt2 = New.NumberTable(len(cpl), 0)
 	nt2.CS.AddRange( nt.CS )
 	for row, rowId in enumerate( cpl.keys() ):
-		nt2.RS[row].Id = rowId
+		nt2.RS[row].Id = rowId + '_0'
 		nt2.Matrix[row] = cpl[rowId]
 	nt2.ShowHeatMap()
 
