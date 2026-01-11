@@ -1,0 +1,25 @@
+#MenuLabels Merge
+vv.Import('SeqVis.pyn')
+
+def Map3DMain(menuKey):
+	match menuKey:
+		case 'Merge':
+			MergeCplChains()
+
+Map3DMain(vv.EventSource.Item)
+
+def MergeCplChains():
+	nt = pp.GetNumberTable()
+	id2idx = {}
+	for row, rs in enumerate(nt.RowSpecList):
+		pId = rs.Id[:4]
+		if pId not in id2idx:
+			id2idx[pId] = len(id2idx)
+		rs.Type = id2idx[pId]
+	nt2 = nt.GroupRows(1)
+	idList = list( id2idx.keys() )
+	for k, rs in enumerate(nt2.RowSpecList):
+		rs.Id = idList[k]
+		rs.Type  = 0
+	nt2.ShowHeatMap()
+

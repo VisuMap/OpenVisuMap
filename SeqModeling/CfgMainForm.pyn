@@ -44,14 +44,13 @@ def MainMain(menuKey, jobId=''):
 				tP = (2000, 2, 0.0, 0.1, 4.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
-				ProteinMap2(pList,vt,2000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
+				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
 				#VisChainSize(2)
 			#vList = ['mwV', 'gFT', 'pFT',     'pMF', 'sMF', 'rMF', 'tMF', 'tFT',  'sFT']
-			vList = ['gFT']
-			for vt in vList:
+			for vt in ['mwV']:
 				match vt:
 					case 'mwV':
-						PM2(waveCount=15, waveLen=512, winSize=10, tSNE=(0.075, 8.0, 1.0))
+						PM2(waveCount=15, waveLen=512, winSize=15, tSNE=(0.075, 8.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
@@ -103,13 +102,14 @@ def MainMain(menuKey, jobId=''):
 			title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name};  SeqCount:{vv.Dataset.Rows:,}'
 			New.TextPanel(title, sInfo).Show()
 		case 'GB':
+			#ShowGlobeDistancesGB(pId, momentum=0.95)
 			ShowGlobeDistances(pId, winSize=20)
 		case 'TT':
 			pass
 
 # ---------------------------------------------------------------------------------------
-'''
-def ShowGlobeDistances(pId, momentum=0.95):
+
+def ShowGlobeDistancesGB(pId, momentum=0.95):
 	bList = LoadChain(pId)
 	cs.NormalizeChain(bList)
 	info = MapInfo().Set('pId', pId).Set("Mom", momentum)
@@ -132,12 +132,12 @@ def ShowGlobeDistances(pId, momentum=0.95):
 	mp.Title = mp.Description = info.ToStr()
 
 	vs = New.ValueSelector(0.0, 1.0, momentum, 
-		'UpdateGlobeView(pp.Tag, mom=pp.CurrentValue)')
+		'UpdateGlobeViewGB(pp.Tag, mom=pp.CurrentValue)')
 	vs.Title = 'Momentum'
 	vs.Tag = (bList, bv, mp, info)
 	vs.Show()
 
-def UpdateGlobeView(targets, mom):
+def UpdateGlobeViewGB(targets, mom):
 	bList, bv, mp, info = targets
 	info.Set('Mom', f'{mom:.4g}')
 	if (bv != None) and not bv.IsDisposed:
@@ -150,8 +150,6 @@ def UpdateGlobeView(targets, mom):
 		bList2 = InterpolateChain(bList2, rp=3)
 		ss.CopyXYZ(bList2, mp.BodyList)
 		mp.RedrawAll()
-'''
-
 
 def ShowGlobeDistances(pId, winSize):
 	bList = LoadChain(pId)

@@ -476,9 +476,9 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 
 	if justShDt:
 		hm = dt.ShowHeatMap()
-		hm.MouseClick(5,5)
-		hm.ClickMenu('PyUtils/UMAP')
-		hm.Close()
+		#hm.MouseClick(5,5)
+		#hm.ClickMenu('PyUtils/UMAP')
+		#hm.Close()
 		return
 
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=gSize, glyphOpacity=gOpacity, 
