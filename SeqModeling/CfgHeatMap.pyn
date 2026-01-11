@@ -6,20 +6,20 @@ def Map3DMain(menuKey):
 		case 'Merge':
 			MergeCplChains()
 
-Map3DMain(vv.EventSource.Item)
-
 def MergeCplChains():
+	mt = vv.Math
 	nt = pp.GetNumberTable()
-	id2idx = {}
-	for row, rs in enumerate(nt.RowSpecList):
+	cpl = {}
+	for row, rs in enumerate(nt.RS):
 		pId = rs.Id[:4]
-		if pId not in id2idx:
-			id2idx[pId] = len(id2idx)
-		rs.Type = id2idx[pId]
-	nt2 = nt.GroupRows(1)
-	idList = list( id2idx.keys() )
-	for k, rs in enumerate(nt2.RowSpecList):
-		rs.Id = idList[k]
-		rs.Type  = 0
+		if pId not in cpl: 
+			cpl[pId] = mt.NewArray(nt.Columns)
+		mt.AddTo(cpl[pId], nt.Matrix[row])
+	nt2 = New.NumberTable(len(cpl), 0)
+	nt2.CS.AddRange( nt.CS )
+	for row, rowId in enumerate( cpl.keys() ):
+		nt2.RS[row].Id = rowId
+		nt2.Matrix[row] = cpl[rowId]
 	nt2.ShowHeatMap()
 
+Map3DMain(vv.EventSource.Item)
