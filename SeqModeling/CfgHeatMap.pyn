@@ -1,4 +1,4 @@
-F#MenuLabels Merge
+#MenuLabels Merge
 vv.Import('SeqVis.pyn')
 
 def Map3DMain(menuKey):
