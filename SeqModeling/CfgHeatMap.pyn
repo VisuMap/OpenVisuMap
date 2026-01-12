@@ -7,22 +7,15 @@ def Map3DMain(menuKey):
 			MergeCplChains()
 
 def MergeCplChains():
-	mt = vv.Math
 	nt = pp.GetNumberTable()
-	cpl = {}
+	pList = list(set([rs.Id[:4] for rs in nt.RS ]))
+	nt2 = New.NumberTable(len(pList), nt.Columns)
+	M, M2 = nt.Matrix, nt2.Matrix
+	id2idx = {id:i for i,id in enumerate(pList)}
 	for row, rs in enumerate(nt.RS):
-		pId = rs.Id[:4]
-		if pId in cpl: 
-			R = cpl[pId]
-		else:
-			R = mt.NewArray(nt.Columns)
-			cpl[pId] = R
-		mt.AddTo(R, nt.Matrix[row])
-	nt2 = New.NumberTable(len(cpl), 0)
-	nt2.CS.AddRange( nt.CS )
-	for row, rowId in enumerate( cpl.keys() ):
-		nt2.RS[row].Id = rowId + '_0'
-		nt2.Matrix[row] = cpl[rowId]
+		vv.Math.AddTo(M2[ id2idx[rs.Id[:4]] ], M[row])
+	for k, rs in enumerate(nt2.RS):
+		rs.Id = pList[k] + '_0'
 	nt2.ShowHeatMap()
 
 Map3DMain(vv.EventSource.Item)
