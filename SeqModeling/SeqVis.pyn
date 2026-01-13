@@ -1081,7 +1081,7 @@ def Merge2DList(atlas):
 	mp.Show()
 
 
-def VisChainSize(szType=2):
+def ColorChainMap(szType=2):
 	if szType < 2:
 		pDS = vv.Folder.ReadDataset("P-Info")
 		p2sz = {}			
@@ -1094,6 +1094,9 @@ def VisChainSize(szType=2):
 	else:
 		bList = pp.BodyListEnabled()
 	ds = vv.Dataset
+
+	vv.Map.GlyphSet = '36 Clusters' if szType == 5 else 'Ordered 64|36 Clusters|Red Green'
+
 	match szType:
 		case 0: # chains
 			for b in bList:
@@ -1121,6 +1124,19 @@ def VisChainSize(szType=2):
 				typeIdx = 0 if chType=='A' else ( 99 if chType=='r' else 97 )
 				b.Type = typeIdx
 			vv.Map.GlyphSet = PMap_GLYPHSET
+		case 5:
+			map = vv.Map
+			map.HiddenGlyphSize = 2
+			map.GlyphSize = 0.4
+			map.GlyphOpacity = 0.8
+			map.Redraw()
+			dbs = New.DbscanCluster()
+			dbs.EpsilonRatio = 1.0
+			dbs.AutoColoring = True
+			dbs.MinimumPoints = 10			
+			dbs.Show()
+			dbs.Reset().Start()
+
 	if pp.Name == 'MainForm':
 		pp.Map.Redraw()
 	else:
@@ -1164,6 +1180,8 @@ def DoubleClicked():
 
 def ResetAtlas():
 	mk = vv.ModifierKeys
+	if mk.AltPressed:
+		return
 	tm = vv.GuiManager.MouseClickDuration
 	cnt = pp.SelectedItems.Count
 	if vv.EventSource.Form.Name == 'Atlas':

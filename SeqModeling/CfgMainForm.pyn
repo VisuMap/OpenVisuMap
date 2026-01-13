@@ -1,4 +1,4 @@
-#MenuLabels ChmX Web Info Siblings vsSz SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 U3 sS sU sT GB TT
+#MenuLabels ChmX Web Info Siblings C-Map SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 U3 sS sU sT GB TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -86,8 +86,12 @@ def MainMain(menuKey, jobId=''):
 				raise Exception('No data selected!')
 			#ShowChain(pId, gopacity=0.5)
 			ShowSphere4()
-		case 'vsSz':
-			VisChainSize(4 if ctrPressed else 2)
+		case 'C-Map':
+			if vv.ModifierKeys.ControlPressed:
+				#ColorChainMap(4)
+				ColorChainMap(2)
+			else:
+				ColorChainMap(5)
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'U3':
@@ -223,7 +227,7 @@ MainMain(vv.EventSource.Item)
 
 '''
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[2:], mpIdx=0, maxItems=0, jobId='', createPMap=True, createAtlas=False)
+DoDatasetList(dxList[1:], mpIdx=0, maxItems=0, jobId='', createPMap=True, createAtlas=False)
 vv.Folder.Save()
 
 for dn in list(vv.Folder.DatasetNameList)[1:]:
