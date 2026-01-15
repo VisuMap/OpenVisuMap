@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap Smoothen Seq Open Web ChmX 3D 3Dx HideIPO MarkHelix MarkBeta vsSz 'RNA/DNA' Align PID S2
+#MenuLabels ShowData Scanning ReCreateMap info Smoothen Seq Open Web ChmX 3D 3Dx HideIPO MarkHelix MarkBeta vsSz 'RNA/DNA' Align PID S2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -13,9 +13,11 @@ match vv.EventSource.Item:
 	case 'ReCreateMap':
 		AssertSeqMap(pp)
 		ReCreateMap(pp)
+	case 'info':
+		New.TextPanel('MapSnapshot', MapInfo(pp.Description).Show()).Show()
 	case 'Smoothen':
-		#SmoothenCurve(pp, 10)
-		cs.GlobeSmoothen(pp.BodyList, 0.9)
+		bList = SimplifySeq(pp.BodyList, 0.9)
+		ss.CopyToXYZ(bList, pp.BodyList)
 		pp.RedrawBodies()		
 	case 'RNA/DNA':
 		pp.SelectedItems = [b.Id for b in pp.BodyList if (b.Name[0] == 'r') or (b.Name[0] == 'd') ]

@@ -197,6 +197,15 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 		ma.DataChanged = True # since the Show() clears the DataChanged flag.
 		del mapStore
 
+def SimplifySeq(bList, mom):
+	if mom == 0:
+		return bList
+	elif mom < 1.0:
+		cs.GlobeSmoothen(bList, mom)
+	else:
+		bList = cs.MovingWindowMean(bList, winSize=int(mom))
+	return bList
+
 # CreateProteinMaps() is a fast version of UnFoldProteinList(), it is limited to sequences with less than 23K PP.
 def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 	global ctrPressed
@@ -221,22 +230,22 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 	t0 = time.time()
 	for k, pId in enumerate(pList):
 		bList = LoadChain(pId)
-		cs.GlobeSmoothen(bList, mom)
+		bList = SimplifySeq(bList, mom)
 		bList = InterpolateChain(bList, intRp)
 		nt = New.NumberTable(bList, 3)
 		nt = tsne.Fit(nt)
 		if nt == None:
 			continue
 		bList = nt.ToBodyList()
+		info = MapInfo()
+		info.pId = pId
+		info.Set('tP', tP)	
 		if mapStore == None:
 			map = New.MapSnapshot(bList)
-			info = MapInfo()
-			info.pId = pId
-			info.Set('tP', tP)	
 			ConfigSeqMap(map, info, gsize=1.0)
 			cs.FitByPCA(map, 15.0).Show()
-		else:
-			mapStore.AddRawMap(pId, bList, scale=60)
+		else:		
+			mapStore.AddRawMap(pId, bList, scale=60, info=info)
 			if (k+1)%50==0: 
 				vv.Title = f'2D Fitted {pId}/{bList.Count}: {k+1}-th of {L}'
 		vv.DoEvents()

@@ -104,7 +104,7 @@ public List<IBody> Concatenate(List<IBody> bList1, List<IBody> bList2) {
 	return bList1;
 } 
 
-public void CopyXYZ(List<IBody> bList1, List<IBody> bList2) {
+public void CopyToXYZ(List<IBody> bList1, List<IBody> bList2) {
 	for(int k=0; k<bList1.Count; k++) {
 		var b = bList1[k];
 		bList2[k].SetXYZ(b.X, b.Y, b.Z);
@@ -188,14 +188,16 @@ class AtlasMapStore():
 			return fm
 		else:
 			return None
-	def AddRawMap(self, id, bList, scale):
+	def AddRawMap(self, id, bList, scale, info=None):
 		mp = self.rawMap
 		if mp == None: 
 			mp = New.MapSnapshot(bList)
 			self.rawMap = mp
 		else:
 			mp.BodyList = bList
-		info = MapInfo().Set('pId', id)
+		if info == None:
+			info = MapInfo()
+		info.Set('pId', id)
 		ConfigSeqMap(mp, info, gsize=6.0)
 		cs.FitByPCA(mp, scale)
 		item = self.atlas.CaptureItem(mp)
@@ -1095,7 +1097,11 @@ def ColorChainMap(szType=2):
 		bList = pp.BodyListEnabled()
 	ds = vv.Dataset
 
-	vv.Map.GlyphSet = '36 Clusters' if szType == 5 else 'Ordered 64|36 Clusters|Red Green'
+	if szType == 5:
+		vv.Map.GlyphSet = '36 Clusters'
+	else:
+		vv.Map.GlyphSet = 'Ordered 64|36 Clusters|Red Green'
+		for b in bList: b.Hidden = False
 
 	match szType:
 		case 0: # chains
