@@ -16,8 +16,7 @@ match vv.EventSource.Item:
 	case 'info':
 		New.TextPanel('MapSnapshot', MapInfo(pp.Description).Show()).Show()
 	case 'Smoothen':
-		bList = SimplifySeq(pp.BodyList, 0.9)
-		ss.CopyToXYZ(bList, pp.BodyList)
+		SimplifySeq(pp.BodyList, 0.9)
 		pp.RedrawBodies()		
 	case 'RNA/DNA':
 		pp.SelectedItems = [b.Id for b in pp.BodyList if (b.Name[0] == 'r') or (b.Name[0] == 'd') ]

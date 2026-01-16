@@ -7,8 +7,7 @@ def Map3DMain(menuKey):
 		case 'Scanning':
 			Scanning(pp, stepSize=2, broadcasting=vv.ModifierKeys.ControlPressed)
 		case 'Smoothen':
-			bList = SimplifySeq(pp.BodyList, 0.95)
-			ss.CopyToXYZ(bList, pp.BodyList)
+			SimplifySeq(pp.BodyList, 0.95)
 			pp.Redraw()
 		case '2D':
 			UnFoldMap(pp, repeats=0, epochs=3000, initExag=10.0, ppl=0.15, 

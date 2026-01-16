@@ -198,13 +198,13 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 		del mapStore
 
 def SimplifySeq(bList, mom):
-	if mom == 0:
-		return bList
+	if mom <= 0:
+		return
 	elif mom < 1.0:
 		cs.GlobeSmoothen(bList, mom)
 	else:
-		bList = cs.MovingWindowMean(bList, winSize=int(mom))
-	return bList
+		bList2 = cs.MovingWindowMean(bList, winSize=int(mom))
+		ss.CopyToXYZ(bList2, bList)
 
 # CreateProteinMaps() is a fast version of UnFoldProteinList(), it is limited to sequences with less than 23K PP.
 def CreateProteinMaps(pList, samplingDist, atlasName, tP):
@@ -230,7 +230,7 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 	t0 = time.time()
 	for k, pId in enumerate(pList):
 		bList = LoadChain(pId)
-		bList = SimplifySeq(bList, mom)
+		SimplifySeq(bList, mom)
 		bList = InterpolateChain(bList, intRp)
 		nt = New.NumberTable(bList, 3)
 		nt = tsne.Fit(nt)
