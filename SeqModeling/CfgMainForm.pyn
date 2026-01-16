@@ -88,7 +88,7 @@ def MainMain(menuKey, jobId=''):
 			#ShowChain(pId, gopacity=0.5)
 			ShowSphere4()
 		case 'C-Map':
-			if vv.ModifierKeys.ControlPressed:
+			if ctrPressed:
 				#ColorChainMap(4)
 				ColorChainMap(2)
 			else:
@@ -107,8 +107,10 @@ def MainMain(menuKey, jobId=''):
 			title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name};  SeqCount:{vv.Dataset.Rows:,}'
 			New.TextPanel(title, sInfo).Show()
 		case 'GB':
-			#ShowGlobeDistancesGB(pId, momentum=0.75)
-			ShowGlobeDistances(pId, winSize=2)
+			if ctrPressed:
+				ShowGlobeDistancesGB(pId, momentum=0.75)
+			else:
+				ShowGlobeDistances(pId, winSize=2)
 		case 'TT':
 			pass
 
@@ -230,7 +232,7 @@ MainMain(vv.EventSource.Item)
 '''
 
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[1:], mpIdx=0, maxItems=20000, jobId='', createPMap=True, createAtlas=True)
+DoDatasetList(dxList[1:], mpIdx=0, maxItems=20000, jobId='.B', createPMap=True, createAtlas=True)
 vv.Folder.Save()
 
 for dn in list(vv.Folder.DatasetNameList)[1:]:
