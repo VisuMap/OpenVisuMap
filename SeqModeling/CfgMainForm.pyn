@@ -51,7 +51,7 @@ def MainMain(menuKey, jobId=''):
 			for vt in ['mwV']:
 				match vt:
 					case 'mwV':
-						PM2(waveCount=25, waveLen=512, winSize=25, tSNE=(0.075, 8.0, 1.0))
+						PM2(waveCount=25, waveLen=512, winSize=25, tSNE=(0.075, 6.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
