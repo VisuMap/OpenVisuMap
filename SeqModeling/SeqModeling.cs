@@ -143,7 +143,13 @@ namespace VisuMap {
                 for(int col=0; col<cols; col++)
                     colSum[col] += R[col];
             }
-
+            /*
+            foreach(int row in new int[] { 0, rows-1 }) {
+                var R = M[row];
+                for (int col = 0; col < cols; col++)
+                    colSum[col] += 10*R[col];
+            }
+            */
             bool[] flipColumn = colSum.Select(c => c > 0).ToArray();
 
             foreach (var R in M) { 

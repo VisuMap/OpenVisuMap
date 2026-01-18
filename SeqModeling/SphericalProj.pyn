@@ -93,6 +93,7 @@ def SphereView(pId, unfolding):
 	vs.StepSize = 0.01
 	vs.Show()
 	vs.CurrentValue = 0.8
+	vs.TheForm.BringToFront()
 
 def TorsionMap(pId, mom=0.9):
 	info = MapInfo().Set('pId', pId)

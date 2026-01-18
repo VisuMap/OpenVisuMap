@@ -1,4 +1,4 @@
-#MenuLabels ChmX Web Info Siblings C-Map SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 U3 sS sU GB TT
+#MenuLabels ChmX Web Info Siblings C-Map SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 sUF GB TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -51,7 +51,7 @@ def MainMain(menuKey, jobId=''):
 			for vt in ['mwV']:
 				match vt:
 					case 'mwV':
-						PM2(waveCount=25, waveLen=512, winSize=25, tSNE=(0.075, 6.0, 1.0))
+						PM2(waveCount=15, waveLen=512, winSize=25, tSNE=(0.075, 8.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
@@ -74,10 +74,11 @@ def MainMain(menuKey, jobId=''):
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
 			ProteinS2Map(pList, atlasName, samplingDist=0.0, ctrF=0.85)
-		case 'sS':
-			SphereView(pId, unfolding=False)
-		case 'sU':
-			SphereView(pId, unfolding=True)
+		case 'sUF':
+			if ctrPressed:
+				SphereView(pId, unfolding=False)
+			else:
+				SphereView(pId, unfolding=True)
 		case 'C-Map':
 			if ctrPressed:
 				#ColorChainMap(4)
@@ -86,13 +87,6 @@ def MainMain(menuKey, jobId=''):
 				ColorChainMap(5)
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
-		case 'U3':
-			bList = LoadChain(pId)
-			bList = cs.TorsionUnfold(bList, 0.5)
-			bList = Interpolate(bList, 4, True)
-			cs.NormalizeChain(bList)
-			info=MapInfo().Set('pId', pId)
-			ShowBodyList(bList, info=info)
 		case 'Info':
 			sInfo = MapInfo(pp.Map.Description).Show()
 			title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name};  SeqCount:{vv.Dataset.Rows:,}'
