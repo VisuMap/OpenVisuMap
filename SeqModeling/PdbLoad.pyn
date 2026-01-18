@@ -425,8 +425,7 @@ def InterpolateChain(bList, rp=3, hidIntp=False):
 		bList[0].Type = SeqMap_HEAD
 		bList[bList.Count-1].Type = SeqMap_TAIL
 	if hidIntp:
-		for b in bList:
-			b.Hidden = b.Id.startswith('i')
+		ss.HideInterpolation(bList)
 	return bList
 
 def UnFoldMap(pMap, epochs=1000, ppl=0.1, staged=False, repeats=1, stretch=0, clusterStretch=1.0, expandFactor=1.0, initExag=10.0, finalExag=1.0, is3D=False):

@@ -110,6 +110,12 @@ public void CopyToXYZ(List<IBody> bList1, List<IBody> bList2) {
 		bList2[k].SetXYZ(b.X, b.Y, b.Z);
 	}
 } 
+
+public void HideInterpolation(List<IBody> bList) {
+	foreach(var b in bList)
+			b.Hidden = (b.Id[0] == 'i');
+}
+
 ''')
 
 

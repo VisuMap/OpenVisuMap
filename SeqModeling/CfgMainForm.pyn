@@ -1,4 +1,4 @@
-#MenuLabels ChmX Web Info Siblings C-Map SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 U3 sS sU sT GB TT
+#MenuLabels ChmX Web Info Siblings C-Map SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 U3 sS sU GB TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -75,18 +75,9 @@ def MainMain(menuKey, jobId=''):
 		case 'P-S2':
 			ProteinS2Map(pList, atlasName, samplingDist=0.0, ctrF=0.85)
 		case 'sS':
-			if pId == None:
-				raise Exception('No data selected!')
 			SphereView(pId, unfolding=False)
 		case 'sU':
-			if pId == None:
-				raise Exception('No data selected!')
 			SphereView(pId, unfolding=True)
-		case 'sT': # show torsion info.
-			if pId == None:
-				raise Exception('No data selected!')
-			#ShowChain(pId, gopacity=0.5)
-			ShowSphere4()
 		case 'C-Map':
 			if ctrPressed:
 				#ColorChainMap(4)

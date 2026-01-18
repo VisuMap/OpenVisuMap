@@ -54,62 +54,47 @@ def ShowSphere4(repeats=5, contracting=0.9):
 def NotExits(vw):
 	return (vw == None) or vw.TheForm.IsDisposed
 
-def ToCircle(N, n):
-	nn = n%N
-	if nn > N//2:	
-		nn = N - nn
-	return nn;
-
-def SphereUnfold(bList, n):
-	global tgtView
-	cf  = 1 - 0.95**ToCircle(60, n)
-	bs = cs.TorsionUnfold(bList, cf)
-	bs = InterpolateChain(bs, rp=5, hidIntp=True)
-	cs.NormalizeChain(bs)
-	if NotExits(tgtView):
-		tgtView = ShowBodyList(New.BodyListClone(bs), gSize=1.5, gOpacity=0.5, hSize=3)
-	tgtView.MoveBodiesTo(bs, 5, 50, 0, 0)
-	tgtView.Title = f'CF: {n}: {cf:.3}'
-	if n%25==0: 
-		tgtView.CentralizeView(False)
-	if n%60 == 0:
-		tgtView.CentralizeView(False)
-		vv.Sleep(1000)
-
-def ShrinkSphere(bList, n):
-	global tgtView	
-	cf  = 1 - 0.75*(0.9**ToCircle(60, n))
-	bList = New.BodyListClone(bList)
-	cs.ShrinkSphere(bList, cf)
-	bList = InterpolateChain(bList, rp=6, hidIntp=True)
-	if NotExits(tgtView):
-		tgtView = ShowBodyList(bList, gSize=2.0, gOpacity=0.5, hSize=3)
-		cs.NormalizeChain(tgtView.BodyList)
-		tgtView.Show()
-		tgtView.CentralizeView(False)
-	ss.ShiftChain(bList, 200, 120, 0)
-	tgtView.Title = f'CF: {n}: {cf:.3}'
-	tgtView.MoveBodiesTo(bList, 5, 50, 0, 0)
+def UpdateSphere(cf):
+	tgtView, bList0, unfolding = pp.Tag
+	if unfolding:
+		bs = cs.TorsionUnfold(bList0, cf)
+		bs = InterpolateChain(bs, rp=5, hidIntp=True)
+		cs.NormalizeChain(bs)
+		newView = False
+		if NotExits(tgtView):
+			tgtView = ShowBodyList(New.BodyListClone(bs), gSize=1.5, gOpacity=0.5, hSize=3)
+			pp.Tag = (tgtView, bList0, True)
+			tgtView.CentralizeView(False)
+			newView = True
+		tgtView.MoveBodiesTo(bs, 5, 50, 0, 0)
+		tgtView.Title = f'CF: {cf:.3}'
+		if newView:
+			tgtView.CentralizeView(False)
+	else:
+		bList = New.BodyListClone(bList0)
+		cs.ShrinkSphere(bList, cf)
+		bList = InterpolateChain(bList, rp=5, hidIntp=True)
+		if NotExits(tgtView):
+			tgtView = ShowBodyList(bList, gSize=2.0, gOpacity=0.5, hSize=3)
+			cs.NormalizeChain(tgtView.BodyList)
+			pp.Tag = (tgtView, bList0, False)
+			tgtView.CentralizeView(False)
+		ss.ShiftChain(bList, 200, 120, 0)
+		tgtView.Title = f'CF: {cf:.3}'
+		tgtView.MoveBodiesTo(bList, 5, 50, 0, 0)
 
 def SphereView(pId, unfolding):
-	global tgtView
-	tgtView = None
-
 	bList = LoadChain(pId)
 	if not unfolding:
 		bList = cs.ToSphere(bList, 0)
-
 	for b in bList: 
-		b.Mult(20.0 if unfolding else 80.0)
-	tstFct = SphereUnfold if unfolding else ShrinkSphere
-	for k in range(1000):
-		tstFct(bList, k)
-		if k == 0:
-			info = MapInfo().Set('pId', pId)
-			tgtView.Description = info.ToStr()
-		vv.DoEvents()
-		if vv.ModifierKeys.AltPressed: 
-			break	
+		b.Mult(2.0 if unfolding else 60.0)
+	vs = New.ValueSelector(0, 1.0, 0, 'UpdateSphere(pp.CurrentValue)')
+	vs.Tag = (None, bList, unfolding)
+	vs.ScanningPause = 10
+	vs.StepSize = 0.01
+	vs.Show()
+	vs.CurrentValue = 0.8
 
 def TorsionMap(pId, mom=0.9):
 	info = MapInfo().Set('pId', pId)
