@@ -55,33 +55,31 @@ def NotExits(vw):
 	return (vw == None) or vw.TheForm.IsDisposed
 
 def UpdateSphere(cf):
-	tgtView, bList0, unfolding = pp.Tag
+	mp, bList, unfolding = pp.Tag
 	if unfolding:
-		bs = cs.TorsionUnfold(bList0, cf)
+		bs = cs.TorsionUnfold(bList, cf)
 		bs = InterpolateChain(bs, rp=5, hidIntp=True)
 		cs.NormalizeChain(bs)
-		newView = False
-		if NotExits(tgtView):
-			tgtView = ShowBodyList(New.BodyListClone(bs), gSize=1.5, gOpacity=0.5, hSize=3)
-			pp.Tag = (tgtView, bList0, True)
-			tgtView.CentralizeView(False)
-			newView = True
-		tgtView.MoveBodiesTo(bs, 5, 50, 0, 0)
-		tgtView.Title = f'CF: {cf:.3}'
-		if newView:
-			tgtView.CentralizeView(False)
+		if NotExits(mp):
+			mp = ShowBodyList(New.BodyListClone(bs), gSize=1.5, gOpacity=0.5, hSize=3)
+			pp.Tag = (mp, bList, True)
+			mp.CentralizeView(False)
+			mp.MoveBodiesTo(bs, 5, 50, 0, 0)
+			mp.CentralizeView(False)
+		else:
+			mp.MoveBodiesTo(bs, 5, 50, 0, 0)
 	else:
-		bList = New.BodyListClone(bList0)
-		cs.ShrinkSphere(bList, cf)
-		bList = InterpolateChain(bList, rp=5, hidIntp=True)
-		if NotExits(tgtView):
-			tgtView = ShowBodyList(bList, gSize=2.0, gOpacity=0.5, hSize=3)
-			cs.NormalizeChain(tgtView.BodyList)
-			pp.Tag = (tgtView, bList0, False)
-			tgtView.CentralizeView(False)
-		ss.ShiftChain(bList, 200, 120, 0)
-		tgtView.Title = f'CF: {cf:.3}'
-		tgtView.MoveBodiesTo(bList, 5, 50, 0, 0)
+		bs = New.BodyListClone(bList)
+		cs.ShrinkSphere(bs, cf)
+		bs = InterpolateChain(bs, rp=5, hidIntp=True)
+		if NotExits(mp):
+			mp = ShowBodyList(bs, gSize=2.0, gOpacity=0.5, hSize=3)
+			cs.NormalizeChain(mp.BodyList)
+			pp.Tag = (mp, bList, False)
+			mp.CentralizeView(False)
+		ss.ShiftChain(bs, 200, 200, 250)
+		mp.MoveBodiesTo(bs, 5, 50, 0, 0)		
+	mp.Title = f'CF: {cf:.3}'
 
 def SphereView(pId, unfolding):
 	bList = LoadChain(pId)
