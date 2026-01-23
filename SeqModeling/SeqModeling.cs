@@ -365,7 +365,7 @@ namespace VisuMap {
             return D;
         }
 
-        public INumberTable MovingWindowFT(List<string> pList, float winSize, INumberTable tm) {
+        public INumberTable MovingWindowFT(List<string> pList, int winSize, INumberTable tm) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
             INumberTable D = New.NumberTable(bList, tm.Columns);
             double[][] M = D.Matrix as double[][];
@@ -716,7 +716,7 @@ namespace VisuMap {
             }
             return M;
         }
-
+        /*
         Vector3[] MovingWindowMean0(IList<IBody> bs, float winSize) {
             if ((bs == null) || (bs.Count == 0) || (winSize <= 0))
                 return null;
@@ -776,13 +776,14 @@ namespace VisuMap {
 
             return M;
         }
+        */
 
-        public List<IBody> MovingWindowMean(IList<IBody> bs, float winSize) {
+        public List<IBody> MovingWindowMean(IList<IBody> bs, int winSize) {
             Vector3[] M = MovingWindowMean0(bs, winSize);
             return M?.Select((v, k) => bs[k].Clone().SetXYZ(v)).ToList();
         }
 
-        public double[] MovingWindowVariance(IList<IBody> bs, float winSize) {
+        public double[] MovingWindowVariance(IList<IBody> bs, int winSize) {
             Vector3[] M = MovingWindowMean0(bs, winSize);
             if (M == null)
                 return null;

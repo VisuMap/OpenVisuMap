@@ -46,7 +46,7 @@ def MainMain(menuKey, jobId=''):
 			for vt in ['mwV']:
 				match vt:
 					case 'mwV':
-						PM2(waveCount=25, waveLen=512, winSize=50.0, tSNE=(0.01, 8.0, 1.0))
+						PM2(waveCount=25, waveLen=512, winSize=25, tSNE=(0.01, 8.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
@@ -92,7 +92,7 @@ def MainMain(menuKey, jobId=''):
 			if ctrPressed:
 				ShowGlobeDistancesGB(pId, momentum=0.75)
 			else:
-				ShowGlobeDistances(pId, winSize=2.0)
+				ShowGlobeDistances(pId, winSize=2)
 		case 'TT':
 			pass
 
@@ -162,10 +162,10 @@ def ShowGlobeDistances(pId, winSize):
 	mp.CentralizeView(False)
 	mp.Title = mp.Description = info.ToStr()
 
-	vs = New.ValueSelector(0.1, 100.0, winSize, 
-		'UpdateGlobeView(pp.Tag, winSize=pp.CurrentValue)')
+	vs = New.ValueSelector(0, 100, winSize, 
+		'UpdateGlobeView(pp.Tag, winSize=int(pp.CurrentValue))')
 	vs.Title = 'Window Size'
-	vs.StepSize = 0.1
+	vs.StepSize = 1
 	vs.Tag = (bList, bv, mp, info)
 	vs.Show()
 
