@@ -87,9 +87,9 @@ def SphereView(pId, unfolding):
 		bList = cs.ToSphere(bList, 0)
 	for b in bList: 
 		b.Mult(2.0 if unfolding else 60.0)
-	vs = New.ValueSelector(0, 1.0, 0, 'UpdateSphere(pp.CurrentValue)')
+	vs = New.ValueSelector(0.5, 1.0, 0, 'UpdateSphere(pp.CurrentValue)')
 	vs.Tag = (None, bList, unfolding)
-	vs.ScanningPause = 10
+	vs.ScanningPause = 50
 	vs.StepSize = 0.01
 	vs.Show()
 	vs.CurrentValue = 0.8

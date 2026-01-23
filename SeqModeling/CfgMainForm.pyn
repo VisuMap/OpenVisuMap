@@ -1,4 +1,4 @@
-#MenuLabels Info P-Map P-2D ChmX Web Open Siblings C-Map SeqMap Align 3D 3Dx 3Ds S2 P-S2 sUF GB TT
+#MenuLabels Info P-Map P-2D ChmX Web Open Siblings C-Map SeqMap Align 3D 3Dx 3Ds S2 P-S2 sUF Lvt TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -46,7 +46,7 @@ def MainMain(menuKey, jobId=''):
 			for vt in ['mwV']:
 				match vt:
 					case 'mwV':
-						PM2(waveCount=25, waveLen=512, winSize=25, tSNE=(0.01, 8.0, 1.0))
+						PM2(waveCount=25, waveLen=512, winSize=0, tSNE=(0.01, 8.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
@@ -88,18 +88,19 @@ def MainMain(menuKey, jobId=''):
 			sInfo = MapInfo(pp.Map.Description).Show()
 			title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name};  SeqCount:{vv.Dataset.Rows:,}'
 			New.TextPanel(title, sInfo).Show()
-		case 'GB':
+		case 'Lvt':
 			if ctrPressed:
-				ShowGlobeDistancesGB(pId, momentum=0.75)
+				LocalVarianceTransExp(pId, momentum=0.75)
 			else:
-				ShowGlobeDistances(pId, winSize=2)
+				LocalVarianceTrans(pId, winSize=2)
 		case 'TT':
 			pass
 
 # ---------------------------------------------------------------------------------------
 
-def ShowGlobeDistancesGB(pId, momentum=0.95):
+def LocalVarianceTransExp(pId, momentum=0.95):
 	bList = LoadChain(pId)
+	bList = InterpolateChain(bList, rp=3)
 	cs.NormalizeChain(bList)
 	info = MapInfo().Set('pId', pId).Set("Mom", momentum)
 
@@ -115,18 +116,18 @@ def ShowGlobeDistancesGB(pId, momentum=0.95):
 	bv.Show()
 
 	bList2 = cs.GlobeSmoothen2(bList, momentum)
-	bList2 = InterpolateChain(bList2, rp=3)
+	
 	mp = ShowBodyList(bList2, info=info, normalize=False)
 	mp.CentralizeView(False)
 	mp.Title = mp.Description = info.ToStr()
 
 	vs = New.ValueSelector(0.0, 1.0, momentum, 
-		'UpdateGlobeViewGB(pp.Tag, mom=pp.CurrentValue)')
+		'UpdateLvtExp(pp.Tag, mom=pp.CurrentValue)')
 	vs.Title = 'Momentum'
 	vs.Tag = (bList, bv, mp, info)
 	vs.Show()
 
-def UpdateGlobeViewGB(targets, mom):
+def UpdateLvtExp(targets, mom):
 	bList, bv, mp, info = targets
 	info.Set('Mom', f'{mom:.4g}')
 	if (bv != None) and not bv.IsDisposed:
@@ -140,8 +141,9 @@ def UpdateGlobeViewGB(targets, mom):
 		ss.CopyToXYZ(bList2, mp.BodyList)
 		mp.RedrawAll()
 
-def ShowGlobeDistances(pId, winSize):
+def LocalVarianceTrans(pId, winSize):
 	bList = LoadChain(pId)
+	bList = InterpolateChain(bList, rp=3)
 	cs.NormalizeChain(bList)
 	info = MapInfo().Set('pId', pId).Set("WS", winSize)
 
@@ -157,19 +159,18 @@ def ShowGlobeDistances(pId, winSize):
 	bv.Show()
 
 	bList2 = cs.MovingWindowMean(bList, winSize=winSize)
-	bList2 = InterpolateChain(bList2, rp=3)
 	mp = ShowBodyList(bList2, info=info, normalize=False)
 	mp.CentralizeView(False)
 	mp.Title = mp.Description = info.ToStr()
 
-	vs = New.ValueSelector(0, 100, winSize, 
-		'UpdateGlobeView(pp.Tag, winSize=int(pp.CurrentValue))')
+	vs = New.ValueSelector(0, 1000, winSize, 
+		'UpdateLvt(pp.Tag, winSize=int(pp.CurrentValue))')
 	vs.Title = 'Window Size'
 	vs.StepSize = 1
 	vs.Tag = (bList, bv, mp, info)
 	vs.Show()
 
-def UpdateGlobeView(targets, winSize):
+def UpdateLvt(targets, winSize):
 	bList, bv, mp, info = targets	
 	info.Set('WinSize', winSize)
 	pp.CurrentValue = winSize
@@ -181,7 +182,6 @@ def UpdateGlobeView(targets, winSize):
 	if (mp != None) and not mp.IsDisposed:
 		mp.Description = mp.Title = info.ToStr()
 		bList2 = cs.MovingWindowMean(bList, winSize)
-		bList2 = InterpolateChain(bList2, rp=3)
 		ss.CopyToXYZ(bList2, mp.BodyList)
 		mp.RedrawAll()
 
