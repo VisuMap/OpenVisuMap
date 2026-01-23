@@ -365,7 +365,7 @@ namespace VisuMap {
             return D;
         }
 
-        public INumberTable MovingWindowFT(List<string> pList, int winSize, INumberTable tm) {
+        public INumberTable MovingWindowFT(List<string> pList, float winSize, INumberTable tm) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
             INumberTable D = New.NumberTable(bList, tm.Columns);
             double[][] M = D.Matrix as double[][];
@@ -692,7 +692,6 @@ namespace VisuMap {
             // left and right are the indexes of the moving window boundary inclusively.
             int left = -winSize - 1;
             int right = winSize - 1;
-            // right = -1;
             for (int k=0; k<(right+1); k++)
                 if (k < L) {
                     P += bs[k].ToV3();
@@ -718,12 +717,72 @@ namespace VisuMap {
             return M;
         }
 
-        public List<IBody> MovingWindowMean(IList<IBody> bs, int winSize) {
+        Vector3[] MovingWindowMean0(IList<IBody> bs, float winSize) {
+            if ((bs == null) || (bs.Count == 0) || (winSize <= 0))
+                return null;
+            int L = bs.Count;
+            float W = 0; // The length of the intersection of current window with [0, L-1].
+            Vector3 S = new Vector3();  // the sum of current moving-window.
+            Vector3[] M = new Vector3[L];
+            float lf = (float) ( winSize/2 - Math.Floor(winSize/2) );   // The left faction of window's boudary within an unit interval.
+            float rf = 1 - lf;   // The right faction
+
+            // Initialize the window with its sume.
+            float left = -winSize/2 - 1;
+            float right = winSize/2 - 1;
+            int k;
+            for (k = 0; k < (right-1); k++) {
+                if (k < L) {
+                    S += bs[k].ToV3();
+                    W += 1.0f;
+                }
+            }
+            if ( (right>0) && (right<L) ) {
+                S += lf * bs[(int)right].ToV3();
+                W += lf;
+            }
+
+            // Move the window for L steps of size 1.0. 
+            for (k = 0; k < L; k++) {  // k is the index of window center.
+                left++;
+                if (left > 0) {
+                    if (left < 1) {  // left in [0, 1]
+                        S -= lf * bs[0].ToV3();
+                        W -= lf;
+                    } else {  // left in (2,*)
+                        int i = (int)left;
+                        S -= rf * bs[i-1].ToV3() + lf * bs[i].ToV3();
+                        W -= 1.0f;
+                    }
+                }
+
+                right++;
+                if (right < L) {
+                    int i = (int)right;
+                    if (i > 0) {
+                        S += rf * bs[i - 1].ToV3() + lf * bs[i].ToV3();
+                        W += 1.0f;
+                    } else { // i == 0
+                        S +=  lf * bs[i].ToV3();
+                        W += lf;
+                    }
+                } else {  // left in [L, L+1].
+                    S += rf * bs[L - 1].ToV3();
+                    W += rf;
+                }
+                M[k] = S;
+                M[k] /= W;
+            }
+
+            return M;
+        }
+
+        public List<IBody> MovingWindowMean(IList<IBody> bs, float winSize) {
             Vector3[] M = MovingWindowMean0(bs, winSize);
             return M?.Select((v, k) => bs[k].Clone().SetXYZ(v)).ToList();
         }
 
-        public double[] MovingWindowVariance(IList<IBody> bs, int winSize) {
+        public double[] MovingWindowVariance(IList<IBody> bs, float winSize) {
             Vector3[] M = MovingWindowMean0(bs, winSize);
             if (M == null)
                 return null;

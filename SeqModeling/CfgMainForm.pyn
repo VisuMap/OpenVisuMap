@@ -1,4 +1,4 @@
-#MenuLabels ChmX Web Info Siblings C-Map SeqMap Open Align P-Map P-2D P-S2 3D 3Dx 3Ds S2 sUF GB TT
+#MenuLabels Info P-Map P-2D ChmX Web Open Siblings C-Map SeqMap Align 3D 3Dx 3Ds S2 P-S2 sUF GB TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -39,19 +39,14 @@ def MainMain(menuKey, jobId=''):
 				vv.Message('No protein selected')
 				vv.Return()
 			OpenCifFile(pId)
-		case 'P-2D':
-			if atlasName != None and jobId != None:
-				atlasName += jobId
-			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, tP = (2000, 2, 1, 0.15, 6.0, 1.0))			
 		case 'P-Map':
 			def PM2(*args, **kwargs):
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
-				#VisChainSize(2)
-			#vList = ['mwV', 'gFT', 'pFT',     'pMF', 'sMF', 'rMF', 'tMF', 'tFT',  'sFT']
+			#'mwV', 'gFT', 'pFT',     'pMF', 'sMF', 'rMF', 'tMF', 'tFT',  'sFT'
 			for vt in ['mwV']:
 				match vt:
 					case 'mwV':
-						PM2(waveCount=15, waveLen=512, winSize=25, tSNE=(0.075, 8.0, 1.0))
+						PM2(waveCount=25, waveLen=512, winSize=50.0, tSNE=(0.01, 8.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
@@ -67,6 +62,9 @@ def MainMain(menuKey, jobId=''):
 					case 'tMF' | 'tFT':	
 						# (epochs,waveN,intRp,stretch,  outDim,ppl,initE,finalE)
 						PM2(tP=(1000,20,2,0.5, 2,0.25,5.0,1.5),    tSNE=(0.05,6.0,1.0))
+		case 'P-2D':
+			if atlasName != None and jobId != None: atlasName += jobId
+			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, tP = (2000, 2, 16, 0.15, 6.0, 1.0))			
 		case 'Siblings':
 			vv.SelectedItems, _ = Siblings(selected)
 			vv.Title = f'Selected: {len(selected)}, Expanded: {vv.SelectedItems.Count}'
@@ -74,6 +72,8 @@ def MainMain(menuKey, jobId=''):
 			AlignSeqPair(vv.Map)
 		case 'P-S2':
 			ProteinS2Map(pList, atlasName, samplingDist=0.0, ctrF=0.85)
+		case 'S2':
+			ShowSphere4(repeats=5, contracting=0.9)
 		case 'sUF':
 			if ctrPressed:
 				SphereView(pId, unfolding=False)
@@ -81,12 +81,9 @@ def MainMain(menuKey, jobId=''):
 				SphereView(pId, unfolding=True)
 		case 'C-Map':
 			if ctrPressed:
-				#ColorChainMap(4)
 				ColorChainMap(2)
 			else:
 				ColorChainMap(5)
-		case 'S2':
-			ShowSphere4(repeats=5, contracting=0.9)
 		case 'Info':
 			sInfo = MapInfo(pp.Map.Description).Show()
 			title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name};  SeqCount:{vv.Dataset.Rows:,}'
@@ -95,7 +92,7 @@ def MainMain(menuKey, jobId=''):
 			if ctrPressed:
 				ShowGlobeDistancesGB(pId, momentum=0.75)
 			else:
-				ShowGlobeDistances(pId, winSize=2)
+				ShowGlobeDistances(pId, winSize=2.0)
 		case 'TT':
 			pass
 
@@ -165,10 +162,10 @@ def ShowGlobeDistances(pId, winSize):
 	mp.CentralizeView(False)
 	mp.Title = mp.Description = info.ToStr()
 
-	vs = New.ValueSelector(0, 100, winSize, 
-		'UpdateGlobeView(pp.Tag, winSize=int(pp.CurrentValue))')
+	vs = New.ValueSelector(0.1, 100.0, winSize, 
+		'UpdateGlobeView(pp.Tag, winSize=pp.CurrentValue)')
 	vs.Title = 'Window Size'
-	vs.StepSize = 1
+	vs.StepSize = 0.1
 	vs.Tag = (bList, bv, mp, info)
 	vs.Show()
 
@@ -215,6 +212,8 @@ def DoDatasetList(dxList, mpIdx=0, maxItems=0, jobId='',
 MainMain(vv.EventSource.Item)
 
 '''
+
+MainMain('p-2D')
 
 dxList = list(range(vv.Folder.DatasetNameList.Count))
 DoDatasetList(dxList[1:], mpIdx=0, maxItems=20000, jobId='.B', createPMap=True, createAtlas=True)
