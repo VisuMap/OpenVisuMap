@@ -100,7 +100,7 @@ def TorsionMap(pId, mom=0.9):
 	bs = LoadChain(pId)
 	nt = cs.ToTorsionList(bs, mom).Transpose2()
 	bb = New.BarBand(nt)
-	bb.Description = info.ToStr()
+	bb.Description = info.Str
 	bb.Vertical = True
 	bb.CompactMode = False
 	bb.ReadOnly = True
@@ -135,7 +135,7 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 			mp = New.MapSnapshot(bList).Show()
 			mp.HiddenBodySize = 3
 			mp.ResetSize().NormalizeView()
-			mp.Description = info.ToStr()
+			mp.Description = info.Str
 	else:
 		mds.GlyphSize = 6.0
 		mds.RefreshFreq = 0

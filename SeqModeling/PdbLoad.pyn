@@ -162,7 +162,7 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 			info.Set('pId', pId)
 			info.Set('pLen', bList.Count)
 			info.PT = SimplifyTitle(pdbTitle)
-			info.DS = f'DS:{vv.Dataset.Name}'
+			info.Set('DS', vv.Dataset.Name)
 			info.Set('HA', includeHA)
 			if chainNames != None:
 				info.Set('CNs', '|'.join(chainNames) )
@@ -192,7 +192,7 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 		ma = mapStore.atlas
 		MatchProteinMap(ma, iconWidth)
 		info.Set('TM', round(time.time()-t0, 3))
-		ma.Description = info.ToStr()
+		ma.Description = info.Str
 		ma.Show()
 		ma.DataChanged = True # since the Show() clears the DataChanged flag.
 		del mapStore
@@ -259,7 +259,7 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 		ma = mapStore.atlas
 		ma.Show()
 		MatchProteinMap(ma, 50)
-		ma.Description = info.ToStr()
+		ma.Description = info.Str
 		del mapStore
 
 def SimplifyTitle(title):

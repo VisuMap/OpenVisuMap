@@ -122,7 +122,7 @@ public void HideInterpolation(List<IBody> bList) {
 # protein embedding map information
 class MapInfo():
 	def __init__(self, initStr = None):
-		for nm in 'DS,Epochs,InitE,FinalE,PP,AugCfg,Is3D,SF,CF,PT'.split(','):
+		for nm in 'InitE,FinalE,PP,Is3D,SF,CF,PT'.split(','):
 			setattr(self, nm, None)
 		if initStr is not None:
 			self.ParseStr(initStr)
@@ -131,30 +131,27 @@ class MapInfo():
 		return self
 	def Get(self, name):
 		return getattr(self, name)
-	def Extend(self, name, value):
-		if self.Has(name):
-			newV = self.Get(name) + ',' + str(value)
-		else:
-			newV = str(value)
-		self.Set(name, newV)
-		return self
 	def Has(self, attrName):
 		return hasattr(self, attrName)
+	def Add(self, aList):
+		self.__dict__.update( aList )
+		return self
 	def Init(self, epochs, is3D, initExag, finalExag, ppl):
-		self.Epochs = epochs
+		self.Set('Epochs', epochs)
 		self.Is3D = is3D
 		self.InitE = initExag
 		self.FinalE = finalExag
 		self.PP = ppl
 		return self
 	def SetMds(self, mds):
-		self.Epochs = mds.MaxLoops
+		self.Set('Epochs', mds.MaxLoops)
 		self.InitE = mds.InitialExaggeration
 		self.FinalE = mds.ExaggerationFinal
 		self.PP = mds.PerplexityRatio
-		self.Is3D = mds.Is3D
+		self.Is3D = mds.Is3DF
 		return self		
-	def ToStr(self):
+	@property
+	def Str(self):
 		dic = self.__dict__
 		return ';'.join([f'{key}:{str(dic[key])}' for  key in dic if dic[key] is not None])
 	def Show(self):
@@ -234,7 +231,7 @@ class FastTsne():
 def ConfigSeqMap(map, info=None, gsize=6.0, redrawMap=False):
 	map.GlyphSet = SeqMap_GLYPHSET
 	map.GlyphSize = gsize
-	if info != None: map.Description = info.ToStr()
+	if info != None: map.Description = info.Str
 	map.GlyphOpacity = 1.0
 	cs.NormalizeChain(map.BodyList, 184)						
 	if redrawMap:
@@ -510,7 +507,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 	snMap.Dataset = dt.ToDataset()
 	mds.Close()
 	info.Set('TM', round(time.time()-t0, 3))
-	snMap.Description = info.ToStr()
+	snMap.Description = info.Str
 
 	if save2Map != None:
 		vv.Dataset.AddMap(save2Map)
@@ -678,13 +675,13 @@ def RunMds(mds, repeats=1, info=None, nt=None):
 	if info != None:
 		info.DDM = mds.DataDim
 		info.SetMds(mds)
-		mds.Description = info.ToStr()
+		mds.Description = info.Str
 	mds.Reset().Start()
 	if not mds.Completed: 
 		raise Exception("MDS aborted")
 	if info != None:
 		info.Set('MSz', f'{mds.GlyphSpan:.2f}')
-		mds.Description = info.ToStr()
+		mds.Description = info.Str
 	if repeats == 1:
 		mds.SelectedItems = None
 		snMap = mds.ShowSnapshot()
@@ -706,7 +703,7 @@ def ShowBodyList(bList, gSize=1.5, gOpacity=0.5, hSize=3, normalize=True, info=N
 	if normalize:
 		mp.NormalizeView()
 	if info != None:
-		mp.Description = info.ToStr()
+		mp.Description = info.Str
 	return mp
 
 #-------------------------------------------------------------------
@@ -730,8 +727,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 	mds.AutoNormalizing = True
 	mds.RefreshFreq = 500
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	info.AugCfg = augCfg
-	info.DS = vv.Dataset.Name
+	info.Add({'AugCfg':augCfg, 'DS':vv.Dataset.Name})
 	mapStore = NewMapStore(saveTo)
 
 	aaClusters = {}  # maps aa to cluster indexes.
@@ -754,7 +750,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 	mds.Close()
 	if mapStore != None: 
 		ma = mapStore.atlas
-		ma.Description = info.ToStr()
+		ma.Description = info.Str
 		MatchProteinMap(ma, 50)
 		ma.Show()
 
@@ -905,8 +901,9 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 	pAtlas.BackgroundColor = New.Color(255, 0, 0, 64)	
 	pAtlas.SelectorColor = New.Color('DimGray')
 	info = MapInfo(pAtlas.Description)
-	if (info.DS != None) and (info.DS != vv.Dataset.Name):
-		vv.Folder.OpenDataset(info.DS)
+	DS = info.Get("DS")
+	if (DS != None) and (DS != vv.Dataset.Name):
+		vv.Folder.OpenDataset(DS)
 	if pAtlas.Items.Count == 0:
 		raise Exception('Empty atlas!')
 	minX, minY, maxX, maxY = 10000.0, 10000.0, 0.0, 0.0
@@ -941,7 +938,7 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 		item.BorderColor = New.Color(32, 32, 32)
 	info = MapInfo()
 	info.Set('Mnm', vv.Map.Name)
-	pAtlas.Description = info.ToStr()
+	pAtlas.Description = info.Str
 	if itemChanged:
 		pAtlas.Redraw()
 	else:
@@ -951,12 +948,12 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 def ReCreateMap(pMap):
 	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	
 	info = MapInfo(pMap.Description)
-	nt = NewDataset(pSeq, augCfg=info.AugCfg)
+	nt = NewDataset(pSeq, augCfg=info.Get('AugCfg'))
 
 	for k, b in enumerate(pMap.BodyList):
 		nt.RowSpecList[k].CopyFromBody(b)
 
-	mds = NewMds(nt, epochs=int(info.Epochs), is3D=eval(info.Is3D), 
+	mds = NewMds(nt, epochs=int(info.Get('Epochs')), is3D=eval(info.Get('Is3D')), 
 		initExag=float(info.InitE), finalExag=float(info.FinalE), ppl=float(info.PP))
 	mds.GlyphSet = pMap.GlyphSet
 	mds.GlyphSize = pMap.GlyphSize
@@ -964,15 +961,6 @@ def ReCreateMap(pMap):
 	RunMds(mds, info=info)
 	mds.Close()
 
-
-def SmoothenCurve(pMap, repeats):
-	bsList = [b for b in pMap.BodyListEnabled() if b.Id[0] != 'H']
-	info = MapInfo(pMap.Description)
-	info.Extend('SRpts', repeats)
-	for n in range(repeats):
-		cs.SmoothenBodyList(bsList)
-	pMap.Description = info.ToStr()
-	pMap.RedrawAll()
 
 def AtlasTileAll(atlas, aaGroups, using3DInfo=False, waveLen=128, waveCount=16):
 	pTable = AssertProteinTable()	
@@ -1079,7 +1067,7 @@ def Merge2DList(atlas):
 	info.Set('pCnt', len(pList))
 	mp = New.MapSnapshot(bs)
 	mp.ReadOnly = True
-	mp.Description = info.ToStr()
+	mp.Description = info.Str
 	mp.GlyphSet = SeqMap_GLYPHSET
 	mp.GlyphSize = 0.75
 	mp.GlyphOpacity = 0.75

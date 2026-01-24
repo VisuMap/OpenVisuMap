@@ -112,14 +112,14 @@ def LocalVarianceTransExp(pId, momentum=0.95):
 	bv.NormalizeView()
 	bv.BaseLineType=4
 	bv.UsingColorPalette = True
-	bv.Description = bv.Title = info.ToStr()
+	bv.Description = bv.Title = info.Str
 	bv.Show()
 
 	bList2 = cs.GlobeSmoothen2(bList, momentum)
 	cs.NormalizeChain(bList2, -1, True)
 	mp = ShowBodyList(bList2, info=info, normalize=False)
 	mp.CentralizeView(False)
-	mp.Title = mp.Description = info.ToStr()
+	mp.Title = mp.Description = info.Str
 
 	vs = New.ValueSelector(0.85, 1.0, momentum, 
 		'UpdateLvtExp(pp.Tag, mom=pp.CurrentValue)')
@@ -131,11 +131,11 @@ def UpdateLvtExp(targets, mom):
 	bList, bv, mp, info = targets
 	info.Set('Mom', f'{mom:.4g}')
 	if (bv != None) and not bv.IsDisposed:
-		bv.Description = bv.Title = info.ToStr()
+		bv.Description = bv.Title = info.Str
 		bv.SetValues( cs.GlobeDistances(bList, mom=mom) )
 		bv.Redraw()
 	if (mp != None) and not mp.IsDisposed:
-		mp.Description = mp.Title = info.ToStr()
+		mp.Description = mp.Title = info.Str
 		bList2 = cs.GlobeSmoothen2(bList, mom)
 		ss.CopyToXYZ(bList2, mp.BodyList)
 		mp.RedrawAll()
@@ -154,14 +154,14 @@ def LocalVarianceTrans(pId, winSize):
 	bv.NormalizeView()
 	bv.BaseLineType=4
 	bv.UsingColorPalette = True
-	bv.Description = bv.Title = info.ToStr()
+	bv.Description = bv.Title = info.Str
 	bv.Show()
 
 	bList2 = cs.MovingWindowMean(bList, winSize=winSize)
 	cs.NormalizeChain(bList2, -1, True)
 	mp = ShowBodyList(bList2, info=info, normalize=False)
 	mp.CentralizeView(False)
-	mp.Title = mp.Description = info.ToStr()
+	mp.Title = mp.Description = info.Str
 
 	vs = New.ValueSelector(0, 500, winSize, 
 		'UpdateLvt(pp.Tag, winSize=int(pp.CurrentValue))')
@@ -175,12 +175,12 @@ def UpdateLvt(targets, winSize):
 	info.Set('WinSize', winSize)
 	pp.CurrentValue = winSize
 	if (bv != None) and not bv.IsDisposed:
-		bv.Description = bv.Title = info.ToStr()
+		bv.Description = bv.Title = info.Str
 		vs = cs.MovingWindowVariance(bList, winSize=winSize)
 		bv.SetValues( vs )
 		bv.Redraw()
 	if (mp != None) and not mp.IsDisposed:
-		mp.Description = mp.Title = info.ToStr()
+		mp.Description = mp.Title = info.Str
 		bList2 = cs.MovingWindowMean(bList, winSize)
 		ss.CopyToXYZ(bList2, mp.BodyList)
 		mp.RedrawAll()
