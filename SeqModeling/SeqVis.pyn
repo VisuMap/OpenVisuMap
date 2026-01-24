@@ -307,13 +307,13 @@ def GetGlobeChainTrans(pList, waveCount=20, waveLen=256, mom=0.99, cf=0.0):
 	tm = GetFourier(waveLen, waveCount)
 	return cs.GlobeTransFT(pList, mom, cf, tm)
 
-def MovingWindowVariance(pList, waveCount, waveLen, winSize):
+def MovingWindowVariance(pList, waveCount, waveLen, winSize, intRp=0):
 	from os.path import exists
 	for pId in pList:
 		if not exists(	f'{CHAIN_CACHE}/{pId}.pmc'):
 			UnpackChain(pId[:4])
 	tm = GetFourier(waveLen, waveCount)
-	return cs.MovingWindowFT(pList, winSize, tm)
+	return cs.MovingWindowFT(pList, winSize, tm, intRp=intRp)
 
 # t-SNE reduced data
 def MaxRows(ds, pList, intRp):
@@ -460,7 +460,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 	# vectorizing the sequence to a table.
 	match vType:
 		case 'mwV':
-			dt = MovingWindowVariance(pList, waveCount, waveLen, winSize=winSize)
+			dt = MovingWindowVariance(pList, waveCount, waveLen, winSize=winSize, intRp=2)
 		case 'gFT':
 			dt = GetGlobeChainTrans(pList, waveCount, waveLen, mom=mom, cf=cf)
 		case 'pMF':

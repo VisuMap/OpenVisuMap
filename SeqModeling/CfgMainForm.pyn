@@ -46,7 +46,7 @@ def MainMain(menuKey, jobId=''):
 			for vt in ['mwV']:
 				match vt:
 					case 'mwV':
-						PM2(waveCount=25, waveLen=512, winSize=0, tSNE=(0.01, 8.0, 1.0))
+						PM2(waveCount=25, waveLen=512*4, winSize=25*4, tSNE=(0.01, 8.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
@@ -64,7 +64,7 @@ def MainMain(menuKey, jobId=''):
 						PM2(tP=(1000,20,2,0.5, 2,0.25,5.0,1.5),    tSNE=(0.05,6.0,1.0))
 		case 'P-2D':
 			if atlasName != None and jobId != None: atlasName += jobId
-			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, tP = (2000, 2, 16, 0.15, 6.0, 1.0))			
+			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, tP = (2000, 2, 1, 0.15, 6.0, 1.0))			
 		case 'Siblings':
 			vv.SelectedItems, _ = Siblings(selected)
 			vv.Title = f'Selected: {len(selected)}, Expanded: {vv.SelectedItems.Count}'
@@ -90,9 +90,9 @@ def MainMain(menuKey, jobId=''):
 			New.TextPanel(title, sInfo).Show()
 		case 'Lvt':
 			if ctrPressed:
-				LocalVarianceTransExp(pId, momentum=0.75)
+				LocalVarianceTransExp(pId, momentum=0.9)
 			else:
-				LocalVarianceTrans(pId, winSize=2)
+				LocalVarianceTrans(pId, winSize=50)
 		case 'TT':
 			pass
 
@@ -116,12 +116,12 @@ def LocalVarianceTransExp(pId, momentum=0.95):
 	bv.Show()
 
 	bList2 = cs.GlobeSmoothen2(bList, momentum)
-	
+	cs.NormalizeChain(bList2, -1, True)
 	mp = ShowBodyList(bList2, info=info, normalize=False)
 	mp.CentralizeView(False)
 	mp.Title = mp.Description = info.ToStr()
 
-	vs = New.ValueSelector(0.0, 1.0, momentum, 
+	vs = New.ValueSelector(0.85, 1.0, momentum, 
 		'UpdateLvtExp(pp.Tag, mom=pp.CurrentValue)')
 	vs.Title = 'Momentum'
 	vs.Tag = (bList, bv, mp, info)
@@ -137,7 +137,6 @@ def UpdateLvtExp(targets, mom):
 	if (mp != None) and not mp.IsDisposed:
 		mp.Description = mp.Title = info.ToStr()
 		bList2 = cs.GlobeSmoothen2(bList, mom)
-		bList2 = InterpolateChain(bList2, rp=3)
 		ss.CopyToXYZ(bList2, mp.BodyList)
 		mp.RedrawAll()
 
@@ -159,11 +158,12 @@ def LocalVarianceTrans(pId, winSize):
 	bv.Show()
 
 	bList2 = cs.MovingWindowMean(bList, winSize=winSize)
+	cs.NormalizeChain(bList2, -1, True)
 	mp = ShowBodyList(bList2, info=info, normalize=False)
 	mp.CentralizeView(False)
 	mp.Title = mp.Description = info.ToStr()
 
-	vs = New.ValueSelector(0, 1000, winSize, 
+	vs = New.ValueSelector(0, 500, winSize, 
 		'UpdateLvt(pp.Tag, winSize=int(pp.CurrentValue))')
 	vs.Title = 'Window Size'
 	vs.StepSize = 1
