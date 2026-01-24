@@ -129,7 +129,7 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 		
 	if len(pList) < 10:
 		for pId in pList:
-			info.pId = pId
+			info.Set('pId', pId)
 			bList = GetSphereDataset(pId, interRp=0, contracting=ctrF)
 			bList = DoTsne(info, bList)
 			mp = New.MapSnapshot(bList).Show()
@@ -148,8 +148,8 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 			bList = GetSphereDataset(pId, interRp=0, contracting=ctrF)
 			if bList == None:
 				continue
-			info.pId = pId
-			info.pLen = bList.Count
+			info.Set('pId', pId)
+			info.Set('pLen', bList.Count)
 			vv.Title = f'Embedding S2 {pId}/{bList.Count:,}: {k+1}-th of {len(pList)}'
 			bList = DoTsne(info, bList)
 			mapStore.AddRawMap(pId, bList, 1.0)

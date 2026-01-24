@@ -46,7 +46,7 @@ def MainMain(menuKey, jobId=''):
 			for vt in ['mwV']:
 				match vt:
 					case 'mwV':
-						PM2(waveCount=25, waveLen=512*4, winSize=25*4, tSNE=(0.01, 8.0, 1.0))
+						PM2(waveCount=25, waveLen=512*4, winSize=25*4, intRp=2, tSNE=(0.05, 8.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
@@ -144,7 +144,7 @@ def LocalVarianceTrans(pId, winSize):
 	bList = LoadChain(pId)
 	bList = InterpolateChain(bList, rp=3)
 	cs.NormalizeChain(bList)
-	info = MapInfo().Set('pId', pId).Set("WS", winSize)
+	info = MapInfo().Set('pId', pId).Set('WS', winSize)
 
 	vs = cs.MovingWindowVariance(bList, winSize=winSize)
 	bv = New.BarView( vs )
@@ -216,7 +216,7 @@ MainMain(vv.EventSource.Item)
 MainMain('p-2D')
 
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[1:], mpIdx=0, maxItems=20000, jobId='.B', createPMap=True, createAtlas=True)
+DoDatasetList(dxList[1:], mpIdx=0, maxItems=0, jobId='', createPMap=True, createAtlas=False)
 vv.Folder.Save()
 
 for dn in list(vv.Folder.DatasetNameList)[1:]:

@@ -60,8 +60,8 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 		bsList.AddRange(bsList2)
 
 	info = MapInfo()
-	info.pId = pId
-	info.pLen = bsList.Count
+	info.Set('pId', pId)
+	info.Set('pLen', bsList.Count)
 	info.PT = SimplifyTitle(pdbTitle)
 	info.Set('HA', includeHA)	
 	mp = ShowBodyList(bsList, gSize=glyphSize, gOpacity=glyphOpacity, info=info)
@@ -159,8 +159,8 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 			info = MapInfo()
 			info.SF = stretch
 			info.CF = expandFactor
-			info.pId = pId
-			info.pLen = bList.Count
+			info.Set('pId', pId)
+			info.Set('pLen', bList.Count)
 			info.PT = SimplifyTitle(pdbTitle)
 			info.DS = f'DS:{vv.Dataset.Name}'
 			info.Set('HA', includeHA)
@@ -238,7 +238,7 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 			continue
 		bList = nt.ToBodyList()
 		info = MapInfo()
-		info.pId = pId
+		info.Set('pId', pId)
 		info.Set('tP', tP)	
 		if mapStore == None:
 			map = New.MapSnapshot(bList)
