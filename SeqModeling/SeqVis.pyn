@@ -118,12 +118,15 @@ public void HideInterpolation(List<IBody> bList) {
 
 ''')
 
-
 # protein embedding map information
 class MapInfo():
-	def __init__(self, initStr = None):
-		if initStr is not None:
-			self.ParseStr(initStr)
+	def __init__(self, inits = None):
+		if inits == None:
+			return
+		if isinstance(inits, str):
+			self.ParseStr(inits)
+		elif isinstance(inits, dict):
+			self.Add(inits)
 	def Set(self, name, value):
 		setattr(self, name, value)
 		return self
@@ -145,7 +148,8 @@ class MapInfo():
 	def Str(self):
 		dic = self.__dict__
 		return ';'.join([f'{key}:{str(dic[key])}' for  key in dic if dic[key] is not None])
-	def Show(self):
+	@property
+	def Text(self):
 		sInfo = ''
 		for pn, pv in self.__dict__.items():
 			if pv != None:
@@ -481,18 +485,8 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 		staged=staged, initExag=initExag, finalExag=finalExag, ppl=ppl)
 
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	info.Set('vType', vType)
-	info.Set('aaG', aaGroups)
-	info.Set('wvL', waveLen)
-	info.Set('wvCnt', waveCount)
-	info.Set('mfL', mfL)
-	info.Set('mom', mom)
-	info.Set('cf', cf)
-	info.Set('pCnt', dt.Rows)
-	info.Set('tP', tP)	
-	info.Set('fP', filterP)
-	info.Set('wSz', winSize)
-	info.Set('intRp', intRp)
+	info.Add({'vType':vType, 'aaG':aaGroups, 'wvL':waveLen, 'wvCnt':waveCount, 'mfL':mfL, 'mom':mom, 'cf':cf, 'pCnt':dt.Rows, 
+		'tP':tP, 'fP':filterP, 'wSz':winSize, 'intRp':intRp})
 
 	snMap = RunMds(mds, repeats=1, info=info)
 	snMap.Dataset = dt.ToDataset()
@@ -732,8 +726,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 			vv.Message("Cannot get protein seq of: " + pId)
 			vv.Return()
 		nt = NewDataset(pSeq, aaClusters, decay=decay, augCfg=augCfg)
-		info.Set('pId', pId)
-		info.Set('pLen', len(pSeq))
+		info.Add({'pId':pId, 'pLen':len(pSeq)})
 		vv.Title = f'Embedding sequence {pId}: {k+1}-th of {len(pList)}'
 		RunMds(mds, repeats=0, info=info, nt=nt)
 		if mapStore != None:

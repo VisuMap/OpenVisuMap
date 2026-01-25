@@ -1,4 +1,4 @@
-#MenuLabels Info P-Map P-2D ChmX Web Open Siblings C-Map SeqMap Align 3D 3Dx 3Ds S2 P-S2 sUF Lvt TT
+#MenuLabels P-Map P-2D C-Map Info ChmX Web Open Siblings SeqMap Align 3D 3Dx 3Ds S2 P-S2 sUF Lvt TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -85,7 +85,7 @@ def MainMain(menuKey, jobId=''):
 			else:
 				ColorChainMap(5)
 		case 'Info':
-			sInfo = MapInfo(pp.Map.Description).Show()
+			sInfo = MapInfo(pp.Map.Description).Text
 			title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name};  SeqCount:{vv.Dataset.Rows:,}'
 			New.TextPanel(title, sInfo).Show()
 		case 'Lvt':
@@ -102,7 +102,7 @@ def LocalVarianceTransExp(pId, momentum=0.95):
 	bList = LoadChain(pId)
 	bList = InterpolateChain(bList, rp=3)
 	cs.NormalizeChain(bList)
-	info = MapInfo().Set('pId', pId).Set("Mom", momentum)
+	info = MapInfo({'pId':pId, 'Mom':momentum})
 
 	vs = cs.GlobeDistances(bList, mom=momentum)
 	bv = New.BarView( vs )
@@ -144,7 +144,7 @@ def LocalVarianceTrans(pId, winSize):
 	bList = LoadChain(pId)
 	bList = InterpolateChain(bList, rp=3)
 	cs.NormalizeChain(bList)
-	info = MapInfo().Set('pId', pId).Set('WS', winSize)
+	info = MapInfo({'pId':pId, 'WS':winSize})
 
 	vs = cs.MovingWindowVariance(bList, winSize=winSize)
 	bv = New.BarView( vs )

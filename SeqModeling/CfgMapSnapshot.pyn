@@ -14,7 +14,7 @@ match vv.EventSource.Item:
 		AssertSeqMap(pp)
 		ReCreateMap(pp)
 	case 'info':
-		New.TextPanel('MapSnapshot', MapInfo(pp.Description).Show()).Show()
+		New.TextPanel('MapSnapshot', MapInfo(pp.Description).Text).Show()
 	case 'Smoothen':
 		SimplifySeq(pp.BodyList, 0.9)
 		pp.RedrawBodies()		
