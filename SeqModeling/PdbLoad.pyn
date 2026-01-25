@@ -62,10 +62,10 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 	info = MapInfo()
 	info.Set('pId', pId)
 	info.Set('pLen', bsList.Count)
-	info.PT = SimplifyTitle(pdbTitle)
+	info.Set('PT', SimplifyTitle(pdbTitle))
 	info.Set('HA', includeHA)	
 	mp = ShowBodyList(bsList, gSize=glyphSize, gOpacity=glyphOpacity, info=info)
-	mp.Title = f'{pId}, Len:{bsList.Count}:  {info.PT}'
+	mp.Title = f'{pId}, Len:{bsList.Count}:  {info.Get("PT")}'
 	return mp
 
 
@@ -157,11 +157,10 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 				continue	
 
 			info = MapInfo()
-			info.SF = stretch
-			info.CF = expandFactor
+			info.Add({'SF': stretch, 'CF':expandFactor})
 			info.Set('pId', pId)
 			info.Set('pLen', bList.Count)
-			info.PT = SimplifyTitle(pdbTitle)
+			info.Set('PT', SimplifyTitle(pdbTitle))
 			info.Set('DS', vv.Dataset.Name)
 			info.Set('HA', includeHA)
 			if chainNames != None:
@@ -434,8 +433,7 @@ def UnFoldMap(pMap, epochs=1000, ppl=0.1, staged=False, repeats=1, stretch=0, cl
 	mds = NewMds(nt, is3D=is3D, glyphSet=pMap.GlyphSet, initExag=initExag, finalExag=finalExag,
 		epochs=epochs, ppl=ppl, staged=staged)
 	info = MapInfo(pMap.Description).SetMds(mds)
-	info.SF = stretch
-	info.CF = expandFactor  # Local expanding factor
+	info.Add({'SF': stretch, 'CF':expandFactor})
 	winTitle = pMap.Title
 	mds.GlyphSize = 0.5
 	RunMds(mds, repeats=repeats, info=info)

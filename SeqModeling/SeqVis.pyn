@@ -122,8 +122,6 @@ public void HideInterpolation(List<IBody> bList) {
 # protein embedding map information
 class MapInfo():
 	def __init__(self, initStr = None):
-		for nm in 'InitE,FinalE,PP,Is3D,SF,CF,PT'.split(','):
-			setattr(self, nm, None)
 		if initStr is not None:
 			self.ParseStr(initStr)
 	def Set(self, name, value):
@@ -137,18 +135,11 @@ class MapInfo():
 		self.__dict__.update( aList )
 		return self
 	def Init(self, epochs, is3D, initExag, finalExag, ppl):
-		self.Set('Epochs', epochs)
-		self.Is3D = is3D
-		self.InitE = initExag
-		self.FinalE = finalExag
-		self.PP = ppl
+		self.Add({'Epochs':epochs, 'Is3D':is3D, 'InitE':initExag, 'FinalE':finalExag, 'PP':ppl})
 		return self
 	def SetMds(self, mds):
-		self.Set('Epochs', mds.MaxLoops)
-		self.InitE = mds.InitialExaggeration
-		self.FinalE = mds.ExaggerationFinal
-		self.PP = mds.PerplexityRatio
-		self.Is3D = mds.Is3DF
+		self.Add({'Epochs':mds.MaxLoops, 'Is3D':mds.Is3D, 'InitE':mds.InitialExaggeration, 
+			'FinalE':mds.ExaggerationFinal, 'PP':mds.PerplexityRatio})
 		return self		
 	@property
 	def Str(self):
@@ -795,7 +786,7 @@ def ShowAASeq(pMap):
 			else:
 				pSeq.append(nm[0])
 	pSeq = ''.join(pSeq)
-	tp = New.TextPanel(f'Protein: {info.Get("pId")}, {len(pSeq)}: {info.PT}', pSeq)
+	tp = New.TextPanel(f'Protein: {info.Get("pId")}, {len(pSeq)}: {info.Get("PT")}', pSeq)
 	cs.NormalizeChain(pSelected, 0, True)
 	tp.AddLine('\n')
 	for pn, pv in info.__dict__.items():
@@ -860,7 +851,7 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75,
 		mp.NameLabelColor = New.Color('Yellow')
 		mp.NameLabelFont = New.Font('Microsoft Sans Serif', 18.0)
 		info = MapInfo(mp.Description)
-		mp.Title = f'{info.Get("pId")}: {info.PT}'
+		mp.Title = f'{info.Get("pId")}: {info.Get("PT")}'
 
 		bList = mp.BodyList
 		allHidden = True
@@ -901,9 +892,8 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 	pAtlas.BackgroundColor = New.Color(255, 0, 0, 64)	
 	pAtlas.SelectorColor = New.Color('DimGray')
 	info = MapInfo(pAtlas.Description)
-	DS = info.Get("DS")
-	if (DS != None) and (DS != vv.Dataset.Name):
-		vv.Folder.OpenDataset(DS)
+	if ( info.Has('DS') and info.Get('DS') != vv.Dataset.Name):
+		vv.Folder.OpenDataset(info.Get('DS'))
 	if pAtlas.Items.Count == 0:
 		raise Exception('Empty atlas!')
 	minX, minY, maxX, maxY = 10000.0, 10000.0, 0.0, 0.0
@@ -954,7 +944,7 @@ def ReCreateMap(pMap):
 		nt.RowSpecList[k].CopyFromBody(b)
 
 	mds = NewMds(nt, epochs=int(info.Get('Epochs')), is3D=eval(info.Get('Is3D')), 
-		initExag=float(info.InitE), finalExag=float(info.FinalE), ppl=float(info.PP))
+		initExag=float(info.Get('InitE')), finalExag=float(info.Get('FinalE')), ppl=float(info.Get('PP')))
 	mds.GlyphSet = pMap.GlyphSet
 	mds.GlyphSize = pMap.GlyphSize
 	mds.GlyphOpacity = pMap.GlyphOpacity
