@@ -12,41 +12,15 @@ def MainMain(menuKey, jobId=''):
 	atlasName = None if len(pList) == 1 else f'{vv.Dataset.Name}/{vv.Map.Name}.{len(pList)}'
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 			
+	def PM2(*args, **kwargs):
+		ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
+
 	match menuKey:
-		case 'ChmX': 
-			ShowChimeraX(pId)
-		case 'Web':  
-			ShowWeb(pId)
-		case '3D':
-			if atlasName != None: 
-				atlasName += '-3D'
-			pList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
-			ShowProteinList(pList, includeHA=False, intRp=5, atName=atlasName, gsize=1.5, gopacity=0.5)
-		case '3Dx':
-			if vv.ModifierKeys.ControlPressed:
-				pId = vv.PromptMessage('Protein ID: ', '????')
-				if pId == None: return
-			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True)
-		case '3Ds':
-			Merge3DList(pList)
-		case 'SeqMap':
-			aaGroups = GetAAGroup(idx=0)
-			if atlasName != None: 
-				atlasName += '-Seq'
-			CreateSeqMaps(pList, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
-		case 'Open': 
-			if pId == None:
-				vv.Message('No protein selected')
-				vv.Return()
-			OpenCifFile(pId)
 		case 'P-Map':
-			def PM2(*args, **kwargs):
-				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
-			#'mwV', 'gFT', 'pFT',     'pMF', 'sMF', 'rMF', 'tMF', 'tFT',  'sFT'
-			for vt in ['mwV']:
+			for vt in ['mwV']:  # mwV gFT pFT   pMF sMF rMF tMF tFT sFT
 				match vt:
 					case 'mwV':
-						PM2(waveCount=25, waveLen=512*4, winSize=25*4, intRp=2, tSNE=(0.05, 8.0, 1.0))
+						PM2(waveCount=30, waveLen=512*4, winSize=25*4, intRp=2, tSNE=(0.05, 8.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
@@ -63,8 +37,38 @@ def MainMain(menuKey, jobId=''):
 						# (epochs,waveN,intRp,stretch,  outDim,ppl,initE,finalE)
 						PM2(tP=(1000,20,2,0.5, 2,0.25,5.0,1.5),    tSNE=(0.05,6.0,1.0))
 		case 'P-2D':
-			if atlasName != None and jobId != None: atlasName += jobId
-			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, tP = (2000, 2, 1, 0.15, 6.0, 1.0))			
+			if atlasName != None and jobId != None: 
+				atlasName += jobId
+			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, tP = (2000, 2, 1, 0.15, 6.0, 1.0))
+		case 'C-Map':
+			ColorChainMap(2 if ctrPressed else 5)
+		case 'ChmX': 
+			ShowChimeraX(pId)
+		case 'Web':  
+			ShowWeb(pId)
+		case '3D':
+			if atlasName != None: 
+				atlasName += '-3D'
+			pList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
+			ShowProteinList(pList, includeHA=False, intRp=5, atName=atlasName, gsize=1.5, gopacity=0.5)
+		case '3Dx':
+			if ctrPressed:
+				pId = vv.PromptMessage('Protein ID: ', '????')
+				if pId == None: 
+					return
+			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True)
+		case '3Ds':
+			Merge3DList(pList)
+		case 'SeqMap':
+			aaGroups = GetAAGroup(idx=0)
+			if atlasName != None: 
+				atlasName += '-Seq'
+			CreateSeqMaps(pList, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
+		case 'Open': 
+			if pId == None:
+				vv.Message('No protein selected')
+				vv.Return()
+			OpenCifFile(pId)
 		case 'Siblings':
 			vv.SelectedItems, _ = Siblings(selected)
 			vv.Title = f'Selected: {len(selected)}, Expanded: {vv.SelectedItems.Count}'
@@ -75,15 +79,7 @@ def MainMain(menuKey, jobId=''):
 		case 'S2':
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'sUF':
-			if ctrPressed:
-				SphereView(pId, unfolding=False)
-			else:
-				SphereView(pId, unfolding=True)
-		case 'C-Map':
-			if ctrPressed:
-				ColorChainMap(2)
-			else:
-				ColorChainMap(5)
+			SphereView(pId, unfolding=not ctrPressed)
 		case 'Info':
 			sInfo = MapInfo(pp.Map.Description).Text
 			title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name};  SeqCount:{vv.Dataset.Rows:,}'

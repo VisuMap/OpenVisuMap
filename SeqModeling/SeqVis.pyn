@@ -884,6 +884,8 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75,
 def MatchProteinMap(pAtlas, iconWidth=50):
 	pAtlas.BackgroundColor = New.Color(255, 0, 0, 64)	
 	pAtlas.SelectorColor = New.Color('DimGray')
+	pAtlas.Width = int(vv.Map.Width)
+	pAtlas.Height = int(vv.Map.Height)
 	info = MapInfo(pAtlas.Description)
 	if ( info.Has('DS') and info.Get('DS') != vv.Dataset.Name):
 		vv.Folder.OpenDataset(info.Get('DS'))
