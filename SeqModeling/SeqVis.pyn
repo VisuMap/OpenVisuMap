@@ -779,7 +779,8 @@ def ShowAASeq(pMap):
 			else:
 				pSeq.append(nm[0])
 	pSeq = ''.join(pSeq)
-	tp = New.TextPanel(f'Protein: {info.Get("pId")}, {len(pSeq)}: {info.Get("PT")}', pSeq)
+	description = info.Get("PT") if info.Has('PT') else 'XXX'
+	tp = New.TextPanel(f'Protein: {info.Get("pId")}, {len(pSeq)}: {description}', pSeq)
 	cs.NormalizeChain(pSelected, 0, True)
 	tp.AddLine('\n')
 	for pn, pv in info.__dict__.items():
