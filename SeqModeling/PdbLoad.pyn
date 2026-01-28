@@ -220,8 +220,8 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 	t0 = time.time()
 	for k, pId in enumerate(pList):
 		bList = LoadChain(pId)
-		SimplifySeq(bList, mom)
 		bList = InterpolateChain(bList, intRp)
+		SimplifySeq(bList, mom)
 		nt = New.NumberTable(bList, 3)
 		nt = tsne.Fit(nt)
 		if nt == None:

@@ -42,7 +42,7 @@ def MainMain(menuKey, jobId=''):
 		case 'P-2D':
 			if atlasName != None and jobId != None: 
 				atlasName += jobId
-			CreateProteinMaps(pList, samplingDist=0.1, atlasName=atlasName, tP = (2000, 3, 1, 0.15, 6.0, 1.0))
+			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, tP = (2000, 3, 13, 0.15, 6.0, 1.0))
 		case 'C-Map':
 			ColorChainMap(2 if ctrPressed else 5)
 		case 'ChmX': 

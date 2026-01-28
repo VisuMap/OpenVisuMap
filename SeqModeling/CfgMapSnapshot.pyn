@@ -37,7 +37,7 @@ match vv.EventSource.Item:
 		ShowPDB(pId, rp=3, includeHA=False, chainNames=chainNames) 
 	case '3Dx':
 		info = MapInfo(pp.Description)				
-		if info.Has('pId')::
+		if info.Has('pId'):
 			pId = info.Get('pId')
 			ShowPDB(pId, rp=3, includeHA=False, chainNames=None) 
 		else:
@@ -45,6 +45,7 @@ match vv.EventSource.Item:
 				ShowPDB(pId, rp=3, includeHA=False) 
 	case 'HideIPO':
 		HideInterpolates()
+		pp.HiddenBodySize = 1
 	case 'MarkHelix':
 		ShowHelix()
 	case 'MarkBeta':
