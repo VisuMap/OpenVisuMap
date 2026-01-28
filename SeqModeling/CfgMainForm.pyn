@@ -93,46 +93,30 @@ def MainMain(menuKey, jobId=''):
 
 # ---------------------------------------------------------------------------------------
 
-def UpdateLvtExp(targets, mom):
-	bList, bv, mp, info = targets
-	info.Set('Mom', f'{mom:.4g}')
+def UpdateLvt(targets, mom):
+	bList, bv, mp, movingWin, varFct, meanFct = targets	
+	if movingWin:
+		pp.CurrentValue = mom
 	if (bv != None) and not bv.IsDisposed:
-		bv.Description = bv.Title = info.Str
-		bv.SetValues( cs.GlobeDistances(bList, mom) )
+		bv.SetValues( varFct(bList, mom) )
 		bv.Redraw()
 	if (mp != None) and not mp.IsDisposed:
-		mp.Description = mp.Title = info.Str
-		bList2 = cs.GlobeSmoothen2(bList, mom)
-		ss.CopyToXYZ(bList2, mp.BodyList)
-		mp.RedrawAll()
-
-def UpdateLvt(targets, winSize):
-	bList, bv, mp, info = targets	
-	info.Set('WinSize', winSize)
-	pp.CurrentValue = winSize
-	if (bv != None) and not bv.IsDisposed:
-		bv.Description = bv.Title = info.Str
-		vs = cs.MovingWindowVariance(bList, winSize)
-		bv.SetValues( vs )
-		bv.Redraw()
-	if (mp != None) and not mp.IsDisposed:
-		mp.Description = mp.Title = info.Str
-		bList2 = cs.MovingWindowMean(bList, winSize)
-		ss.CopyToXYZ(bList2, mp.BodyList)
+		ss.CopyToXYZ(meanFct(bList, mom), mp.BodyList)
 		mp.RedrawAll()
 
 def LocalVarianceTrans(pId, momentum=14, movingWin=True):
 	bList = LoadChain(pId)
 	bList = InterpolateChain(bList, rp=3)
 	cs.NormalizeChain(bList)
-	info = MapInfo({'pId':pId, 'Mom':momentum})
 
 	if movingWin:
 		varFct = cs.MovingWindowVariance
 		meanFct = cs.MovingWindowMean
+		title = 'Moving Window'
 	else:
 		varFct = cs.GlobeDistances
 		meanFct = cs.GlobeSmoothen2
+		title = 'Exp Average'
 
 	vs = varFct(bList, momentum)
 	bv = New.BarView( vs )
@@ -142,25 +126,25 @@ def LocalVarianceTrans(pId, momentum=14, movingWin=True):
 	bv.NormalizeView()
 	bv.BaseLineType=4
 	bv.UsingColorPalette = True
-	bv.Description = bv.Title = info.Str
+	bv.Title = title
 	bv.Show()
 
 	bList2 = meanFct(bList, momentum)
 	cs.NormalizeChain(bList2, -1, True)
-	mp = ShowBodyList(bList2, info=info, normalize=False)
+	mp = ShowBodyList(bList2, normalize=False)
 	mp.CentralizeView(False)
-	mp.Title = mp.Description = info.Str
+	mp.Title = title
 
 	if movingWin:
 		vs = New.ValueSelector(0, 120, momentum, 
-			'UpdateLvt(pp.Tag, winSize=int(pp.CurrentValue))')	
+			'UpdateLvt(pp.Tag, mom=int(pp.CurrentValue))')	
 		vs.Title = 'Window Size'
 		vs.StepSize = 1
 	else:
 		vs = New.ValueSelector(0.85, 1.0, momentum, 
-			'UpdateLvtExp(pp.Tag, mom=pp.CurrentValue)')
+			'UpdateLvt(pp.Tag, mom=pp.CurrentValue)')
 		vs.Title = 'Momentum'
-	vs.Tag = (bList, bv, mp, info)
+	vs.Tag = (bList, bv, mp, movingWin, varFct, meanFct)
 	vs.OnClose('for i in [1,2]: pp.Tag[i].Close();')
 	vs.Show()
 
