@@ -317,6 +317,7 @@ def LocalVarianceTrans(pId, momentum=14, movingWin=True):
 	bList = LoadChain(pId)
 	bList = InterpolateChain(bList, rp=3)
 	cs.NormalizeChain(bList)
+	info = MapInfo({'pId':pId})
 
 	if movingWin:
 		varFct = cs.MovingWindowVariance
@@ -335,14 +336,15 @@ def LocalVarianceTrans(pId, momentum=14, movingWin=True):
 	bv.NormalizeView()
 	bv.BaseLineType=4
 	bv.UsingColorPalette = True
-	bv.Title = title
+	bv.Title = title + " Variance"
+	bv.Description = info.Str
 	bv.Show()
 
 	bList2 = meanFct(bList, momentum)
 	cs.NormalizeChain(bList2, -1, True)
-	mp = ShowBodyList(bList2, normalize=False)
+	mp = ShowBodyList(bList2, normalize=False, info=info)
 	mp.CentralizeView(False)
-	mp.Title = title
+	mp.Title = title + " Mean"
 
 	if movingWin:
 		vs = New.ValueSelector(0, 120, momentum, 'UpdateLvt()')	
@@ -1225,18 +1227,16 @@ def ResetAtlas():
 		return
 	tm = vv.GuiManager.MouseClickDuration
 	cnt = pp.SelectedItems.Count
-	if vv.EventSource.Form.Name == 'Atlas':
-		# The event is initiated by an atlas view:
+	if vv.EventSource.Form.Name == 'Atlas':  # parent is an atlas
 		if DoubleClicked(): 
 			pp.ResetView(True)
 		elif cnt < 6: 
 			return
 		elif tm > 2000:
 			pp.ClickMenu('More.../Show Selected')
-			pp.ResetView()
+			pp.ResetView(False)  # keep the selection.
 		else:
-			if not mk.ControlPressed:
-				pp.ResetView(True)
+			pp.ResetView(True)   # clear the selection.
 	else:
 		# The event has been passed from another view to the atlas view
 		if cnt >= 6:

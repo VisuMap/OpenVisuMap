@@ -26,7 +26,7 @@ def MainMain(menuKey, jobId=''):
 			for vt in 1*['mwV']:  # mwV gFT pFT   pMF sMF rMF tMF tFT sFT
 				match vt:
 					case 'mwV':
-						PM2(waveCount=128, waveLen=512*4, winSize=25*4, intRp=2, tSNE=(0.01, 8.0, 1.0))
+						PM2(waveCount=128, waveLen=512*4, winSize=25*4, intRp=2, tSNE=(0.05, 8.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
