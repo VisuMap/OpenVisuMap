@@ -299,6 +299,62 @@ def GetGlobeChainTrans(pList, waveCount=20, waveLen=256, mom=0.99, cf=0.0):
 	tm = GetFourier(waveLen, waveCount)
 	return cs.GlobeTransFT(pList, mom, cf, tm)
 
+def UpdateLvt():
+	bList, bv, mp, movingWin, varFct, meanFct = pp.Tag	
+	if movingWin:
+		mom = int(pp.CurrentValue)
+		pp.CurrentValue = mom
+	else:
+		mom = pp.CurrentValue
+	if (bv != None) and not bv.IsDisposed:
+		bv.SetValues( varFct(bList, mom) )
+		bv.Redraw()
+	if (mp != None) and not mp.IsDisposed:
+		ss.CopyToXYZ(meanFct(bList, mom), mp.BodyList)
+		mp.RedrawAll()
+
+def LocalVarianceTrans(pId, momentum=14, movingWin=True):
+	bList = LoadChain(pId)
+	bList = InterpolateChain(bList, rp=3)
+	cs.NormalizeChain(bList)
+
+	if movingWin:
+		varFct = cs.MovingWindowVariance
+		meanFct = cs.MovingWindowMean
+		title = 'Moving Window'
+	else:
+		varFct = cs.GlobeDistances
+		meanFct = cs.GlobeSmoothen2
+		title = 'Exp Average'
+
+	vs = varFct(bList, momentum)
+	bv = New.BarView( vs )
+	for k in range(vs.Length):
+		bv.ItemList[k].Id = bList[k+1].Id
+	bv.Horizontal = False
+	bv.NormalizeView()
+	bv.BaseLineType=4
+	bv.UsingColorPalette = True
+	bv.Title = title
+	bv.Show()
+
+	bList2 = meanFct(bList, momentum)
+	cs.NormalizeChain(bList2, -1, True)
+	mp = ShowBodyList(bList2, normalize=False)
+	mp.CentralizeView(False)
+	mp.Title = title
+
+	if movingWin:
+		vs = New.ValueSelector(0, 120, momentum, 'UpdateLvt()')	
+		vs.Title = 'Window Size'
+		vs.StepSize = 1
+	else:
+		vs = New.ValueSelector(0.85, 1.0, momentum, 'UpdateLvt()')
+		vs.Title = 'Momentum'
+	vs.Tag = (bList, bv, mp, movingWin, varFct, meanFct)
+	vs.OnClose('for i in [1,2]: pp.Tag[i].Close();')
+	vs.Show()
+
 def MovingWindowVariance(pList, waveCount, waveLen, winSize, intRp=0):
 	from os.path import exists
 	for pId in pList:

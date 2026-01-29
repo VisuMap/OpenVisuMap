@@ -722,7 +722,7 @@ def ShowPepCounts(pList):
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'Antibiotic')
+ImportPDBList(sList, 'ECODE100011')
 
 for dn in dnList:
 	vv.Folder.OpenDataset(dn+str(1))

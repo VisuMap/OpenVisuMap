@@ -2,7 +2,6 @@
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
-import numpy as np
 
 def MainMain(menuKey, jobId=''):
 	global ctrPressed
@@ -12,18 +11,22 @@ def MainMain(menuKey, jobId=''):
 	atlasName = None if len(pList) == 1 else f'{vv.Dataset.Name}/{vv.Map.Name}.{len(pList)}'
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
-	if ctrPressed and menuKey in ['3Dx', 'Web', 'ChmX']:
-		pId = vv.PromptMessage('Protein ID: ', '????')
-		if pId == None: return
+	if menuKey in ['3Dx', 'Web', 'ChmX', 'Open']:
+		if ctrPressed:
+			pId = vv.PromptMessage('Protein ID: ', '????')			
+		if pId == None: 
+			if not ctrPressed:
+				vv.Message('No protein has been selected')
+			return
 			
 	match menuKey:
 		case 'P-Map':
 			def PM2(*args, **kwargs):
 				ProteinMap2(pList,vt,2000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
-			for vt in 2*['mwV']:  # mwV gFT pFT   pMF sMF rMF tMF tFT sFT
+			for vt in 1*['mwV']:  # mwV gFT pFT   pMF sMF rMF tMF tFT sFT
 				match vt:
 					case 'mwV':
-						PM2(waveCount=128, waveLen=512*4, winSize=25*4, intRp=2, tSNE=(0.05, 8.0, 1.0))
+						PM2(waveCount=128, waveLen=512*4, winSize=25*4, intRp=2, tSNE=(0.01, 8.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
@@ -42,9 +45,13 @@ def MainMain(menuKey, jobId=''):
 		case 'P-2D':
 			if atlasName != None and jobId != None: 
 				atlasName += jobId
-			CreateProteinMaps(pList, samplingDist=0.1, atlasName=atlasName, tP = (2000, 3, 14, 0.15, 6.0, 1.0))
+			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, tP = (2000, 3, 14, 0.15, 6.0, 1.0))
 		case 'C-Map':
 			ColorChainMap(2 if ctrPressed else 5)
+		case 'Info':
+			sInfo = MapInfo(pp.Map.Description).Text
+			title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name};  SeqCount:{vv.Dataset.Rows:,}'
+			New.TextPanel(title, sInfo).Show()
 		case 'ChmX': 
 			ShowChimeraX(pId)
 		case 'Web':  
@@ -64,9 +71,6 @@ def MainMain(menuKey, jobId=''):
 				atlasName += '-Seq'
 			CreateSeqMaps(pList, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
 		case 'Open': 
-			if pId == None:
-				vv.Message('No protein selected')
-				vv.Return()
 			OpenCifFile(pId)
 		case 'Siblings':
 			vv.SelectedItems, _ = Siblings(selected)
@@ -79,10 +83,6 @@ def MainMain(menuKey, jobId=''):
 			ShowSphere4(repeats=5, contracting=0.9)
 		case 'sUF':
 			SphereView(pId, unfolding=not ctrPressed)
-		case 'Info':
-			sInfo = MapInfo(pp.Map.Description).Text
-			title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name};  SeqCount:{vv.Dataset.Rows:,}'
-			New.TextPanel(title, sInfo).Show()
 		case 'Lvt':
 			if ctrPressed:
 				LocalVarianceTrans(pId, momentum=0.9, movingWin=False)
@@ -93,63 +93,7 @@ def MainMain(menuKey, jobId=''):
 
 # ---------------------------------------------------------------------------------------
 
-def UpdateLvt(targets, mom):
-	bList, bv, mp, movingWin, varFct, meanFct = targets	
-	if movingWin:
-		pp.CurrentValue = mom
-	if (bv != None) and not bv.IsDisposed:
-		bv.SetValues( varFct(bList, mom) )
-		bv.Redraw()
-	if (mp != None) and not mp.IsDisposed:
-		ss.CopyToXYZ(meanFct(bList, mom), mp.BodyList)
-		mp.RedrawAll()
-
-def LocalVarianceTrans(pId, momentum=14, movingWin=True):
-	bList = LoadChain(pId)
-	bList = InterpolateChain(bList, rp=3)
-	cs.NormalizeChain(bList)
-
-	if movingWin:
-		varFct = cs.MovingWindowVariance
-		meanFct = cs.MovingWindowMean
-		title = 'Moving Window'
-	else:
-		varFct = cs.GlobeDistances
-		meanFct = cs.GlobeSmoothen2
-		title = 'Exp Average'
-
-	vs = varFct(bList, momentum)
-	bv = New.BarView( vs )
-	for k in range(vs.Length):
-		bv.ItemList[k].Id = bList[k+1].Id
-	bv.Horizontal = False
-	bv.NormalizeView()
-	bv.BaseLineType=4
-	bv.UsingColorPalette = True
-	bv.Title = title
-	bv.Show()
-
-	bList2 = meanFct(bList, momentum)
-	cs.NormalizeChain(bList2, -1, True)
-	mp = ShowBodyList(bList2, normalize=False)
-	mp.CentralizeView(False)
-	mp.Title = title
-
-	if movingWin:
-		vs = New.ValueSelector(0, 120, momentum, 
-			'UpdateLvt(pp.Tag, mom=int(pp.CurrentValue))')	
-		vs.Title = 'Window Size'
-		vs.StepSize = 1
-	else:
-		vs = New.ValueSelector(0.85, 1.0, momentum, 
-			'UpdateLvt(pp.Tag, mom=pp.CurrentValue)')
-		vs.Title = 'Momentum'
-	vs.Tag = (bList, bv, mp, movingWin, varFct, meanFct)
-	vs.OnClose('for i in [1,2]: pp.Tag[i].Close();')
-	vs.Show()
-
-def DoDatasetList(dxList, mpIdx=0, maxItems=0, jobId='', 
-		createPMap=True, createAtlas=False):
+def DoDatasetList(dxList, mpIdx=0, maxItems=0, jobId='', createPMap=True, createAtlas=False):
 	vv.SelectedItems.Clear()
 	tm0 = time.time()
 	for dsIdx in dxList:
