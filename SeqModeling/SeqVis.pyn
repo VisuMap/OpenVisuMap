@@ -1225,6 +1225,8 @@ def ResetAtlas():
 	mk = vv.ModifierKeys
 	if mk.AltPressed:
 		return
+	if mk.ControlPressed and mk.ShiftPressed:
+		return
 	tm = vv.GuiManager.MouseClickDuration
 	cnt = pp.SelectedItems.Count
 	if vv.EventSource.Form.Name == 'Atlas':  # parent is an atlas
