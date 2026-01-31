@@ -26,7 +26,7 @@ def AtlasMain(menuKey):
 				mp.NormalizeView()
 		case '3Dx':
 			for e in pSelected:
-				mp = ShowPDB(e.Name, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, chainNames=None)
+				mp = ShowPDB(e.Name, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, unifyId=True, chainNames=None)
 		case '2D':
 			pList = [item.Id for item in pSelected]
 			UnFoldProteinList(pList, epochs=2500, includeHA=False,  wholeComplex=False,

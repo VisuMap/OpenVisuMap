@@ -22,7 +22,7 @@ def CheckCacheDir():
 		vv.Message(f'Cache directories not setup: {PDB_CACHE} and {CHAIN_CACHE}')
 		vv.Return()
 
-def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
+def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, unifyId=False,
 		setChainId=False,	typeByChainIdx=False, glyphSize=1.0, glyphOpacity=0.75):
 
 	if includeHA or chainNames==None or len(chainNames)>1:
@@ -53,6 +53,8 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False,
 			if not chName in chName2Type:
 				chName2Type[chName] = len(chName2Type)
 			b.Type = chName2Type[chName]
+			if unifyId:  # assign the chain id to all members
+				b.Id = pId[:4] + '_' + str(b.Type)
 
 	cs.NormalizeChain(bsList, -1, False)
 
