@@ -225,6 +225,7 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 		bList = InterpolateChain(bList, intRp)
 		SimplifySeq(bList, mom)
 		nt = New.NumberTable(bList, 3)
+		#New.MdsCluster(nt).Show()
 		nt = tsne.Fit(nt)
 		if nt == None:
 			continue

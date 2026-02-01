@@ -1,4 +1,4 @@
-#MenuLabels P-Map P-2D C-Map Info ChmX Web Open Siblings SeqMap Align 3D 3Dx 3Ds S2 P-S2 sUF Lvt TT
+#MenuLabels P-Map P-2D C-Map Info ChmX Web Open Siblings SeqMap Align 3D 3Dx 3Ds S2 P-S2 UF Lvt TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -27,7 +27,7 @@ def MainMain(menuKey, jobId=''):
 				match vt:
 					case 'mwV':
 						ppl = round(min(max(0.001, 2000.0/len(pList)), 0.1), 4)
-						PM2(waveCount=128, waveLen=512*4, winSize=25*4, intRp=2, tSNE=(ppl, 6.0, 1.0))
+						PM2(waveCount=128, waveLen=512*4, winSize=25*4, intRp=2, tSNE=(ppl, 4.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(0.025, 8.0, 1.0))
 					case 'pFT':	
@@ -46,7 +46,7 @@ def MainMain(menuKey, jobId=''):
 		case 'P-2D':
 			if atlasName != None and jobId != None: 
 				atlasName += jobId
-			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, tP = (2000, 3, 28, 0.15, 6.0, 1.0))
+			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, tP = (2000, 3, 28, 0.15, 4.0, 1.0))
 		case 'C-Map':
 			ColorChainMap(2 if ctrPressed else 5)
 		case 'Info':
@@ -81,9 +81,9 @@ def MainMain(menuKey, jobId=''):
 		case 'P-S2':
 			ProteinS2Map(pList, atlasName, samplingDist=0.0, ctrF=0.85)
 		case 'S2':
-			ShowSphere4(repeats=5, contracting=0.9)
-		case 'sUF':
-			SphereView(pId, unfolding=not ctrPressed)
+			SphereView(pId, unfolding=False)
+		case 'UF':
+			SphereView(pId, unfolding=True)
 		case 'Lvt':
 			if ctrPressed:
 				LocalVarianceTrans(pId, momentum=0.95, movingWin=False, intRp=3)
