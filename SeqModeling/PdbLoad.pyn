@@ -75,9 +75,12 @@ def ShowChain(cId, gsize=2.1, gopacity=0.75, hsize=3, intRp=5):
 	return ShowBodyList(bList, gSize=gsize, gOpacity=gopacity, hSize=hsize)
 
 def ShowProteinList(pList, includeHA, atName=None, gsize=1.0, gopacity=0.75, intRp=3):
-	mapStore = NewMapStore(atName)
-	if mapStore != None:
+	if len(pList) > 5:
+		mapStore = NewMapStore(atName)
 		mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
+	else:
+		mapStore = None
+		mapList = []
 	for k, pId in enumerate(pList):
 		vv.Title = f'Loading {pId}: {k+1}-th of {len(pList)}'
 		chainNames = GetChainName(pId)
@@ -85,9 +88,11 @@ def ShowProteinList(pList, includeHA, atName=None, gsize=1.0, gopacity=0.75, int
 				rp=intRp, glyphSize=gsize, glyphOpacity=gopacity)
 		if mapStore != None:	
 			mapStore.AddMap('D3dRender')
+			mp.Close()
 		else:
 			cs.NormalizeChain(mp.BodyList, chType=-1, hidIntp=True)
 			mp.NormalizeView()
+			mapList.append(mp)
 	if mapStore != None:
 		ma = mapStore.atlas
 		for item in ma.Items: 
@@ -96,6 +101,8 @@ def ShowProteinList(pList, includeHA, atName=None, gsize=1.0, gopacity=0.75, int
 		ma.ArrangeItems(False)
 		ma.OnItemsSelected = ''
 		del mapStore
+	else:
+		vv.GuiManager.TileAllWindows(mapList)
 
 def GetChainName(pId):
 	rowIdx = vv.Dataset.BodyIndexForId(pId)
@@ -725,7 +732,7 @@ def ShowPepCounts(pList):
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'ECODE100011')
+ImportPDBList(sList, 'Histones')
 
 for dn in dnList:
 	vv.Folder.OpenDataset(dn+str(1))

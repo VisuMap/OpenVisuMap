@@ -21,9 +21,12 @@ def AtlasMain(menuKey):
 		case 'Cfg':
 			ConfigAtlasMaps(pp, 1000, 700, gSize=5.0, gOpacity=1.0, iconWidth=None, hiddenSize=4, reset=False)			
 		case '3D':
+			mpList = []
 			for pId in [item.Id for item in pSelected]:
 				mp = ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
 				mp.NormalizeView()
+				mpList.append(mp)
+			vv.GuiManager.TileAllWindows(mpList)
 		case '3Dx':
 			for e in pSelected:
 				mp = ShowPDB(e.Name, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, unifyId=True, chainNames=None)

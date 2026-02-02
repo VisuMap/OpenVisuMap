@@ -1219,9 +1219,7 @@ def DoubleClicked():
 
 def ResetAtlas():
 	mk = vv.ModifierKeys
-	if mk.AltPressed:
-		return
-	if mk.ControlPressed and mk.ShiftPressed:
+	if mk.AltPressed or mk.ControlPressed:
 		return
 	tm = vv.GuiManager.MouseClickDuration
 	cnt = pp.SelectedItems.Count
