@@ -54,7 +54,7 @@ def AtlasMain(menuKey):
 		case '2Ds':
 			Merge2DList(pp)
 		case 'S2':
-			ShowSphere4(repeats=5, contracting=0.9)
+			SphereView(pId, unfolding=False)
 		case 'TT':
 			ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
 			ShowBond(pId)
