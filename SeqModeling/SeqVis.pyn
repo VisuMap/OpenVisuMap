@@ -1238,6 +1238,9 @@ def ResetAtlas():
 		if cnt >= 6:
 			pp.ResetView(False)
 
+def SelectPID():
+	vv.SelectedItems = MapInfo(pp.Description).pId.split(',')
+
 '''
 
 '''

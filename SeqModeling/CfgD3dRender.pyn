@@ -27,7 +27,7 @@ def Map3DMain(menuKey):
 		case 'Looping':
 			cs.LoopSection(pp, secLen=25)
 		case 'PID':
-			vv.SelectedItems = MapInfo(pp.Description).pId.split(',')
+			SelectPID()
 		case 'Tr':
 			Tracing()
 		case 'S2':
