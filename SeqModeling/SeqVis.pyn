@@ -539,8 +539,8 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 		staged=staged, initExag=initExag, finalExag=finalExag, ppl=ppl)
 
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	info.Add({'vType':vType, 'aaG':aaGroups, 'wvL':waveLen, 'wvCnt':waveCount, 'mfL':mfL, 'mom':mom, 'cf':cf, 'pCnt':dt.Rows, 
-		'tP':tP, 'fP':filterP, 'wSz':winSize, 'intRp':intRp})
+	info.Add({'vType':vType, 'aaG':aaGroups, 'wvL':waveLen, 'wvCnt':waveCount, 'mfL':mfL, 'mom':mom, 'cf':cf, 
+		'pCnt':dt.Rows, 'PPn':round(dt.Rows*ppl, 2), 'tP':tP, 'fP':filterP, 'wSz':winSize, 'intRp':intRp })
 
 	snMap = RunMds(mds, repeats=1, info=info)
 	snMap.Dataset = dt.ToDataset()

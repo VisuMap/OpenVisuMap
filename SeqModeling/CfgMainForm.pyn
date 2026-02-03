@@ -22,14 +22,15 @@ def MainMain(menuKey, jobId=''):
 	match menuKey:
 		case 'P-Map':
 			def PM2(*args, **kwargs):
-				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), justShDt=ctrPressed, *args,**kwargs)
-			for vt in 1*['mwV']:  # mwV gFT pFT   pMF sMF rMF tMF tFT sFT
+				gSz = 1.5 if len(pList) < 10000 else 0.7
+				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
+			ppl_ = round(min(max(0.001, 2000.0/len(pList)), 0.1), 4)
+			for vt in 1*['gFT']:  # mwV gFT pFT   pMF sMF rMF tMF tFT sFT
 				match vt:
 					case 'mwV':
-						ppl = round(min(max(0.001, 2000.0/len(pList)), 0.1), 4)
-						PM2(waveCount=128, waveLen=512*4, winSize=25*4, intRp=2, tSNE=(ppl, 4.0, 1.0))
+						PM2(waveCount=128, waveLen=512*4, winSize=25*4, intRp=2, tSNE=(ppl_, 8.0, 1.0))
 					case 'gFT':
-						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(0.025, 8.0, 1.0))
+						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(ppl_, 8.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, waveLen=512, cf=0.25, tSNE=(0.05, 4.0, 1.0))	
 					case 'pMF':
