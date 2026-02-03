@@ -66,14 +66,6 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, unifyId=F
 	mp.Title = f'{pId}, Len:{bsList.Count}:  {info.Get("PT")}'
 	return mp
 
-
-def ShowChain(cId, gsize=2.1, gopacity=0.75, hsize=3, intRp=5):
-	bList = LoadChain(cId)
-	bList = InterpolateChain(bList, rp=intRp)
-	for b in bList: b.Hidden = (b.Id[0] == 'i')
-	cs.NormalizeChain(bList)
-	return ShowBodyList(bList, gSize=gsize, gOpacity=gopacity, hSize=hsize)
-
 def ShowProteinList(pList, includeHA, atName=None, gsize=1.0, gopacity=0.75, intRp=3):
 	if len(pList) > 5:
 		mapStore = NewMapStore(atName)
