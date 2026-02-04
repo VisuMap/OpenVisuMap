@@ -299,17 +299,21 @@ def GetGlobeChainTrans(pList, waveCount=20, waveLen=256, mom=0.99, cf=0.0):
 	tm = GetFourier(waveLen, waveCount)
 	return cs.GlobeTransFT(pList, mom, cf, tm)
 
+def IsCreated(vw):
+	return (vw != None) and not vw.IsDisposed
+
 def UpdateLvt():
-	bList, bv, mp, movingWin, varFct, meanFct = pp.Tag	
+	bv, mp, bList, movingWin, varFct, meanFct = pp.Tag	
 	if movingWin:
 		mom = int(pp.CurrentValue)
 		pp.CurrentValue = mom
 	else:
 		mom = pp.CurrentValue
-	if (bv != None) and not bv.IsDisposed:
+
+	if IsCreated(bv):
 		bv.SetValues( varFct(bList, mom) )
 		bv.Redraw()
-	if (mp != None) and not mp.IsDisposed:
+	if IsCreated(mp):
 		ss.CopyToXYZ(meanFct(bList, mom), mp.BodyList)
 		mp.RedrawAll()
 
@@ -353,9 +357,10 @@ def LocalVarianceTrans(pId, momentum=14, movingWin=True, intRp=3):
 	else:
 		vs = New.ValueSelector(0.85, 1.0, momentum, 'UpdateLvt()')
 		vs.Title = 'Momentum'
-	vs.Tag = [bList, bv, mp, movingWin, varFct, meanFct]
-	vs.OnClose('for vw in pp.Tag[1:3]: vw.Close();')
+	vs.Tag = [bv, mp, bList, movingWin, varFct, meanFct]
 	vs.Show()
+
+	vs.OnClose('for vw in pp.Tag[:2]: vw.Close();')
 
 def MovingWindowVariance(pList, waveCount, waveLen, winSize, intRp=0):
 	from os.path import exists

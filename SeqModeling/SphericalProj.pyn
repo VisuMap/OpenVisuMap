@@ -51,9 +51,6 @@ def ShowSphere4(repeats=5, contracting=0.9):
 	bList.Insert(0, New.Body('ic', bList[0].Name, 176) )
 	ShowBodyList(bList, gSize=2.0, hSize=2, gOpacity=0.5, info=MapInfo('pId:'+pId))
 
-def NotExits(vw):
-	return (vw == None) or vw.TheForm.IsDisposed
-
 def UpdateSphere():
 	cf = pp.CurrentValue
 	mp, bList, unfolding = pp.Tag
@@ -61,20 +58,20 @@ def UpdateSphere():
 		bs = cs.TorsionUnfold(bList, cf)
 		bs = InterpolateChain(bs, rp=5, hidIntp=True)
 		cs.NormalizeChain(bs)
-		if NotExits(mp):
+		if IsCreated(mp):
+			mp.MoveBodiesTo(bs, 5, 50, 0, 0)
+		else:
 			mp = ShowBodyList(New.BodyListClone(bs), gSize=1.5, gOpacity=0.5, hSize=3)
 			pp.Tag[0] = mp
 			mp.MoveBodiesTo(bs, 5, 50, 0, 0)
 			mp.CentralizeView(False)
-		else:
-			mp.MoveBodiesTo(bs, 5, 50, 0, 0)
 	else:
 		bs = New.BodyListClone(bList)
 		cs.ShrinkSphere(bs, cf)
 		bs = InterpolateChain(bs, rp=5, hidIntp=True)
 		cs.NormalizeChain(bs)
 		bs.Insert(0, New.Body('ic', bs[0].Name, 144) )	
-		if NotExits(mp):
+		if not IsCreated(mp):
 			mp = ShowBodyList(bs, gSize=2.0, gOpacity=0.5, hSize=3)
 			pp.Tag[0] = mp
 			mp.CentralizeView(False)
