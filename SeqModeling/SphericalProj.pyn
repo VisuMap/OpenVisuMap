@@ -104,7 +104,7 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 		
 	if len(pList) < 10:
 		for pId in pList:
-			info.Set('pId', pId)
+			info.pId = pId
 			bList = GetSphereDataset(pId, interRp=0, contracting=ctrF)
 			bList = DoTsne(info, bList)
 			mp = New.MapSnapshot(bList).Show()
@@ -116,7 +116,7 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 		mds.RefreshFreq = 0
 		atlasName = 'S2.' + atlasName
 		mapStore = NewMapStore(atlasName)			
-		info.Set('cF', ctrF)
+		info.cF = ctrF
 		if samplingDist != 0:
 			pList = cs.FlatSampling(pList, samplingDist=samplingDist)
 		for k, pId in enumerate(pList):				

@@ -349,7 +349,8 @@ def LocalVarianceTrans(pId, momentum=14, movingWin=True, intRp=3):
 	mp.Title = title + " Mean"
 
 	if movingWin:
-		vs = New.ValueSelector(0, 120, momentum, 'UpdateLvt()')	
+		mxLen = min(1000, len(bList))
+		vs = New.ValueSelector(0, mxLen, momentum, 'UpdateLvt()')	
 		vs.Title = 'Window Size'
 		vs.StepSize = 1
 	else:
@@ -722,7 +723,7 @@ def RunMds(mds, repeats=1, info=None, nt=None):
 	if not mds.Completed: 
 		raise Exception("MDS aborted")
 	if info != None:
-		info.Set('MSz', f'{mds.GlyphSpan:.2f}')
+		info.MSz = f'{mds.GlyphSpan:.2f}'
 		mds.Description = info.Str
 	if repeats == 1:
 		mds.SelectedItems = None
@@ -928,7 +929,7 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75,
 
 		info = MapInfo(mp.Description)
 		it.LabelStyle = 0
-		it.Name = str(info.Get('pLen'))
+		it.Name = str(info.pLen)
 		it.IconHeight = 0
 		if iconWidth != None:
 			it.IconWidth = iconWidth
@@ -945,8 +946,8 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 	pAtlas.Width = int(vv.Map.Width)
 	pAtlas.Height = int(vv.Map.Height)
 	info = MapInfo(pAtlas.Description)
-	if ( info.Has('DS') and info.Get('DS') != vv.Dataset.Name):
-		vv.Folder.OpenDataset(info.Get('DS'))
+	if ( info.Has('DS') and info.DS != vv.Dataset.Name):
+		vv.Folder.OpenDataset(info.DS)
 	if pAtlas.Items.Count == 0:
 		raise Exception('Empty atlas!')
 	minX, minY, maxX, maxY = 10000.0, 10000.0, 0.0, 0.0
@@ -980,7 +981,7 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 		item.ShowBorder = False
 		item.BorderColor = New.Color(32, 32, 32)
 	info = MapInfo()
-	info.Set('Mnm', vv.Map.Name)
+	info.Mnm = vv.Map.Name
 	pAtlas.Description = info.Str
 	if itemChanged:
 		pAtlas.Redraw()
@@ -991,13 +992,13 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 def ReCreateMap(pMap):
 	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	
 	info = MapInfo(pMap.Description)
-	nt = NewDataset(pSeq, augCfg=info.Get('AugCfg'))
+	nt = NewDataset(pSeq, augCfg=info.AugCfg)
 
 	for k, b in enumerate(pMap.BodyList):
 		nt.RowSpecList[k].CopyFromBody(b)
 
-	mds = NewMds(nt, epochs=int(info.Get('Epochs')), is3D=eval(info.Get('Is3D')), 
-		initExag=float(info.Get('InitE')), finalExag=float(info.Get('FinalE')), ppl=float(info.Get('PP')))
+	mds = NewMds(nt, epochs=int(info.Epochs), is3D=eval(info.Is3D), 
+		initExag=float(info.InitE), finalExag=float(info.FinalE), ppl=float(info.PP))
 	mds.GlyphSet = pMap.GlyphSet
 	mds.GlyphSize = pMap.GlyphSize
 	mds.GlyphOpacity = pMap.GlyphOpacity
@@ -1084,7 +1085,7 @@ def Merge3DList(pList):
 		bList[bList.Count-1].Type = SeqMap_TAIL
 		bs.AddRange(bList)
 	info = MapInfo().Set('pId', ','.join(pList))
-	info.Set('pCnt', len(pList))
+	info.pCnt = len(pList)
 	ShowBodyList(bs, gSize=1.0, gOpacity=0.75, info=info)
 
 def Merge2DList(atlas):
@@ -1107,7 +1108,7 @@ def Merge2DList(atlas):
 		bs.AddRange(bList)
 		mp.Close()
 	info = MapInfo().Set('pId', ','.join(pList))
-	info.Set('pCnt', len(pList))
+	info.pCnt = len(pList)
 	mp = New.MapSnapshot(bs)
 	mp.ReadOnly = True
 	mp.Description = info.Str

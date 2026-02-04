@@ -156,7 +156,7 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 			info = MapInfo({'SF': stretch, 'CF':expandFactor, 'pId':pId, 'pLen':bList.Count, 
 				'PT':SimplifyTitle(pdbTitle), 'DS':vv.Dataset.Name, 'HA':includeHA})
 			if chainNames != None:
-				info.Set('CNs', '|'.join(chainNames) )
+				info.CNs = '|'.join(chainNames)
 			mds.SetTrainingData(nt)
 			vv.Title = f'Unfolding {pId}/{seqLen:,}: {n+1}-th of {len(pList)}'
 
@@ -182,7 +182,7 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 		mds.Close()
 		ma = mapStore.atlas
 		MatchProteinMap(ma, iconWidth)
-		info.Set('TM', round(time.time()-t0, 3))
+		info.TM = round(time.time()-t0, 3)
 		ma.Description = info.Str
 		ma.Show()
 		ma.DataChanged = True # since the Show() clears the DataChanged flag.
@@ -244,8 +244,8 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 
 	if mapStore != None:
 		info = MapInfo()
-		info.Set('TM', round(time.time()-t0, 3))
-		info.Set('tP', tP)
+		info.TM = round(time.time()-t0, 3)
+		info.tP = tP
 		ma = mapStore.atlas
 		ma.Show()
 		MatchProteinMap(ma, 50)
