@@ -1223,8 +1223,7 @@ def DoubleClicked():
 
 def ResetAtlas():
 	mk = vv.ModifierKeys
-	if mk.AltPressed or mk.ControlPressed:
-		return
+	if mk.AltPressed or mk.ControlPressed or mk.ShiftPressed: return
 	tm = vv.GuiManager.MouseClickDuration
 	cnt = pp.SelectedItems.Count
 	if vv.EventSource.Form.Name == 'Atlas':  # parent is an atlas

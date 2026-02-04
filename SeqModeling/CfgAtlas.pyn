@@ -32,8 +32,7 @@ def AtlasMain(menuKey):
 				mp = ShowPDB(e.Name, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, unifyId=True, chainNames=None)
 		case '2D':
 			pList = [item.Id for item in pSelected]
-			UnFoldProteinList(pList, epochs=2500, includeHA=False,  wholeComplex=False,
-				samplingDist=0.0,	initExag=4.0, ppl=0.1, stretch=0.1,	clusterStretch=0.0, iconWidth=50)
+			UnFoldProteinList(pList, includeHA=False, wholeComplex=False, samplingDist=0.0, iconWidth=50, tP=(2000,3,28, 0.15,4.0,1.0) )
 		case 'Web':
 			ShowWeb(pId)
 		case 'ChmX':

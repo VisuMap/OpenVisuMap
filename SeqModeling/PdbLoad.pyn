@@ -104,9 +104,8 @@ def GetChainName(pId):
 		vv.Message(f'Cannot find chain {pId} in current dataset.')
 		return None
 
-def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False, 
-		samplingDist=0,  ppl=0.1, initExag=5.0, finalExag=1.0, atName=None, 
-		stretch=0, clusterStretch=0.5, expandFactor=1.0, iconWidth=50, glyphSize=2.0):
+def UnFoldProteinList(pList, includeHA=False, wholeComplex=False, tP = None, 
+		samplingDist=0,  atName=None, iconWidth=50, glyphSize=2.0):
 	t0 = time.time()
 	if wholeComplex:
 		# Remove all duplicates.
@@ -117,6 +116,8 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 				pList2.append(p)
 				selected.add(p[:4])
 		pList = pList2
+
+	epochs, intRp, mom, ppl, initExag, finalExag = tP
 
 	if samplingDist > 0:
 		pList = cs.FlatSampling(pList, samplingDist)
@@ -129,7 +130,7 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 		return
 	
 	mapStore = NewMapStore(atName)	
-	rFreq = 10 if mapStore == None else 0
+	rFreq = 100 if mapStore == None else 0
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, refreshFreq=rFreq, repeats=0, metric='EuclideanMetric',
 		ppl=ppl, initExag=initExag, finalExag=finalExag, glyphSet=SeqMap_GLYPHSET, glyphOpacity=1.0)	
 	mds.GlyphSize = 0.75 if atName==None else glyphSize
@@ -146,15 +147,15 @@ def UnFoldProteinList(pList, epochs=1000, includeHA=False, wholeComplex=False,
 				for b in bList:
 					b.Hidden = False
 				cs.NormalizeChain(bList, 184)						
-			bList = Interpolate(bList, rp=3)
+			bList = Interpolate(bList, rp=intRp)
 			if includeHA:
 				bList.AddRange(bList2)
-			nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
+			SimplifySeq(bList, mom)		
+			nt = New.NumberTable(bList, 3)	
 			if nt.Rows < 8:
 				continue	
 
-			info = MapInfo({'SF': stretch, 'CF':expandFactor, 'pId':pId, 'pLen':bList.Count, 
-				'PT':SimplifyTitle(pdbTitle), 'DS':vv.Dataset.Name, 'HA':includeHA})
+			info = MapInfo({'pId':pId, 'pLen':bList.Count, 'tP':tP, 'PT':SimplifyTitle(pdbTitle), 'DS':vv.Dataset.Name, 'HA':includeHA})
 			if chainNames != None:
 				info.CNs = '|'.join(chainNames)
 			mds.SetTrainingData(nt)
