@@ -16,9 +16,7 @@ BOND_LENGTH = 3.8015
 ALPHA_ANGLE = 2*math.pi/3.6   # angle between two alpha atoms in the axis direction.
 ALPHA_DIAM = 5.4    # the average diameter of alpha hex.
 HELIX_TRANSLATION = 1.5   # translation per residue alone helix direction
-
 vv.RightHanded3D = True
-
 
 def AssertProteinTable():
 	if (vv.Dataset.Columns < 4) or ( vv.Dataset.ColumnSpecList[2].Id != 'ProteinSeq'):
