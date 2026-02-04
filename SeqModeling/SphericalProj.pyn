@@ -63,8 +63,7 @@ def UpdateSphere():
 		cs.NormalizeChain(bs)
 		if NotExits(mp):
 			mp = ShowBodyList(New.BodyListClone(bs), gSize=1.5, gOpacity=0.5, hSize=3)
-			pp.Tag = (mp, bList, True)
-			mp.CentralizeView(False)
+			pp.Tag[0] = mp
 			mp.MoveBodiesTo(bs, 5, 50, 0, 0)
 			mp.CentralizeView(False)
 		else:
@@ -73,10 +72,11 @@ def UpdateSphere():
 		bs = New.BodyListClone(bList)
 		cs.ShrinkSphere(bs, cf)
 		bs = InterpolateChain(bs, rp=5, hidIntp=True)
+		cs.NormalizeChain(bs)
+		bs.Insert(0, New.Body('ic', bs[0].Name, 144) )	
 		if NotExits(mp):
 			mp = ShowBodyList(bs, gSize=2.0, gOpacity=0.5, hSize=3)
-			cs.NormalizeChain(mp.BodyList)
-			pp.Tag = (mp, bList, False)
+			pp.Tag[0] = mp
 			mp.CentralizeView(False)
 		ss.ShiftChain(bs, 200, 200, 250)
 		mp.MoveBodiesTo(bs, 5, 50, 0, 0)		
@@ -89,7 +89,7 @@ def SphereView(pId, unfolding):
 	for b in bList: 
 		b.Mult(2.0 if unfolding else 60.0)
 	vs = New.ValueSelector(0.5, 1.0, 0, 'UpdateSphere()')
-	vs.Tag = (None, bList, unfolding)
+	vs.Tag = [None, bList, unfolding]
 	vs.ScanningPause = 50
 	vs.StepSize = 0.01
 	vs.OnClose("pp.Tag[0].Close()")
