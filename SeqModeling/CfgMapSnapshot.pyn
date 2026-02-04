@@ -29,7 +29,7 @@ match vv.EventSource.Item:
 	case '3D':
 		info = MapInfo(pp.Description)				
 		if info.Has('pId'):
-			pId = info.Get('pId')
+			pId = info.pId
 			chainNames = info.Get('CNs').split('|') if info.Has('CNs') else None
 		else:
 			pId = pp.SelectedItems[0]
@@ -38,7 +38,7 @@ match vv.EventSource.Item:
 	case '3Dx':
 		info = MapInfo(pp.Description)				
 		if info.Has('pId'):
-			pId = info.Get('pId')
+			pId = info.pId
 			ShowPDB(pId, rp=3, includeHA=False, chainNames=None) 
 		else:
 			for pId in list( pp.SelectedItems )[:5]:
@@ -57,7 +57,7 @@ match vv.EventSource.Item:
 	case 'PID':
 		SelectPID()
 	case 'S2':
-		ShowSphere4()
+		SphereView(MapInfo(pp.Description).pId, unfolding = False)
 	case 'vsSz':
 		VisChainSize(4 if vv.ModifierKeys.ControlPressed else 2)
 

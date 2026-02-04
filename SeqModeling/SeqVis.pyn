@@ -177,7 +177,7 @@ class AtlasMapStore():
 			fm = fmList[fmList.Count - 1]
 			info = MapInfo(fm.Description)
 			item = self.atlas.CaptureItem(fm)
-			item.Name = info.Get('pId')
+			item.Name = info.pId
 			item.Id = item.Name
 			item.IsHidden = self.hideItems
 			item.CacheImage = True
@@ -1245,5 +1245,6 @@ def SelectPID():
 	vv.SelectedItems = MapInfo(pp.Description).pId.split(',')
 
 '''
+
 
 '''

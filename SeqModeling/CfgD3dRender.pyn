@@ -31,9 +31,9 @@ def Map3DMain(menuKey):
 		case 'Tr':
 			Tracing()
 		case 'S2':
-			ShowSphere4(repeats=5, contracting=0.9)
+			SphereView(MapInfo(pp.Description).pId, unfolding = False)
 		case 'TT':
-			ShowSphere4(contracting=0.9)
+			pass
 
 def Tracing():
 	ob = New.Body()

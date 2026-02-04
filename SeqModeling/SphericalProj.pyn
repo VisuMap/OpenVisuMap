@@ -27,30 +27,6 @@ def ShowSphere3(pId):
 	mp.ShowBoundingBox = False
 	mp.RedrawAll()
 
-def ShowSphere4(repeats=5, contracting=0.9):
-	match pp.Name:
-		case 'MainForm' | 'MapSnapshot':
-			pId = pp.SelectedItems[0]
-			bList = LoadChain(pId)
-		case 'Atlas':
-			pId = pp.SelectedItems[0].Id
-			bList = LoadChain(pId)
-		case 'D3dRender':
-			pId = MapInfo(pp.Description).pId
-			bList = pp.BodyList
-		case _:
-			pId = MapInfo(pp.Description).pId
-			bList = pp.BodyList
-	if pId == None:
-		pId = 'X'
-	bList = New.BodyListClone([b for b in bList if b.Id.startswith('A')])
-	bList = cs.ToSphere(bList, contracting)
-	bList = Interpolate(bList, repeats, hidIntp=True)	
-	for b in bList: b.Mult(1000.0)
-	cs.NormalizeChain(bList)
-	bList.Insert(0, New.Body('ic', bList[0].Name, 176) )
-	ShowBodyList(bList, gSize=2.0, hSize=2, gOpacity=0.5, info=MapInfo('pId:'+pId))
-
 def UpdateSphere():
 	cf = pp.CurrentValue
 	mp, bList, unfolding = pp.Tag
