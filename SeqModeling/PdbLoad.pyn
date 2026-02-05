@@ -247,6 +247,10 @@ def CreateProteinMaps(pList, samplingDist, atlasName, tP):
 		info = MapInfo()
 		info.TM = round(time.time()-t0, 3)
 		info.tP = tP
+		info.spDist = samplingDist
+		info.Samples = len(pList)
+		info.DS = vv.Dataset.Name
+		info.Map = vv.Map.Name
 		ma = mapStore.atlas
 		ma.Show()
 		MatchProteinMap(ma, 50)

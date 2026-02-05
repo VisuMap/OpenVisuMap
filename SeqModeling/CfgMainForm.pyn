@@ -25,10 +25,10 @@ def MainMain(menuKey, jobId=''):
 				gSz = 1.5 if len(pList) < 10000 else 0.7
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
 			ppl_ = round(min(max(0.001, 2000.0/len(pList)), 0.1), 4)
-			for vt in 1*['gFT']:  # mwV gFT pFT   pMF sMF rMF tMF tFT sFT
+			for vt in 1*['mwV']:  # mwV gFT pFT   pMF sMF rMF tMF tFT sFT
 				match vt:
 					case 'mwV':
-						PM2(waveCount=128, waveLen=512*4, winSize=25*4, intRp=2, tSNE=(ppl_, 8.0, 1.0))
+						PM2(waveCount=128, waveLen=512*4, winSize=21*4, intRp=2, tSNE=(ppl_, 8.0, 1.0))
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(ppl_, 8.0, 1.0))
 					case 'pFT':	
@@ -47,8 +47,7 @@ def MainMain(menuKey, jobId=''):
 		case 'P-2D':
 			if atlasName != None and jobId != None: 
 				atlasName += jobId
-			tP_ = (2000, 3, 28, 0.15, 4.0, 1.0)
-
+			tP_ = (1000, 3, 28, 0.15, 4.0, 1.0)
 			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, tP=tP_)
 			vv.Folder.Save()
 			#Use the MdsCluster class directly to create the 2D map.

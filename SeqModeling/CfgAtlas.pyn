@@ -1,4 +1,4 @@
-#MenuLabels Cfg Match ChmX Web Open Seq Align 3D 3Dx 3Ds 2D 2Ds S2 TT
+#MenuLabels Cfg Match info ChmX Web Open Seq Align 3D 3Dx 3Ds 2D 2Ds S2 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -54,7 +54,9 @@ def AtlasMain(menuKey):
 			Merge2DList(pp)
 		case 'S2':
 			SphereView(pId, unfolding=False)
-		case 'TT':
+		case 'info':
+			New.TextPanel('Atlas Info', MapInfo(pp.Description).Text).Show()
+		case 'TT':		
 			ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
 			ShowBond(pId)
 			
