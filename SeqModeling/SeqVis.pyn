@@ -443,7 +443,7 @@ def GetS2MF(pList, tP):
 		cs.MeanFieldTrans(nt, D.Matrix[k])
 	return D
 
-def GetFourierTrans(pList, waveLen, waveCount, cf=0.0):
+def GetFourierTrans(pList, waveLen, waveCount, cf=0.0, mom=0.0):
 	# The first component of the FT is the sume of all components which
 	# will be zero because of the centerization before apply FT. Thus, we remove
 	# the useless first FT component.
@@ -456,6 +456,8 @@ def GetFourierTrans(pList, waveLen, waveCount, cf=0.0):
 		bList = LoadChain(pId)
 		if  cf != 0.0:
 			bList = cs.TorsionUnfold(bList, cf)
+		if mom != 0.0:
+			SimplifySeq(bList, mom)
 		nt = New.NumberTable(bList,  3)
 		#nt = SelectHelixAA(nt)
 		cs.PcaNormalizePositive(nt)
@@ -514,9 +516,9 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 		case 'gFT':
 			dt = GetGlobeChainTrans(pList, waveCount, waveLen, mom=mom, cf=cf)
 		case 'pMF':
-			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf)
+			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf, mom=mom)
 		case 'pFT':
-			dt = GetFourierTrans(pList, waveLen, waveCount, cf=cf)
+			dt = GetFourierTrans(pList, waveLen, waveCount, cf=cf, mom=mom)
 		case 'sFT': 
 			dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
 		case 'sMF': 

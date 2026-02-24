@@ -32,23 +32,24 @@ def MainMain(menuKey, jobId=''):
 					case 'gFT':
 						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(ppl_, 8.0, 1.0))
 					case 'pFT':	
-						PM2(waveCount=30, waveLen=512, cf=0.25, tSNE=(0.05, 4.0, 1.0))	
+						#PM2(waveCount=30, waveLen=512, cf=0.25, tSNE=(ppl_, 4.0, 1.0))	
+						PM2(waveCount=30, waveLen=512, mom=0, cf=0.0, tSNE=(ppl_, 4.0, 1.0))	
 					case 'pMF':
-						PM2(mfL=20, cf=0.0, tSNE=(0.1, 4.0, 1.0))
+						PM2(mfL=20, cf=0.0, tSNE=(ppl_, 4.0, 1.0))
 					case 'sFT':	
-						PM2(aaGroups=GetAAGroup(20), tSNE=(0.05, 6.0, 0.9))
+						PM2(aaGroups=GetAAGroup(20), tSNE=(ppl_, 6.0, 0.9))
 					case 'sMF':	
-						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(0.05,6.0,0.8))
+						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(ppl_,6.0,0.8))
 					case 'rMF':	
-						PM2(tP=(20,0.85,True,1000,0.15,4.0,1.0), tSNE=(0.1,4.0,1.0))
+						PM2(tP=(20,0.85,True,1000,0.15,4.0,1.0), tSNE=(ppl_,4.0,1.0))
 					case 'tMF' | 'tFT':	
 						# (epochs,waveN,intRp,stretch,  outDim,ppl,initE,finalE)
-						PM2(tP=(1000,20,2,0.5, 2,0.25,5.0,1.5),    tSNE=(0.05,6.0,1.0))
+						PM2(tP=(1000,20,2,0.5, 2,0.25,5.0,1.5),    tSNE=(ppl_,6.0,1.0))
 		case 'P-2D':
 			if atlasName != None and jobId != None: 
 				atlasName += jobId
 			tP_ = (1000, 3, 28, 0.15, 4.0, 1.0)
-			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, tP=tP_)
+			CreateProteinMaps(pList, samplingDist=0.1, atlasName=atlasName, tP=tP_)
 			vv.Folder.Save()
 			#Use the MdsCluster class directly to create the 2D map.
 			#UnFoldProteinList(pList, includeHA=False, wholeComplex=False, samplingDist=0.5, iconWidth=50, tP=tP_ )
