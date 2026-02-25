@@ -721,63 +721,56 @@ namespace VisuMap {
         Vector3[] MovingWindowMean0(IList<IBody> bs, int winSize) {
             if ((bs == null) || (bs.Count == 0) || (winSize < 0))
                 return null;
-            int L = bs.Count - 1;   // number bonds in the polipetides.            
+            int L = bs.Count - 1;   // number bonds in the polipetides.  
+            Vector3[] P = bs.Select(b => b.ToV3()).ToArray();
             Vector3[] M = new Vector3[L + 1];
-            Vector3 S = M[0] = bs[0].ToV3();  // the sum of current moving-window.
-            Vector3 H = bs[L].ToV3() - bs[0].ToV3();
-            int rIdx = winSize % L;
-            bool rInSense = (winSize / L % 2 == 0);
+            M[0] = P[0];
+            Vector3 S = (2*winSize + 1) * M[0];  // the sum of current moving-window.
+            Vector3 H = P[L] - P[0];
+
+            int right = winSize % L;
+            bool rightInSense = (winSize / L % 2 == 0);
             int bIdxR = winSize / L;  // the index of the base-vector of right window ending.
-            Vector3 rB = new Vector3() + bIdxR * H;
+            Vector3 rightB = new Vector3() + bIdxR * H;
 
-            int lIdx = L-rIdx;
-            bool lInSense = ! rInSense;
-            int bIdxL = -bIdxR-1;  // the index of the base-vector of left window ending.
-            Vector3 lB = new Vector3() + bIdxL * H;
+            int left = L-right;
+            bool leftInSense = ! rightInSense;
+            int bIdxL = -bIdxR;  // the index of the base-vector of left window ending.
+            Vector3 leftB = new Vector3() + bIdxL * H;
 
-            int idx = rIdx;
+            int idx = right;
             Debug.Write("WS: " + winSize + ":  RPs: " + bIdxL + "/" + bIdxR + ":    ");
+            float cf = (float)(1.0 / (2*winSize + 1));
 
             for (int k = 1; k <= L; k++) {  // k is the index of window center.
-                rIdx++;
-                if ( rIdx == L) {
-                    rInSense = !rInSense;
-                    rIdx = 0;
-                    rB += H;
-                    if ( ! rInSense )  // the base vector for anti-sense indexes are on the right-end.
-                        rB += H;
+                right++;
+                if ( right == L) {
+                    rightInSense = !rightInSense;
+                    right = 0;
+                    rightB += H;
+                    if ( ! rightInSense )  // the base vector for anti-sense indexes are on the right-end.
+                        rightB += H;
                 }
-                if (rInSense) 
-                    S += rB + bs[rIdx].ToV3();
-                else 
-                    S += rB - bs[L - rIdx].ToV3();
+                S += rightInSense ? (rightB + P[right]) : (rightB-P[L - right]);
 
-
-                if (lIdx == L) {
-                    lInSense = !lInSense;
-                    lIdx = 0;
-                    lB += H;
-                    if (!lInSense)  // the base vector for anti-sense indexes are on the right-end.
-                        lB += H;
+                if (left == L) {
+                    leftInSense = !leftInSense;
+                    left = 0;
+                    leftB += H;
+                    if (!leftInSense)  // the base vector for anti-sense indexes are on the right-end.
+                        leftB += H;
                 }
-                if (lInSense)
-                    S -= lB + bs[lIdx].ToV3();
-                else
-                    S -= lB - bs[L - lIdx].ToV3();
-                lIdx++;
+                S -= leftInSense ? (leftB + P[left]) : (leftB - P[L - left]);
+                left++;
 
                 idx++;
-                int idx2 = rInSense ? idx : -idx;
+                int idx2 = rightInSense ? idx : -idx;
                 Debug.Write(idx2.ToString() + ", ");
 
-                M[k] = S;
+                M[k] = cf*S;
             }
 
-            float c = (float)(1.0 / (winSize + 1));
-            for (int k = 1; k < L; k++)
-                M[k] *= c;
-
-            float diff = (M[L] - bs[L].ToV3()).Length();
+            float diff = (M[L] - P[L]).Length();
             Debug.WriteLine(" Diff: " + diff.ToString());
 
             return M;
