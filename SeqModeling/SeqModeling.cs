@@ -721,34 +721,29 @@ namespace VisuMap {
         Vector3[] MovingWindowMean0(IList<IBody> bList, int winSize) {
             if ((bList == null) || (bList.Count == 0) || (winSize < 0))
                 return null;
-            
             int L = bList.Count - 1;   // number bonds in the polipetides.  
             winSize = Math.Min(L, winSize);
-            Vector3 P0 = bList[0].ToV3();
-            Vector3[] P = bList.Select(b => b.ToV3()-P0).ToArray();
+            Vector3[] P = bList.Select(b => b.ToV3()).ToArray();
             Vector3[] M = new Vector3[L + 1];
-            M[0] = P[0];  // fixed.
-            Vector3 S = new Vector3();  // the sum of current moving-window.
+            M[0] = P[0]; // fixed.
+            M[L] = P[L]; // fixed.
+            Vector3 S = (2 * winSize + 1) * P[0];  // the sum of current moving-window.
             float cf = (float)(1.0 / (2*winSize + 1));
 
             Vector3 xP(int idx) {
                 if ( idx < 0 ) {
-                    return -P[-idx];
-                } else if (idx>L){
-                    return P[L] + P[idx - L];
+                    return 2*P[0] - P[-idx];
+                } else if (idx>L) {
+                    return 2*P[L] - P[2*L - idx];
                 } else {
                     return P[idx];
                 }
             }
 
-            for (int k = 1; k <= L; k++) {  // k is the index of window center.
+            for (int k = 1; k <L; k++) {  // k is the index of window center.
                 S += xP(winSize + k) - xP(-winSize + k - 1);
-                M[k] = cf*S + P0;
+                M[k] = cf*S;
             }
-
-            float diff = (M[L] - P[L] - P0).Length();
-            Debug.WriteLine(" Diff: " + diff.ToString());
-
             return M;
         }
 
