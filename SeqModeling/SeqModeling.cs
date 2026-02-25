@@ -718,59 +718,35 @@ namespace VisuMap {
             return M;
         }
 
-        Vector3[] MovingWindowMean0(IList<IBody> bs, int winSize) {
-            if ((bs == null) || (bs.Count == 0) || (winSize < 0))
+        Vector3[] MovingWindowMean0(IList<IBody> bList, int winSize) {
+            if ((bList == null) || (bList.Count == 0) || (winSize < 0))
                 return null;
-            int L = bs.Count - 1;   // number bonds in the polipetides.  
-            Vector3[] P = bs.Select(b => b.ToV3()).ToArray();
+            
+            int L = bList.Count - 1;   // number bonds in the polipetides.  
+            winSize = Math.Min(L, winSize);
+            Vector3 P0 = bList[0].ToV3();
+            Vector3[] P = bList.Select(b => b.ToV3()-P0).ToArray();
             Vector3[] M = new Vector3[L + 1];
-            M[0] = P[0];
-            Vector3 S = (2*winSize + 1) * M[0];  // the sum of current moving-window.
-            Vector3 H = P[L] - P[0];
-
-            int right = winSize % L;
-            bool rightInSense = (winSize / L % 2 == 0);
-            int bIdxR = winSize / L;  // the index of the base-vector of right window ending.
-            Vector3 rightB = new Vector3() + bIdxR * H;
-
-            int left = L-right;
-            bool leftInSense = ! rightInSense;
-            int bIdxL = -bIdxR;  // the index of the base-vector of left window ending.
-            Vector3 leftB = new Vector3() + bIdxL * H;
-
-            int idx = right;
-            Debug.Write("WS: " + winSize + ":  RPs: " + bIdxL + "/" + bIdxR + ":    ");
+            M[0] = P[0];  // fixed.
+            Vector3 S = new Vector3();  // the sum of current moving-window.
             float cf = (float)(1.0 / (2*winSize + 1));
 
-            for (int k = 1; k <= L; k++) {  // k is the index of window center.
-                right++;
-                if ( right == L) {
-                    rightInSense = !rightInSense;
-                    right = 0;
-                    rightB += H;
-                    if ( ! rightInSense )  // the base vector for anti-sense indexes are on the right-end.
-                        rightB += H;
+            Vector3 xP(int idx) {
+                if ( idx < 0 ) {
+                    return -P[-idx];
+                } else if (idx>L){
+                    return P[L] + P[idx - L];
+                } else {
+                    return P[idx];
                 }
-                S += rightInSense ? (rightB + P[right]) : (rightB-P[L - right]);
-
-                if (left == L) {
-                    leftInSense = !leftInSense;
-                    left = 0;
-                    leftB += H;
-                    if (!leftInSense)  // the base vector for anti-sense indexes are on the right-end.
-                        leftB += H;
-                }
-                S -= leftInSense ? (leftB + P[left]) : (leftB - P[L - left]);
-                left++;
-
-                idx++;
-                int idx2 = rightInSense ? idx : -idx;
-                Debug.Write(idx2.ToString() + ", ");
-
-                M[k] = cf*S;
             }
 
-            float diff = (M[L] - P[L]).Length();
+            for (int k = 1; k <= L; k++) {  // k is the index of window center.
+                S += xP(winSize + k) - xP(-winSize + k - 1);
+                M[k] = cf*S + P0;
+            }
+
+            float diff = (M[L] - P[L] - P0).Length();
             Debug.WriteLine(" Diff: " + diff.ToString());
 
             return M;
