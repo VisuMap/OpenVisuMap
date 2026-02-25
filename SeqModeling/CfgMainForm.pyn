@@ -137,4 +137,9 @@ for dn in list(vv.Folder.DatasetNameList)[1:]:
 		#ds.DeleteMap(mp)
 		ds.OpenMap(mp)
 		vv.Map.GlyphSet = 'Colored Particles||||'
+
+bs = list( LoadChain('7CPU_59') )[:50]
+for ws in range(0, 20): 
+	bs2 = cs.MovingWindowMean(bs, ws)
+
 '''

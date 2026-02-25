@@ -728,22 +728,24 @@ namespace VisuMap {
             M[0] = P[0]; // fixed.
             M[L] = P[L]; // fixed.
             Vector3 S = (2 * winSize + 1) * P[0];  // the sum of current moving-window.
-            float cf = (float)(1.0 / (2*winSize + 1));
 
+            Vector3 P0 = 2 * P[0];
+            Vector3 PL = 2 * P[L];
+            int L2 = L + L;
             Vector3 xP(int idx) {
-                if ( idx < 0 ) {
-                    return 2*P[0] - P[-idx];
-                } else if (idx>L) {
-                    return 2*P[L] - P[2*L - idx];
-                } else {
-                    return P[idx];
-                }
+                return (idx < 0) ? (P0 - P[-idx]) : (idx > L) ? (PL - P[L2 - idx]) : P[idx];
             }
 
             for (int k = 1; k <L; k++) {  // k is the index of window center.
                 S += xP(winSize + k) - xP(-winSize + k - 1);
-                M[k] = cf*S;
+                M[k] = S;
             }
+
+            float cf = (float)(1.0 / (2 * winSize + 1));
+            MT.Loop(1, L, k => {
+                M[k] *= cf;
+            });
+
             return M;
         }
 
