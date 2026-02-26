@@ -725,19 +725,14 @@ namespace VisuMap {
             winSize = Math.Min(L, winSize);
             Vector3[] P = bList.Select(b => b.ToV3()).ToArray();
             Vector3[] M = new Vector3[L + 1];
-            M[0] = P[0]; // fixed.
-            M[L] = P[L]; // fixed.
             Vector3 S = (2 * winSize + 1) * P[0];  // the sum of current moving-window.
 
-            Vector3 P0 = 2 * P[0];
-            Vector3 PL = 2 * P[L];
-            int L2 = L + L;
             Vector3 xP(int idx) {
-                return (idx < 0) ? (P0 - P[-idx]) : (idx > L) ? (PL - P[L2 - idx]) : P[idx];
+                return (idx < 0) ? (2*P[0] - P[-idx]) : 
+                       (idx > L) ? (2*P[L] - P[2*L - idx]) : P[idx];
             }
-
-            for (int k = 1; k <L; k++) {  // k is the index of window center.
-                S += xP(winSize + k) - xP(-winSize + k - 1);
+            for (int k = 1; k < L; k++) {  // k is the index of window center.
+                S += xP(k + winSize) - xP(k - winSize - 1);
                 M[k] = S;
             }
 
@@ -745,6 +740,8 @@ namespace VisuMap {
             MT.Loop(1, L, k => {
                 M[k] *= cf;
             });
+            M[0] = P[0]; // fixed.
+            M[L] = P[L]; // 
 
             return M;
         }
