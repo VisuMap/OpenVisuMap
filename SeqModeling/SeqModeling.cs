@@ -685,7 +685,7 @@ namespace VisuMap {
             }
         }
 
-        Vector3[] MovingWindowMean0Old(IList<IBody> bs, int winSize) {
+        static Vector3[] MovingWindowMean0_Old(IList<IBody> bs, int winSize) {
             if ((bs == null) || (bs.Count == 0) || (winSize < 0))
                 return null;
             int L = bs.Count;
@@ -718,14 +718,16 @@ namespace VisuMap {
             return M;
         }
 
-        Vector3[] MovingWindowMean0(IList<IBody> bList, int winSize) {
+
+        static Vector3[] MovingWindowMean0_New(IList<IBody> bList, int winSize) {
             if ((bList == null) || (bList.Count == 0) || (winSize < 0))
                 return null;
             int L = bList.Count - 1;   // number bonds in the polipetides.  
             winSize = Math.Min(L, winSize);
             Vector3[] P = bList.Select(b => b.ToV3()).ToArray();
             Vector3[] M = new Vector3[L + 1];
-            Vector3 S = (2 * winSize + 1) * P[0];  // the sum of current moving-window.
+            int WS = 2 * winSize + 1;
+            Vector3 S = WS * P[0];  // the sum of current moving-window.
 
             Vector3 xP(int idx) {
                 return (idx < 0) ? (2*P[0] - P[-idx]) : 
@@ -736,7 +738,7 @@ namespace VisuMap {
                 M[k] = S;
             }
 
-            float cf = (float)(1.0 / (2 * winSize + 1));
+            float cf = (float)(1.0 / WS);
             MT.Loop(1, L, k => {
                 M[k] *= cf;
             });
@@ -746,6 +748,7 @@ namespace VisuMap {
             return M;
         }
 
+        Func<IList<IBody>, int, Vector3[]> MovingWindowMean0 = MovingWindowMean0_New;
 
         public List<IBody> MovingWindowMean(IList<IBody> bs, int winSize) {
             Vector3[] M = MovingWindowMean0(bs, winSize);
@@ -756,9 +759,16 @@ namespace VisuMap {
             Vector3[] M = MovingWindowMean0(bs, winSize);
             if (M == null)
                 return null;
+            /*
             double[] varList = new double[bs.Count - 1];
             MT.Loop(0, varList.Length, k => {
-                Vector3 dv = bs[k + 1].ToV3() - M[k];
+                Vector3 dv = bs[k+1].ToV3() - M[k];
+                varList[k] = 1.0 / (1 + dv.LengthSquared());
+            });
+            */
+            double[] varList = new double[bs.Count];
+            MT.Loop(0, varList.Length, k => {
+                Vector3 dv = bs[k].ToV3() - M[k];
                 varList[k] = 1.0 / (1 + dv.LengthSquared());
             });
             return varList;
