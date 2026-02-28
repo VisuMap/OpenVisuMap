@@ -348,23 +348,6 @@ namespace VisuMap {
             return vs;
         }
 
-        public INumberTable GlobeTransFT(List<string> pList, double mom, double cf, INumberTable tm) {
-            List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
-            INumberTable D = New.NumberTable(bList, tm.Columns);
-            double[][] M = D.Matrix as double[][];
-            MT.LoopNoblocking(0, pList.Count, k => {
-                string pId = pList[k];
-                var bs = LoadChain3D($"C:/temp/ChainCache/{pList[k]}.pmc");
-                if (cf != 0.0)
-                    bs = TorsionUnfold(bs, cf);
-                var bDist = GlobeDistances(bs, mom);
-                GlobeChainTransFT(bDist, tm, M[k]);
-                if ((k > 0) && (k % 500 == 0)) {
-                    vv.Title = $"Reading chains: {k} of {pList.Count}";
-                }
-            });
-            return D;
-        }
 
         public INumberTable MovingWindowFT(List<string> pList, int winSize, INumberTable tm, int intRp=0) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
@@ -377,7 +360,7 @@ namespace VisuMap {
                 if ( intRp > 0)
                     bs = Interpolate3D(bs, intRp, EPS, bs.Count, 0);
                 var bDist = MovingWindowVariance(bs, winSize);
-                GlobeChainTransFT(bDist, tm, M[k]);
+                MovingChainFT(bDist, tm, M[k]);
                 if ((k > 0) && (k % 500 == 0)) {
                     vv.Title = $"Reading chains: {k} of {pList.Count}";
                 }
@@ -385,33 +368,7 @@ namespace VisuMap {
             return D;
         }
 
-        public void GlobeChainTrans(List<IBody> bList, double[] R, int PK, double mom) {
-            List<int> peaks = Enumerable.Range(0, PK).Select(k => (k + 1) * (bList.Count / (PK + 1))).ToList();
-            List<List<IBody>> globeList = new List<List<IBody>>();
-
-            if (peaks.Count == 0) {
-                globeList.Add(bList);
-            } else {
-                int k0 = 0;
-                foreach (int k1 in peaks) {
-                    globeList.Add(bList.GetRange(k0, k1 - k0));
-                    k0 = k1;
-                }
-                globeList.Add(bList.GetRange(k0, bList.Count-k0));
-            }
-
-            MT.ForEach(globeList, (G, gIdx) => {
-                if (G.Count <= 1)  // singleton globe have zero dimension, and will be discarded.
-                    return;
-                double[] eValues;
-                double[][] M = G.Select(b => new double[] { b.X, b.Y, b.Z }).ToArray();
-                MathUtil.DoPca(M, 3, out eValues);
-                for (int i = 0; i < eValues.Length; i++)
-                    R[3 * gIdx + i] = eValues[i];
-            });
-        }
-
-        public void GlobeChainTransFT(double[] bDist, INumberTable tm,  double[] R) {
+        public void MovingChainFT(double[] bDist, INumberTable tm,  double[] R) {
             double[][] M = tm.Matrix as double[][];
             int L = bDist.Length;
             MT.Loop(0, M[0].Length, col=>{

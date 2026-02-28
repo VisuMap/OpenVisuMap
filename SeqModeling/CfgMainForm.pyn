@@ -25,14 +25,12 @@ def MainMain(menuKey, jobId=''):
 				gSz = 1.5 if len(pList) < 10000 else 0.7
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
 			ppl_ = round(min(max(0.001, 2000.0/len(pList)), 0.1), 4)
-			for vt in 1*['mwV']:  # mwV gFT pFT   pMF sMF rMF tMF tFT sFT
+			for vt in 1*['mwV']:  # mwV pFT   pMF sMF rMF tMF tFT sFT
 				match vt:
 					case 'mwV':
 						rp = 3
 						rp2 = 2**rp
 						PM2(waveCount=64, waveLen=512*rp2, winSize=14*rp2, intRp=rp, tSNE=(ppl_, 4.0, 1.0))
-					case 'gFT':
-						PM2(waveCount=15, waveLen=512, mom=0.95, cf=0, tSNE=(ppl_, 8.0, 1.0))
 					case 'pFT':	
 						#PM2(waveCount=30, waveLen=512, cf=0.25, tSNE=(ppl_, 4.0, 1.0))	
 						PM2(waveCount=30, waveLen=512, mom=0, cf=0.0, tSNE=(ppl_, 4.0, 1.0))	
@@ -50,7 +48,7 @@ def MainMain(menuKey, jobId=''):
 		case 'P-2D':
 			if atlasName != None and jobId != None: 
 				atlasName += jobId
-			tP_ = (1000, 3, 28, 0.15, 4.0, 1.0)
+			tP_ = (1000, 3, 14, 0.15, 4.0, 1.0)
 			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, tP=tP_)
 			vv.Folder.Save()
 			#Use the MdsCluster class directly to create the 2D map.
@@ -93,10 +91,7 @@ def MainMain(menuKey, jobId=''):
 		case 'UF':
 			SphereView(pId, unfolding=True)
 		case 'Lvt':
-			if ctrPressed:
-				LocalVarianceTrans(pId, momentum=0.95, movingWin=False, intRp=3)
-			else:
-				LocalVarianceTrans(pId, momentum=28, movingWin=True, intRp=3)
+			LocalVarianceTrans(pId, momentum=28, intRp=3)
 		case 'TT':
 			pass
 

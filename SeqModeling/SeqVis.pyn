@@ -289,75 +289,50 @@ def GetMeanFieldTrans(pList, L=20, cf=0.0):
 		cs.MeanFieldTrans(nt, D.Matrix[k])
 	return D
 
-def GetGlobeChainTrans(pList, waveCount=20, waveLen=256, mom=0.99, cf=0.0):
-	from os.path import exists
-	for pId in pList:
-		if not exists(	f'{CHAIN_CACHE}/{pId}.pmc'):
-			UnpackChain(pId[:4])
-	tm = GetFourier(waveLen, waveCount)
-	return cs.GlobeTransFT(pList, mom, cf, tm)
-
 def IsCreated(vw):
 	return (vw != None) and not vw.IsDisposed
 
 def UpdateLvt():
-	bv, mp, bList, movingWin, varFct, meanFct = pp.Tag	
-	if movingWin:
-		mom = int(pp.CurrentValue)
-		pp.CurrentValue = mom
-	else:
-		mom = pp.CurrentValue
-
+	bv, mp, bList = pp.Tag	
+	mom = int(pp.CurrentValue)
+	pp.CurrentValue = mom
 	if IsCreated(bv):
-		bv.SetValues( varFct(bList, mom) )
+		bv.SetValues( cs.MovingWindowVariance(bList, mom) )
 		bv.Redraw()
 	if IsCreated(mp):
-		ss.CopyToXYZ(meanFct(bList, mom), mp.BodyList)
+		ss.CopyToXYZ(cs.MovingWindowMean(bList, mom), mp.BodyList)
 		mp.RedrawAll()
 
-def LocalVarianceTrans(pId, momentum=14, movingWin=True, intRp=3):
+def LocalVarianceTrans(pId, momentum=14, intRp=3):
 	bList = LoadChain(pId)
 	bList = InterpolateChain(bList, rp=intRp)
 	cs.NormalizeChain(bList)
 	info = MapInfo({'pId':pId})
 
-	if movingWin:
-		varFct = cs.MovingWindowVariance
-		meanFct = cs.MovingWindowMean
-		title = 'Moving Window'
-	else:
-		varFct = cs.GlobeDistances
-		meanFct = cs.GlobeSmoothen2
-		title = 'Exp Average'
-
-	vs = varFct(bList, momentum)
+	title = 'Moving Window'
+	vs = cs.MovingWindowVariance(bList, momentum)
 	bv = New.BarView( vs )
-	if bList.Count == vs.Length:
-		for k in range(vs.Length):
-			bv.ItemList[k].Id = bList[k].Id
+	for k in range(vs.Length):
+		bv.ItemList[k].Id = bList[k].Id
 	bv.Horizontal = False
 	bv.NormalizeView()
 	bv.BaseLineType=4
 	bv.UsingColorPalette = True
-	bv.Title = title + " Variance"
+	bv.Title = "Moving Window Variance"
 	bv.Description = info.Str
 	bv.Show()
 
-	bList2 = meanFct(bList, momentum)
+	bList2 = cs.MovingWindowMean(bList, momentum)
 	cs.NormalizeChain(bList2, -1, True)
 	mp = ShowBodyList(bList2, normalize=False, info=info)
 	mp.CentralizeView(False)
-	mp.Title = title + " Mean"
+	mp.Title = "Moving Window Mean"
 
-	if movingWin:
-		mxLen = min(1000, len(bList))
-		vs = New.ValueSelector(0, mxLen, momentum, 'UpdateLvt()')	
-		vs.Title = 'Window Size'
-		vs.StepSize = 1
-	else:
-		vs = New.ValueSelector(0.85, 1.0, momentum, 'UpdateLvt()')
-		vs.Title = 'Momentum'
-	vs.Tag = [bv, mp, bList, movingWin, varFct, meanFct]
+	mxLen = min(1000, len(bList))
+	vs = New.ValueSelector(0, mxLen, momentum, 'UpdateLvt()')	
+	vs.Title = 'Window Size'
+	vs.StepSize = 1
+	vs.Tag = [bv, mp, bList]
 	vs.Show()
 
 	vs.OnClose('for vw in pp.Tag[:2]: vw.Close();')
@@ -514,8 +489,6 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 	match vType:
 		case 'mwV':
 			dt = MovingWindowVariance(pList, waveCount, waveLen, winSize=winSize, intRp=intRp)
-		case 'gFT':
-			dt = GetGlobeChainTrans(pList, waveCount, waveLen, mom=mom, cf=cf)
 		case 'pMF':
 			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf, mom=mom)
 		case 'pFT':
