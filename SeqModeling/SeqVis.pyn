@@ -332,8 +332,9 @@ def LocalVarianceTrans(pId, momentum=14, movingWin=True, intRp=3):
 
 	vs = varFct(bList, momentum)
 	bv = New.BarView( vs )
-	for k in range(vs.Length):
-		bv.ItemList[k].Id = bList[k+1].Id
+	if bList.Count == vs.Length:
+		for k in range(vs.Length):
+			bv.ItemList[k].Id = bList[k].Id
 	bv.Horizontal = False
 	bv.NormalizeView()
 	bv.BaseLineType=4
@@ -699,8 +700,8 @@ def NewMds(nt=None, epochs=1000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0
 	mds.Metric = metric
 	mds.Repeats = repeats
 	mds.ReadOnly = True
-	mds.Width = 1500
-	mds.Height = 900
+	mds.Width = 1200
+	mds.Height = 1200
 	mds.Is3D = is3D
 	mds.AutoNormalizing =True
 	mds.GlyphOpacity = glyphOpacity

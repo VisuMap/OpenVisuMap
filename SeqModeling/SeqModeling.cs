@@ -669,57 +669,7 @@ namespace VisuMap {
             return New.NumberTable(vList);
         }
 
-
-        public void SmoothenBodyList(IList<IBody> bs) {
-            var B = New.NumberTable(bs, 3).Matrix;
-            for (int k = 1; k < (bs.Count - 1); k++) {
-                var b = bs[k];
-                if ((bs[k - 1].Type == b.Type) && (b.Type == bs[k + 1].Type)) {
-                    var T = B[k];
-                    var P = B[k - 1];
-                    var Q = B[k + 1];
-                    b.X = 0.5 * T[0] + 0.25 * (P[0] + Q[0]);
-                    b.Y = 0.5 * T[1] + 0.25 * (P[1] + Q[1]);
-                    b.Z = 0.5 * T[2] + 0.25 * (P[2] + Q[2]);
-                }
-            }
-        }
-
-        static Vector3[] MovingWindowMean0_Old(IList<IBody> bs, int winSize) {
-            if ((bs == null) || (bs.Count == 0) || (winSize < 0))
-                return null;
-            int L = bs.Count;
-            int N = 0; // Counts number of vectors within the window.
-            Vector3 S = new Vector3();  // the sum of current moving-window.
-            Vector3[] M = new Vector3[L];
-
-            // left and right are the indexes of the moving window boundary inclusively.
-            int left = -winSize - 1;
-            int right = winSize - 1;
-            for (int k=0; k<(right+1); k++)
-                if (k < L) {
-                    S += bs[k].ToV3();
-                    N++;
-                }
-
-            for (int k=0; k<L; k++) {  // k is the index of window center.
-                if ( left>=0 ) {
-                    S -= bs[left].ToV3();
-                    N--;
-                }
-                left++;
-                right++;
-                if ( right < L ) {
-                    S += bs[right].ToV3();
-                    N++;
-                }
-                M[k] = S/N;
-            }
-            return M;
-        }
-
-
-        static Vector3[] MovingWindowMean0_New(IList<IBody> bList, int winSize) {
+        static Vector3[] MovingWindowMean0(IList<IBody> bList, int winSize) {
             if ((bList == null) || (bList.Count == 0) || (winSize < 0))
                 return null;
             int L = bList.Count - 1;   // number bonds in the polipetides.  
@@ -727,7 +677,7 @@ namespace VisuMap {
             Vector3[] P = bList.Select(b => b.ToV3()).ToArray();
             Vector3[] M = new Vector3[L + 1];
             int WS = 2 * winSize + 1;
-            Vector3 S = WS * P[0];  // the sum of current moving-window.
+            Vector3 S = WS * P[0];  // the sum of current initial moving-window [-winSize, +winSize]
 
             Vector3 xP(int idx) {
                 return (idx < 0) ? (2*P[0] - P[-idx]) : 
@@ -739,16 +689,13 @@ namespace VisuMap {
             }
 
             float cf = (float)(1.0 / WS);
-            MT.Loop(1, L, k => {
-                M[k] *= cf;
-            });
+            MT.Loop(1, L, k => {  M[k] *= cf; });
             M[0] = P[0]; // fixed.
             M[L] = P[L]; // 
 
             return M;
         }
 
-        Func<IList<IBody>, int, Vector3[]> MovingWindowMean0 = MovingWindowMean0_New;
 
         public List<IBody> MovingWindowMean(IList<IBody> bs, int winSize) {
             Vector3[] M = MovingWindowMean0(bs, winSize);
@@ -759,18 +706,8 @@ namespace VisuMap {
             Vector3[] M = MovingWindowMean0(bs, winSize);
             if (M == null)
                 return null;
-            /*
-            double[] varList = new double[bs.Count - 1];
-            MT.Loop(0, varList.Length, k => {
-                Vector3 dv = bs[k+1].ToV3() - M[k];
-                varList[k] = 1.0 / (1 + dv.LengthSquared());
-            });
-            */
             double[] varList = new double[bs.Count];
-            MT.Loop(0, varList.Length, k => {
-                Vector3 dv = bs[k].ToV3() - M[k];
-                varList[k] = 1.0 / (1 + dv.LengthSquared());
-            });
+            MT.Loop(0, varList.Length, k => { varList[k] = (bs[k].ToV3() - M[k]).LengthSquared(); });
             return varList;
         }
 
