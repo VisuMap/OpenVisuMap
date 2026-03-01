@@ -7,8 +7,6 @@ match vv.EventSource.Item:
 	case 'PID':
 		SelectPID()
 	case 'Info':
-		sInfo = MapInfo(pp.Description).Text
-		title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name}'
-		New.TextPanel(title, sInfo).Show()
+		ShowInfo(pp)
 
 

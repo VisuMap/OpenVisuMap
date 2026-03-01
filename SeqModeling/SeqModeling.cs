@@ -669,40 +669,6 @@ namespace VisuMap {
         }
 
 
-        public List<IBody> GlobeSmoothen2(IList<IBody> bs, double mom) {
-            if (mom == 0)
-                return bs as List<IBody>;
-            double f = mom;
-            double g = 1 - f;
-            IBody mp = bs[0].Clone();
-            List<IBody> bList = new List<IBody>() { mp };
-            for(int k=1; k<bs.Count; k++) { 
-                IBody p = bs[k].Clone();
-                p.X = f * mp.X + g * p.X;
-                p.Y = f * mp.Y + g * p.Y;
-                p.Z = f * mp.Z + g * p.Z;
-                bList.Add(p);
-                mp = p;
-            }
-            return bList;
-        }
-
-        // In place version of GlobeSmoothen().
-        public void GlobeSmoothen(IList<IBody> bs, double mom) {
-            if (mom == 0)
-                return;
-            double f = mom;
-            double g = 1 - f;
-            IBody mp = bs[0];
-            for (int k = 1; k < bs.Count; k++) {
-                IBody b = bs[k];
-                b.X = f * mp.X + g * b.X;
-                b.Y = f * mp.Y + g * b.Y;
-                b.Z = f * mp.Z + g * b.Z;
-                mp = b;
-            }
-        }
-
         public unsafe double NWDistance(string sA, string sB, short gapCost = 2, short matchCost = 0, short mismatchCost = 1) {
             int rows = sA.Length;
             int cols = sB.Length;

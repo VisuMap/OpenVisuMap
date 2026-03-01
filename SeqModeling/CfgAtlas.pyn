@@ -55,7 +55,7 @@ def AtlasMain(menuKey):
 		case 'S2':
 			SphereView(pId, unfolding=False)
 		case 'info':
-			New.TextPanel('Atlas Info', MapInfo(pp.Description).Text).Show()
+			ShowInfo(pp)
 		case 'TT':		
 			ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
 			ShowBond(pId)

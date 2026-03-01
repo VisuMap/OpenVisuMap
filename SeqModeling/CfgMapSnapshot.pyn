@@ -14,9 +14,9 @@ match vv.EventSource.Item:
 		AssertSeqMap(pp)
 		ReCreateMap(pp)
 	case 'info':
-		New.TextPanel('MapSnapshot', MapInfo(pp.Description).Text).Show()
+		ShowInfo(pp)
 	case 'Smoothen':
-		SimplifySeq(pp.BodyList, 0.9)
+		SimplifySeq(pp.BodyList, 3)
 		pp.RedrawBodies()		
 	case 'RNA/DNA':
 		pp.SelectedItems = [b.Id for b in pp.BodyList if (b.Name[0] == 'r') or (b.Name[0] == 'd') ]

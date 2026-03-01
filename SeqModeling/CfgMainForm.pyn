@@ -30,7 +30,7 @@ def MainMain(menuKey, jobId=''):
 					case 'mwV':
 						rp = 3
 						rp2 = 2**rp
-						PM2(waveCount=64, waveLen=512*rp2, winSize=14*rp2, intRp=rp, tSNE=(ppl_, 4.0, 1.0))
+						PM2(waveCount=64, waveLen=512*rp2, winSize=43*rp2, intRp=rp, tSNE=(ppl_, 4.0, 1.0))
 					case 'pFT':	
 						#PM2(waveCount=30, waveLen=512, cf=0.25, tSNE=(ppl_, 4.0, 1.0))	
 						PM2(waveCount=30, waveLen=512, mom=0, cf=0.0, tSNE=(ppl_, 4.0, 1.0))	
@@ -56,9 +56,7 @@ def MainMain(menuKey, jobId=''):
 		case 'C-Map':
 			ColorChainMap(2 if ctrPressed else 5)
 		case 'Info':
-			sInfo = MapInfo(pp.Map.Description).Text
-			title = f'Dataset: {vv.Dataset.Name}; Map: {vv.Map.Name};  SeqCount:{vv.Dataset.Rows:,}'
-			New.TextPanel(title, sInfo).Show()
+			ShowInfo(pp)
 		case 'ChmX': 
 			ShowChimeraX(pId)
 		case 'Web':  
@@ -93,7 +91,11 @@ def MainMain(menuKey, jobId=''):
 		case 'Lvt':
 			LocalVarianceTrans(pId, momentum=28, intRp=3)
 		case 'TT':
-			pass
+			_, bList, _, _ = LoadCifData(pId)
+			bList = Interpolate(bList, 3, hidIntp=True)
+			cs.NormalizeChain(bList, -1, False)
+			#SimplifySeq(bList, 4)
+			ShowBodyList(bList)
 
 # ---------------------------------------------------------------------------------------
 

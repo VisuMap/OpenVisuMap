@@ -161,6 +161,12 @@ class MapInfo():
 				if len(fs) == 2:
 					dic[fs[0]] = fs[1]
 
+def ShowInfo(pp):
+	desc = pp.Map.Description if pp.Name == 'MainForm' else pp.Description
+	info = MapInfo(desc)
+	winTitle = pp.Name + ': ' + pp.Title
+	New.TextPanel(winTitle, info.Text).Show()
+
 class AtlasMapStore():	
 	def __init__(self, atName, clearAtlas=True):
 		self.atlas = New.Atlas(atName)
