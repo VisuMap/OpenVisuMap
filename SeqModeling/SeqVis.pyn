@@ -340,7 +340,6 @@ def LocalVarianceTrans(pId, momentum=14, intRp=3):
 	vs.StepSize = 1
 	vs.Tag = [bv, mp, bList]
 	vs.Show()
-
 	vs.OnClose('for vw in pp.Tag[:2]: vw.Close();')
 
 def MovingWindowVariance(pList, waveCount, waveLen, winSize, intRp=0):

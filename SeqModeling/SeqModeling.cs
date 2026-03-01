@@ -690,6 +690,24 @@ namespace VisuMap {
             return A[cols];
         }
 
+        public void SmoothenSeq(List<IBody> bList, int winSize) {
+            int i = 0;
+            while (i < bList.Count - 1) {
+                string chainId = bList[i].Name.Split('.')[2];
+                int j = i + 1;
+                for(j=i + 1; j<bList.Count; j++)
+                    if (bList[j].Name.Split('.')[2] != chainId)
+                        break;
+                if (j > i) {
+                    var bs = bList.GetRange(i, j - i);
+                    Vector3[] vs = MovingWindowMean0(bs, winSize);
+                    for (int k = 0; k < bs.Count; k++)
+                        bs[k].SetXYZ(vs[k]);
+                }
+                i = j;
+            }
+        }
+
 
         public List<IBody> ToSphere(List<IBody> bList, double contracting = 0) {
             var newList = new List<IBody>();
