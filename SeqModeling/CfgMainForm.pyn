@@ -89,37 +89,39 @@ def MainMain(menuKey, jobId=''):
 		case 'UF':
 			SphereView(pId, unfolding=True)
 		case 'Lvt':
-			LocalVarianceTrans(pId, momentum=28, intRp=3)
+			LocalVarianceTrans(pId, winSize=28, intRp=3)
 		case 'TT':
-			_, bList, _, _ = LoadCifData(pId)
-			bList = Interpolate(bList, 3, hidIntp=True)
-			cs.NormalizeChain(bList, -1, False)
-			bs = New.BodyListClone(bList)
-			winSize = 14
-			cs.SmoothenSeq(bs, winSize)
-			info = MapInfo({'pId':pId})
-			mp = ShowBodyList(bs, info=info)
-			mp.CentralizeView(False)
-			mp.Title = "Moving Window Mean"
+			SmoothenComplex(pId)
 
-			mxLen = min(1000, len(bList))
-			vs = New.ValueSelector(0, mxLen, winSize, 'UpdateComplex()')	
-			vs.Title = 'Window Size'
-			vs.StepSize = 1
-			vs.Tag = [mp, bList]
-			vs.Show()
-			vs.OnClose('pp.Tag[0].Close();')
+def SmoothenComplex(pId):
+	_, bList, _, _ = LoadCifData(pId)
+	bList = Interpolate(bList, 3, hidIntp=True)
+	cs.NormalizeChain(bList, -1, False)
+	bs = New.BodyListClone(bList)
+	winSize = 14
+	info = MapInfo({'pId':pId})
+	mp = ShowBodyList(bs, info=info)
+	mp.Title = "Moving Window Mean"
 
-def UpdateComplex():
-	mp, bList = pp.Tag	
-	ws = int(pp.CurrentValue)
-	pp.CurrentValue = ws
+	vs = New.ValueSelector(0, 1000, winSize, 'UpdateComplex(pp)')
+	vs.Title = 'Moving Window Size'
+	vs.StepSize = 1
+	vs.Tag = [mp, bList]
+	vs.OnClose('pp.Tag[0].Close()')
+	vs.Show()
+	UpdateComplex(vs)
+	mp.CentralizeView(False)
+	mp.ZoomByFactor(5.0)
+
+def UpdateComplex(vs):
+	mp, bList = vs.Tag	
+	ws = int(vs.CurrentValue)
+	vs.CurrentValue = ws
 	if IsCreated(mp):
 		bs = mp.BodyList
 		ss.CopyToXYZ(bList, bs)
 		cs.SmoothenSeq(bs, ws)
-		#mp.CentralizeView(False)
-		mp.RedrawAll()
+		mp.Redraw()
 
 
 # ---------------------------------------------------------------------------------------

@@ -300,23 +300,23 @@ def IsCreated(vw):
 
 def UpdateLvt():
 	bv, mp, bList = pp.Tag	
-	mom = int(pp.CurrentValue)
-	pp.CurrentValue = mom
+	winSize = int(pp.CurrentValue)
+	pp.CurrentValue = winSize
 	if IsCreated(bv):
-		bv.SetValues( cs.MovingWindowVariance(bList, mom) )
+		bv.SetValues( cs.MovingWindowVariance(bList, winSize) )
 		bv.Redraw()
 	if IsCreated(mp):
-		ss.CopyToXYZ(cs.MovingWindowMean(bList, mom), mp.BodyList)
+		ss.CopyToXYZ(cs.MovingWindowMean(bList, winSize), mp.BodyList)
 		mp.RedrawAll()
 
-def LocalVarianceTrans(pId, momentum=14, intRp=3):
+def LocalVarianceTrans(pId, winSize=14, intRp=3):
 	bList = LoadChain(pId)
 	bList = InterpolateChain(bList, rp=intRp)
 	cs.NormalizeChain(bList)
 	info = MapInfo({'pId':pId})
 
 	title = 'Moving Window'
-	vs = cs.MovingWindowVariance(bList, momentum)
+	vs = cs.MovingWindowVariance(bList, winSize)
 	bv = New.BarView( vs )
 	for k in range(vs.Length):
 		bv.ItemList[k].Id = bList[k].Id
@@ -328,14 +328,14 @@ def LocalVarianceTrans(pId, momentum=14, intRp=3):
 	bv.Description = info.Str
 	bv.Show()
 
-	bList2 = cs.MovingWindowMean(bList, momentum)
+	bList2 = cs.MovingWindowMean(bList, winSize)
 	cs.NormalizeChain(bList2, -1, True)
 	mp = ShowBodyList(bList2, normalize=False, info=info)
 	mp.CentralizeView(False)
 	mp.Title = "Moving Window Mean"
 
 	mxLen = min(1000, len(bList))
-	vs = New.ValueSelector(0, mxLen, momentum, 'UpdateLvt()')	
+	vs = New.ValueSelector(0, mxLen, winSize, 'UpdateLvt()')	
 	vs.Title = 'Window Size'
 	vs.StepSize = 1
 	vs.Tag = [bv, mp, bList]
