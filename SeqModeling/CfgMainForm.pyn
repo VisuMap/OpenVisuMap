@@ -97,13 +97,11 @@ def SmoothenComplex(pId):
 	_, bList, _, _ = LoadCifData(pId)
 	bList = Interpolate(bList, 3, hidIntp=True)
 	cs.NormalizeChain(bList, -1, False)
-	bs = New.BodyListClone(bList)
-	winSize = 14
 	info = MapInfo({'pId':pId})
-	mp = ShowBodyList(bs, info=info)
+	mp = ShowBodyList(bList, info=info)
 	mp.Title = "Moving Window Mean"
 
-	vs = New.ValueSelector(0, 1000, winSize, 'UpdateComplex(pp)')
+	vs = New.ValueSelector(0, 1000, 14, 'UpdateComplex(pp)')
 	vs.Title = 'Moving Window Size'
 	vs.StepSize = 1
 	vs.Tag = [mp, bList]
@@ -117,11 +115,9 @@ def UpdateComplex(vs):
 	mp, bList = vs.Tag	
 	ws = int(vs.CurrentValue)
 	vs.CurrentValue = ws
-	if IsCreated(mp):
-		bs = mp.BodyList
-		ss.CopyToXYZ(bList, bs)
-		cs.SmoothenSeq(bs, ws)
-		mp.Redraw()
+	ss.CopyToXYZ(bList, mp.BodyList)
+	cs.SmoothenSeq(mp.BodyList, ws)
+	mp.Redraw()
 
 
 # ---------------------------------------------------------------------------------------

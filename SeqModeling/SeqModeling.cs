@@ -698,7 +698,7 @@ namespace VisuMap {
                 for(j=i + 1; j<bList.Count; j++)
                     if (bList[j].Name.Split('.')[2] != chainId)
                         break;
-                if (j > i) {
+                if ( (j-i) > 2) {
                     var bs = bList.GetRange(i, j - i);
                     Vector3[] vs = MovingWindowMean0(bs, winSize);
                     for (int k = 0; k < bs.Count; k++)
