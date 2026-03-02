@@ -23,7 +23,7 @@ def CheckCacheDir():
 		vv.Return()
 
 def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, unifyId=False,
-		setChainId=False,	typeByChainIdx=False, glyphSize=1.0, glyphOpacity=0.75):
+		setChainId=False, typeByChainIdx=False, glyphSize=1.0, glyphOpacity=0.75):
 
 	if includeHA or chainNames==None or len(chainNames)>1:
 		localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, chainNames=chainNames)
