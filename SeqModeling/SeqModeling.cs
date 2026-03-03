@@ -626,12 +626,11 @@ namespace VisuMap {
             return New.NumberTable(vList);
         }
 
-        static Vector3[] MovingWindowMean0(IList<IBody> bList, int winSize) {
-            if ((bList == null) || (bList.Count == 0) || (winSize < 0))
+        static Vector3[] MovingWindowMean0(Vector3[] P, int winSize) {
+            if ((P == null) || (P.Length == 0) || (winSize < 0))
                 return null;
-            int L = bList.Count - 1;   // number bonds in the polipetides.  
+            int L = P.Length - 1;   // number bonds in the polipetides.  
             winSize = Math.Min(L, winSize);
-            Vector3[] P = bList.Select(b => b.ToV3()).ToArray();
             Vector3[] M = new Vector3[L + 1];
             int WS = 2 * winSize + 1;
             Vector3 S = WS * P[0];  // the sum of current initial moving-window [-winSize, +winSize]
@@ -655,16 +654,19 @@ namespace VisuMap {
 
 
         public List<IBody> MovingWindowMean(IList<IBody> bs, int winSize) {
-            Vector3[] M = MovingWindowMean0(bs, winSize);
+            var P = bs.Select(b => b.ToV3()).ToArray();
+            Vector3[] M = MovingWindowMean0(P, winSize);
             return M?.Select((v, k) => bs[k].Clone().SetXYZ(v)).ToList();
         }
 
-        public double[] MovingWindowVariance(IList<IBody> bs, int winSize) {
-            Vector3[] M = MovingWindowMean0(bs, winSize);
+        public double[] MovingWindowVariance(IList<IBody> bs, int winSize) {  
+            var P = bs.Select(b => b.ToV3()).ToArray();
+            P = MovingWindowMean0(P, winSize);
+            Vector3[] M = MovingWindowMean0(P, winSize);
             if (M == null)
                 return null;
             double[] varList = new double[bs.Count];
-            MT.Loop(0, varList.Length, k => { varList[k] = (bs[k].ToV3() - M[k]).LengthSquared(); });
+            MT.Loop(0, varList.Length, k => { varList[k] = (P[k] - M[k]).LengthSquared(); });
             return varList;
         }
 
@@ -700,9 +702,10 @@ namespace VisuMap {
                         break;
                 if ( (j-i) > 2) {
                     var bs = bList.GetRange(i, j - i);
-                    Vector3[] vs = MovingWindowMean0(bs, winSize);
+                    var P = bs.Select(b => b.ToV3()).ToArray();
+                    Vector3[] Q = MovingWindowMean0(P, winSize);
                     for (int k = 0; k < bs.Count; k++)
-                        bs[k].SetXYZ(vs[k]);
+                        bs[k].SetXYZ(Q[k]);
                 }
                 i = j;
             }
