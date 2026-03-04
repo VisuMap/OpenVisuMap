@@ -280,21 +280,6 @@ def ReportLoop(k, pId, pList):
 		vv.Title = f'Reading: {pId}; {k:,}-th of {len(pList):,}'
 		vv.DoEvents()
 
-def GetMeanFieldTrans(pList, L=20, cf=0.0):
-	bList = vv.Dataset.BodyListForId(pList)
-	D = New.NumberTable(bList, L*3)
-	for k, pId in enumerate(pList):
-		ReportLoop(k, pId, pList)
-		bList = LoadChain(pId)
-
-		if cf != 0.0:
-			bList = cs.TorsionUnfold(bList, cf)
-
-		nt = New.NumberTable(bList, 3)
-		cs.PcaNormalizePositive(nt)
-		cs.MeanFieldTrans(nt, D.Matrix[k])
-	return D
-
 def IsCreated(vw):
 	return (vw != None) and not vw.IsDisposed
 
@@ -396,34 +381,6 @@ def GetTsneRD(pList, vType, tP, cf=0):
 			cs.FourierTrans(tm, nt, D.Matrix[k])
 	return D
 
-def GetS2MF(pList, tP):
-	L, sf, doTSNE, epochs, ppl, initExag, finalExag = tP
-	bList = vv.Dataset.BodyListForId(pList)
-	D = New.NumberTable(bList, L*2)
-
-	tsne = None
-	if doTSNE:
-		outDim = 2
-		ds = vv.Dataset
-		maxV = max([ds.IntAt(p, 3) for p in pList])
-		maxPoints = min(vv.GpuCacheLimit, maxV)
-		tsne = FastTsne(maxPoints, 3, outDim, epochs, ppl, initExag, finalExag)
-
-	for k, pId in enumerate(pList):
-		ReportLoop(k, pId, pList)
-		nt = New.NumberTable( LoadChain(pId),  3)
-		cs.ToSphere(nt, sf)
-		if tsne!=None and nt.Rows>1:
-			if (k+1)%10==0:	
-				vv.Title = f'tSNE normalizing: {pId}/{nt.Rows}: {k+1}-th of {len(pList)}'
-			nt = tsne.Fit(nt)
-			if nt == None:
-				continue
-			vv.DoEvents()
-		cs.PcaNormalize2D(nt)
-		cs.MeanFieldTrans(nt, D.Matrix[k])
-	return D
-
 def GetFourierTrans(pList, waveLen, waveCount, cf=0.0, mom=0.0):
 	# The first component of the FT is the sume of all components which
 	# will be zero because of the centerization before apply FT. Thus, we remove
@@ -494,16 +451,12 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 	match vType:
 		case 'mwV':
 			dt = MovingWindowVariance(pList, waveCount, waveLen, winSize=winSize, intRp=intRp)
-		case 'pMF':
-			dt = GetMeanFieldTrans(pList, L=mfL, cf=cf, mom=mom)
 		case 'pFT':
 			dt = GetFourierTrans(pList, waveLen, waveCount, cf=cf, mom=mom)
 		case 'sFT': 
 			dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
 		case 'sMF': 
 			dt = GetMFSeq(pList, aaGroups, mfL)
-		case 'rMF':
-			dt = GetS2MF(pList, tP=tP)
 		case 'tMF'|'tFT':
 			dt = GetTsneRD(pList, vType, tP=tP, cf=cf)
 		case _:

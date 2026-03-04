@@ -25,23 +25,18 @@ def MainMain(menuKey, jobId=''):
 				gSz = 1.5 if len(pList) < 10000 else 0.7
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
 			ppl_ = round(min(max(0.001, 2000.0/len(pList)), 0.1), 4)
-			for vt in 1*['mwV']:  # mwV pFT   pMF sMF rMF tMF tFT sFT
+			for vt in 1*['mwV']:  # mwV pFT  sMF tMF tFT sFT
 				match vt:
 					case 'mwV':
 						rp = 3
-						rp2 = 2**rp
-						PM2(waveCount=64, waveLen=512*rp2, winSize=43*rp2, intRp=rp, tSNE=(ppl_, 4.0, 1.0))
+						# 14 ~= 3.6 * (2**3)
+						PM2(waveCount=64, waveLen=512*(2**rp), winSize=14, intRp=rp, tSNE=(ppl_, 6.0, 1.0))
 					case 'pFT':	
-						#PM2(waveCount=30, waveLen=512, cf=0.25, tSNE=(ppl_, 4.0, 1.0))	
 						PM2(waveCount=30, waveLen=512, mom=0, cf=0.0, tSNE=(ppl_, 4.0, 1.0))	
-					case 'pMF':
-						PM2(mfL=20, cf=0.0, tSNE=(ppl_, 4.0, 1.0))
 					case 'sFT':	
 						PM2(aaGroups=GetAAGroup(20), tSNE=(ppl_, 6.0, 0.9))
 					case 'sMF':	
 						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(ppl_,6.0,0.8))
-					case 'rMF':	
-						PM2(tP=(20,0.85,True,1000,0.15,4.0,1.0), tSNE=(ppl_,4.0,1.0))
 					case 'tMF' | 'tFT':	
 						# (epochs,waveN,intRp,stretch,  outDim,ppl,initE,finalE)
 						PM2(tP=(1000,20,2,0.5, 2,0.25,5.0,1.5),    tSNE=(ppl_,6.0,1.0))
@@ -93,22 +88,6 @@ def MainMain(menuKey, jobId=''):
 		case 'TT':
 			SmoothenComplex(pId)
 
-def SmoothenComplex(pId):
-	mp = ShowPDB(pId, rp=3, hidIntp=True, glyphSize=1.5,
-		includeHA=False, setChainId=True, typeByChainIdx=True, unifyId=False)
-	bList = New.BodyListClone(mp.BodyList)
-
-	ws = 59  # 14, 29, 43, 59, 87
-	vs = New.ValueSelector(0, len(bList)/2, ws, 'UpdateComplex(pp)')
-	vs.Title = 'Moving Window Size'
-	vs.StepSize = 1
-	vs.Tag = (mp, bList)
-	vs.OnClose('pp.Tag[0].Close()')
-	vs.Show()
-	UpdateComplex(vs)
-	mp.CentralizeView(False)
-	mp.ZoomByFactor(5.0)
-
 def UpdateComplex(vs):
 	mp, bList = vs.Tag
 	ws = int(vs.CurrentValue)
@@ -116,6 +95,18 @@ def UpdateComplex(vs):
 	ss.CopyToXYZ(bList, mp.BodyList)
 	cs.SmoothenSeq(mp.BodyList, ws)
 	mp.Redraw()
+
+def SmoothenComplex(pId):
+	mp = ShowPDB(pId,hidIntp=True,glyphSize=1.5,includeHA=False,setChainId=True,typeByChainIdx=True)
+	vs = New.ValueSelector(0, 1000, 14, 'UpdateComplex(pp)')  # 14,29,43,59,87
+	vs.Title = 'Moving Window Size'
+	vs.StepSize = 1
+	vs.Tag = mp, New.BodyListClone(mp.BodyList)
+	vs.OnClose('pp.Tag[0].Close()')
+	vs.Show()
+	UpdateComplex(vs)
+	mp.CentralizeView(False)
+	mp.ZoomByFactor(5.0)
 
 
 # ---------------------------------------------------------------------------------------
