@@ -24,15 +24,14 @@ def MainMain(menuKey, jobId=''):
 			def PM2(*args, **kwargs):
 				gSz = 1.5 if len(pList) < 10000 else 0.7
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
+			mwV, pFT, sMF, sFT = 'mwV', 'pFT', 'sMF', 'sFT'
 			ppl_ = round(min(max(0.001, 2000.0/len(pList)), 0.1), 4)
-			for vt in 1*['mwV']:  # mwV pFT  sMF sFT
+			for vt in 1*[pFT]: 
 				match vt:
-					case 'mwV':
-						rp = 3
-						# 14 ~= 3.6 * (2**3)
-						PM2(waveCount=64, waveLen=512*(2**rp), winSize=14, intRp=rp, tSNE=(ppl_, 6.0, 1.0))
+					case 'mwV': # 14 ~= 3.6 * (2**3)
+						PM2(waveCount=32, waveLen=512*(2**3), winSize=14, intRp=3, tSNE=(ppl_, 6.0, 1.0))
 					case 'pFT':	
-						PM2(waveCount=30, waveLen=512, mom=0, cf=0.0, tSNE=(ppl_, 4.0, 1.0))	
+						PM2(waveCount=30, waveLen=512, winSize=14*4, intRp=3, tSNE=(ppl_, 4.0, 1.0))	
 					case 'sFT':	
 						PM2(aaGroups=GetAAGroup(20), tSNE=(ppl_, 6.0, 0.9))
 					case 'sMF':	

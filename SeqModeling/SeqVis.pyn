@@ -340,7 +340,7 @@ def MaxRows(ds, pList, intRp):
 	maxV = max([ds.IntAt(p, 3) for p in pList])
 	return min(vv.GpuCacheLimit, 2**intRp*(maxV - 1) + 1)
 
-def GetFourierTrans(pList, waveLen, waveCount, cf=0.0, mom=0.0):
+def GetFourierTrans(pList, waveLen, waveCount, winSize=0, intRp=0):
 	# The first component of the FT is the sume of all components which
 	# will be zero because of the centerization before apply FT. Thus, we remove
 	# the useless first FT component.
@@ -351,10 +351,10 @@ def GetFourierTrans(pList, waveLen, waveCount, cf=0.0, mom=0.0):
 	for k, pId in enumerate(pList):
 		ReportLoop(k, pId, pList)
 		bList = LoadChain(pId)
-		if  cf != 0.0:
-			bList = cs.TorsionUnfold(bList, cf)
-		if mom != 0.0:
-			SimplifySeq(bList, mom)
+		if intRp > 0:
+			bList = InterpolateChain(bList, intRp)
+		if winSize != 0:
+			SimplifySeq(bList, winSize)
 		nt = New.NumberTable(bList,  3)
 		#nt = SelectHelixAA(nt)
 		cs.PcaNormalizePositive(nt)
@@ -411,7 +411,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 		case 'mwV':
 			dt = MovingWindowVariance(pList, waveCount, waveLen, winSize=winSize, intRp=intRp)
 		case 'pFT':
-			dt = GetFourierTrans(pList, waveLen, waveCount, cf=cf, mom=mom)
+			dt = GetFourierTrans(pList, waveLen, waveCount, winSize=winSize, intRp=intRp)
 		case 'sFT': 
 			dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
 		case 'sMF': 
