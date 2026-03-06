@@ -1176,7 +1176,10 @@ def ResetAtlas():
 			pp.ResetView(False)
 
 def SelectPID():
-	vv.SelectedItems = MapInfo(pp.Description).pId.split(',')
+	info = MapInfo(pp.Description)
+	vv.SelectedItems = info.pId.split(',')
+	pp.Title = f'PIDs: {info.pId}'
+	vv.GuiManager.SetClipboard(info.pId)
 
 '''
 

@@ -29,33 +29,9 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, unifyId=F
 		localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, chainNames=chainNames)
 	else:
 		localPath, bsList, bsList2, pdbTitle = None, LoadChain(pId), None, "???"
-
-	bsList = Interpolate(bsList, rp, hidIntp=hidIntp)
 	
-	if setChainId:
-		ds = vv.Dataset
-		chId = pId[:4]
-		chName2Id = {ds.StringAt(b.Id, 4):b.Id for b in ds.BodyList if b.Id.startswith(chId)}
-		for b in bsList:
-			chName = b.Name.split('.')[2]
-			# notice some chains maybe exact repeats so that they not in the dataset table, but
-			# accounted in the Repeats columns. 
-			if chName in chName2Id:
-				b.Id = chName2Id[chName]
-			else:
-				b.Id = chId + chName 
-
-	#Set the chain name index as body type, which was holding the enitity id.
-	if typeByChainIdx:
-		chName2Type = {}
-		for b in bsList:
-			chName = b.Name.split('.')[2]
-			if not chName in chName2Type:
-				chName2Type[chName] = len(chName2Type)
-			b.Type = chName2Type[chName]
-			if unifyId:  # assign the chain id to all members
-				b.Id = pId[:4] + '_' + str(b.Type)
-
+	bsList = Interpolate(bsList, rp, hidIntp, pId, setChainId, typeByChainIdx, unifyId)
+		
 	cs.NormalizeChain(bsList, -1, False)
 
 	if includeHA:
@@ -385,26 +361,8 @@ def LoadSeq(pId):
 def ChainName(body):
 	return body.Name.split('.')[2]
 
-def Interpolate(bList, rp=3, hidIntp=False):
-	EPS = 0.085
-	bs = New.BodyList()
-	k0 = 0
-	t0 = ChainName(bList[0])
-	chIdx  = 0
-	for k in range(bList.Count+1):		
-		if (k == bList.Count) or (ChainName(bList[k]) != t0):
-			P0 = bList.GetRange(k0, k-k0)
-			P1 = cs.Interpolate3D(P0, rp, EPS, bs.Count, chIdx)
-			chIdx += 1
-			#PyInterpolate(P0, P1,  2**rp)
-			bs.AddRange(P1)
-			if k < bList.Count:
-				k0 = k
-				t0 = ChainName(bList[k0])
-	if hidIntp:
-		for b in bs:
-			b.Hidden = b.Id.startswith('i')
-	return bs
+def Interpolate(bList, rp=3, hidIntp=False, pId=None, setChainId=False, typeByChainIdx=False, unifyId=False):
+	return cs.InterpolateETC(bList, rp, hidIntp, pId, setChainId, typeByChainIdx, unifyId)
 
 def InterpolateChain(bList, rp=3, hidIntp=False):
 	EPS = 0.085

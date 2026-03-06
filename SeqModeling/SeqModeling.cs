@@ -381,6 +381,61 @@ namespace VisuMap {
             });
         }
 
+        public List<IBody> InterpolateETC(List<IBody> bList, int rp = 3, bool hidIntp = false,
+                string pId = null,  bool setChainId = false, bool typeByChainIdx=false, bool unifyId=false) {
+            string ChainName(IBody body) { return body.Name.Split('.')[2]; }
+
+            double EPS = 0.085;
+            List<IBody> bs = New.BodyList();
+            int k0 = 0;
+            string t0 = ChainName(bList[0]);
+            int chIdx = 0;
+            for (int k = 0; k <= bList.Count; k++) {
+                if ((k == bList.Count) || (ChainName(bList[k]) != t0)) {
+                    List<IBody> P0 = bList.GetRange(k0, k - k0);
+                    List<IBody> P1 = Interpolate3D(P0, rp, EPS, bs.Count, chIdx);
+                    chIdx += 1;
+                    bs.AddRange(P1);
+                    if (k < bList.Count) {
+                        k0 = k;
+                        t0 = ChainName(bList[k0]);
+                    }
+                }
+            }
+            if (hidIntp)
+                foreach (var b in bs)
+                    b.Hidden = (b.Id[0] == 'i');
+
+            if (setChainId && (pId != null)) {
+                var ds = vv.Dataset;
+                string chId = pId.Substring(0, 4);
+                var chName2Id = ds.BodyList.Where(b => b.Id.StartsWith("chId")).Select(b => b.Id).ToDictionary(id => id.Substring(0, 4));
+                foreach (var b in bList) {
+                    string chName = ChainName(b);
+                    // notice some chains maybe exact repeats so that they not in the dataset table, but
+                    // accounted in the Repeats columns. 
+                    if (chName2Id.ContainsKey(chName))
+                        b.Id = chName2Id[chName];
+                    else
+                        b.Id = chId + chName;
+                }
+            }
+            if (typeByChainIdx) {
+                var chName2Type = new Dictionary<string, short>();
+
+                foreach (var b in bList) {
+                    string chName = ChainName(b);
+                    if (!chName2Type.ContainsKey(chName))
+                        chName2Type[chName] = (short)chName2Type.Count;
+                    b.Type = chName2Type[chName];
+
+                    if (unifyId) //assign the chain id to all members
+                        b.Id = pId.Substring(0, 4) + '_' + b.Type;
+                }
+            }
+            return bs;
+        }
+
 
         public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
             if ((bList.Count <= 1) || (repeats == 0))

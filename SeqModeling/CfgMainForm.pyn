@@ -84,7 +84,7 @@ def MainMain(menuKey, jobId=''):
 		case 'UF':
 			SphereView(pId, unfolding=True)
 		case 'Lvt':
-			LocalVarianceTrans(pId, winSize=28, intRp=3)
+			LocalVarianceTrans(pId, winSize=14, intRp=3)
 		case 'TT':
 			SmoothenComplex(pId)
 
@@ -97,7 +97,9 @@ def UpdateComplex(vs):
 	mp.Redraw()
 
 def SmoothenComplex(pId):
-	mp = ShowPDB(pId,hidIntp=True,glyphSize=1.5,includeHA=False,setChainId=True,typeByChainIdx=True)
+	chNames = None
+	#chNames = ['5G_1', '5H_1', '5I_1', '5J_1', '5K_1', '5L_1']
+	mp = ShowPDB(pId,hidIntp=True,glyphSize=1.5,includeHA=False,setChainId=True,typeByChainIdx=True,unifyId=True,chainNames=chNames)
 	vs = New.ValueSelector(0, 1000, 14, 'UpdateComplex(pp)')  # 14,29,43,59,87
 	vs.Title = 'Moving Window Size'
 	vs.StepSize = 1
