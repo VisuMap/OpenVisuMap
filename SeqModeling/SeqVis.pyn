@@ -340,47 +340,6 @@ def MaxRows(ds, pList, intRp):
 	maxV = max([ds.IntAt(p, 3) for p in pList])
 	return min(vv.GpuCacheLimit, 2**intRp*(maxV - 1) + 1)
 
-def GetTsneRD(pList, vType, tP, cf=0):
-	epochs, waveN, intRp, stretch, outDim, ppl, initExag, finalExag = tP
-	ds = vv.Dataset
-
-	tsne = FastTsne(MaxRows(ds, pList, intRp), 4, outDim, epochs, ppl, initExag, finalExag)
-
-	if vType == 'tFT':
-		tm = GetFourier(1024, waveN+1)
-		tm = tm.RemoveColumns(New.IntArray(0))
-	D = New.NumberTable(ds.BodyListForId(pList), waveN*outDim)
-	L = len(pList)
-
-	for k, pId in enumerate(pList):
-		bList = LoadChain(pId)
-		if bList.Count <= 2:	
-			continue
-		if (k+1) % 10 == 0:
-			vv.Title = f'Calculating: {pId}/{bList.Count}: {k+1}-th of {L}'
-
-		if cf != 0:
-			bList = cs.TorsionUnfold(bList, cf)
-
-		ss.SetBodyType(bList, None, ds.BodyForId(pId).Type)
-		bList = InterpolateChain(bList, rp=intRp)
-		nt = cs.AugmentByStretch(bList, stretch, intRp)
-		vv.DoEvents()
-
-		nt = tsne.Fit(nt)
-		if nt == None:
-			continue
-
-		if outDim == 2:
-			cs.PcaNormalize2D(nt)
-		else:
-			cs.PcaNormalize3D(nt)
-		if vType == 'tMF':
-			cs.MeanFieldTrans(nt, D.Matrix[k])
-		else:
-			cs.FourierTrans(tm, nt, D.Matrix[k])
-	return D
-
 def GetFourierTrans(pList, waveLen, waveCount, cf=0.0, mom=0.0):
 	# The first component of the FT is the sume of all components which
 	# will be zero because of the centerization before apply FT. Thus, we remove
@@ -457,8 +416,6 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 			dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
 		case 'sMF': 
 			dt = GetMFSeq(pList, aaGroups, mfL)
-		case 'tMF'|'tFT':
-			dt = GetTsneRD(pList, vType, tP=tP, cf=cf)
 		case _:
 			vv.Message('Invalid vectorization type: ' + vType)
 			return

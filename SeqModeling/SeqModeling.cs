@@ -100,20 +100,7 @@ namespace VisuMap {
             bList[bList.Count - 1].Type = SeqMap_TAIL;
             return bList;
         }
-
-        public INumberTable AugmentByStretch(List<IBody> bList, double strechFactor, int intRp) {
-            if (strechFactor == 0)
-                return New.NumberTable(bList, 3);
-            INumberTable nt = New.NumberTable(bList, 4);
-            int intCnt = 1;
-            for (int k = 0; k < intRp; k++)
-                intCnt += intCnt;
-            double dx = 0.1 * strechFactor / intCnt;
-            double[][] M = (double[][])nt.Matrix;
-            for (int k = 0; k < nt.Rows; k++)
-                M[k][3] = k * dx;
-            return nt;
-        }
+     
 
         public void CenteringBodyList(IList<IBody> bList, double cx, double cy, double cz) {
             if (bList.Count < 1)
@@ -221,54 +208,6 @@ namespace VisuMap {
             return nt;
         }
 
-        public void PcaNormalize2D(INumberTable nt) {
-            if (nt.Rows <= 3) return;
-            double[][] M = nt.Matrix as double[][];
-            MathUtil.CenteringInPlace(M);
-            double[][] E = MathUtil.DoPca(M, 2);
-
-            if (nt.Columns == 1) {
-                ;
-            } else if (nt.Columns == 2) {
-                MT.ForEach(M, R => {
-                    double x = R[0] * E[0][0] + R[1] * E[0][1];
-                    double y = R[0] * E[1][0] + R[1] * E[1][1];
-                    R[0] = x;
-                    R[1] = y;
-                });
-            } else { // assuming nt.Columns > 2.
-                MT.ForEach(M, R => {
-                    double x = R[0] * E[0][0] + R[1] * E[0][1] + R[2] * E[0][2];
-                    double y = R[0] * E[1][0] + R[1] * E[1][1] + R[2] * E[1][2];
-                    R[0] = x;
-                    R[1] = y;
-                });
-                M = M.Select(R => new double[] { R[0], R[1] }).ToArray();
-            }
-
-            if (nt.Rows >= 2)
-                FlipNormalize(nt.Matrix as double[][]);
-        }
-
-        public void PcaNormalize3D(INumberTable nt) {
-            if (nt.Rows <= 3) return;
-            double[][] M = nt.Matrix as double[][];
-            MathUtil.CenteringInPlace(M);
-            double[][] E = MathUtil.DoPca(M, 3);
-
-            MT.ForEach(M, R => {
-                double x = R[0] * E[0][0] + R[1] * E[0][1] + R[2] * E[0][2];
-                double y = R[0] * E[1][0] + R[1] * E[1][1] + R[2] * E[1][2];
-                double z = R[0] * E[2][0] + R[1] * E[2][1] + R[2] * E[2][2];
-                R[0] = x;
-                R[1] = y;
-                R[2] = z;
-            });
-
-            FlipNormalize(nt.Matrix as double[][]);
-        }
-
-
         public IMapSnapshot FitByPCA(IMapSnapshot map, double scale) {
             if (map == null)
                 return map;
@@ -318,21 +257,6 @@ namespace VisuMap {
             map.MapLayout.Width = cSz.Width;
             map.MapLayout.Height = cSz.Height;
             return map;
-        }
-
-        public void MeanFieldTrans(INumberTable dt, double[] R) {
-            int DIM = dt.Columns;
-            int L = R.Length / DIM;    // number of sections
-            int secLen = dt.Rows / L;  // section length
-            if (dt.Rows % L != 0)
-                secLen++;
-            Array.Clear(R, 0, R.Length);
-            for (int k = 0; k < dt.Rows; k++) {
-                double[] Mr = dt.Matrix[k] as double[];
-                int i0 = (k / secLen) * DIM;
-                for (int i = 0; i < DIM; i++)
-                    R[i0 + i] += Mr[i];
-            }
         }
 
         public double[] SmoothenSeries(double[] vs) {

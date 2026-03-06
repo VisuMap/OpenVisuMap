@@ -25,7 +25,7 @@ def MainMain(menuKey, jobId=''):
 				gSz = 1.5 if len(pList) < 10000 else 0.7
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
 			ppl_ = round(min(max(0.001, 2000.0/len(pList)), 0.1), 4)
-			for vt in 1*['mwV']:  # mwV pFT  sMF tMF tFT sFT
+			for vt in 1*['mwV']:  # mwV pFT  sMF sFT
 				match vt:
 					case 'mwV':
 						rp = 3
@@ -37,9 +37,6 @@ def MainMain(menuKey, jobId=''):
 						PM2(aaGroups=GetAAGroup(20), tSNE=(ppl_, 6.0, 0.9))
 					case 'sMF':	
 						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(ppl_,6.0,0.8))
-					case 'tMF' | 'tFT':	
-						# (epochs,waveN,intRp,stretch,  outDim,ppl,initE,finalE)
-						PM2(tP=(1000,20,2,0.5, 2,0.25,5.0,1.5),    tSNE=(ppl_,6.0,1.0))
 		case 'P-2D':
 			if atlasName != None and jobId != None: 
 				atlasName += jobId
