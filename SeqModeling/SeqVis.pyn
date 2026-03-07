@@ -291,7 +291,8 @@ def UpdateLvt():
 		bv.SetValues( cs.MovingWindowVariance(bList, winSize) )
 		bv.Redraw()
 	if IsCreated(mp):
-		ss.CopyToXYZ(cs.MovingWindowMean(bList, winSize), mp.BodyList)
+		ss.CopyToXYZ(bList, mp.BodyList)
+		cs.MovingWindowMean(mp.BodyList, winSize)
 		mp.RedrawAll()
 
 def LocalVarianceTrans(pId, winSize=14, intRp=3):
@@ -312,8 +313,9 @@ def LocalVarianceTrans(pId, winSize=14, intRp=3):
 	bv.Title = "Moving Window Variance"
 	bv.Description = info.Str
 	bv.Show()
-
-	bList2 = cs.MovingWindowMean(bList, winSize)
+	
+	bList2 = New.BodyListClone(bList)
+	cs.MovingWindowMean(bList2, winSize)
 	cs.NormalizeChain(bList2, -1, True)
 	mp = ShowBodyList(bList2, normalize=False, info=info)
 	mp.CentralizeView(False)

@@ -631,11 +631,11 @@ namespace VisuMap {
             return M;
         }
 
-
-        public List<IBody> MovingWindowMean(IList<IBody> bs, int winSize) {
+        public void MovingWindowMean(IList<IBody> bs, int winSize) {
             var P = bs.Select(b => b.ToV3()).ToArray();
             Vector3[] M = MovingWindowMean0(P, winSize);
-            return M?.Select((v, k) => bs[k].Clone().SetXYZ(v)).ToList();
+            for (int k = 0; k < bs.Count; k++)
+                bs[k].SetXYZ(M[k]);
         }
 
         public double[] MovingWindowVariance(IList<IBody> bs, int winSize) {  

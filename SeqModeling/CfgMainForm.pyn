@@ -21,12 +21,12 @@ def MainMain(menuKey, jobId=''):
 			
 	match menuKey:
 		case 'P-Map':
+			mwV, pFT, sMF, sFT = 'mwV', 'pFT', 'sMF', 'sFT'
+			ppl_ = round(min(max(0.001, 2000.0/len(pList)), 0.1), 4)
 			def PM2(*args, **kwargs):
 				gSz = 1.5 if len(pList) < 10000 else 0.7
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
-			mwV, pFT, sMF, sFT = 'mwV', 'pFT', 'sMF', 'sFT'
-			ppl_ = round(min(max(0.001, 2000.0/len(pList)), 0.1), 4)
-			for vt in 1*[pFT]: 
+			for vt in 1*[mwV]: 
 				match vt:
 					case 'mwV': # 14 ~= 3.6 * (2**3)
 						PM2(waveCount=32, waveLen=512*(2**3), winSize=14, intRp=3, tSNE=(ppl_, 6.0, 1.0))
@@ -146,9 +146,5 @@ for dn in list(vv.Folder.DatasetNameList)[1:]:
 		#ds.DeleteMap(mp)
 		ds.OpenMap(mp)
 		vv.Map.GlyphSet = 'Colored Particles||||'
-
-bs = list( LoadChain('7CPU_59') )[:50]
-for ws in range(0, 20): 
-	bs2 = cs.MovingWindowMean(bs, ws)
 
 '''
