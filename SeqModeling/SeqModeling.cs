@@ -645,7 +645,9 @@ namespace VisuMap {
             if (M == null)
                 return null;
             double[] varList = new double[bs.Count];
-            MT.Loop(0, varList.Length, k => { varList[k] = (P[k] - M[k]).LengthSquared(); });
+            MT.Loop(0, varList.Length, k => {
+                varList[k] = (P[k] - M[k]).LengthSquared();
+            });
             return varList;
         }
 
