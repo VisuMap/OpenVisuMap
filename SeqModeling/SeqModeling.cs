@@ -343,7 +343,18 @@ namespace VisuMap {
                     else
                         b.Id = chId + chName;
                 }
+
+                // set the id of interpolated items
+                string curId =bs[0].Id;
+                foreach(var b in bs) {
+                    if ( b.Id[0] == 'i') {
+                        b.Id = curId;
+                    } else {
+                        curId = b.Id;
+                    }
+                }
             }
+
             if (typeByChainIdx) {
                 var chName2Type = new Dictionary<string, short>();
 
@@ -355,6 +366,19 @@ namespace VisuMap {
 
                     if (unifyId) //assign the chain id to all members
                         b.Id = pId.Substring(0, 4) + '_' + b.Type;
+                }
+
+                // set the id and type of interpolated items
+                string curId = bs[0].Id;
+                short curType = bs[0].Type;
+                foreach (var b in bs) {
+                    if (b.Id[0] == 'i') {
+                        b.Id = curId;
+                        b.Type = curType;
+                    } else {
+                        curId = b.Id;
+                        curType = b.Type;
+                    }
                 }
             }
             return bs;
