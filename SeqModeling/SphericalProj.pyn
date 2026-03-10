@@ -34,23 +34,13 @@ def UpdateSphere():
 		bs = cs.TorsionUnfold(bList, cf)
 		bs = InterpolateChain(bs, rp=5, hidIntp=True)
 		cs.NormalizeChain(bs)
-		if IsCreated(mp):
-			mp.MoveBodiesTo(bs, 5, 50, 0, 0)
-		else:
-			mp = ShowBodyList(New.BodyListClone(bs), gSize=1.5, gOpacity=0.5, hSize=3)
-			pp.Tag[0] = mp
-			mp.MoveBodiesTo(bs, 5, 50, 0, 0)
-			mp.CentralizeView(False)
+		mp.MoveBodiesTo(bs, 5, 50, 0, 0)
 	else:
 		bs = New.BodyListClone(bList)
 		cs.ShrinkSphere(bs, cf)
 		bs = InterpolateChain(bs, rp=5, hidIntp=True)
 		cs.NormalizeChain(bs)
 		bs.Insert(0, New.Body('ic', bs[0].Name, 144) )	
-		if not IsCreated(mp):
-			mp = ShowBodyList(bs, gSize=2.0, gOpacity=0.5, hSize=3)
-			pp.Tag[0] = mp
-			mp.CentralizeView(False)
 		ss.ShiftChain(bs, 200, 200, 250)
 		mp.MoveBodiesTo(bs, 5, 50, 0, 0)		
 	mp.Title = f'CF: {cf:.3}'
@@ -61,8 +51,19 @@ def SphereView(pId, unfolding):
 		bList = cs.ToSphere(bList, 0)
 	for b in bList: 
 		b.Mult(2.0 if unfolding else 60.0)
-	vs = New.ValueSelector(0.5, 1.0, 0, 'UpdateSphere()')
-	vs.Tag = [None, bList, unfolding]
+
+	bs = InterpolateChain(bList, rp=5, hidIntp=True)
+	if unfolding:		
+		mp = ShowBodyList(bs, gSize=1.5, gOpacity=0.5, hSize=3)
+		mp.MoveBodiesTo(bs, 5, 50, 0, 0)
+	else:
+		cs.NormalizeChain(bs)
+		bs.Insert(0, New.Body('ic', bs[0].Name, 144) )	
+		mp = ShowBodyList(bs, gSize=2.0, gOpacity=0.5, hSize=3)
+	mp.CentralizeView(False)
+
+	vs = New.ValueSelector(0, 1.0, 0, 'UpdateSphere()')
+	vs.Tag = [mp, bList, unfolding]
 	vs.ScanningPause = 50
 	vs.StepSize = 0.01
 	vs.OnClose("pp.Tag[0].Close()")
