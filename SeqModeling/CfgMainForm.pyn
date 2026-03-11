@@ -1,4 +1,4 @@
-#MenuLabels P-Map P-2D C-Map Info ChmX Web Open Siblings SeqMap Align 3D 3Dx 3Ds S2 P-S2 UF Lvt TT
+#MenuLabels P-Map P-2D C-Map Info ChmX Web Open Siblings SeqMap Align 3D 3Dx 3Ds S2 P-S2 UF Lvt SM TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -81,30 +81,11 @@ def MainMain(menuKey, jobId=''):
 			SphereView(pId, unfolding=True)
 		case 'Lvt':
 			LocalVarianceTrans(pId, winSize=14, intRp=3)
-		case 'TT':
+		case 'SM':
 			SmoothenComplex(pId)
+		case 'TT':
+			pass
 
-def UpdateComplex(vs):
-	mp, bList = vs.Tag
-	ws = int(vs.CurrentValue)
-	vs.CurrentValue = ws
-	ss.CopyToXYZ(bList, mp.BodyList)
-	cs.SmoothenSeq(mp.BodyList, ws)
-	mp.Redraw()
-
-def SmoothenComplex(pId):
-	chNames = None
-	#chNames = ['5G_1', '5H_1', '5I_1', '5J_1', '5K_1', '5L_1']
-	mp = ShowPDB(pId,hidIntp=True,glyphSize=1.5,includeHA=False,setChainId=True,typeByChainIdx=True,unifyId=True,chainNames=chNames)
-	vs = New.ValueSelector(0, 1000, 14, 'UpdateComplex(pp)')  # 14,29,43,59,87
-	vs.Title = 'Moving Window Size'
-	vs.StepSize = 1
-	vs.Tag = mp, New.BodyListClone(mp.BodyList)
-	vs.OnClose('pp.Tag[0].Close()')
-	vs.Show()
-	UpdateComplex(vs)
-	mp.CentralizeView(False)
-	mp.ZoomByFactor(5.0)
 
 
 # ---------------------------------------------------------------------------------------

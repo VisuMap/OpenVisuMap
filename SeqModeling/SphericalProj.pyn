@@ -73,9 +73,9 @@ def SphereView(pId, unfolding):
 	mp.CentralizeView(False)
 	mp.Description = MapInfo({'pId':pId}).Str
 
-	probingWS = True
+	probingWS = ctrPressed
 	if probingWS:
-		vs = New.ValueSelector(0, min(len(bs), 1000), 1, 'UpdateSphere()')
+		vs = New.ValueSelector(0, min(len(bs)//2, 5000), 1, 'UpdateSphere()')
 	else:
 		vs = New.ValueSelector(0, 1.0, 0, 'UpdateSphere()')
 
@@ -87,9 +87,11 @@ def SphereView(pId, unfolding):
 	if probingWS:
 		vs.StepSize, vs.CurrentValue = 1, 0
 		vs.Title = "Moving Window Size"
+		vs.NumberFormat = 'f0'
 	else:
 		vs.StepSize, vs.CurrentValue = 0.01, 0.8
 		vs.Title = "Contracting Factor"
+		vs.NumberFormat = 'g4'
 
 	vs.TheForm.BringToFront()
 
