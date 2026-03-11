@@ -28,8 +28,14 @@ def ShowSphere3(pId):
 	mp.RedrawAll()
 
 def UpdateSphere():
-	cf = pp.CurrentValue
-	mp, bList, unfolding = pp.Tag
+	mp, bList, unfolding, probingWS = pp.Tag
+	if probingWS:
+		cf = 0.8
+		winSize = int(pp.CurrentValue)
+		pp.CurrentValue = winSize
+	else: 
+		cf = pp.CurrentValue
+		winSize = 0
 	if unfolding:
 		bs = cs.TorsionUnfold(bList, cf)
 		bs = InterpolateChain(bs, rp=5, hidIntp=True)
@@ -37,12 +43,16 @@ def UpdateSphere():
 		mp.MoveBodiesTo(bs, 5, 50, 0, 0)
 	else:
 		bs = New.BodyListClone(bList)
+		if winSize > 0:
+			bs = InterpolateChain(bs, 6)
+			cs.MovingWindowMean(bs, winSize)
+			bs = New.BodyList( [b for b in bs if b.Id[0] != 'i'] )
 		cs.ShrinkSphere(bs, cf)
 		bs = InterpolateChain(bs, rp=5, hidIntp=True)
 		cs.NormalizeChain(bs)
 		bs.Insert(0, New.Body('ic', bs[0].Name, 144) )	
 		ss.ShiftChain(bs, 200, 200, 250)
-		mp.MoveBodiesTo(bs, 5, 50, 0, 0)		
+		mp.MoveBodiesTo(bs, 1, 0, 0, 0)		
 	mp.Title = f'CF: {cf:.3}'
 
 def SphereView(pId, unfolding):
@@ -61,14 +71,26 @@ def SphereView(pId, unfolding):
 		bs.Insert(0, New.Body('ic', bs[0].Name, 144) )	
 		mp = ShowBodyList(bs, gSize=2.0, gOpacity=0.5, hSize=3)
 	mp.CentralizeView(False)
+	mp.Description = MapInfo({'pId':pId}).Str
 
-	vs = New.ValueSelector(0, 1.0, 0, 'UpdateSphere()')
-	vs.Tag = [mp, bList, unfolding]
-	vs.ScanningPause = 50
-	vs.StepSize = 0.01
+	probingWS = True
+	if probingWS:
+		vs = New.ValueSelector(0, min(len(bs), 1000), 1, 'UpdateSphere()')
+	else:
+		vs = New.ValueSelector(0, 1.0, 0, 'UpdateSphere()')
+
+	vs.ScanningPause = 1
 	vs.OnClose("pp.Tag[0].Close()")
 	vs.Show()
-	vs.CurrentValue = 0.8
+	vs.Tag = [mp, bList, unfolding, probingWS]
+
+	if probingWS:
+		vs.StepSize, vs.CurrentValue = 1, 0
+		vs.Title = "Moving Window Size"
+	else:
+		vs.StepSize, vs.CurrentValue = 0.01, 0.8
+		vs.Title = "Contracting Factor"
+
 	vs.TheForm.BringToFront()
 
 def TorsionMap(pId, mom=0.9):
