@@ -1,4 +1,5 @@
 import math, random, time
+import numpy as np
 vv.Import('PdbLoad.pyn')
 
 GENE_TABLE = 'Gene Features'
@@ -531,7 +532,6 @@ def AugmentData(nt, augCfg='a|400|0.02|0.02'):
 
 
 def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
-	import numpy as np
 	L = max(aaClusters.values()) + 1
 	hv = np.zeros((L))  # head-vector.
 	stepSz = np.ones((L))

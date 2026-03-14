@@ -1,4 +1,4 @@
-#MenuLabels P-Map P-2D C-Map Info ChmX Web Open Siblings SeqMap Align 3D 3Dx 3Ds S2 P-S2 UF Lvt SM TT
+#MenuLabels P-Map P-2D C-Map Info ChmX Web Open Siblings SeqMap Align 3D 3Dx 3Ds P-S2 S2 UF Lvt SM TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -22,10 +22,12 @@ def MainMain(menuKey, jobId=''):
 	match menuKey:
 		case 'P-Map':
 			mwV, pFT, sMF, sFT = 'mwV', 'pFT', 'sMF', 'sFT'
-			ppl_ = round(min(max(0.001, 2000.0/len(pList)), 0.1), 4)
+			ppl_ = round(2000.0/len(pList), 4)
+			ppl_ = np.clip(ppl_, 0.01, 0.15)
 			def PM2(*args, **kwargs):
 				gSz = 1.5 if len(pList) < 10000 else 0.7
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
+
 			for vt in 1*[mwV]: 
 				match vt:
 					case 'mwV': # 14 ~= 3.6 * (2**3)
@@ -117,7 +119,7 @@ MainMain(vv.EventSource.Item)
 '''
 
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[1:], mpIdx=0, maxItems=0, jobId='', createPMap=True, createAtlas=False)
+DoDatasetList(dxList[1:], mpIdx=1, maxItems=0, jobId='', createPMap=True, createAtlas=False)
 vv.Folder.Save()
 
 for dn in list(vv.Folder.DatasetNameList)[1:]:
