@@ -169,16 +169,22 @@ def SimplifySeq(bList, winSize):
 	cs.MovingWindowMean(bList, winSize)
 
 # CreateProteinMaps() is a fast version of UnFoldProteinList(), it is limited to sequences with less than 23K PP.
-def CreateProteinMaps(pList, samplingDist, atlasName, tP):
+def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 	global ctrPressed
 
 	epochs, intRp, mom, ppl, initE, finalE = tP
 	if samplingDist > 0:
 		pList = cs.FlatSampling(pList, samplingDist)
-		vv.Title = f'Sampled {len(pList)} chains!'
+		vv.Title = f'Sampled {len(pList)} chains by density {samplingDist}!'
 		if ctrPressed:
 			vv.SelectedItems = pList
 			return
+
+	if maxItems>0 and maxItems < len(pList):
+		pList = random.sample(pList, k=maxItems)
+
+	if atlasName != None:
+		atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}.{len(pList)}'
 
 	maxRows = MaxRows(vv.Dataset, pList, intRp)
 	tsne = FastTsne(maxRows, 4, 2, epochs, ppl, initE, finalE)

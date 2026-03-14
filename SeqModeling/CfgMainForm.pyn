@@ -3,7 +3,7 @@ vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
 
-def MainMain(menuKey, jobId=''):
+def MainMain(menuKey):
 	global ctrPressed
 	selected = list(vv.Map.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None
@@ -39,10 +39,8 @@ def MainMain(menuKey, jobId=''):
 					case 'sMF':	
 						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(ppl_,6.0,0.8))
 		case 'P-2D':
-			if atlasName != None and jobId != None: 
-				atlasName += jobId
 			tP_ = (1000, 3, 14, 0.15, 4.0, 1.0)
-			CreateProteinMaps(pList, samplingDist=0.5, atlasName=atlasName, tP=tP_)
+			CreateProteinMaps(pList, samplingDist=0.5, maxItems=30000, atlasName=atlasName, tP=tP_)
 			vv.Folder.Save()
 			#Use the MdsCluster class directly to create the 2D map.
 			#UnFoldProteinList(pList, includeHA=False, wholeComplex=False, samplingDist=0.5, iconWidth=50, tP=tP_ )
@@ -92,7 +90,7 @@ def MainMain(menuKey, jobId=''):
 
 # ---------------------------------------------------------------------------------------
 
-def DoDatasetList(dxList, mpIdx=0, maxItems=0, jobId='', createPMap=True, createAtlas=False):
+def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 	vv.SelectedItems.Clear()
 	tm0 = time.time()
 	for dsIdx in dxList:
@@ -100,13 +98,10 @@ def DoDatasetList(dxList, mpIdx=0, maxItems=0, jobId='', createPMap=True, create
 		ds = vv.OpenDatasetMap(dsIdx, mpIdx)
 		bs = ds.BodyListEnabled()
 
-		if maxItems>0 and maxItems < len(bs):
-			bs = random.sample([b.Id for b in bs], k=maxItems)
-			vv.SelectedItems = bs
 		if createPMap:
 			MainMain('P-Map')
 		if createAtlas:
-			MainMain('P-2D', jobId)
+			MainMain('P-2D')
 
 		t0 = time.time() - t0
 		print(f'{dsIdx}: {ds.Name:<16}\t{t0:.1f}s; {len(bs)} chains')
@@ -119,7 +114,7 @@ MainMain(vv.EventSource.Item)
 '''
 
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[1:], mpIdx=1, maxItems=0, jobId='', createPMap=True, createAtlas=False)
+DoDatasetList(dxList[1:], mpIdx=0, createPMap=True, createAtlas=True)
 vv.Folder.Save()
 
 for dn in list(vv.Folder.DatasetNameList)[1:]:
