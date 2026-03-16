@@ -1,4 +1,6 @@
-#MenuLabels P-Map P-2D C-Map Info ChmX Web Open Siblings SeqMap Align 3D 3Dx 3Ds P-S2 S2 UF Lvt SM TT
+#MenuLabels P-Map P-2D C-Map Info ChmX Web Open Siblings \
+# SeqMap Align 3D 3Dx 3Ds P-S2 S2 UF Lvt SM TT
+
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -26,8 +28,8 @@ def MainMain(menuKey):
 			ppl_ = np.clip(ppl_, 0.01, 0.15)
 			def PM2(*args, **kwargs):
 				gSz = 1.5 if len(pList) < 10000 else 0.7
-				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
-
+				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), 
+					gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
 			for vt in 1*[mwV]: 
 				match vt:
 					case 'mwV': # 14 ~= 3.6 * (2**3)
@@ -40,9 +42,10 @@ def MainMain(menuKey):
 						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(ppl_,6.0,0.8))
 		case 'P-2D':
 			tP_ = (1000, 3, 14, 0.15, 4.0, 1.0)
-			CreateProteinMaps(pList, samplingDist=0.5, maxItems=30000, atlasName=atlasName, tP=tP_)
+			CreateProteinMaps(pList, samplingDist=0.5, maxItems=15000, atlasName=atlasName, tP=tP_)
 			#Use the MdsCluster class directly to create the 2D map.
-			#UnFoldProteinList(pList, includeHA=False, wholeComplex=False, samplingDist=0.5, iconWidth=50, tP=tP_ )
+			#UnFoldProteinList(pList, includeHA=False, wholeComplex=False, 
+			#	samplingDist=0.5, iconWidth=50, tP=tP_ )
 		case 'C-Map':
 			ColorChainMap(2 if ctrPressed else 5)
 		case 'Info':
@@ -64,7 +67,8 @@ def MainMain(menuKey):
 			aaGroups = GetAAGroup(idx=0)
 			if atlasName != None: 
 				atlasName += '-Seq'
-			CreateSeqMaps(pList, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
+			CreateSeqMaps(pList, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, 
+				saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
 		case 'Open': 
 			OpenCifFile(pId)
 		case 'Siblings':
@@ -85,30 +89,27 @@ def MainMain(menuKey):
 		case 'TT':
 			pass
 
-
-
 # ---------------------------------------------------------------------------------------
+
+MainMain(vv.EventSource.Item)
+
+'''
 
 def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 	vv.SelectedItems.Clear()
 	with CheckTime('Total Time: {tm:.2f}Hr\n', 1/3600):
 		for dsIdx in dxList:
 			dsName = vv.OpenDatasetMap(dsIdx, mpIdx).Name
-			with CheckTime(f'{dsIdx}: {dsName:<20}\t' + '{tm:.2f}s'):
+			with CheckTime(f'{dsIdx:2}: {dsName:<24}\t' + '{tm:.2f}s'):
 				if createPMap: 
 					MainMain('P-Map')
 				if createAtlas:	
 					MainMain('P-2D')
 			if vv.GuiManager.StopFlag:
 				break
-
-MainMain(vv.EventSource.Item)
-
-'''
-
-
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[19:], mpIdx=0, createPMap=True, createAtlas=True)
+
+DoDatasetList(dxList[1:], mpIdx=1, createPMap=False, createAtlas=True)
 vv.Folder.Save()
 
 for dn in list(vv.Folder.DatasetNameList)[1:]:
