@@ -324,7 +324,10 @@ def LocalVarianceTrans(pId, winSize=14, intRp=3):
 	bv.UsingColorPalette = True
 	bv.Title = "Moving Window Variance"
 	bv.Description = info.Str
-	bv.Show()
+	bv.Show()	
+	width = bv.ItemList.Count
+	if width < 2000: width *= 2
+	bv.ResizeClient(width, 0)
 	
 	bList2 = New.BodyListClone(bList)
 	cs.MovingWindowMean(bList2, winSize)
