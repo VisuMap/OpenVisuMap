@@ -28,9 +28,9 @@ def MainMain(menuKey):
 			ppl_ = np.clip(ppl_, 0.01, 0.15)
 			def PM2(*args, **kwargs):
 				gSz = 1.5 if len(pList) < 10000 else 0.7
-				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 20, 0), 
+				ProteinMap2(pList,vt,2000, save2Map=vt, filterP=(0.0, 20, 0), 
 					gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
-			for vt in 1*[mwV]: 
+			for vt in 1*[mwV, pFT, sFT, sMF]: 
 				match vt:
 					case 'mwV': # 14 ~= 3.6 * (2**3)
 						PM2(waveCount=32, waveLen=512*(2**3), winSize=14, intRp=3, tSNE=(ppl_, 6.0, 1.0))
@@ -39,7 +39,7 @@ def MainMain(menuKey):
 					case 'sFT':	
 						PM2(aaGroups=GetAAGroup(20), tSNE=(ppl_, 6.0, 0.9))
 					case 'sMF':	
-						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(ppl_,6.0,0.8))
+						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(ppl_,6.0,0.9))
 		case 'P-2D':
 			tP_ = (1000, 3, 14, 0.15, 4.0, 1.0)
 			CreateProteinMaps(pList, samplingDist=0.5, maxItems=15000, atlasName=atlasName, tP=tP_)
@@ -83,7 +83,7 @@ def MainMain(menuKey):
 		case 'UF':
 			SphereView(pId, unfolding=True)
 		case 'Lvt':
-			LocalVarianceTrans(pId, winSize=14, intRp=3)
+			LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=ctrPressed)
 		case 'SM':
 			SmoothenComplex(pId)
 		case 'TT':
@@ -120,5 +120,7 @@ for dn in list(vv.Folder.DatasetNameList)[1:]:
 		ds.OpenMap(mp)
 		vv.Map.GlyphSet = 'Colored Particles||||'
 
+
+BroadcastMapCfg()
 
 '''
