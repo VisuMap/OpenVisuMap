@@ -528,6 +528,9 @@ def PreloadPDB(sList):
 	return loaded
 
 def InitDatabase(dsName, description):
+	if vv.Folder.DatasetNameList.Contains(dsName):
+		vv.Folder.OpenDataset(dsName)
+		return
 	dsName = vv.Folder.NewDataset(dsName, description).Name
 	vv.Folder.OpenDataset(dsName)
 	vv.Map.GlyphSet = PMap_GLYPHSET
@@ -538,6 +541,7 @@ def InitDatabase(dsName, description):
 	ds.AddColumn('SeqLen', 1, '0', 3)
 	ds.AddColumn('ChainName', 0, '', 4)
 	ds.CommitChanges()
+
 
 def MergeTableToDataset(tb, dsName):
 	oldDsName = vv.Dataset.Name
@@ -715,6 +719,10 @@ sList = ','.join([f[:4] for f in os.listdir(PDB_CACHE)])
 sList = ','.join(pList)
 print(len(sList))
 ImportPDBList(sList, 'PSymmetry10K')
+ImportPDBList('9mee,9y7p', 'Monthly')
+ImportPDBList('9mee', 'Monthly')
+ImportPDBList('9y7p', 'Monthly')
+
 
 # Extract a chain list for each dataset:
 dnList = list(vv.Folder.DatasetNameList)[1:]
