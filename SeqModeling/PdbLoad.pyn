@@ -568,6 +568,7 @@ def MergeTableToDataset(tb, dsName):
 
 # import a protein list into a new dataset table.
 def ImportPDBList(sList, dsName, dsDescription=''):
+	sList = sList.upper()
 	pList = PreloadPDB(sList)
 	InitDatabase(dsName, dsDescription)
 	infoTable, loaded, skipped = LoadAllChains(pList)
