@@ -22,7 +22,7 @@ def CheckCacheDir():
 		vv.Message(f'Cache directories not setup: {PDB_CACHE} and {CHAIN_CACHE}')
 		vv.Return()
 
-def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, unifyId=False,
+def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, matchPid=False, unifyId=False,
 		setChainId=False, typeByChainIdx=False, glyphSize=1.0, glyphOpacity=0.75):
 
 	if includeHA or chainNames==None or len(chainNames)>1:
@@ -30,7 +30,7 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, unifyId=F
 	else:
 		localPath, bsList, bsList2, pdbTitle = None, LoadChain(pId), None, "???"
 	
-	bsList = Interpolate(bsList, rp, hidIntp, pId, setChainId, typeByChainIdx, unifyId)
+	bsList = Interpolate(bsList, rp, hidIntp, pId, setChainId, typeByChainIdx, unifyId, matchPid)
 		
 	cs.NormalizeChain(bsList, -1, False)
 
@@ -364,8 +364,8 @@ def LoadSeq(pId):
 def ChainName(body):
 	return body.Name.split('.')[2]
 
-def Interpolate(bList, rp=3, hidIntp=False, pId=None, setChainId=False, typeByChainIdx=False, unifyId=False):
-	return cs.InterpolateETC(bList, rp, hidIntp, pId, setChainId, typeByChainIdx, unifyId)
+def Interpolate(bList, rp=3, hidIntp=False, pId=None, setChainId=False, typeByChainIdx=False, unifyId=False, matchPid=False):
+	return cs.InterpolateETC(bList, rp, hidIntp, pId, setChainId, typeByChainIdx, unifyId, matchPid)
 
 def InterpolateChain(bList, rp=3, hidIntp=False):
 	EPS = 0.085

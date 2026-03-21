@@ -306,7 +306,7 @@ namespace VisuMap {
         }
 
         public List<IBody> InterpolateETC(List<IBody> bList, int rp = 3, bool hidIntp = false,
-                string pId = null,  bool setChainId = false, bool typeByChainIdx=false, bool unifyId=false) {
+                string pId = null,  bool setChainId = false, bool typeByChainIdx=false, bool unifyId=false, bool matchPid=false) {
             string ChainName(IBody body) { return body.Name.Split('.')[2]; }
 
             double EPS = 0.085;
@@ -329,6 +329,26 @@ namespace VisuMap {
             if (hidIntp)
                 foreach (var b in bs)
                     b.Hidden = (b.Id[0] == 'i');
+
+            if (matchPid) {
+                // set the pid to match those in the p-map
+                chIdx = -1;
+                string curChId = null;
+                string curChName = null;
+                string pId4 = pId.Substring(0, 4) + "_" ;
+                foreach(IBody b in bs) {
+                    if (b.Id[0] == 'A') {
+                        string chName = ChainName(b);
+                        if ( chName != curChName) {
+                            chIdx++;
+                            curChName = chName;
+                            curChId = pId4 + chIdx.ToString();
+                        }
+                    }
+                    b.Id = curChId;
+                }
+                return bs;
+            }
 
             if (setChainId && (pId != null)) {
                 var ds = vv.Dataset;

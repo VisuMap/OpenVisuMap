@@ -686,7 +686,8 @@ def UpdateComplex(vs):
 def SmoothenComplex(pId):
 	chNames = None
 	#chNames = ['5G_1', '5H_1', '5I_1', '5J_1', '5K_1', '5L_1']
-	mp = ShowPDB(pId,hidIntp=True,glyphSize=1.5,includeHA=False,setChainId=True,typeByChainIdx=True,unifyId=True,chainNames=chNames)
+	mp = ShowPDB(pId,rp=5, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=True,
+		setChainId=False, typeByChainIdx=False, unifyId=False, chainNames=chNames)
 	maxWS = min(10000, len(mp.BodyList)//2)
 	vs = New.ValueSelector(0, maxWS, 14, 'UpdateComplex(pp)')  # 14,29,43,59,87
 	vs.Title = 'Moving Window Size'
