@@ -332,20 +332,52 @@ namespace VisuMap {
 
             if (matchPid) {
                 // set the pid to match those in the p-map
-                chIdx = -1;
-                string curChId = null;
-                string curChName = null;
-                string pId4 = pId.Substring(0, 4) + "_" ;
-                foreach(IBody b in bs) {
-                    if (b.Id[0] == 'A') {
-                        string chName = ChainName(b);
-                        if ( chName != curChName) {
-                            chIdx++;
-                            curChName = chName;
-                            curChId = pId4 + chIdx.ToString();
+                string pId4 = pId.Substring(0, 4);
+
+                Dictionary<string, string> ch2id = new Dictionary<string, string>();
+                var ds = vv.Dataset;
+                var allBodies = ds.BodyList;
+                for(int row=0; row< allBodies.Count; row++) {
+                    IBody b = allBodies[row];
+                    if ( b.Id.StartsWith(pId4) ) {
+                        string chName = ds.StringAt(row, 4);
+                        if ( (chName != null) && ! ch2id.ContainsKey(chName) )
+                            ch2id.Add(chName, b.Id);
+                    }                    
+                }
+
+                if (bs.All( b=>ch2id.ContainsKey(ChainName(b)) )) {
+                    // All chains are present in current dataset, e.g. ch2id[].
+                    string curChName = null;
+                    string curChId = null;
+                    foreach (IBody b in bs) {
+                        if (b.Id[0] == 'A') {
+                            string chName = ChainName(b);
+                            if (chName != curChName) {
+                                curChName = chName;
+                                curChId = ch2id[chName];
+                            }
                         }
+                        b.Id = curChId;
                     }
-                    b.Id = curChId;
+                } else {
+                    // Some chains are not present in current dataset, e.g. ch2id[].
+                    // We fall back to using chain indexes for chain id.
+                    chIdx = -1;
+                    pId4 += '_';
+                    string curChId = null;
+                    string curChName = null;
+                    foreach (IBody b in bs) {
+                        if (b.Id[0] == 'A') {
+                            string chName = ChainName(b);
+                            if (chName != curChName) {
+                                chIdx++;
+                                curChName = chName;
+                                curChId = pId4 + chIdx.ToString();
+                            }
+                        }
+                        b.Id = curChId;
+                    }
                 }
                 return bs;
             }
