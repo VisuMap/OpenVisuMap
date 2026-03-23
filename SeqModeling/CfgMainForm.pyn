@@ -25,15 +25,15 @@ def MainMain(menuKey):
 		case 'P-Map':
 			mwV, pFT, sMF, sFT = 'mwV', 'pFT', 'sMF', 'sFT'
 			ppl_ = round(2000.0/len(pList), 4)
-			ppl_ = np.clip(ppl_, 0.01, 0.15)
+			ppl_ = np.clip(ppl_, 0.01, 0.25)
 			def PM2(*args, **kwargs):
 				gSz = 1.5 if len(pList) < 10000 else 0.7
-				ProteinMap2(pList,vt,2000, save2Map=vt, filterP=(0.0, 20, 0), 
+				ProteinMap2(pList,vt,2000, save2Map=vt, filterP=(0.0, 10, 0), 
 					gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
 			for vt in 1*[mwV]: 
 				match vt:
 					case 'mwV': # 14 ~= 3.6 * (2**3)
-						PM2(waveCount=32, waveLen=512*(2**3), winSize=14, intRp=3, tSNE=(ppl_, 6.0, 1.0))
+						PM2(waveCount=32, waveLen=512*(2**3), winSize=14, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, waveLen=512, winSize=14*4, intRp=3, tSNE=(ppl_, 4.0, 1.0))	
 					case 'sFT':	
