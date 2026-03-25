@@ -700,8 +700,8 @@ def UpdateComplex(vs):
 	cs.SmoothenSeq(mp.BodyList, ws)
 	mp.Redraw()
 
-def SmoothenComplex(pId):
-	chNames = None
+def SmoothenComplex(pId, singleChain=False):
+	chNames = GetChainName(pId) if singleChain else None
 	#chNames = ['5G_1', '5H_1', '5I_1', '5J_1', '5K_1', '5L_1']
 	mp = ShowPDB(pId,rp=3, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=True,
 		setChainId=False, typeByChainIdx=False, unifyId=False, chainNames=chNames)
