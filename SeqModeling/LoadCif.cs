@@ -417,9 +417,7 @@ namespace VisuMap {
                         // Notice that atom C4' comes before C3' in the PDB file, so we first store C4' in temporary 
                         // variables xC4,yC4 and zC4.
                         if (atName.StartsWith("C4'")) {
-                            xC4 = float.Parse(fs[C_CARTN_X]);
-                            yC4 = float.Parse(fs[C_CARTN_Y]);
-                            zC4 = float.Parse(fs[C_CARTN_Z]);
+                            (xC4, yC4, zC4) = ( float.Parse(fs[C_CARTN_X]), float.Parse(fs[C_CARTN_Y]), float.Parse(fs[C_CARTN_Z]) );
                             continue;
                         } else if (atName.StartsWith("C3'")) {
                             if (DNA_set.Contains(rsName)) {
@@ -440,10 +438,8 @@ namespace VisuMap {
                 } else
                     continue;
 
-                IBody b = vv.New.Body(bId);
-                b.X = float.Parse(fs[C_CARTN_X]);
-                b.Y = float.Parse(fs[C_CARTN_Y]);
-                b.Z = float.Parse(fs[C_CARTN_Z]);
+                IBody b = vv.New.Body(bId);            
+                b.SetXYZ(float.Parse(fs[C_CARTN_X]), float.Parse(fs[C_CARTN_Y]), float.Parse(fs[C_CARTN_Z]));
 
                 // For DNA or RNA we pick the middle point of C3' and C4' to represent the peptide.
                 if (atName[0] != 'P') {  //atName[0]=='P' means that it is a single RNA peptide.
