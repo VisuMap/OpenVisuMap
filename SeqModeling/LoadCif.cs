@@ -409,6 +409,9 @@ namespace VisuMap {
                         else if (betaSet.Contains(rsIdx))
                             secType = "b";
                         rsName = "";
+                    } else if (RNA_set.Contains(rsName) && (atName[0] == 'P')) {
+                        // Some PDB files record RNA polymer with a single atom 'P' for one peptide.
+                        p1 = "r";
                     } else if (DNA_set.Contains(rsName) || RNA_set.Contains(rsName) ) {
                         // For DNA or RNA we pick the middle point of C3' and C4' on the sugar ring to represent the peptide.
                         // Notice that atom C4' comes before C3' in the PDB file, so we first store C4' in temporary 
@@ -443,8 +446,10 @@ namespace VisuMap {
                 b.Z = float.Parse(fs[C_CARTN_Z]);
 
                 // For DNA or RNA we pick the middle point of C3' and C4' to represent the peptide.
-                if ( (p1[0] == 'd') || (p1[0] == 'r') ) 
-                    b.Add(xC4, yC4, zC4).Mult(0.5);
+                if (atName[0] != 'P') {  //atName[0]=='P' means that it is a single RNA peptide.
+                    if ((p1[0] == 'd') || (p1[0] == 'r'))
+                        b.Add(xC4, yC4, zC4).Mult(0.5);
+                }
 
                 b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType;
                 b.Type = (short)(entityId - 1);
