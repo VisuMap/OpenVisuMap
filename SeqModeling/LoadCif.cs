@@ -345,6 +345,10 @@ namespace VisuMap {
             int idxF = 1;
             int cntF = -1;
 
+            float xC4 = 0;  // used to store C3 temporarily for DNA and RNA seq.
+            float yC4 = 0;
+            float zC4 = 0;
+
             while (true) {
                 string L = tr.ReadLine();
                 if ((L == null) || (L[0] == '#'))
@@ -405,17 +409,24 @@ namespace VisuMap {
                         else if (betaSet.Contains(rsIdx))
                             secType = "b";
                         rsName = "";
-                    } else if (RNA_set.Contains(rsName) && atName.StartsWith("P")) {
-                        p1 = "r";
-                    } else if (DNA_set.Contains(rsName) && atName.StartsWith("C1")) {
-                        //
-                        // DNA strands normally exists in pair in form of a double-helix. The atom C1' is 
-                        // located more towards the center of the helix compared to the P atom. So, using C1'
-                        // atoms as chain-sampling-points makes the two helix strands close to another; and
-                        // further and therefor less entangled with the sourranding atoms.
-                        //
-                        rsName = rsName[1].ToString();
-                        p1 = "d";
+                    } else if (DNA_set.Contains(rsName) || RNA_set.Contains(rsName) ) {
+                        // For DNA or RNA we pick the middle point of C3' and C4' on the sugar ring to represent the peptide.
+                        // Notice that atom C4' comes before C3' in the PDB file, so we first store C4' in temporary 
+                        // variables xC4,yC4 and zC4.
+                        if (atName.StartsWith("C4'")) {
+                            xC4 = float.Parse(fs[C_CARTN_X]);
+                            yC4 = float.Parse(fs[C_CARTN_Y]);
+                            zC4 = float.Parse(fs[C_CARTN_Z]);
+                            continue;
+                        } else if (atName.StartsWith("C3'")) {
+                            if (DNA_set.Contains(rsName)) {
+                                rsName = rsName[1].ToString();
+                                p1 = "d";
+                            } else { // for RNA peptide.
+                                p1 = "r";
+                            }
+                        } else
+                            continue;
                     } else
                         continue;
                     bId = $"A{rsIdx}.{bsList.Count}";
@@ -430,6 +441,10 @@ namespace VisuMap {
                 b.X = float.Parse(fs[C_CARTN_X]);
                 b.Y = float.Parse(fs[C_CARTN_Y]);
                 b.Z = float.Parse(fs[C_CARTN_Z]);
+
+                // For DNA or RNA we pick the middle point of C3' and C4' to represent the peptide.
+                if ( (p1[0] == 'd') || (p1[0] == 'r') ) 
+                    b.Add(xC4, yC4, zC4).Mult(0.5);
 
                 b.Name = p1 + '.' + rsName + '.' + chName + '.' + secType;
                 b.Type = (short)(entityId - 1);

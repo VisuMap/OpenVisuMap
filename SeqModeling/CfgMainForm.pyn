@@ -23,21 +23,20 @@ def MainMain(menuKey):
 			
 	match menuKey:
 		case 'P-Map':
-			mwV, pFT, sMF, sFT = 'mwV', 'pFT', 'sMF', 'sFT'
 			ppl_ = round(2000.0/len(pList), 4)
 			ppl_ = np.clip(ppl_, 0.01, 0.25)
 			def PM2(*args, **kwargs):
 				gSz = 1.5 if len(pList) < 10000 else 0.7
 				ProteinMap2(pList,vt,2000, save2Map=vt, filterP=(0.0, 10, 0), 
 					gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
-			for vt in 1*[mwV]: 
+			for vt in 1*['mwV']: 
 				match vt:
 					case 'mwV': # 14 ~= 3.6 * (2**3)
-						PM2(waveCount=32, waveLen=512*(2**3), winSize=14, intRp=3, tSNE=(ppl_, 8.0, 1.0))
-					case 'pFT':	
-						PM2(waveCount=30, waveLen=512, winSize=14*4, intRp=3, tSNE=(ppl_, 4.0, 1.0))	
+						PM2(waveCount=4, waveLen=512*(2**3), winSize=14, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'sFT':	
 						PM2(aaGroups=GetAAGroup(20), tSNE=(ppl_, 6.0, 0.9))
+					case 'pFT':	
+						PM2(waveCount=30, waveLen=512, winSize=14*4, intRp=3, tSNE=(ppl_, 4.0, 1.0))	
 					case 'sMF':	
 						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(ppl_,6.0,0.9))
 		case 'P-2D':
@@ -90,9 +89,24 @@ def MainMain(menuKey):
 		case 'Lvt':
 			LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=ctrPressed)
 		case 'SM':
-			SmoothenComplex(pId)
+			SmoothenComplex(pId, singleChain=ctrPressed)
 		case 'TT':
-			BroadcastMapCfg()
+			#BroadcastMapCfg()
+			_, bs, _, _ = LoadCifData(pId, chainNames=GetChainName(pId))
+			ShowBodyList(Interpolate(bs, rp=3))
+			'''
+			for b in bs:
+				b.Id = b.Id.split('.')[0]
+				b.Name = b.Name[2]
+			vs = New.ValueItemList(bs)
+			for k in range(1, bs.Count):
+				vs[k].Value = bs[k].DistanceTo(bs[k-1])				
+			bv = New.BarView(vs)
+			bv.BarLabelType = 1
+			bv.Horizontal = True
+			bv.Show()
+			'''
+
 
 # ---------------------------------------------------------------------------------------
 
