@@ -349,8 +349,21 @@ namespace VisuMap {
             float yC4 = 0;
             float zC4 = 0;
 
+            // Help variable to handle RNA chains which just record one position (the phosphate) to
+            // represents a peptide.
+            bool singlePepRNA_checked = false;
+            bool singlePepRNA = false;
+            string nextLineBuf = null; // temporarily hold the next line.
+            string curChName = null;  // the chain name of the last processed ATOM line.
+
             while (true) {
-                string L = tr.ReadLine();
+                string L = null;
+                if (nextLineBuf == null)
+                    L = tr.ReadLine();
+                else {
+                    L = nextLineBuf;
+                    nextLineBuf = null;
+                }
                 if ((L == null) || (L[0] == '#'))
                     break;
                 if (L.StartsWith("_atom_site.")) {
@@ -409,9 +422,25 @@ namespace VisuMap {
                         else if (betaSet.Contains(rsIdx))
                             secType = "b";
                         rsName = "";
-                    } else if (RNA_set.Contains(rsName) && (atName[0] == 'P')) {
+                    } else if (RNA_set.Contains(rsName) && (atName[0] == 'P') ) {
+                        if (chName != curChName) { // initialize the tracing variables at the begin of a RNA chain.
+                            singlePepRNA_checked = false;
+                            singlePepRNA = false;
+                            nextLineBuf = null;
+                        }
                         // Some PDB files record RNA polymer with a single atom 'P' for one peptide.
-                        p1 = "r";
+                        if (!singlePepRNA_checked) {
+                            string nextLine = tr.ReadLine();
+                            string[] nextFS = nextLine.Split(fSeparator, StringSplitOptions.RemoveEmptyEntries);
+                            int nextSeqId = int.Parse(nextFS[C_SEQ_ID]) - 1;
+                            singlePepRNA = (nextSeqId != rsIdx);
+                            singlePepRNA_checked = true;
+                            nextLineBuf = nextLine;
+                        }
+                        if (singlePepRNA) {
+                            p1 = "r";
+                        } else
+                            continue;
                     } else if (DNA_set.Contains(rsName) || RNA_set.Contains(rsName) ) {
                         // For DNA or RNA we pick the middle point of C3' and C4' on the sugar ring to represent the peptide.
                         // Notice that atom C4' comes before C3' in the PDB file, so we first store C4' in temporary 
@@ -442,7 +471,7 @@ namespace VisuMap {
                 b.SetXYZ(float.Parse(fs[C_CARTN_X]), float.Parse(fs[C_CARTN_Y]), float.Parse(fs[C_CARTN_Z]));
 
                 // For DNA or RNA we pick the middle point of C3' and C4' to represent the peptide.
-                if (atName[0] != 'P') {  //atName[0]=='P' means that it is a single RNA peptide.
+                if (!singlePepRNA) {
                     if ((p1[0] == 'd') || (p1[0] == 'r'))
                         b.Add(xC4, yC4, zC4).Mult(0.5);
                 }
@@ -457,6 +486,8 @@ namespace VisuMap {
                         b.Hidden = true;
                     bsList.Add(b);
                 }
+
+                curChName = chName;
             }
 
             if (chainNames != null) {

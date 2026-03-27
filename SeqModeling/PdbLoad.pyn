@@ -688,6 +688,28 @@ def ShowPepCounts(pList):
 			vv.DoEvents()
 	nt.ShowHeatMap()
 
+# remove all chain cache files of a pList:
+def RemoveAllChainCache(only_rd_chains=False):
+	import os
+	ds = vv.Dataset
+	if only_rd_chains:
+		# we remove only polymers which have RNA or DNA chains embedded.
+		pList = []
+		for b in ds.BodyListEnabled():		
+			chType = ds.StringAt(b.Id, 0)
+			if chType=='r' or chType=='d':
+				pList.append(b.Id)
+	else:
+		pList = [b.Id for b in ds.BodyListEnabled()]
+	pSet = set([p[:4] for p in pList])
+	print(f'Removing {len(pSet)} files')
+	fList = []
+	for f in os.listdir(CHAIN_CACHE):
+		if f[:4] in pSet:
+			fList.append(f)
+	for f in fList:
+		os.remove(f'{CHAIN_CACHE}/{f}')
+
 '''
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
@@ -704,17 +726,7 @@ for dn in dnList:
 	MainMain('P-Map')
 
 
-# remove all chain cache files of a pList:
-import os
-pList = [b.Id for b in vv.Dataset.BodyListEnabled()]
-pList = set([p[:4] for p in pList])
-print(len(pList))
-fList = []
-for f in os.listdir(CHAIN_CACHE):
-	if f[:4] in pList:
-		fList.append(f)
-for f in fList:
-	os.remove(f'{CHAIN_CACHE}/{f}')
+RemoveAllChainCache()
 
 sList = ','.join([f[:4] for f in os.listdir(PDB_CACHE)])
 sList = ','.join(pList)

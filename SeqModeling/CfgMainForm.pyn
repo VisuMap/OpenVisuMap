@@ -27,12 +27,12 @@ def MainMain(menuKey):
 			ppl_ = np.clip(ppl_, 0.01, 0.25)
 			def PM2(*args, **kwargs):
 				gSz = 1.5 if len(pList) < 10000 else 0.7
-				ProteinMap2(pList,vt,2000, save2Map=vt, filterP=(0.0, 10, 0), 
+				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 10, 0), 
 					gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
 			for vt in 1*['mwV']: 
 				match vt:
 					case 'mwV': # 14 ~= 3.6 * (2**3)
-						PM2(waveCount=4, waveLen=512*(2**3), winSize=14, intRp=3, tSNE=(ppl_, 8.0, 1.0))
+						PM2(waveCount=32, waveLen=512*(2**3), winSize=14, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'sFT':	
 						PM2(aaGroups=GetAAGroup(20), tSNE=(ppl_, 6.0, 0.9))
 					case 'pFT':	
@@ -92,18 +92,22 @@ def MainMain(menuKey):
 			SmoothenComplex(pId, singleChain=ctrPressed)
 		case 'TT':
 			#BroadcastMapCfg()
+			pId = '3J6Y_79'
 			_, bs, _, _ = LoadCifData(pId, chainNames=GetChainName(pId))
 			ShowBodyList(Interpolate(bs, rp=3))
 			'''
+			pName = None
 			for b in bs:
 				b.Id = b.Id.split('.')[0]
-				b.Name = b.Name[2]
+				b.Name = b.Name[2]					
 			vs = New.ValueItemList(bs)
 			for k in range(1, bs.Count):
 				vs[k].Value = bs[k].DistanceTo(bs[k-1])				
 			bv = New.BarView(vs)
 			bv.BarLabelType = 1
 			bv.Horizontal = True
+			bv.UpperLimit = 8.0
+			bv.LowerLimit = 0
 			bv.Show()
 			'''
 
@@ -119,6 +123,7 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 	with CheckTime('Total Time: {tm:.2f}Hr\n', 1/3600):
 		for dsIdx in dxList:
 			dsName = vv.OpenDatasetMap(dsIdx, mpIdx).Name
+			RemoveAllChainCache(only_rd_chains=True)
 			with CheckTime(f'{dsIdx:2}: {dsName:<24}\t' + '{tm:.2f}s'):
 				if createPMap: 
 					MainMain('P-Map')
@@ -126,10 +131,11 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 					MainMain('P-2D')
 			if vv.GuiManager.StopFlag:
 				break
-dxList = list(range(vv.Folder.DatasetNameList.Count))
 
-DoDatasetList(dxList[1:], mpIdx=1, createPMap=False, createAtlas=True)
+dxList = list(range(vv.Folder.DatasetNameList.Count))
+DoDatasetList(dxList[10:], mpIdx=1, createPMap=True, createAtlas=False)
 vv.Folder.Save()
+
 
 for dn in list(vv.Folder.DatasetNameList)[1:]:
 	ds = vv.Folder.OpenDataset(dn)
