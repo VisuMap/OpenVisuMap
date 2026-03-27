@@ -327,8 +327,8 @@ namespace VisuMap {
             List<IBody> bsList = vv.New.BodyList();
             List<IBody> bsList2 = vv.New.BodyList();
             int rsIdxPre = -1;
-            var RNA_set = new HashSet<string>() { "A", "U", "G", "C" };
-            var DNA_set = new HashSet<string>() { "DA", "DT", "DG", "DC" };
+            var setRNA = new HashSet<string>() { "A", "U", "G", "C" };
+            var setDNA = new HashSet<string>() { "DA", "DT", "DG", "DC" };
             char[] fSeparator = new char[] { ' ' };
             char[] dbQuoats = new char[] { '"' };
 
@@ -366,6 +366,10 @@ namespace VisuMap {
                 }
                 if ((L == null) || (L[0] == '#'))
                     break;
+
+                //
+                // Process the _atom_site.* lines
+                //
                 if (L.StartsWith("_atom_site.")) {
                     string cName = L.Substring(L.IndexOf('.') + 1).TrimEnd();
                     colName2Idx[cName] = idxF++;
@@ -389,6 +393,9 @@ namespace VisuMap {
                     }
                 }
 
+                //
+                // Process the ATOM and HETATM lines
+                // 
                 // Ignore comments withing ATOM rows.
                 if (L[0] == '_')
                     continue;
@@ -422,7 +429,7 @@ namespace VisuMap {
                         else if (betaSet.Contains(rsIdx))
                             secType = "b";
                         rsName = "";
-                    } else if (RNA_set.Contains(rsName) && (atName[0] == 'P') ) {
+                    } else if (setRNA.Contains(rsName) && (atName[0] == 'P') ) {
                         if (chName != curChName) { // initialize the tracing variables at the begin of a RNA chain.
                             singlePepRNA_checked = false;
                             singlePepRNA = false;
@@ -441,7 +448,7 @@ namespace VisuMap {
                             p1 = "r";
                         } else
                             continue;
-                    } else if (DNA_set.Contains(rsName) || RNA_set.Contains(rsName) ) {
+                    } else if (setDNA.Contains(rsName) || setRNA.Contains(rsName) ) {
                         // For DNA or RNA we pick the middle point of C3' and C4' on the sugar ring to represent the peptide.
                         // Notice that atom C4' comes before C3' in the PDB file, so we first store C4' in temporary 
                         // variables xC4,yC4 and zC4.
@@ -449,7 +456,7 @@ namespace VisuMap {
                             (xC4, yC4, zC4) = ( float.Parse(fs[C_CARTN_X]), float.Parse(fs[C_CARTN_Y]), float.Parse(fs[C_CARTN_Z]) );
                             continue;
                         } else if (atName.StartsWith("C3'")) {
-                            if (DNA_set.Contains(rsName)) {
+                            if (setDNA.Contains(rsName)) {
                                 rsName = rsName[1].ToString();
                                 p1 = "d";
                             } else { // for RNA peptide.
