@@ -332,6 +332,9 @@ namespace VisuMap {
             char[] fSeparator = new char[] { ' ' };
             char[] dbQuoats = new char[] { '"' };
 
+            //
+            //  Read the head section _atom_site.
+            //
             int C_ATOM_ID = -1;
             int C_COMP_ID = -1;
             int C_ENTITY_ID = -1;
@@ -341,9 +344,42 @@ namespace VisuMap {
             int C_CARTN_Z = -1;
             int C_ASYM_ID = -1;
             int C_MODEL_NUM = -1;
-            Dictionary<string, int> colName2Idx = new Dictionary<string, int>();
             int idxF = 1;
             int cntF = -1;
+            Dictionary<string, int> colName2Idx = new Dictionary<string, int>();
+            string nextLineBuf = null; // temporarily hold the next line.
+
+            while (true) {
+                string L = tr.ReadLine();
+                if ((L == null) || (L[0] == '#'))
+                    break;
+                //
+                // Process the _atom_site.* lines
+                //
+                if (L.StartsWith("_atom_site.")) {
+                    string cName = L.Substring(L.IndexOf('.') + 1).TrimEnd();
+                    colName2Idx[cName] = idxF++;
+                } else {
+                    nextLineBuf = L;
+                    break;
+                }
+            }
+
+            try {
+                C_ATOM_ID = colName2Idx["label_atom_id"];  //3
+                C_COMP_ID = colName2Idx["label_comp_id"];  // 5
+                C_ENTITY_ID = colName2Idx["label_entity_id"];  // 7
+                C_SEQ_ID = colName2Idx["label_seq_id"];  // 8
+                C_CARTN_X = colName2Idx["Cartn_x"];  // 10
+                C_CARTN_Y = colName2Idx["Cartn_y"];  // 11
+                C_CARTN_Z = colName2Idx["Cartn_z"];  // 12
+                C_ASYM_ID = colName2Idx["auth_asym_id"]; // 18
+                C_MODEL_NUM = colName2Idx["pdbx_PDB_model_num"]; // 20
+                cntF = colName2Idx.Count + 1;
+            } catch (Exception ex) {
+                vv.LastError = "Invalid ATOM sections" + ex.ToString();
+                return null;
+            }
 
             float xC4 = 0;  // used to store C3 temporarily for DNA and RNA seq.
             float yC4 = 0;
@@ -353,7 +389,6 @@ namespace VisuMap {
             // represents a peptide.
             bool singlePepRNA_checked = false;
             bool singlePepRNA = false;
-            string nextLineBuf = null; // temporarily hold the next line.
             string curChName = null;  // the chain name of the last processed ATOM line.
 
             while (true) {
@@ -366,32 +401,6 @@ namespace VisuMap {
                 }
                 if ((L == null) || (L[0] == '#'))
                     break;
-
-                //
-                // Process the _atom_site.* lines
-                //
-                if (L.StartsWith("_atom_site.")) {
-                    string cName = L.Substring(L.IndexOf('.') + 1).TrimEnd();
-                    colName2Idx[cName] = idxF++;
-                    continue;
-                }
-                if (C_ATOM_ID < 0) {
-                    try {
-                        C_ATOM_ID = colName2Idx["label_atom_id"];  //3
-                        C_COMP_ID = colName2Idx["label_comp_id"];  // 5
-                        C_ENTITY_ID = colName2Idx["label_entity_id"];  // 7
-                        C_SEQ_ID = colName2Idx["label_seq_id"];  // 8
-                        C_CARTN_X = colName2Idx["Cartn_x"];  // 10
-                        C_CARTN_Y = colName2Idx["Cartn_y"];  // 11
-                        C_CARTN_Z = colName2Idx["Cartn_z"];  // 12
-                        C_ASYM_ID = colName2Idx["auth_asym_id"]; // 18
-                        C_MODEL_NUM = colName2Idx["pdbx_PDB_model_num"]; // 20
-                        cntF = colName2Idx.Count + 1;
-                    } catch (Exception ex) {
-                        vv.LastError = "Invalid ATOM sections" + ex.ToString();
-                        return null;
-                    }
-                }
 
                 //
                 // Process the ATOM and HETATM lines
