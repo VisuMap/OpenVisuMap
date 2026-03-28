@@ -294,7 +294,7 @@ namespace VisuMap {
             return acc2chain;
         }
 
-        Dictionary<string, char> P3 = new Dictionary<string, char>()
+        static Dictionary<string, char> P3 = new Dictionary<string, char>()
         {
             {"ALA", 'A' },
             {"ARG", 'R' },
@@ -319,6 +319,9 @@ namespace VisuMap {
             {"UNK", 'x' }
         };
 
+        static HashSet<string> setRNA = new HashSet<string>() { "A", "U", "G", "C" };
+        static HashSet<string> setDNA = new HashSet<string>() { "DA", "DT", "DG", "DC" };
+
         const int maxChainIndex = 144; // 4x36 of "36 Clusters" 
         List<IBody> LoadAtoms(TextReader tr, HashSet<int> helixSet, HashSet<int> betaSet, List<string> chainNames) {
             Dictionary<string, int> ch2idx = new Dictionary<string, int>() {
@@ -327,8 +330,6 @@ namespace VisuMap {
             List<IBody> bsList = vv.New.BodyList();
             List<IBody> bsList2 = vv.New.BodyList();
             int rsIdxPre = -1;
-            var setRNA = new HashSet<string>() { "A", "U", "G", "C" };
-            var setDNA = new HashSet<string>() { "DA", "DT", "DG", "DC" };
             char[] fSeparator = new char[] { ' ' };
             char[] dbQuoats = new char[] { '"' };
 
@@ -405,6 +406,7 @@ namespace VisuMap {
                 //
                 // Process the ATOM and HETATM lines
                 // 
+                
                 // Ignore comments withing ATOM rows.
                 if (L[0] == '_')
                     continue;

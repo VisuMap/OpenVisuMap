@@ -91,25 +91,56 @@ def MainMain(menuKey):
 		case 'SM':
 			SmoothenComplex(pId, singleChain=ctrPressed)
 		case 'TT':
-			#BroadcastMapCfg()
-			pId = '3J6Y_79'
-			_, bs, _, _ = LoadCifData(pId, chainNames=GetChainName(pId))
+			'''
+			BroadcastMapCfg()
+
+			t0 = time.time()
+			_, bs, _, _ = LoadCifData(pId, chainNames=None)
+			t1 = time.time()
+			vv.Message(f'Time: {t1-t0:.3}')
+
+			_, bs, _, _ = LoadCifData(pId, chainNames=None)
+			#_, bs, _, _ = LoadCifData(pId, chainNames=GetChainName(pId))
 			ShowBodyList(Interpolate(bs, rp=3))
-			'''
-			pName = None
-			for b in bs:
-				b.Id = b.Id.split('.')[0]
-				b.Name = b.Name[2]					
-			vs = New.ValueItemList(bs)
-			for k in range(1, bs.Count):
-				vs[k].Value = bs[k].DistanceTo(bs[k-1])				
-			bv = New.BarView(vs)
-			bv.BarLabelType = 1
-			bv.Horizontal = True
-			bv.UpperLimit = 8.0
-			bv.LowerLimit = 0
-			bv.Show()
-			'''
+			'''			
+			ShowBondLength(pList[:20])
+
+def ShowBondLength(pList):	
+	if pList == None:
+		vv.Message('No polymer selected!')
+		return
+	for pId in pList:	
+		#_, bs, _, _ = LoadCifData(pId, chainNames=GetChainName(pId))
+		bs = LoadChain(pId)
+		#ShowBodyList(Interpolate(bs, rp=3))
+		chType = vv.Dataset.StringAt(pId, 0)
+		chType = 15 if chType=='r' else ( 0 if chType=='d' else 6 )
+		for b in bs:
+			b.Id = b.Id.split('.')[0]
+			b.Name = b.Name[0] if chType==6 else b.Name[2]
+			b.Type = chType
+		vs = New.ValueItemList(bs)
+		for k in range(1, bs.Count):
+			vs[k].Value = bs[k].DistanceTo(bs[k-1])
+		bv = New.BarView(vs)
+		bv.Horizontal = False
+		bv.BarLabelType = 1
+		bv.BaseValueExplicit = 4.5
+		bv.UpperLimit = 8.0
+		bv.LowerLimit = 2.5
+		bv.BaseLineType = 6
+		info = MapInfo({'pId':pId})
+		bv.Description = info.Str
+		if bv.MaxValue() > 8.0:
+			its = bv.ItemList
+			for k in range(1, its.Count):
+				if its[k].Value > 10:
+					its[k].Name = its[k-1].Name + its[k].Name
+			bv.NormalizeView()
+		bv.ColorPaletteName = 'Color16'
+		bv.ResizeClient(8*bs.Count, 140)
+		bv.Show2()
+	vv.GuiManager.TileAllWindows(None, True)
 
 
 # ---------------------------------------------------------------------------------------
@@ -133,7 +164,7 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 				break
 
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[10:], mpIdx=1, createPMap=True, createAtlas=False)
+DoDatasetList(dxList[2:20], mpIdx=0, createPMap=True, createAtlas=False)
 vv.Folder.Save()
 
 
