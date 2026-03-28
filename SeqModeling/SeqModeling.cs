@@ -274,12 +274,18 @@ namespace VisuMap {
             INumberTable D = New.NumberTable(bList, tm.Columns);
             double[][] M = D.Matrix as double[][];
             const double EPS = 0.085;
+            // Since, RNA and DNA are more spread than proteins, we 
+            // need a little larger win-size for RNA and DNA polymers.
+            double rRNA_AA = 44 / 14.0; 
             MT.LoopNoblocking(0, pList.Count, k => {
                 string pId = pList[k];
                 var bs = LoadChain3D($"C:/temp/ChainCache/{pList[k]}.pmc");
                 if ( intRp > 0)
                     bs = Interpolate3D(bs, intRp, EPS, bs.Count, 0);
-                var bDist = MovingWindowVariance(bs, winSize);
+                int ws = winSize;
+                if (vv.Dataset.StringAt(pId, 0)[0] != 'A')
+                    ws = (int) ( winSize * rRNA_AA );
+                var bDist = MovingWindowVariance(bs, ws);
                 MovingChainFT(bDist, tm, M[k]);
                 if ((k > 0) && (k % 500 == 0)) {
                     vv.Title = $"Reading chains: {k} of {pList.Count}";
