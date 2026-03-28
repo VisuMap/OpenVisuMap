@@ -334,9 +334,14 @@ def IsCreated(vw):
 def UpdateLvt():
 	bv, mp, bList = pp.Tag	
 	winSize = int(pp.CurrentValue)
-	pp.CurrentValue = winSize
+	pp.CurrentValue = winSize	
 	if IsCreated(bv):
 		bv.SetValues( cs.MovingWindowVariance(bList, winSize) )
+		mxV = bv.MaxValue()
+		if bv.UpperLimit < mxV:
+			bv.UpperLimit = 3*mxV
+		elif bv.UpperLimit > 3*mxV:
+			bv.UpperLimit = 1.1*mxV
 		bv.Redraw()
 	if IsCreated(mp):
 		ss.CopyToXYZ(bList, mp.BodyList)
@@ -360,9 +365,11 @@ def LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True):
 	bv.UsingColorPalette = True
 	bv.Title = "Moving Window Variance"
 	bv.Description = info.Str
+	bv.AutoScaling = False
+	bv.UpperLimit = 10.0
 	width = bv.ItemList.Count
 	if width < 2000: width *= 2
-	bv.ResizeClient(width, 0)
+	bv.ResizeClient(width, 0)	
 	bv.Show2()
 
 	if addCtrl:
