@@ -90,6 +90,14 @@ public List<IBody> NewHelix(int residues) {
 	return bList;
 }
 
+public void SqrtTable(INumberTable nt) {
+	int columns = nt.Columns;
+	MT.ForEach(nt.Matrix, R=>{		
+		for(int col=0; col<columns; col++)
+			R[col] = Math.Sqrt(R[col]);
+	});
+}
+
 public List<IBody> ShiftChain(List<IBody> bList, double dx, double dy, double dz) {
 	foreach(var b in bList)
 		b.Add(dx, dy, dz);
@@ -332,16 +340,16 @@ def IsCreated(vw):
 	return (vw != None) and not vw.IsDisposed
 
 def UpdateLvt():
-	bv, mp, bList = pp.Tag	
+	bList, bv, mp = pp.Tag	
 	winSize = int(pp.CurrentValue)
 	pp.CurrentValue = winSize	
 	if IsCreated(bv):
 		bv.SetValues( cs.MovingWindowVariance(bList, winSize) )
 		mxV = bv.MaxValue()
 		if bv.UpperLimit < mxV:
-			bv.UpperLimit = 3*mxV
-		elif bv.UpperLimit > 3*mxV:
-			bv.UpperLimit = 1.1*mxV
+			bv.UpperLimit = 10*mxV
+		elif bv.UpperLimit > 10*mxV:
+			bv.UpperLimit = mxV
 		bv.Redraw()
 	if IsCreated(mp):
 		ss.CopyToXYZ(bList, mp.BodyList)
@@ -365,28 +373,29 @@ def LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True):
 	bv.UsingColorPalette = True
 	bv.Title = "Moving Window Variance"
 	bv.Description = info.Str
-	bv.AutoScaling = False
 	bv.UpperLimit = 10.0
 	width = bv.ItemList.Count
 	if width < 2000: width *= 2
 	bv.ResizeClient(width, 0)	
 	bv.Show2()
+	bv.NormalizeView()
 
 	if addCtrl:
+		bv.AutoScaling = False
 		bList2 = New.BodyListClone(bList)
 		cs.MovingWindowMean(bList2, winSize)
 		cs.NormalizeChain(bList2, -1, True)
 		mp = ShowBodyList(bList2, normalize=False, info=info)
 		mp.CentralizeView(False)
 		mp.Title = "Moving Window Mean"
-	
+
 		mxLen = min(1000, len(bList))
 		vs = New.ValueSelector(0, mxLen, winSize, 'UpdateLvt()')	
 		vs.Title = 'Window Size'
 		vs.StepSize = 1
-		vs.Tag = [bv, mp, bList]
+		vs.Tag = [bList, bv, mp]
 		vs.Show()
-		vs.OnClose('for vw in pp.Tag[:2]: vw.Close();')
+		vs.OnClose('for vw in pp.Tag[1:]: vw.Close();')
 
 def MovingWindowVariance(pList, waveCount, waveLen, winSize, intRp=0):
 	from os.path import exists
@@ -713,7 +722,7 @@ def SmoothenComplex(pId, singleChain=False):
 	#chNames = ['5G_1', '5H_1', '5I_1', '5J_1', '5K_1', '5L_1']
 	mp = ShowPDB(pId,rp=3, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=True,
 		setChainId=False, typeByChainIdx=False, unifyId=False, chainNames=chNames)
-	maxWS = min(10000, ss.MaxChainLen(mp.BodyList)//2)
+	maxWS = ss.MaxChainLen(mp.BodyList)
 	vs = New.ValueSelector(0, maxWS, 14, 'UpdateComplex(pp)')  # 14,29,43,59,87
 	vs.Title = 'Moving Window Size'
 	vs.StepSize = 1
@@ -1224,6 +1233,5 @@ def SelectPID():
 	vv.GuiManager.SetClipboard(info.pId)
 
 '''
-
 
 '''
