@@ -90,11 +90,12 @@ public List<IBody> NewHelix(int residues) {
 	return bList;
 }
 
-public void SqrtTable(INumberTable nt) {
+public void CompressTable(INumberTable nt) {
 	int columns = nt.Columns;
 	MT.ForEach(nt.Matrix, R=>{		
 		for(int col=0; col<columns; col++)
-			R[col] = Math.Sqrt(R[col]);
+			R[col] = Math.Pow(R[col], 0.33333); 
+			//R[col] = Math.Sqrt(R[col]);
 	});
 }
 
@@ -389,7 +390,7 @@ def LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True):
 		mp.CentralizeView(False)
 		mp.Title = "Moving Window Mean"
 
-		mxLen = min(1000, len(bList))
+		mxLen = min(10000, len(bList))
 		vs = New.ValueSelector(0, mxLen, winSize, 'UpdateLvt()')	
 		vs.Title = 'Window Size'
 		vs.StepSize = 1

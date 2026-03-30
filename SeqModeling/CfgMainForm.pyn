@@ -97,23 +97,29 @@ def MainMain(menuKey):
 			ShowBodyList(Interpolate(bs, rp=3))
 			ShowBondLength(pList[:20])
 			'''
+			ShowTwistMap(pId)
 
-			bList = InterpolateChain(LoadChain(pId), rp=3)
-			info = MapInfo({'pId':pId})
-			
-			stepSize = 1 if bList.Count < 1000 else bList.Count//1000
-			wSzCnt = bList.Count if bList.Count<1000 else 1000
-			nt = New.NumberTable(bList, wSzCnt).Transpose2()
-			for row in range(nt.Rows):
-				wSz = stepSize*row
-				cs.MovingWindowVariance(bList, wSz, nt.Matrix[row])
-				nt.RowSpecList[row].Id = 'ws.' + str(wSz)
-			ss.SqrtTable(nt)   # to better discreminate low value regions.
-			hm = New.HeatMap(nt)
-			sz = int(math.pi * 10.0 * math.sqrt(nt.Rows))
-			hm.ResizeClient(sz, sz)
-			hm.Show2()
-			LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True)
+def ShowTwistMap(pId, maxWsRows=1000):
+	bList = InterpolateChain(LoadChain(pId), rp=3)
+	info = MapInfo({'pId':pId})	
+	stepSize = 1 if bList.Count < maxWsRows else bList.Count//maxWsRows
+	wSzCnt = bList.Count if bList.Count<maxWsRows else maxWsRows
+	nt = New.NumberTable(bList, wSzCnt).Transpose2()
+	for row in range(nt.Rows):
+		wSz = stepSize*row
+		cs.MovingWindowVariance(bList, wSz, nt.Matrix[row])
+		nt.RowSpecList[row].Id = 'ws.' + str(wSz)
+	ss.CompressTable(nt)   # to better discreminate low value regions.
+
+	hm = New.HeatMap(nt)
+	sz = int(math.pi * 10.0 * math.sqrt(nt.Rows))
+	hm.ResizeClient(sz, sz)
+	hm.AutoScaling = True
+	hm.SpectrumType = 1
+	hm.Description = info.Str
+	hm.Show2()
+	#LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True)
+	ShowProteinList([pId], includeHA=False, intRp=3, gsize=1.5, gopacity=0.5)
 
 
 def ShowBondLength(pList):	
