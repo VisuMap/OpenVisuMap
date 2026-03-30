@@ -716,17 +716,17 @@ namespace VisuMap {
                 bs[k].SetXYZ(M[k]);
         }
 
-        public double[] MovingWindowVariance(IList<IBody> bs, int winSize) {  
+        public double[] MovingWindowVariance(IList<IBody> bs, int winSize, double[] varBuffer = null) {  
             var P = bs.Select(b => b.ToV3()).ToArray();
             P = MovingWindowMean0(P, winSize);
             Vector3[] M = MovingWindowMean0(P, winSize);
             if (M == null)
                 return null;
-            double[] varList = new double[bs.Count];
-            MT.Loop(0, varList.Length, k => {
-                varList[k] = (P[k] - M[k]).LengthSquared();
+            double[] varArray = (varBuffer == null) ? new double[bs.Count] : varBuffer;
+            MT.Loop(0, varArray.Length, k => {
+                varArray[k] = (P[k] - M[k]).LengthSquared();
             });
-            return varList;
+            return varArray;
         }
 
 
