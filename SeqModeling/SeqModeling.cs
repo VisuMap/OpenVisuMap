@@ -82,7 +82,7 @@ namespace VisuMap {
                 if (hidIntp)
                     b.Hidden = b.Id[0] == 'i';
             }
-            const short SeqMap_HEAD = 155;
+            const short SeqMap_HEAD = 158;
             const short SeqMap_TAIL = 171;
             bList[0].Type = SeqMap_HEAD;
             for(int k=0; k<bList.Count-1; k++) {

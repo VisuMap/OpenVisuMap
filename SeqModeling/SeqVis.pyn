@@ -10,7 +10,7 @@ P3 = {'ALA':'A', 'ARG':'R', 'ASN':'N', 'ASP':'D', 'CYS':'C',
 	'LEU':'L', 'LYS':'K', 'MET':'M', 'PHE':'F', 'PRO':'P',		
     'SER':'S', 'THR':'T', 'TRP':'W', 'TYR':'Y', 'VAL':'V'}
 SeqMap_GLYPHSET = '36 Clusters||||Colored Balls|Ordered Glyphs'
-SeqMap_HEAD = 155
+SeqMap_HEAD = 158
 SeqMap_TAIL = 171
 PMap_GLYPHSET = 'Ordered 64|36 Clusters|Red Green'
 BOND_LENGTH = 3.8015
