@@ -247,9 +247,8 @@ class AtlasMapStore():
 			self.rawMap.Close()
 
 class CheckTime():
-	def __init__(self, fmt=None, scale=1.0):
+	def __init__(self, fmt=None):
 		self.fmt = fmt
-		self.scale = scale
 	def __enter__(self):
 		self.t0 = time.time()
 	def __exit__(self, et, ev, tr):
@@ -259,8 +258,11 @@ class CheckTime():
 				vv.Message(f'Time: {tm_:.2f}s')
 			else:
 				vv.Message(f'Time: {tm_/3600:.2f}hr')
-		else:		
-			tm_ *= self.scale
+		else:
+			if tm_ < 3600:
+				tm_ = f'{tm_:.2f}s'
+			else:
+				tm_ = f'{tm_/3600:.2f}hr'				
 			print( self.fmt.format(tm = tm_) )
 
 class FastTsne():

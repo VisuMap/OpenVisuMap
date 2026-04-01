@@ -170,11 +170,11 @@ MainMain(vv.EventSource.Item)
 
 def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 	vv.SelectedItems.Clear()
-	with CheckTime('Total Time: {tm:.2f}Hr\n', 1/3600):
+	with CheckTime('Total Time: {tm}\n'):
 		for dsIdx in dxList:
 			dsName = vv.OpenDatasetMap(dsIdx, mpIdx).Name
 			#RemoveAllChainCache(only_rd_chains=True)
-			with CheckTime(f'{dsIdx:2}: {dsName:<24}\t' + '{tm:.2f}s'):
+			with CheckTime(f'{dsIdx:2}: {dsName:<24}\t' + '{tm}'):
 				if createPMap: 
 					MainMain('P-Map')
 				if createAtlas:	
@@ -183,7 +183,7 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 				break
 
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[2:], mpIdx=0, createPMap=True, createAtlas=False)
+DoDatasetList(dxList[20:], mpIdx=0, createPMap=True, createAtlas=False)
 vv.Folder.Save()
 
 
