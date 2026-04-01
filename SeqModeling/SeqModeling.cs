@@ -269,7 +269,7 @@ namespace VisuMap {
         }
 
 
-        public INumberTable MovingWindowFT(List<string> pList, int winSize, INumberTable tm, int intRp=0) {
+        public INumberTable MovingWindowFT_Old(List<string> pList, int winSize, INumberTable tm, int intRp=0) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
             INumberTable D = New.NumberTable(bList, tm.Columns);
             double[][] M = D.Matrix as double[][];
@@ -294,7 +294,37 @@ namespace VisuMap {
             return D;
         }
 
-        public void MovingChainFT(double[] bDist, INumberTable tm,  double[] R) {
+        public INumberTable MovingWindowFT(List<string> pList, int winSize, INumberTable tm, int intRp = 0) {
+            List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
+            int[] wsList = new int[] { 14, 4 * 14, 16 * 14, 64 * 14 };
+            INumberTable D = New.NumberTable(bList, tm.Columns * wsList.Length);
+            const double EPS = 0.085;
+            const double rRNA_AA = 44 / 14.0;
+            MT.LoopNoblocking(0, pList.Count, k => {
+                string pId = pList[k];
+                var bs = LoadChain3D($"C:/temp/ChainCache/{pList[k]}.pmc");
+                if (intRp > 0)
+                    bs = Interpolate3D(bs, intRp, EPS, bs.Count, 0);
+                int idx0 = 0;
+                bool isNucleotide = vv.Dataset.StringAt(pId, 0)[0] != 'A';
+                double[] Rk = (double[])D.Matrix[k];
+                double[] bDist = new double[bs.Count];
+                foreach (int n in wsList) { 
+                    int ws = isNucleotide ? (int)(n * rRNA_AA) : n;
+                    if (ws < bs.Count) {
+                        MovingWindowVariance(bs, ws, bDist);
+                        MovingChainFT(bDist, tm, Rk, idx0);
+                        idx0 += tm.Columns;
+                    }
+                }
+                if ((k > 0) && (k % 500 == 0)) {
+                    vv.Title = $"Reading chains: {k} of {pList.Count}";
+                }
+            });
+            return D;
+        }
+
+        public void MovingChainFT(double[] bDist, INumberTable tm,  double[] R, int index0 = 0) {
             double[][] M = tm.Matrix as double[][];
             int L = bDist.Length;
             MT.Loop(0, M[0].Length, col=>{
@@ -303,7 +333,7 @@ namespace VisuMap {
                     int k1 = (k < L) ? k : (2 * L - 1 - k);
                     v += bDist[k1] * M[k % M.Length][col];
                 }
-                R[col] = v;
+                R[col + index0] = v;
             });
         }
 
@@ -691,6 +721,7 @@ namespace VisuMap {
             Vector3[] M = new Vector3[L + 1];
             int WS = 2 * winSize + 1;
             Vector3 S = WS * P[0];  // the sum of current initial moving-window [-winSize, +winSize]
+            float cf = (float)(1.0 / WS);
 
             Vector3 xP(int idx) {
                 return (idx < 0) ? (2*P[0] - P[-idx]) : 
@@ -698,14 +729,10 @@ namespace VisuMap {
             }
             for (int k = 1; k < L; k++) {  // k is the index of window center.
                 S += xP(k + winSize) - xP(k - winSize - 1);
-                M[k] = S;
+                M[k] = cf*S;
             }
-
-            float cf = (float)(1.0 / WS);
-            MT.Loop(1, L, k => {  M[k] *= cf; });
             M[0] = P[0]; // fixed.
             M[L] = P[L]; // 
-
             return M;
         }
 

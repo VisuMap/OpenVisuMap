@@ -396,14 +396,15 @@ def LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True):
 		vs.StepSize = 1
 		vs.Tag = [bList, bv, mp]
 		vs.Show()
-		vs.OnClose('for vw in pp.Tag[1:]: vw.Close();')
+		vs.OnClose('for vw in pp.Tag[1:]: vw.Close()')
 
 def MovingWindowVariance(pList, waveCount, waveLen, winSize, intRp=0):
 	from os.path import exists
 	for pId in pList:
 		if not exists(	f'{CHAIN_CACHE}/{pId}.pmc'):
 			UnpackChain(pId[:4])
-	tm = GetFourier(waveLen, waveCount)
+	tm = GetFourier(waveLen, waveCount)	
+	#with CheckTime('Time: {tm:.2f}s'):
 	return cs.MovingWindowFT(pList, winSize, tm, intRp=intRp)
 
 # t-SNE reduced data
@@ -427,9 +428,7 @@ def GetFourierTrans(pList, waveLen, waveCount, winSize=0, intRp=0):
 		if winSize != 0:
 			SimplifySeq(bList, winSize)
 		nt = New.NumberTable(bList,  3)
-		#nt = SelectHelixAA(nt)
 		cs.PcaNormalizePositive(nt)
-		#cs.RowDifferentiation(nt)
 		cs.FourierTrans(tm, nt, pD.Matrix[k])
 	return pD
 

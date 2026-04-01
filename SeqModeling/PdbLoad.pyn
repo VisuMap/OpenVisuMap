@@ -71,6 +71,8 @@ def ShowProteinList(pList, includeHA, atName=None, gsize=1.0, gopacity=0.75, int
 		del mapStore
 	else:
 		vv.GuiManager.TileAllWindows(mapList)
+	if len(mapList) == 1:
+		return mapList[0]
 
 def GetChainName(pId):
 	rowIdx = vv.Dataset.BodyIndexForId(pId)

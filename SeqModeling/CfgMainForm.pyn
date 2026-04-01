@@ -32,7 +32,7 @@ def MainMain(menuKey):
 			for vt in 1*['mwV']: 
 				match vt:
 					case 'mwV': # 14 ~= 3.6 * (2**3)
-						PM2(waveCount=32, waveLen=512*(2**3), winSize=28, intRp=3, tSNE=(ppl_, 8.0, 1.0))
+						PM2(waveCount=8, waveLen=512*(2**3), winSize=28, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'sFT':	
 						PM2(aaGroups=GetAAGroup(20), tSNE=(ppl_, 6.0, 0.9))
 					case 'pFT':	
@@ -119,7 +119,9 @@ def ShowTwistMap(pId, maxWsRows=1000):
 	hm.Description = info.Str
 	hm.Show2()
 	#LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True)
-	ShowProteinList([pId], includeHA=False, intRp=3, gsize=1.5, gopacity=0.5)
+	mp = ShowProteinList([pId], includeHA=False, intRp=3, gsize=1.5, gopacity=0.5)
+	hm.Tag = mp
+	hm.OnClose('pp.Tag.Close()')
 
 
 def ShowBondLength(pList):	
@@ -181,7 +183,7 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 				break
 
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[2:20], mpIdx=0, createPMap=True, createAtlas=False)
+DoDatasetList(dxList[2:], mpIdx=0, createPMap=True, createAtlas=False)
 vv.Folder.Save()
 
 
