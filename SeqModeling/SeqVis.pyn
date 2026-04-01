@@ -247,15 +247,21 @@ class AtlasMapStore():
 			self.rawMap.Close()
 
 class CheckTime():
-	def __init__(self, fmt, scale=1.0):
+	def __init__(self, fmt=None, scale=1.0):
 		self.fmt = fmt
 		self.scale = scale
 	def __enter__(self):
 		self.t0 = time.time()
 	def __exit__(self, et, ev, tr):
 		tm_ = time.time() - self.t0
-		tm_ *= self.scale
-		print( self.fmt.format(tm = tm_) )
+		if self.fmt == None:
+			if tm_ < 1000:
+				vv.Message(f'Time: {tm_:.2f}s')
+			else:
+				vv.Message(f'Time: {tm_/3600:.2f}hr')
+		else:		
+			tm_ *= self.scale
+			print( self.fmt.format(tm = tm_) )
 
 class FastTsne():
 	def __init__(self, maxRows=0, maxColumns=5, outDim=2, epoches=1000, ppl=0.05, initExag=4.0, finalExag=1.0):
@@ -404,7 +410,7 @@ def MovingWindowVariance(pList, waveCount, waveLen, winSize, intRp=0):
 		if not exists(	f'{CHAIN_CACHE}/{pId}.pmc'):
 			UnpackChain(pId[:4])
 	tm = GetFourier(waveLen, waveCount)	
-	#with CheckTime('Time: {tm:.2f}s'):
+	#with CheckTime():
 	return cs.MovingWindowFT(pList, winSize, tm, intRp=intRp)
 
 # t-SNE reduced data
