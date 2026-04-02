@@ -1,0 +1,39 @@
+from math import degrees
+from Bio.PDB import PPBuilder
+from Bio.PDB.MMCIFParser import MMCIFParser
+
+def GetRamachandraw(chId):
+	pId = chId[:4]
+	chIdx = int(chId.split('_')[1])
+	filePath = PdbCacheFile(chId)
+	pdb = MMCIFParser().get_structure(pId, filePath)
+	chain = PPBuilder().build_peptides(pdb)[chIdx]
+	bList = LoadChain(chId)
+	nt = New.NumberTable(bList, 2)
+	M = nt.Matrix
+	ppList = chain.get_phi_psi_list()
+	for k in range(nt.Rows):
+		phi, psi = ppList[k]
+		if phi: M[k][0] = degrees(phi)
+		if psi: M[k][1] = degrees(psi)
+	nt.ColumnSpecList[0].Id = 'Phi'
+	nt.ColumnSpecList[1].Id = 'Psi'
+	return nt, bList
+
+def ShowRamachandraw(chId):
+	nt, bList = GetRamachandraw(chId)
+	mp = New.XyPlot(nt)
+	mp.ShowConnection = False
+	mp.AutoScaling = False
+	mp.UpperLimitX = 180.0
+	mp.UpperLimitY = 180.0
+	mp.LowerLimitX = -180.0
+	mp.LowerLimitY = -180.0
+	mp.Show()
+	bList = InterpolateChain(bList,rp=3, hidIntp=True)
+	bList = cs.NormalizeChain(bList)
+	ShowBodyList(bList)
+
+
+
+

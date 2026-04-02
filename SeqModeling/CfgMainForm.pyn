@@ -13,9 +13,11 @@ def MainMain(menuKey):
 	atlasName = None if len(pList) == 1 else f'{vv.Dataset.Name}/{vv.Map.Name}.{len(pList)}'
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
-	if menuKey in ['3Dx', 'Web', 'ChmX', 'Open']:
+	if menuKey in ['3Dx', 'Web', 'ChmX', 'Open', '3D']:
 		if ctrPressed:
 			pId = vv.PromptMessage('Protein ID: ', '????')	
+			pList = [ pId ]
+			atlasName = None
 		if pId == None: 
 			if not ctrPressed:
 				vv.Message('No protein has been selected')
@@ -63,7 +65,8 @@ def MainMain(menuKey):
 		case '3D':
 			if atlasName != None: 
 				atlasName += '-3D'
-			pList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
+			if len(pList) > 1:
+				pList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
 			ShowProteinList(pList, includeHA=False, intRp=5, atName=atlasName, gsize=1.5, gopacity=0.5)
 		case '3Ds':
 			Merge3DList(pList)
@@ -97,13 +100,14 @@ def MainMain(menuKey):
 			ShowBodyList(Interpolate(bs, rp=3))
 			ShowBondLength(pList[:20])
 			'''
-			ShowTwistMap(pId)
+			#ShowTwistMap(pId, maxWsRows=4096)
+			ShowRamachandraw(pId)
 
-def ShowTwistMap(pId, maxWsRows=1000):
+def ShowTwistMap(pId, maxWsRows=1024):
 	bList = InterpolateChain(LoadChain(pId), rp=3)
-	info = MapInfo({'pId':pId})	
 	stepSize = 1 if bList.Count < maxWsRows else bList.Count//maxWsRows
 	wSzCnt = bList.Count if bList.Count<maxWsRows else maxWsRows
+	info = MapInfo({'pId':pId, 'wsCnt':wSzCnt, 'stepSz':stepSize, 'Len':len(bList), 'rp':3})	
 	nt = New.NumberTable(bList, wSzCnt).Transpose2()
 	for row in range(nt.Rows):
 		wSz = stepSize*row
@@ -115,10 +119,10 @@ def ShowTwistMap(pId, maxWsRows=1000):
 	sz = int(math.pi * 10.0 * math.sqrt(nt.Rows))
 	hm.ResizeClient(sz, sz)
 	hm.AutoScaling = True
-	hm.SpectrumType = 1
+	hm.SpectrumType = 4
 	hm.Description = info.Str
+	hm.ColorPaletteName = 'Gray256'
 	hm.Show2()
-	#LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True)
 	mp = ShowProteinList([pId], includeHA=False, intRp=3, gsize=1.5, gopacity=0.5)
 	hm.Tag = mp
 	hm.OnClose('pp.Tag.Close()')
@@ -183,7 +187,7 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 				break
 
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[20:], mpIdx=0, createPMap=True, createAtlas=False)
+DoDatasetList(dxList[25:26], mpIdx=0, createPMap=True, createAtlas=False)
 vv.Folder.Save()
 
 

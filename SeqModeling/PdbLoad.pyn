@@ -339,11 +339,11 @@ def ShowBetaSheet():
 	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.b')]
 
 
-def LoadChain(pId):
+def LoadChain(chId):
 	from os.path import exists
-	cacheFile = ChainCacheFile(pId)
+	cacheFile = ChainCacheFile(chId)
 	if not exists(cacheFile):
-		UnpackChain(pId[:4])
+		UnpackChain(chId[:4])
 	return cs.LoadChain3D(cacheFile)
 
 def LoadSeq(pId):

@@ -269,7 +269,7 @@ namespace VisuMap {
         }
 
 
-        public INumberTable MovingWindowFT_Old(List<string> pList, int winSize, INumberTable tm, int intRp=0) {
+        public INumberTable MovingWindowFTws(List<string> pList, int winSize, INumberTable tm, int intRp=0) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
             INumberTable D = New.NumberTable(bList, tm.Columns);
             double[][] M = D.Matrix as double[][];
@@ -296,7 +296,8 @@ namespace VisuMap {
 
         public INumberTable MovingWindowFT(List<string> pList, int winSize, INumberTable tm, int intRp = 0) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
-            int[] wsList = new int[] { 14, 4 * 14, 16 * 14, 64 * 14 };
+            int[] wsList = new int[] { 1, 4, 16, 64 };
+            wsList = wsList.Select(v => winSize * v).ToArray();
             INumberTable D = New.NumberTable(bList, tm.Columns * wsList.Length);
             const double EPS = 0.085;
             const double rRNA_AA = 44 / 14.0;
