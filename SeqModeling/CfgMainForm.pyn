@@ -1,4 +1,4 @@
-#MenuLabels P-Map P-2D C-Map Info ChmX Web Open LD Siblings \
+#MenuLabels P-Map P-2D C-Map Info ChmX Web Open LD Hst Siblings \
 # SeqMap Align 3D 3Dx 3Ds P-S2 S2 UF Lvt SM TT
 
 vv.Import('SeqVis.pyn')
@@ -22,6 +22,8 @@ def MainMain(menuKey):
 			if not ctrPressed:
 				vv.Message('No protein has been selected')
 			return
+
+	AddHistory(pId)
 			
 	match menuKey:
 		case 'P-Map':
@@ -93,6 +95,8 @@ def MainMain(menuKey):
 			LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=ctrPressed)
 		case 'SM':
 			SmoothenComplex(pId, singleChain=ctrPressed)
+		case 'Hst':
+			ShowHistory()	
 		case 'TT':
 			'''
 			BroadcastMapCfg()
@@ -177,7 +181,7 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 	with CheckTime('Total Time: {tm}\n'):
 		for dsIdx in dxList:
 			dsName = vv.OpenDatasetMap(dsIdx, mpIdx).Name
-			#RemoveAllChainCache(only_rd_chains=True)
+			RemoveAllChainCache(only_rd_chains=False)
 			with CheckTime(f'{dsIdx:2}: {dsName:<24}\t' + '{tm}'):
 				if createPMap: 
 					MainMain('P-Map')
@@ -187,9 +191,10 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 				break
 
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[25:26], mpIdx=0, createPMap=True, createAtlas=False)
+DoDatasetList(dxList[20:], mpIdx=0, createPMap=True, createAtlas=False)
 vv.Folder.Save()
 
+RemoveAllChainCache( only_rd_chains=False )
 
 for dn in list(vv.Folder.DatasetNameList)[1:]:
 	ds = vv.Folder.OpenDataset(dn)

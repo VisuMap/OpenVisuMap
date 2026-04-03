@@ -53,6 +53,22 @@ def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling
 if 'cs' not in globals():
 	cs = LoadSeqModeling()
 
+def AddHistory(wd):
+	global pIdHistory
+	if wd == None:
+		return
+	if not 'pIdHistory' in globals():
+		pIdHistory = New.StringArray()
+	pIdHistory.Insert(0, wd)
+
+def ShowHistory():	
+	if 'pIdHistory' in globals():		
+		msg, N, K = '', pIdHistory.Count, 10
+		for idx in range(0, N, K):
+			len = min(3, N - idx)
+			msg += ', '.join( pIdHistory.GetRange(idx, len) ) + '\n'
+		vv.Message(msg)
+		
 ss = New.CsObject('''
 
 public void SwapHiddenBodies(List<IBody> bsList) {

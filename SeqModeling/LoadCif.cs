@@ -345,6 +345,7 @@ namespace VisuMap {
             int C_CARTN_Z = -1;
             int C_ASYM_ID = -1;
             int C_MODEL_NUM = -1;
+            int C_AUTH_SEQ_ID = -1;
             int idxF = 1;
             int cntF = -1;
             Dictionary<string, int> colName2Idx = new Dictionary<string, int>();
@@ -376,6 +377,7 @@ namespace VisuMap {
                 C_CARTN_Z = colName2Idx["Cartn_z"];  // 12
                 C_ASYM_ID = colName2Idx["auth_asym_id"]; // 18
                 C_MODEL_NUM = colName2Idx["pdbx_PDB_model_num"]; // 20
+                C_AUTH_SEQ_ID = colName2Idx["auth_seq_id"]; // The resource seq id, replaces label_seq_id.
                 cntF = colName2Idx.Count + 1;
             } catch (Exception ex) {
                 vv.LastError = "Invalid ATOM sections" + ex.ToString();
@@ -430,7 +432,7 @@ namespace VisuMap {
                 string bId = null;
 
                 if (fs[0] == "ATOM") {
-                    int rsIdx = int.Parse(fs[C_SEQ_ID]) - 1;
+                    int rsIdx = int.Parse(fs[C_AUTH_SEQ_ID]) - 1;
                     if (rsIdx == rsIdxPre)
                         continue;
                     if (P3.ContainsKey(rsName) && ((atName == "CA") || (atName == "C2"))) {

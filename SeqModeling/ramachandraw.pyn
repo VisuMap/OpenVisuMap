@@ -5,7 +5,10 @@ vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
 def GetRamachandraw(chId):
-	pId = chId[:4]
+	chType = vv.Dataset.StringAt(chId, 0)
+	if chType != 'A':
+		raise Exception(f'Chain {chId} is not protein chain')
+	pId = chId[:4]	
 	filePath = PdbCacheFile(chId)
 	pdb = MMCIFParser().get_structure(pId, filePath)
 	chainList = PPBuilder().build_peptides(pdb)
@@ -21,15 +24,25 @@ def GetRamachandraw(chId):
 
 	bList = LoadChain(chId)
 	nt = New.NumberTable(bList, 2)
-	seq2idx = {bList[k].Id.split('.')[0]:k for k in range(bList.Count)}
+	rsIdx2bIdx = {}
+	for k, b in enumerate(bList):
+		eIdx = b.Id.index('.')
+		rsIdx2bIdx[int(b.Id[1:eIdx])] = k
 	ppList = chain.get_phi_psi_list()
-	for k in range(len(ppList)):
-		phi, psi = ppList[k]
+
+	for k, ppValue in enumerate(ppList):
+		phi, psi = ppValue
 		seqIdx = chain[k].full_id[3][1] - 1
-		bIdx = seq2idx['A'+str(seqIdx)]
-		R = nt.Matrix[bIdx]
-		if phi: R[0] = degrees(phi)
-		if psi:	R[1] = degrees(psi)
+		if seqIdx in rsIdx2bIdx:
+			bIdx = rsIdx2bIdx[seqIdx]
+			R = nt.Matrix[bIdx]
+			if phi: 
+				R[0] = degrees(phi)
+			if psi:	
+				R[1] = degrees(psi)
+		else:
+			vv.Message(f'Cannot find resource index {seqIdx+1}')
+			break
 	nt.ColumnSpecList[0].Id = 'Phi'
 	nt.ColumnSpecList[1].Id = 'Psi'
 	return nt, bList
@@ -40,25 +53,31 @@ def ShowSeq(chain):
 
 def ShowRamachandraw(chId):
 	nt, bList = GetRamachandraw(chId)
+	for rs in nt.RowSpecList: rs.Type = 1	
 	mp = New.XyPlot(nt)
 	mp.ShowConnection = False
+	mp.ShowScale = False
 	mp.AutoScaling = False
+	mp.ShowAxes = True
 	mp.UpperLimitX = 180.0
 	mp.UpperLimitY = 180.0
 	mp.LowerLimitX = -180.0
 	mp.LowerLimitY = -180.0
 	mp.GlyphOpacity = 0.3
-	mp.GlyphSize = 1.0
+	mp.GlyphSize = 2.0
 	mp.Show()
 	bList = InterpolateChain(bList,rp=3, hidIntp=True)
-	bList = cs.NormalizeChain(bList)
-	ShowBodyList(bList)
+	bList = cs.NormalizeChain(bList, 1)
+	mp.Tag = ShowBodyList(bList)
+	mp.OnClose('pp.Tag.Close()')
 
 
 '''
 chId = '7CGO_111'
-chId = '9MDS_0'
+chId = '9RZE_30'
 ShowRamachandraw(chId)
+bList = LoadChain('9RZE_30')
+for b in list(bList)[:20]:	print(b.Id)
 '''
 
 
