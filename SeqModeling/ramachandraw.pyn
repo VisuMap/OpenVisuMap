@@ -1,24 +1,43 @@
 from math import degrees
 from Bio.PDB import PPBuilder
 from Bio.PDB.MMCIFParser import MMCIFParser
+vv.Import('SeqVis.pyn')
+vv.Import('PdbLoad.pyn')
+
 
 def GetRamachandraw(chId):
 	pId = chId[:4]
-	chIdx = int(chId.split('_')[1])
 	filePath = PdbCacheFile(chId)
 	pdb = MMCIFParser().get_structure(pId, filePath)
-	chain = PPBuilder().build_peptides(pdb)[chIdx]
+	chainList = PPBuilder().build_peptides(pdb)
+	chName2Chain = {}
+	for ch in chainList:
+		chName = ch.get_ca_list()[0].full_id[2]
+		chName2Chain[chName] = ch
+	chName = GetChainName(chId)[0].split('_')[0]
+	if chName in chName2Chain:
+		chain = chName2Chain[chName]
+	else:
+		raise Exception(f'Chain {chName} not found!')
+
 	bList = LoadChain(chId)
 	nt = New.NumberTable(bList, 2)
-	M = nt.Matrix
 	ppList = chain.get_phi_psi_list()
-	for k in range(nt.Rows):
+	seq2idx = {bList[k].Id.split('.')[0]:k for k in range(bList.Count)}
+	for k in range(len(ppList)):
 		phi, psi = ppList[k]
-		if phi: M[k][0] = degrees(phi)
-		if psi: M[k][1] = degrees(psi)
+		seqIdx = chain[k].full_id[3][1] - 1
+		bIdx = seq2idx['A'+str(seqIdx)]
+		R = nt.Matrix[bIdx]
+		if phi: R[0] = degrees(phi)
+		if psi:	R[1] = degrees(psi)
 	nt.ColumnSpecList[0].Id = 'Phi'
 	nt.ColumnSpecList[1].Id = 'Psi'
 	return nt, bList
+
+def ShowSeq(chain):
+	seq = ''.join([P3[pp.get_resname()] for pp in chain])
+	print(f'{len(seq)}: {seq}')
 
 def ShowRamachandraw(chId):
 	nt, bList = GetRamachandraw(chId)
@@ -35,5 +54,10 @@ def ShowRamachandraw(chId):
 	ShowBodyList(bList)
 
 
+'''
+chId = '7CGO_111'
+ShowRamachandraw(chId)
+
+'''
 
 
