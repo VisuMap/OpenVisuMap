@@ -4,26 +4,25 @@ from Bio.PDB.MMCIFParser import MMCIFParser
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
-
 def GetRamachandraw(chId):
 	pId = chId[:4]
 	filePath = PdbCacheFile(chId)
 	pdb = MMCIFParser().get_structure(pId, filePath)
 	chainList = PPBuilder().build_peptides(pdb)
-	chName2Chain = {}
-	for ch in chainList:
-		chName = ch.get_ca_list()[0].full_id[2]
-		chName2Chain[chName] = ch
 	chName = GetChainName(chId)[0].split('_')[0]
-	if chName in chName2Chain:
-		chain = chName2Chain[chName]
-	else:
-		raise Exception(f'Chain {chName} not found!')
+	chain = None
+	for ch in chainList:
+		nm = ch.get_ca_list()[0].full_id[2]
+		if nm == chName:
+			chain = ch
+			break;
+	if chain == None:
+		raise Exception(f'Chain {pId}:{chName} not found!')
 
 	bList = LoadChain(chId)
 	nt = New.NumberTable(bList, 2)
-	ppList = chain.get_phi_psi_list()
 	seq2idx = {bList[k].Id.split('.')[0]:k for k in range(bList.Count)}
+	ppList = chain.get_phi_psi_list()
 	for k in range(len(ppList)):
 		phi, psi = ppList[k]
 		seqIdx = chain[k].full_id[3][1] - 1
@@ -48,6 +47,8 @@ def ShowRamachandraw(chId):
 	mp.UpperLimitY = 180.0
 	mp.LowerLimitX = -180.0
 	mp.LowerLimitY = -180.0
+	mp.GlyphOpacity = 0.3
+	mp.GlyphSize = 1.0
 	mp.Show()
 	bList = InterpolateChain(bList,rp=3, hidIntp=True)
 	bList = cs.NormalizeChain(bList)
@@ -56,8 +57,8 @@ def ShowRamachandraw(chId):
 
 '''
 chId = '7CGO_111'
+chId = '9MDS_0'
 ShowRamachandraw(chId)
-
 '''
 
 
