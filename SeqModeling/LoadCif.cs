@@ -332,6 +332,7 @@ namespace VisuMap {
             int rsIdxPre = -1;
             char[] fSeparator = new char[] { ' ' };
             char[] dbQuoats = new char[] { '"' };
+            string nextLineBuf = null; // temporarily hold the next line.
 
             //
             //  Read the head section _atom_site.
@@ -346,11 +347,9 @@ namespace VisuMap {
             int C_ASYM_ID = -1;
             int C_MODEL_NUM = -1;
             int C_AUTH_SEQ_ID = -1;
-            int idxF = 1;
-            int cntF = -1;
-            Dictionary<string, int> colName2Idx = new Dictionary<string, int>();
-            string nextLineBuf = null; // temporarily hold the next line.
 
+            int idxF = 1;
+            Dictionary<string, int> colName2Idx = new Dictionary<string, int>();
             while (true) {
                 string L = tr.ReadLine();
                 if ((L == null) || (L[0] == '#'))
@@ -367,6 +366,7 @@ namespace VisuMap {
                 }
             }
 
+            int cntF = -1;   // total number of fields.
             try {
                 C_ATOM_ID = colName2Idx["label_atom_id"];  //3
                 C_COMP_ID = colName2Idx["label_comp_id"];  // 5
