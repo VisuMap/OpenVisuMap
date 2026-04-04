@@ -268,37 +268,9 @@ namespace VisuMap {
             return vs;
         }
 
-
-        public INumberTable MovingWindowFTws(List<string> pList, int winSize, INumberTable tm, int intRp=0) {
+        public INumberTable MovingWindowFT(List<string> pList, List<int> wsList, INumberTable tm, int intRp = 0) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
-            INumberTable D = New.NumberTable(bList, tm.Columns);
-            double[][] M = D.Matrix as double[][];
-            const double EPS = 0.085;
-            // Since, RNA and DNA are more spread than proteins, we 
-            // need a little larger win-size for RNA and DNA polymers.
-            double rRNA_AA = 44 / 14.0; 
-            MT.LoopNoblocking(0, pList.Count, k => {
-                string pId = pList[k];
-                var bs = LoadChain3D($"C:/temp/ChainCache/{pList[k]}.pmc");
-                if ( intRp > 0)
-                    bs = Interpolate3D(bs, intRp, EPS, bs.Count, 0);
-                int ws = winSize;
-                if (vv.Dataset.StringAt(pId, 0)[0] != 'A')
-                    ws = (int) ( winSize * rRNA_AA );
-                var bDist = MovingWindowVariance(bs, ws);
-                MovingChainFT(bDist, tm, M[k]);
-                if ((k > 0) && (k % 500 == 0)) {
-                    vv.Title = $"Reading chains: {k} of {pList.Count}";
-                }
-            });
-            return D;
-        }
-
-        public INumberTable MovingWindowFT(List<string> pList, int winSize, INumberTable tm, int intRp = 0) {
-            List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
-            int[] wsList = new int[] { 1, 4, 16, 64 };
-            wsList = wsList.Select(v => winSize * v).ToArray();
-            INumberTable D = New.NumberTable(bList, tm.Columns * wsList.Length);
+            INumberTable D = New.NumberTable(bList, tm.Columns * wsList.Count);
             const double EPS = 0.085;
             const double rRNA_AA = 44 / 14.0;
             MT.LoopNoblocking(0, pList.Count, k => {

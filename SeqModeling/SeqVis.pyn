@@ -424,12 +424,16 @@ def LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True):
 
 def MovingWindowVariance(pList, waveCount, waveLen, winSize, intRp=0):
 	from os.path import exists
+	pCnt = 0
 	for pId in pList:
 		if not exists(	f'{CHAIN_CACHE}/{pId}.pmc'):
 			UnpackChain(pId[:4])
+			pCnt += 1
+			if pCnt % 50 == 0:
+				vv.Title = f'Unpacked {pCnt} pdb files'
 	tm = GetFourier(waveLen, waveCount)	
 	#with CheckTime():
-	return cs.MovingWindowFT(pList, winSize, tm, intRp=intRp)
+	return cs.MovingWindowFT(pList, New.IntArray(winSize), tm, intRp=intRp)
 
 # t-SNE reduced data
 def MaxRows(ds, pList, intRp):
