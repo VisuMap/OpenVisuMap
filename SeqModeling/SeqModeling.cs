@@ -268,7 +268,7 @@ namespace VisuMap {
             return vs;
         }
 
-        public INumberTable MovingWindowFT(List<string> pList, List<int> wsList, INumberTable tm, int intRp = 0) {
+        public INumberTable MovingWindowFT(IList<string> pList, IList<int> wsList, INumberTable tm, int intRp = 0) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
             INumberTable D = New.NumberTable(bList, tm.Columns * wsList.Count);
             const double EPS = 0.085;
