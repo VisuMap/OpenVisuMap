@@ -83,7 +83,6 @@ def SphereView(pId, unfolding):
 	vs.OnClose("pp.Tag[0].Close()")
 	vs.Show()
 	vs.Tag = [mp, bList, unfolding, probingWS]
-
 	if probingWS:
 		vs.StepSize, vs.CurrentValue = 1, 0
 		vs.Title = "Moving Window Size"
@@ -92,7 +91,6 @@ def SphereView(pId, unfolding):
 		vs.StepSize, vs.CurrentValue = 0.01, 0.8
 		vs.Title = "Contracting Factor"
 		vs.NumberFormat = 'g4'
-
 	vs.TheForm.BringToFront()
 
 def TorsionMap(pId, mom=0.9):

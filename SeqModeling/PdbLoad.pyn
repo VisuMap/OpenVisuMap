@@ -759,4 +759,14 @@ ds = vv.Folder.ReadDataset("P-Info")
 pList = [b.Id for b in ds.BodyList]
 ShowPepCounts(pList)
 
+bs = cs.LoadCif("C:\\Users\\james\\OneDrive\\Desktop\\AF-P06965-F1-model_v6.cif", None)
+cs.ShrinkSphere(bs, 0.9)
+bs = InterpolateChain(bs, rp=5, hidIntp=True)
+cs.NormalizeChain(bs)
+bs.Insert(0, New.Body('ic', bs[0].Name, 144) )
+ShowBodyList(bs)
+
+aa = np.array([1,2])
+print( ttt.ListPyTestInt(  [1, 2] )
+
 '''

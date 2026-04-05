@@ -36,7 +36,7 @@ def MainMain(menuKey):
 			for vt in 1*['mwV']: 
 				match vt:
 					case 'mwV': # 14 ~= 3.6 * (2**3)
-						ws = (14, 2*14, 3*14, 4*14)
+						ws = [14, 2*14, 3*14, 4*14]			
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'sFT':	
 						PM2(aaGroups=GetAAGroup(20), tSNE=(ppl_, 6.0, 0.9))
