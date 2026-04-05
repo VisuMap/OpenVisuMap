@@ -435,7 +435,7 @@ def MovingWindowVariance(pList, waveCount, waveLen, winSize, intRp=0):
 				vv.Title = f'Unpacked {pCnt} pdb files'
 	tm = GetFourier(waveLen, waveCount)	
 	#with CheckTime():
-	return cs.MovingWindowFT(pList, New.IntArray(winSize), tm, intRp=intRp)
+	return cs.MovingWindowFT(pList, winSize, tm, intRp=intRp)
 
 # t-SNE reduced data
 def MaxRows(ds, pList, intRp):
