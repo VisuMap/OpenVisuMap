@@ -12,6 +12,11 @@ def PdbCacheFile(pId):
 
 # get cache file path for a poliptide chain.
 def ChainCacheFile(chId):
+	dsd = vv.Dataset.Description
+	if dsd.startswith('ChDir:'):
+		dsd = dsd.replace(';', ':')
+		chDir = dsd.split(':')[1]
+		return f'{chDir}/{chId}.pmc'
 	if len(chId)<4:
 		raise Exception(f'Invalid protein chain id {chId}')
 	return f'{CHAIN_CACHE}/{chId}.pmc'

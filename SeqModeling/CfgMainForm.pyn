@@ -52,7 +52,7 @@ def MainMain(menuKey):
 			#	samplingDist=0.5, iconWidth=50, tP=tP_ )
 		case 'C-Map':
 			#ColorChainMap(2 if ctrPressed else 5)
-			ColorChainMap(4)
+			ColorChainMap(2)
 		case 'Info':
 			ShowInfo(pp)
 		case 'ChmX': 
