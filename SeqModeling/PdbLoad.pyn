@@ -16,10 +16,9 @@ def ChainCacheFile(chId):
 	if dsd.startswith('ChDir:'):
 		dsd = dsd.replace(';', ':')
 		chDir = dsd.split(':')[1]
-		return f'{chDir}/{chId}.pmc'
-	if len(chId)<4:
-		raise Exception(f'Invalid protein chain id {chId}')
-	return f'{CHAIN_CACHE}/{chId}.pmc'
+	else:
+		chDir = CHAIN_CACHE
+	return f'{chDir}/{chId}.pmc'
 
 def CheckCacheDir():
 	from os.path import exists
@@ -773,25 +772,35 @@ bs = cs.LoadCif(cifPath, None)
 ShowBodyList( cs.NormalizeChain( InterpolateChain(bs, rp=3) ) )
 SphereView0('alpha-fold', bs, False)
 
+#
+# code to import a compressed AlphaFold cif dataset from https://alphafold.ebi.ac.uk/download#proteomes-section
+#
 import os
+AFDir = 'C:\\temp\\FruitFly'
+AFName = 'FruitFlyCache'
+AFCache = f'C:\\temp\\{AFName}\\'
+AFProtRef = 'UP000000803'
+
+# Simplify the cif file names. Assuming the cif files have been extracted and stored in AFDir.
+os.chdir(AFDir)
 for f in os.listdir('.'):
     if f.endswith('.cif'):
         fn = f.split('-')[1] + '.cif'
         os.rename(f, fn)
 
-AFDir = 'c:\\temp\\UP000008827_3847_SOYBN_v6'
-AFCache = 'C:\\temp\\AFChain\\'
+# Convert cif file to chain cache format.
 for f in os.listdir(AFDir):
 	if f.endswith('.cif'):
 		bs = cs.LoadCif(AFDir + '\\' + f, None)
 		chId = f.split('.')[0]
 		cs.SaveChain(AFCache + chId + '.pmc', bs)
 
-InitDatabase('AlphaFold', 'AF UP000008827_3847_SOYBN_v6')
+# Create a new dataset to store the chains. 
+InitDatabase('FuitFly', f'ChDir:/temp/{AFName};Src:{AFProtRef}')
 
 # import all chains into the current dataset.
-AFCache = 'C:\\temp\\AFChain\\'
-for f in os.listdir(AFCache):
+os.chdir(AFCache)
+for f in os.listdir('.'):
 	if f.endswith('.pmc'):
 		bs = cs.LoadChain3D(AFCache + '\\' + f)
 		pSeq = ''.join([b.Name[0] for b in bs])
@@ -805,10 +814,5 @@ for f in os.listdir(AFCache):
 
 vv.Dataset.CommitChanges()
 
-
-import os
-for f in os.listdir('/temp'):
-	if f.endswith('.pmc'):
-		print(f)
 
 '''
