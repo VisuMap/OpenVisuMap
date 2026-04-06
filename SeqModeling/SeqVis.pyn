@@ -1237,16 +1237,26 @@ def DoubleClicked():
 	pp.Tag = newClickTime
 	return dbClicked
 
-ZoomingList = []
+ViewCfgList = []
 
 def UndoLastOp(pp):
-	global ZoomingList
-	if not ZoomingList:
+	global ViewCfgList
+	if not ViewCfgList:
 		return False
-	op = ZoomingList.pop()
+	pLeft, pTop, qLeft, qTop = ViewCfgList.pop()
+	p, q = pp.Items[0], pp.Items[1]
+	#
+	# Based on: p' = ap + B  and   q'=aq + B 
+	#        => a = (p' - q')/(p-q)  and B = p' - ap  and p = (p - B)/a
+	#
+	if (pLeft == qLeft) or (p.Left == q.Left):
+		return
+	a = (p.Left-q.Left)/(pLeft - qLeft)
+	BLeft = p.Left - a * pLeft
+	BTop = p.Top - a * pTop	
 	for e in pp.Items:
-		e.Left = (e.Left - op.XShift)/op.Scale
-		e.Top = (e.Top - op.YShift)/op.Scale
+		e.Left = (e.Left - BLeft)/a
+		e.Top = (e.Top - BTop)/a
 	pp.Refresh()
 	return True
 
@@ -1257,21 +1267,26 @@ def ResetAtlas():
 		return
 	tm = vv.GuiManager.MouseClickDuration
 	cnt = pp.SelectedItems.Count
+
+	if cnt >= 6:
+		p, q = pp.Items[0], pp.Items[1]
+		ViewCfgList.append( (p.Left, p.Top, q.Left, q.Top) )   # save the current cfg for undo operation
+
 	if vv.EventSource.Form.Name == 'Atlas':  # parent is an atlas
 		if DoubleClicked(): 
 			if not UndoLastOp(pp):
-				ZoomingList.append( pp.ResetView(True) )
+				pp.ResetView(True)
 		elif cnt < 6: 
 			return
 		elif tm > 2000:
 			pp.ClickMenu('More.../Show Selected')
-			ZoomingList.append( pp.ResetView(False) )  # keep the selection.
+			pp.ResetView(False)  # keep the selection.
 		else:
-			ZoomingList.append(pp.ResetView(True))   # clear the selection.
+			pp.ResetView(True)   # clear the selection.
 	else:
 		# The event has been passed from another view to the atlas view
 		if cnt >= 6:
-			ZoomingList.append( pp.ResetView(False) )
+			pp.ResetView(False)
 
 def SelectPID():
 	info = MapInfo(pp.Description)
