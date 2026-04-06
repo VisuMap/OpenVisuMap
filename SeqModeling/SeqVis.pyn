@@ -1237,40 +1237,41 @@ def DoubleClicked():
 	pp.Tag = newClickTime
 	return dbClicked
 
-ScaleShift = None
+ZoomingList = []
 
 def UndoLastOp(pp):
-	global ScaleShift
-	if ScaleShift == None:
+	global ZoomingList
+	if not ZoomingList:
 		return False
+	op = ZoomingList.pop()
 	for e in pp.Items:
-		e.Left = (e.Left - ScaleShift.XShift)/ScaleShift.Scale
-		e.Top = (e.Top - ScaleShift.YShift)/ScaleShift.Scale
+		e.Left = (e.Left - op.XShift)/op.Scale
+		e.Top = (e.Top - op.YShift)/op.Scale
 	pp.Refresh()
-	ScaleShift = None
 	return True
 
 def ResetAtlas():
-	global ScaleShift
+	global ZoomingList
 	mk = vv.ModifierKeys
-	if mk.AltPressed or mk.ControlPressed or mk.ShiftPressed: return
+	if mk.AltPressed or mk.ControlPressed or mk.ShiftPressed:
+		return
 	tm = vv.GuiManager.MouseClickDuration
 	cnt = pp.SelectedItems.Count
 	if vv.EventSource.Form.Name == 'Atlas':  # parent is an atlas
 		if DoubleClicked(): 
 			if not UndoLastOp(pp):
-				ScaleShift = pp.ResetView(True)
+				ZoomingList.append( pp.ResetView(True) )
 		elif cnt < 6: 
 			return
 		elif tm > 2000:
 			pp.ClickMenu('More.../Show Selected')
-			ScaleShift = pp.ResetView(False)  # keep the selection.
+			ZoomingList.append( pp.ResetView(False) )  # keep the selection.
 		else:
-			ScaleShift = pp.ResetView(True)   # clear the selection.
+			ZoomingList.append(pp.ResetView(True))   # clear the selection.
 	else:
 		# The event has been passed from another view to the atlas view
 		if cnt >= 6:
-			ScaleShift = pp.ResetView(False)
+			ZoomingList.append( pp.ResetView(False) )
 
 def SelectPID():
 	info = MapInfo(pp.Description)
