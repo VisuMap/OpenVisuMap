@@ -427,12 +427,13 @@ def LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True):
 def MovingWindowVariance(pList, waveCount, waveLen, winSize, intRp=0):
 	from os.path import exists
 	pCnt = 0
-	for pId in pList:
-		if not exists(	f'{CHAIN_CACHE}/{pId}.pmc'):
-			UnpackChain(pId[:4])
-			pCnt += 1
-			if pCnt % 50 == 0:
-				vv.Title = f'Unpacked {pCnt} pdb files'
+	if not vv.Dataset.Description.startswith('ChDir:'):
+		for pId in pList:
+			if not exists(	f'{CHAIN_CACHE}/{pId}.pmc'):
+				UnpackChain(pId[:4])
+				pCnt += 1
+				if pCnt % 50 == 0:
+					vv.Title = f'Unpacked {pCnt} pdb files'
 	tm = GetFourier(waveLen, waveCount)	
 	#with CheckTime():
 	return cs.MovingWindowFT(pList, winSize, tm, intRp=intRp)
@@ -1238,6 +1239,17 @@ def DoubleClicked():
 
 ScaleShift = None
 
+def UndoLastOp(pp):
+	global ScaleShift
+	if ScaleShift == None:
+		return False
+	for e in pp.Items:
+		e.Left = (e.Left - ScaleShift.XShift)/ScaleShift.Scale
+		e.Top = (e.Top - ScaleShift.YShift)/ScaleShift.Scale
+	pp.Refresh()
+	ScaleShift = None
+	return True
+
 def ResetAtlas():
 	global ScaleShift
 	mk = vv.ModifierKeys
@@ -1246,15 +1258,8 @@ def ResetAtlas():
 	cnt = pp.SelectedItems.Count
 	if vv.EventSource.Form.Name == 'Atlas':  # parent is an atlas
 		if DoubleClicked(): 
-			if ScaleShift == None:
+			if not UndoLastOp(pp):
 				ScaleShift = pp.ResetView(True)
-			else:
-				p = ScaleShift
-				for e in pp.Items:
-					e.Left = (e.Left - p.XShift)/p.Scale
-					e.Top = (e.Top - p.YShift)/p.Scale
-				pp.Refresh()
-				ScaleShift = None
 		elif cnt < 6: 
 			return
 		elif tm > 2000:

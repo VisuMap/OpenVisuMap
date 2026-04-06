@@ -56,7 +56,9 @@ def UpdateSphere():
 	mp.Title = f'CF: {cf:.3}'
 
 def SphereView(pId, unfolding):
-	bList = LoadChain(pId)
+	BodyListSphereView(pId, LoadChain(pId), unfolding )
+
+def BodyListSphereView(pId, bList, unfolding):
 	if not unfolding:
 		bList = cs.ToSphere(bList, 0)
 	for b in bList: 

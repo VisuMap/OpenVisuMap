@@ -273,9 +273,15 @@ namespace VisuMap {
             INumberTable D = New.NumberTable(bList, tm.Columns * wsList.Count);
             const double EPS = 0.085;
             const double rRNA_AA = 44 / 14.0;
+            string cacheDir = "C:/temp/ChainCache";
+            if (vv.Dataset.Description.StartsWith("ChDir:")) {
+                string[] fs = vv.Dataset.Description.Split(':', ';');
+                if (fs.Length >= 2)
+                    cacheDir = fs[1];
+            }
             MT.LoopNoblocking(0, pList.Count, k => {
                 string pId = pList[k];
-                var bs = LoadChain3D($"C:/temp/ChainCache/{pList[k]}.pmc");
+                var bs = LoadChain3D($"{cacheDir}/{pList[k]}.pmc");
                 if (intRp > 0)
                     bs = Interpolate3D(bs, intRp, EPS, bs.Count, 0);
                 int idx0 = 0;

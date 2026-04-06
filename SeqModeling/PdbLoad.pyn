@@ -759,14 +759,51 @@ ds = vv.Folder.ReadDataset("P-Info")
 pList = [b.Id for b in ds.BodyList]
 ShowPepCounts(pList)
 
-bs = cs.LoadCif("C:\\Users\\james\\OneDrive\\Desktop\\AF-P06965-F1-model_v6.cif", None)
-cs.ShrinkSphere(bs, 0.9)
-bs = InterpolateChain(bs, rp=5, hidIntp=True)
-cs.NormalizeChain(bs)
-bs.Insert(0, New.Body('ic', bs[0].Name, 144) )
-ShowBodyList(bs)
+AFDir = "C:\\temp\\UP000008827_3847_SOYBN_v6\\"
+cifPath = "C:\\Users\\james\\OneDrive\\Desktop\\AF-P06965-F1-model_v6.cif"
+cifPath = "C:\\Users\\james\\OneDrive\\Desktop\\AF-P06965-F1-model_v6 (1).cif"
+cifPath = AFDir + "AF-A0A0R0HRF3-F1-model_v6.cif"
+bs = cs.LoadCif(cifPath, None)
 
-aa = np.array([1,2])
-print( ttt.ListPyTestInt(  [1, 2] )
+ShowBodyList( cs.NormalizeChain( InterpolateChain(bs, rp=3) ) )
+SphereView0('alpha-fold', bs, False)
+
+import os
+for f in os.listdir('.'):
+    if f.endswith('.cif'):
+        fn = f.split('-')[1] + '.cif'
+        os.rename(f, fn)
+
+AFDir = 'c:\\temp\\UP000008827_3847_SOYBN_v6'
+AFCache = 'C:\\temp\\AFChain\\'
+for f in os.listdir(AFDir):
+	if f.endswith('.cif'):
+		bs = cs.LoadCif(AFDir + '\\' + f, None)
+		chId = f.split('.')[0]
+		cs.SaveChain(AFCache + chId + '.pmc', bs)
+
+InitDatabase('AlphaFold', 'AF UP000008827_3847_SOYBN_v6')
+
+# import all chains into the current dataset.
+AFCache = 'C:\\temp\\AFChain\\'
+for f in os.listdir(AFCache):
+	if f.endswith('.pmc'):
+		bs = cs.LoadChain3D(AFCache + '\\' + f)
+		pSeq = ''.join([b.Name[0] for b in bs])
+		chName = bs[0].Name.split('.')[2]
+		ppType = 0
+		chType = 'A'
+		seqLen = len(pSeq)
+		chId = f.split('.')[0]
+		entityId = bs[0].Type + 1
+		vv.Dataset.AddRow(chId, None,  ppType, [chType, str(entityId), pSeq, str(seqLen), chName])
+
+vv.Dataset.CommitChanges()
+
+
+import os
+for f in os.listdir('/temp'):
+	if f.endswith('.pmc'):
+		print(f)
 
 '''
