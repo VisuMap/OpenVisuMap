@@ -74,11 +74,11 @@ namespace VisuMap {
                         break;
                     if (L.StartsWith("_struct_sheet_range.end_auth_seq_id")) {
                         LoadBetaSheet(tr, betaSet);
-                    } else if (L.StartsWith("_struct_conf.pdbx_PDB_helix_length")) {
-                        LoadHelix(tr, helixSet);
                     } else if (L.StartsWith("_struct_conf.conf_type_id")) {
                         if (L.TrimEnd().EndsWith("HELX_P"))
                             LoadHelix2(tr, helixSet);
+                        else 
+                            LoadHelix(tr, helixSet);
                     } else if (L.StartsWith("_struct.title")) {
                         pdbTitle = GetPDBTitle(L, tr);
                     } else if (L.StartsWith("_struct_ref_seq.align_id")) {
@@ -221,6 +221,14 @@ namespace VisuMap {
             try {
                 while (true) {
                     string L = tr.ReadLine();
+                    if (!L.StartsWith("_struct_conf."))
+                        return;
+                    if (L.StartsWith("_struct_conf.pdbx_PDB_helix_length")) 
+                        break;
+                }
+                
+                while (true) {
+                    string L = tr.ReadLine();
                     if (L[0] == '#')
                         break;
                     if (L[0] == ';')
@@ -228,10 +236,12 @@ namespace VisuMap {
                     string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     if (fs.Length < 10)
                         continue;
-                    int idx0 = int.Parse(fs[5]);
-                    int idx1 = int.Parse(fs[9]) + 1;
-                    for (int i = idx0; i < idx1; i++)
-                        helixSet.Add(i);
+                    if (fs[0] == "HELX_P") {
+                        int idx0 = int.Parse(fs[5]);
+                        int idx1 = int.Parse(fs[9]) + 1;
+                        for (int i = idx0; i < idx1; i++)
+                            helixSet.Add(i);
+                    }
                 }
             } catch (Exception) {; }
         }
