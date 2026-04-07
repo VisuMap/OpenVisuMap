@@ -203,53 +203,58 @@ namespace VisuMap {
         }
 
         void LoadBetaSheet(TextReader tr, HashSet<int> betaSet) {
-            while (true) {
-                string L = tr.ReadLine();
-                if (L[0] == '#')
-                    break;
-                string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                int idx0 = int.Parse(fs[4]) - 1;
-                int idx1 = int.Parse(fs[8]) + 1;
-                for (int i = idx0; i < idx1; i++)
-                    betaSet.Add(i);
-            }
+            try {
+                while (true) {
+                    string L = tr.ReadLine();
+                    if (L[0] == '#')
+                        break;
+                    string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    int idx0 = int.Parse(fs[4]) - 1;
+                    int idx1 = int.Parse(fs[8]) + 1;
+                    for (int i = idx0; i < idx1; i++)
+                        betaSet.Add(i);
+                }
+            } catch (Exception) { }
         }
 
         void LoadHelix(TextReader tr, HashSet<int> helixSet) {
-            while (true) {
-                string L = tr.ReadLine();
-                if (L[0] == '#')
-                    break;
-                if (L[0] == ';')
-                    continue;
-                string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                if (fs.Length < 10)
-                    continue;
-                int idx0 = int.Parse(fs[5]);
-                int idx1 = int.Parse(fs[9]) + 1;
-                for (int i = idx0; i < idx1; i++)
-                    helixSet.Add(i);
-            }
+            try {
+                while (true) {
+                    string L = tr.ReadLine();
+                    if (L[0] == '#')
+                        break;
+                    if (L[0] == ';')
+                        continue;
+                    string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (fs.Length < 10)
+                        continue;
+                    int idx0 = int.Parse(fs[5]);
+                    int idx1 = int.Parse(fs[9]) + 1;
+                    for (int i = idx0; i < idx1; i++)
+                        helixSet.Add(i);
+                }
+            } catch (Exception) {; }
         }
 
         void LoadHelix2(TextReader tr, HashSet<int> helixSet) {
-            int idx0 = -1;
-            int idx1 = -1;
-            while (true) {
-                string L = tr.ReadLine();
-                if (L[0] == '#')
-                    break;
-                string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                if (L.StartsWith("_struct_conf.beg_label_seq_id"))
-                    idx0 = int.Parse(fs[1]);
-                if (L.StartsWith("_struct_conf.end_label_seq_id"))
-                    idx1 = int.Parse(fs[1]) + 1;
-            }
-            if ((idx0 >= 0) && (idx1 >= 0)) {
-                for (int i = idx0; i < idx1; i++)
-                    helixSet.Add(i);
-            }
-
+            try {
+                int idx0 = -1;
+                int idx1 = -1;
+                while (true) {
+                    string L = tr.ReadLine();
+                    if (L[0] == '#')
+                        break;
+                    string[] fs = L.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (L.StartsWith("_struct_conf.beg_label_seq_id"))
+                        idx0 = int.Parse(fs[1]);
+                    if (L.StartsWith("_struct_conf.end_label_seq_id"))
+                        idx1 = int.Parse(fs[1]) + 1;
+                }
+                if ((idx0 >= 0) && (idx1 >= 0)) {
+                    for (int i = idx0; i < idx1; i++)
+                        helixSet.Add(i);
+                }
+            } catch (Exception) { }
         }
 
         Dictionary<string, string> GetAcc2Chain(TextReader tr) {
