@@ -566,7 +566,8 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 #-----------------------------------------------------------------------------
 
 def ShowWeb(pId):
-	pId = pId[:4]
+	if len(pId) > 4 and pId[4] == '_':
+		pId = pId[:4]
 	if vv.Dataset.ColumnSpecList[0].Id == 'ChainType':
 		vv.StartProcess(f'https://rcsb.org/3d-view/{pId}')
 	else:
