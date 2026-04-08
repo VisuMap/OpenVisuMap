@@ -80,10 +80,8 @@ def BodyListSphereView(pId, bList, unfolding):
 		vs = New.ValueSelector(0, min(len(bs)//2, 5000), 1, 'UpdateSphere()')
 	else:
 		vs = New.ValueSelector(0, 1.0, 0, 'UpdateSphere()')
-
 	vs.ScanningPause = 1
 	vs.OnClose("pp.Tag[0].Close()")
-	vs.Show()
 	vs.Tag = [mp, bList, unfolding, probingWS]
 	if probingWS:
 		vs.StepSize, vs.CurrentValue = 1, 0
@@ -93,7 +91,7 @@ def BodyListSphereView(pId, bList, unfolding):
 		vs.StepSize, vs.CurrentValue = 0.01, 0.8
 		vs.Title = "Contracting Factor"
 		vs.NumberFormat = 'g4'
-	vs.TheForm.BringToFront()
+	vs.Show()
 
 def TorsionMap(pId, mom=0.9):
 	info = MapInfo().Set('pId', pId)

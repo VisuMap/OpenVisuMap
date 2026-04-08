@@ -36,10 +36,8 @@ def MainMain(menuKey):
 			for vt in 1*['mwV']: 
 				match vt:
 					case 'mwV': # 14 ~= 3.6 * (2**3)
-						K = 14
+						K = 7
 						ws = [K, 2*K, 3*K, 4*K]	
-						#K = 28
-						#ws = [K, 2*K, 4*K, 8*K]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'sFT':	
 						PM2(aaGroups=GetAAGroup(20), tSNE=(ppl_, 6.0, 0.9))
@@ -107,9 +105,11 @@ def MainMain(menuKey):
 			_, bs, _, _ = LoadCifData(pId, chainNames=GetChainName(pId))
 			ShowBodyList(Interpolate(bs, rp=3))
 			ShowBondLength(pList[:20])
-			'''
-			#ShowTwistMap(pId, maxWsRows=4096)
+			ShowTwistMap(pId, maxWsRows=4096)
 			ShowRamachandraw(pId)
+			'''
+			_, bs, _, _ = LoadCifData("C:\\Users\\james\\OneDrive\\Desktop\\AF_AFP0C8Z9F1.cif")
+			ShowBodyList(Interpolate(bs, rp=3))
 
 def ShowTwistMap(pId, maxWsRows=1024):
 	bList = InterpolateChain(LoadChain(pId), rp=3)

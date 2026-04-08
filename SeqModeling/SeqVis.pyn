@@ -1012,6 +1012,7 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 	else:
 		pAtlas.Refresh()
 	pAtlas.DataChanged = True
+	ViewCfgList.clear()
 
 def ReCreateMap(pMap):
 	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	
