@@ -77,7 +77,7 @@ def BodyListSphereView(pId, bList, unfolding):
 
 	probingWS = ctrPressed
 	if probingWS:
-		vs = New.ValueSelector(0, min(len(bs)//2, 5000), 1, 'UpdateSphere()')
+		vs = New.ValueSelector(0, ss.MaxChainLen(bs), 1, 'UpdateSphere()')
 	else:
 		vs = New.ValueSelector(0, 1.0, 0, 'UpdateSphere()')
 	vs.ScanningPause = 1

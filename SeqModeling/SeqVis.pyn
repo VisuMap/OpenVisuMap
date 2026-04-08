@@ -144,20 +144,15 @@ public void HideInterpolation(List<IBody> bList) {
 }
 
 public int MaxChainLen(List<IBody> bList) {
-	int maxLen = 0;
-	int chLen = 0;
-	string curId = null;
+	Dictionary<string, int> chainLen = new Dictionary<string, int>();
 	foreach(var b in bList) {
-		if ( b.Id == curId ) {
-			chLen++;
-		} else {
-			maxLen = Math.Max(maxLen, chLen);
-			chLen = 1;
-			curId = b.Id;
-		}
+		string chName = b.Name.Split('.')[2];
+		if (chainLen.ContainsKey(chName))
+			chainLen[chName] += 1;
+		else 
+			chainLen[chName] = 1;
 	}
-	maxLen = Math.Max(maxLen, chLen);
-	return maxLen;
+	return chainLen.Values.Max();
 }
 
 public void ShiftScale(IList<IAtlasBaseItem> Items, float scale, float BLeft, float BTop) {
@@ -423,7 +418,7 @@ def LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True):
 		mp.CentralizeView(False)
 		mp.Title = "Moving Window Mean"
 
-		mxLen = min(10000, len(bList))
+		mxLen = ss.MaxChainLen(bList)
 		vs = New.ValueSelector(0, mxLen, winSize, 'UpdateLvt()')	
 		vs.Title = 'Window Size'
 		vs.StepSize = 1
