@@ -19,19 +19,7 @@ ALPHA_DIAM = 5.4    # the average diameter of alpha hex.
 HELIX_TRANSLATION = 1.5   # translation per residue alone helix direction
 vv.RightHanded3D = True
 
-def AssertProteinTable():
-	if (vv.Dataset.Columns < 4) or ( vv.Dataset.ColumnSpecList[2].Id != 'ProteinSeq'):
-		vv.Message('The current dataset is not a protein table')
-		vv.Return()
-	return vv.Dataset
-
-def AssertSeqMap(pMap):
-	info = MapInfo(pMap.Description)
-	if info.Has('pId'):
-		return
-	else:
-		vv.Message('The view is not a protein seq map')
-		vv.Return()
+# --------------------------  embedded C# --------------------------------------------------------------------
 
 def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling'):
 	from shutil import copy
@@ -52,24 +40,6 @@ def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling
 
 if 'cs' not in globals():
 	cs = LoadSeqModeling()
-
-def AddHistory(wd):
-	global pIdHistory
-	if wd == None:
-		return
-	if not 'pIdHistory' in globals():
-		pIdHistory = New.StringArray()
-	pIdHistory.Insert(0, wd)
-
-def ShowHistory():	
-	if 'pIdHistory' in globals():		
-		msg, N, K = '', pIdHistory.Count, 10
-		for idx in range(0, N, K):
-			len = min(3, N - idx)
-			msg += ', '.join( pIdHistory.GetRange(idx, len) ) + '\n'
-		vv.Message(msg)
-	else:
-		vv.Message('History List is empty!')
 		
 ss = New.CsObject('''
 
@@ -163,6 +133,8 @@ public void ShiftScale(IList<IAtlasBaseItem> Items, float scale, float BLeft, fl
 }
 
 ''')
+
+#----------------------------- common classes ------------------------------------------------------------
 
 # protein embedding map information
 class MapInfo():
@@ -293,6 +265,41 @@ class FastTsne():
 		self.tsne.Dispose()
 	def Fit(self, nt):
 		return self.tsne.Fit(nt)
+
+#-------------------- functions ----------------------------------------------------
+
+def AssertProteinTable():
+	if (vv.Dataset.Columns < 4) or ( vv.Dataset.ColumnSpecList[2].Id != 'ProteinSeq'):
+		vv.Message('The current dataset is not a protein table')
+		vv.Return()
+	return vv.Dataset
+
+def AssertSeqMap(pMap):
+	info = MapInfo(pMap.Description)
+	if info.Has('pId'):
+		return
+	else:
+		vv.Message('The view is not a protein seq map')
+		vv.Return()
+
+
+def AddHistory(wd):
+	global pIdHistory
+	if wd == None:
+		return
+	if not 'pIdHistory' in globals():
+		pIdHistory = New.StringArray()
+	pIdHistory.Insert(0, wd)
+
+def ShowHistory():	
+	if 'pIdHistory' in globals():		
+		msg, N, K = '', pIdHistory.Count, 10
+		for idx in range(0, N, K):
+			len = min(3, N - idx)
+			msg += ', '.join( pIdHistory.GetRange(idx, len) ) + '\n'
+		vv.Message(msg)
+	else:
+		vv.Message('History List is empty!')
 
 def ConfigSeqMap(map, info=None, gsize=6.0, redrawMap=False):
 	map.GlyphSet = SeqMap_GLYPHSET
