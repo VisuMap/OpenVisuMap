@@ -62,44 +62,14 @@ public List<IBody> SetBodyType(List<IBody> bList, string pId=null, int bType=1) 
 	return bList;
 }
 
-public List<IBody> NewHelix(int residues) {
-	double angleSpeed = 2*Math.PI/3.6;
-	double R = 5.4/2;
-	double dx = 1.5;  // Translation per residue
-	List<IBody> bList = New.BodyList();
-	for(int k=0; k<residues; k++) {
-		IBody b = New.Body("A"+k);
-		b.Type = 1;
-		b.Name = "..Hlx";
-		double a = -k * angleSpeed;
-		b.SetXYZ(k*dx, R*Math.Sin(a), R*Math.Cos(a));
-		bList.Add(b);
-	}
-	return bList;
-}
-
 public void CompressTable(INumberTable nt) {
 	int columns = nt.Columns;
 	MT.ForEach(nt.Matrix, R=>{		
 		for(int col=0; col<columns; col++)
 			R[col] = Math.Pow(R[col], 0.33333); 
-			//R[col] = Math.Sqrt(R[col]);
 	});
 }
 
-public List<IBody> ShiftChain(List<IBody> bList, double dx, double dy, double dz) {
-	foreach(var b in bList)
-		b.Add(dx, dy, dz);
-	return bList;
-}
-
-public List<IBody> Concatenate(List<IBody> bList1, List<IBody> bList2) {
-	var last = bList1[bList1.Count-1];
-	bList2 = bList2.GetRange(1, bList2.Count-1);
-	ShiftChain(bList2, last.X, last.Y, last.Z);
-	bList1.AddRange(bList2);
-	return bList1;
-} 
 
 public void CopyToXYZ(List<IBody> bList1, List<IBody> bList2) {
 	for(int k=0; k<bList1.Count; k++) {
@@ -113,25 +83,12 @@ public void HideInterpolation(List<IBody> bList) {
 			b.Hidden = (b.Id[0] == 'i');
 }
 
-public int MaxChainLen(List<IBody> bList) {
-	Dictionary<string, int> chainLen = new Dictionary<string, int>();
-	foreach(var b in bList) {
-		string chName = b.Name.Split('.')[2];
-		if (chainLen.ContainsKey(chName))
-			chainLen[chName] += 1;
-		else 
-			chainLen[chName] = 1;
-	}
-	return chainLen.Values.Max();
-}
-
 public void ShiftScale(IList<IAtlasBaseItem> Items, float scale, float BLeft, float BTop) {
 	foreach(var e in Items) {
 		e.Left = (e.Left - BLeft)/scale;
 		e.Top = (e.Top - BTop)/scale;
 	}
 }
-
 ''')
 
 #----------------------------- common classes ------------------------------------------------------------
@@ -425,7 +382,7 @@ def LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True):
 		mp.CentralizeView(False)
 		mp.Title = "Moving Window Mean"
 
-		mxLen = ss.MaxChainLen(bList)
+		mxLen = cs.MaxChainLen(bList)
 		vs = New.ValueSelector(0, mxLen, winSize, 'UpdateLvt()')	
 		vs.Title = 'Window Size'
 		vs.StepSize = 1
@@ -763,7 +720,7 @@ def SmoothenComplex(pId, singleChain=False):
 	#chNames = ['5G_1', '5H_1', '5I_1', '5J_1', '5K_1', '5L_1']
 	mp = ShowPDB(pId,rp=3, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=True,
 		setChainId=False, typeByChainIdx=False, unifyId=False, chainNames=chNames)
-	maxWS = ss.MaxChainLen(mp.BodyList)
+	maxWS = cs.MaxChainLen(mp.BodyList)
 	vs = New.ValueSelector(0, maxWS, 14, 'UpdateComplex(pp)')  # 14,29,43,59,87
 	vs.Title = 'Moving Window Size'
 	vs.StepSize = 1

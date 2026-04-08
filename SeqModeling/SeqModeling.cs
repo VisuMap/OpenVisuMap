@@ -995,7 +995,53 @@ namespace VisuMap {
             Quaternion T = Quaternion.RotationAxis(new Vector3(dx, dy, dz), angle);
             foreach(var b in bList) 
                 b.SetXYZ(Vector3.Transform(b.ToV3(), T));
-        }        
+        }
+
+        #region Miscellaneous
+
+        public List<IBody> NewHelix(int residues) {
+            double angleSpeed = 2 * Math.PI / 3.6;
+            double R = 5.4 / 2;
+            double dx = 1.5;  // Translation per residue
+            List<IBody> bList = New.BodyList();
+            for (int k = 0; k < residues; k++) {
+                IBody b = New.Body("A" + k);
+                b.Type = 1;
+                b.Name = "..Hlx";
+                double a = -k * angleSpeed;
+                b.SetXYZ(k * dx, R * Math.Sin(a), R * Math.Cos(a));
+                bList.Add(b);
+            }
+            return bList;
+        }
+
+        public int MaxChainLen(List<IBody> bList) {
+            Dictionary<string, int> chainLen = new Dictionary<string, int>();
+            foreach (var b in bList) {
+                string chName = b.Name.Split('.')[2];
+                if (chainLen.ContainsKey(chName))
+                    chainLen[chName] += 1;
+                else
+                    chainLen[chName] = 1;
+            }
+            return chainLen.Values.Max();
+        }
+
+        public List<IBody> ShiftChain(List<IBody> bList, double dx, double dy, double dz) {
+            foreach (var b in bList)
+                b.Add(dx, dy, dz);
+            return bList;
+        }
+
+        public List<IBody> Concatenate(List<IBody> bList1, List<IBody> bList2) {
+            var last = bList1[bList1.Count - 1];
+            bList2 = bList2.GetRange(1, bList2.Count - 1);
+            ShiftChain(bList2, last.X, last.Y, last.Z);
+            bList1.AddRange(bList2);
+            return bList1;
+        }
+
+        #endregion
 
     }
 }
