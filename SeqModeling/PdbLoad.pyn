@@ -723,7 +723,7 @@ def RemoveAllChainCache(only_rd_chains=False):
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'SmallProteins')
+ImportPDBList(sList, 'TransmbraneProtein')
 
 for dn in dnList:
 	vv.Folder.OpenDataset(dn+str(1))
