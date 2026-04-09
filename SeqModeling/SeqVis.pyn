@@ -971,7 +971,6 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 	else:
 		pAtlas.Refresh()
 	pAtlas.DataChanged = True
-	ViewCfgList.clear()
 
 def ReCreateMap(pMap):
 	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	
@@ -1229,11 +1228,15 @@ def UndoLastOp(pp):
 def ResetAtlas():
 	global ZoomingList
 	mk = vv.ModifierKeys
-	if mk.AltPressed or mk.ControlPressed or mk.ShiftPressed:
-		return
 	tm = vv.GuiManager.MouseClickDuration
 	cnt = pp.SelectedItems.Count
 
+	if mk.AltPressed and DoubleClicked():
+		ViewCfgList.clear()
+		pp.ResetView(False)
+		return		
+	if mk.AltPressed or mk.ControlPressed or mk.ShiftPressed:
+		return
 	if cnt >= 6:
 		p, q = pp.Items[0], pp.Items[1]
 		ViewCfgList.append( (p.Left, p.Top, q.Left, q.Top) )   # save the current cfg for undo operation
