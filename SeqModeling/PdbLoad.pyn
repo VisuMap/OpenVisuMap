@@ -102,7 +102,7 @@ def UnFoldProteinList(pList, includeHA=False, wholeComplex=False, tP = None,
 				selected.add(p[:4])
 		pList = pList2
 
-	epochs, intRp, mom, ppl, initExag, finalExag = tP
+	epochs, intRp, winSize, ppl, initExag, finalExag = tP
 
 	if samplingDist > 0:
 		pList = cs.FlatSampling(pList, samplingDist)
@@ -135,7 +135,7 @@ def UnFoldProteinList(pList, includeHA=False, wholeComplex=False, tP = None,
 			bList = Interpolate(bList, rp=intRp)
 			if includeHA:
 				bList.AddRange(bList2)
-			SimplifySeq(bList, mom)		
+			SimplifySeq(bList, winSize)		
 			nt = New.NumberTable(bList, 3)	
 			if nt.Rows < 8:
 				continue	
@@ -181,7 +181,7 @@ def SimplifySeq(bList, winSize):
 def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 	global ctrPressed
 
-	epochs, intRp, mom, ppl, initE, finalE = tP
+	epochs, intRp, ppl, initE, finalE = tP
 	if samplingDist > 0:
 		pList = cs.FlatSampling(pList, samplingDist)
 		vv.Title = f'Sampled {len(pList)} chains by density {samplingDist}!'
@@ -207,15 +207,17 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 	t0 = time.time()
 	for k, pId in enumerate(pList):
 		bList = LoadChain(pId)
+		info = MapInfo({'pId':pId, 'pLen':bList.Count, 'tP':tP})
 		bList = InterpolateChain(bList, intRp)
-		SimplifySeq(bList, mom)
+		rpFct = 2**intRp
+		ws = 0 if bList.Count < rpFct*80 else 14 if bList.Count < rpFct*240 else 4*14
+		SimplifySeq(bList, ws)
+		info.Set('winSize', ws)
 		nt = New.NumberTable(bList, 3)
-		#New.MdsCluster(nt).Show()
 		nt = tsne.Fit(nt)
 		if nt == None:
 			continue
 		bList = nt.ToBodyList()
-		info = MapInfo({'pId':pId, 'tP':tP})
 		if mapStore == None:
 			map = New.MapSnapshot(bList)
 			ConfigSeqMap(map, info, gsize=1.0)

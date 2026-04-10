@@ -886,7 +886,8 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75,
 		mp.NameLabelColor = New.Color('Yellow')
 		mp.NameLabelFont = New.Font('Microsoft Sans Serif', 18.0)
 		info = MapInfo(mp.Description)
-		mp.Title = f'{info.Get("pId")}: {info.Get("PT")}'
+		info.Set('pLen', mp.BodyList.Count)
+		mp.Title = info.pId		
 
 		bList = mp.BodyList
 		allHidden = True
@@ -910,7 +911,6 @@ def ConfigAtlasMaps(atlas, mpWidth=1000, mpHeight=700, gSize=0.35, iconWidth=75,
 			mp.Close()
 			continue
 
-		info = MapInfo(mp.Description)
 		it.LabelStyle = 0
 		it.Name = str(info.pLen)
 		it.IconHeight = 0
