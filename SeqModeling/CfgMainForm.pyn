@@ -36,8 +36,7 @@ def MainMain(menuKey):
 			for vt in 1*['mwV']: 
 				match vt:
 					case 'mwV': # 14 ~= 3.6 * (2**3)
-						K = 14
-						ws = [K, 2*K, 3*K, 4*K]	
+						ws = [13, 23, 37, 53]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'sFT':	
 						PM2(aaGroups=GetAAGroup(20), tSNE=(ppl_, 6.0, 0.9))
@@ -195,7 +194,7 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 				break
 
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[1:], mpIdx=0, createPMap=True, createAtlas=False)
+DoDatasetList(dxList[1:], mpIdx=0, createPMap=True, createAtlas=True)
 vv.Folder.Save()
 
 RemoveAllChainCache( only_rd_chains=False )
@@ -207,6 +206,11 @@ for dn in list(vv.Folder.DatasetNameList)[1:]:
 		#ds.DeleteMap(mp)
 		ds.OpenMap(mp)
 		vv.Map.GlyphSet = 'Colored Particles||||'
+
+for dn in list(vv.Folder.DatasetNameList)[1:]:
+	ds = vv.Folder.OpenDataset(dn)
+	mp = ds.OpenMap( ds.MapNameList[0] )
+	mp.ScaleMap(400/mp.Width)
 
 
 BroadcastMapCfg()

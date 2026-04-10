@@ -88,7 +88,7 @@ def BodyListSphereView(pId, bList, unfolding):
 		vs.Title = "Moving Window Size"
 		vs.NumberFormat = 'f0'
 	else:
-		vs.StepSize, vs.CurrentValue = 0.01, 0.8
+		vs.StepSize, vs.CurrentValue = 0.0025, 0.8
 		vs.Title = "Contracting Factor"
 		vs.NumberFormat = 'g4'
 	vs.Show()
