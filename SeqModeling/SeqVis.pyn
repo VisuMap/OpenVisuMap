@@ -1208,8 +1208,8 @@ ViewCfgList = []
 
 def UndoLastOp(pp):
 	global ViewCfgList
-	if not ViewCfgList: 	return False
-
+	if not ViewCfgList:
+		return False
 	pLeft, pTop, qLeft, qTop = ViewCfgList.pop()
 	p, q = pp.Items[0], pp.Items[1]
 	#
@@ -1225,23 +1225,30 @@ def UndoLastOp(pp):
 	pp.Refresh()
 	return True
 
+def SaveUndoCfg(atlas):
+	p, q = atlas.Items[0], atlas.Items[1]
+	ViewCfgList.append( (p.Left, p.Top, q.Left, q.Top) )
+
+
 def ResetAtlas():
 	global ZoomingList
 	mk = vv.ModifierKeys
 	tm = vv.GuiManager.MouseClickDuration
 	cnt = pp.SelectedItems.Count
+	parentName = vv.EventSource.Form.Name
 
-	if mk.AltPressed and DoubleClicked():
-		ViewCfgList.clear()
-		pp.ResetView(False)
-		return		
+	if cnt == 0 and parentName == 'Atlas':
+		if mk.AltPressed or len(ViewCfgList)==0:
+			ViewCfgList.clear()
+			pp.ResetView(True)
+		else:
+			UndoLastOp(pp)
+		return
 	if mk.AltPressed or mk.ControlPressed or mk.ShiftPressed:
 		return
 	if cnt >= 6:
-		p, q = pp.Items[0], pp.Items[1]
-		ViewCfgList.append( (p.Left, p.Top, q.Left, q.Top) )   # save the current cfg for undo operation
-
-	if vv.EventSource.Form.Name == 'Atlas':  # parent is an atlas
+		SaveUndoCfg(pp)
+	if parentName == 'Atlas':  # parent is an atlas
 		if DoubleClicked(): 
 			if not UndoLastOp(pp):
 				pp.ResetView(True)
@@ -1249,7 +1256,7 @@ def ResetAtlas():
 			return
 		elif tm > 2000:
 			pp.ClickMenu('More.../Show Selected')
-			pp.ResetView(False)  # keep the selection.
+			pp.ResetView(True)  # keep the selection.
 		else:
 			pp.ResetView(True)   # clear the selection.
 	else:
