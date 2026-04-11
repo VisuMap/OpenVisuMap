@@ -721,7 +721,43 @@ def RemoveAllChainCache(only_rd_chains=False):
 	for f in fList:
 		os.remove(f'{CHAIN_CACHE}/{f}')
 
+#
+# remove unused cif and pmc files from the cache:
+#
+def CleanupAllCache():
+	import os
+	pSet = set()
+	for dn in list(vv.Folder.DatasetNameList)[1:]:
+		ds = vv.Folder.ReadDataset(dn)
+		if ds.Description.startswith('ChDir:'):
+			continue
+		for b in ds.BodyList:
+			pSet.add(b.Id[:4].upper())
+	print(f'Total chains: {len(pSet)}')
+	
+	cifSet = set()
+	os.chdir(PDB_CACHE)
+	for f in os.listdir('.'):
+		if f[:4].upper() not in pSet:
+			cifSet.add(f)
+	print(f'Removing {len(cifSet)} cif files...')
+	for f in cifSet:
+		os.remove(f)
+	
+	pmcSet = set()
+	os.chdir(CHAIN_CACHE)
+	for f in os.listdir('.'):
+		if f[:4].upper() not in pSet:
+			pmcSet.add(f)
+	print(f'Removing {len(pmcSet)} pmc files...')
+	for f in pmcSet:
+		os.remove(f)
+	
+	print('Done')
+
 '''
+CleanupAllCache()
+
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
