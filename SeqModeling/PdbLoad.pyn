@@ -214,20 +214,24 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 		ws = 0 if bList.Count < rpFct*80 else 14 if bList.Count < rpFct*240 else 4*14
 		SimplifySeq(bList, ws)
 		info.Set('winSize', ws)
+
 		removedIntp = False
 		if bList.Count > maxRows:  # remove the interpolation of too-long chains.
 			bList = ss.SelectAA(bList)
-			removedIntp = False		
+			removedIntp = True
+
 		nt = New.NumberTable(bList, 3)
 		nt = tsne.Fit(nt)
+
 		if nt == None:
 			errCnt += 1
 			continue
 		if removedIntp: # Add back the interpolation.
 			bList = nt.ToBodyList()
 			bList = InterpolateChain(bList, intRp)
-			nt = New.NumberTable(bList, 3)			
-
+			nt = New.NumberTable(bList, 3)	
+		
+		bList = nt.ToBodyList()
 		if mapStore == None:
 			map = New.MapSnapshot(bList)
 			ConfigSeqMap(map, info, gsize=1.0)

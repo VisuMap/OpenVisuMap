@@ -183,6 +183,7 @@ class AtlasMapStore():
 		info.Set('pId', id)
 		ConfigSeqMap(mp, info, gsize=6.0)
 		cs.FitByPCA(mp, scale)
+		mp.ResizeClient(800, int(800*mp.Height/mp.Width))
 		item = self.atlas.CaptureItem(mp)
 		item.Name = id
 		item.Id = id
