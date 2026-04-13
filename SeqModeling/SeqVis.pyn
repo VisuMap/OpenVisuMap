@@ -83,6 +83,10 @@ public void HideInterpolation(List<IBody> bList) {
 			b.Hidden = (b.Id[0] == 'i');
 }
 
+public List<IBody> SelectAA(List<IBody> bList) {
+	return bList.Where(b=>b.Id[0]=='A').ToList();
+}
+
 public void ShiftScale(IList<IAtlasBaseItem> Items, float scale, float BLeft, float BTop) {
 	foreach(var e in Items) {
 		e.Left = (e.Left - BLeft)/scale;
@@ -534,7 +538,7 @@ def ShowWeb(pId):
 
 def ShowChimeraX(pId):
 	localPath = Download3DInfo(pId[:4])
-	progPath = "C:\\Program Files\\ChimeraX 1.9.dev202408012149\\bin\\ChimeraX.exe"
+	progPath = "C:\\Program Files\\ChimeraX 1.10\\bin\\ChimeraX.exe"
 	vv.StartProcess(progPath, localPath)
 
 #-----------------------------------------------------------------------------
@@ -709,11 +713,12 @@ def ShowBodyList(bList, gSize=1.5, gOpacity=0.5, hSize=3, normalize=True, info=N
 
 def UpdateComplex(vs):
 	mp, bList = vs.Tag
-	ws = int(vs.CurrentValue)
-	vs.CurrentValue = ws
-	ss.CopyToXYZ(bList, mp.BodyList)
-	cs.SmoothenSeq(mp.BodyList, ws)
-	mp.Redraw()
+	if IsCreated(mp):
+		ws = int(vs.CurrentValue)
+		vs.CurrentValue = ws
+		ss.CopyToXYZ(bList, mp.BodyList)
+		cs.SmoothenSeq(mp.BodyList, ws)
+		mp.Redraw()
 
 def SmoothenComplex(pId, singleChain=False):
 	chNames = GetChainName(pId) if singleChain else None

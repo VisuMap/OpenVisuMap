@@ -50,12 +50,12 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, matchPid=
 	return mp
 
 def ShowProteinList(pList, includeHA, atName=None, gsize=1.0, gopacity=0.75, intRp=3):
-	if len(pList) > 5:
+	mapList = []
+	if len(pList) >= 12:
 		mapStore = NewMapStore(atName)
 		mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
 	else:
 		mapStore = None
-		mapList = []
 	for k, pId in enumerate(pList):
 		vv.Title = f'Loading {pId}: {k+1}-th of {len(pList)}'
 		chainNames = GetChainName(pId)
@@ -205,6 +205,7 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 	else:
 		mapStore = None
 	t0 = time.time()
+	errCnt = 0
 	for k, pId in enumerate(pList):
 		bList = LoadChain(pId)
 		info = MapInfo({'pId':pId, 'pLen':bList.Count, 'tP':tP})
@@ -213,11 +214,20 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 		ws = 0 if bList.Count < rpFct*80 else 14 if bList.Count < rpFct*240 else 4*14
 		SimplifySeq(bList, ws)
 		info.Set('winSize', ws)
+		removedIntp = False
+		if bList.Count > maxRows:  # remove the interpolation of too-long chains.
+			bList = ss.SelectAA(bList)
+			removedIntp = False		
 		nt = New.NumberTable(bList, 3)
 		nt = tsne.Fit(nt)
 		if nt == None:
+			errCnt += 1
 			continue
-		bList = nt.ToBodyList()
+		if removedIntp: # Add back the interpolation.
+			bList = nt.ToBodyList()
+			bList = InterpolateChain(bList, intRp)
+			nt = New.NumberTable(bList, 3)			
+
 		if mapStore == None:
 			map = New.MapSnapshot(bList)
 			ConfigSeqMap(map, info, gsize=1.0)
@@ -229,6 +239,9 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 		vv.DoEvents()
 		if vv.GuiManager.StopFlag:
 			break
+
+	if errCnt > 0:
+		vv.Message(f'Failed to process {errCnt} chains')
 
 	if mapStore != None:
 		info = MapInfo()
@@ -761,7 +774,7 @@ CleanupAllCache()
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'TransmbraneProtein')
+ImportPDBList(sList, 'AlphaHelix')
 
 for dn in dnList:
 	vv.Folder.OpenDataset(dn+str(1))
