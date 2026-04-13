@@ -174,8 +174,6 @@ def ShowBondLength(pList):
 
 MainMain(vv.EventSource.Item)
 
-'''
-
 def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 	vv.SelectedItems.Clear()
 	with CheckTime('Total Time: {tm}\n'):
@@ -189,6 +187,9 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 					MainMain('P-2D')
 			if vv.GuiManager.StopFlag:
 				break
+
+
+'''
 
 dxList = list(range(vv.Folder.DatasetNameList.Count))
 DoDatasetList(dxList[1:], mpIdx=0, createPMap=True, createAtlas=True)

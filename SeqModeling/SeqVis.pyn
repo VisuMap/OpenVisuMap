@@ -412,7 +412,7 @@ def MovingWindowVariance(pList, waveCount, waveLen, winSize, intRp=0):
 # t-SNE reduced data
 def MaxRows(ds, pList, intRp):
 	maxV = max([ds.IntAt(p, 3) for p in pList])
-	return min(vv.GpuCacheLimit, 2**intRp*(maxV - 1) + 1)
+	return min(vv.GpuCacheLimit, (2**intRp)*maxV)
 
 def GetFourierTrans(pList, waveLen, waveCount, winSize=0, intRp=0):
 	# The first component of the FT is the sume of all components which
@@ -1237,7 +1237,7 @@ def SaveUndoCfg(atlas):
 
 
 def ResetAtlas():
-	global ZoomingList
+	global ViewCfgList
 	mk = vv.ModifierKeys
 	tm = vv.GuiManager.MouseClickDuration
 	cnt = pp.SelectedItems.Count
@@ -1245,11 +1245,20 @@ def ResetAtlas():
 
 	if cnt == 0 and parentName == 'Atlas':
 		if mk.AltPressed or len(ViewCfgList)==0:
-			ViewCfgList.clear()
+			if len(ViewCfgList) == 0:
+				showItems = []
+				for item in pp.Items:
+					if not item.IsHidden:
+						item.IsHidden = True
+						showItems.append(item)
+				pp.RedrawItemList(showItems, False)
+			else:
+				ViewCfgList.clear()
 			pp.ResetView(True)
 		else:
 			UndoLastOp(pp)
 		return
+
 	if mk.AltPressed or mk.ControlPressed or mk.ShiftPressed:
 		return
 	if cnt >= 6:
