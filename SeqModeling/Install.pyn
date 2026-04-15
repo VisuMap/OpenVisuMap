@@ -5,7 +5,7 @@ import os
 if vv.ScriptDirectories.find( vv.CurrentScriptDirectory ) < 0:
 	vv.ScriptDirectories = vv.CurrentScriptDirectory + ";" + vv.ScriptDirectories
 
-vv.InstallPlugin('SeqVisInit', '@vv.Import("SeqVis.pyn")')
+#vv.InstallPlugin('SeqVisInit', '@vv.Import("SeqVis.pyn")')
 
 for pf in os.listdir(vv.CurrentScriptDirectory):
 	if pf.endswith('.pyn') and pf.startswith('Cfg'):  

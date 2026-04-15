@@ -1,6 +1,5 @@
 import math, random, time
 import numpy as np
-vv.Import('PdbLoad.pyn')
 
 GENE_TABLE = 'Gene Features'
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
@@ -138,9 +137,9 @@ class MapInfo():
 		dic = self.__dict__
 		for f in initStr.split(';'):
 			if f is not None:
-				fs = f.split(':')
+				fs = f.split(':', 1)
 				if len(fs) == 2:
-					dic[fs[0]] = fs[1]
+					dic[fs[0].strip()] = fs[1].strip()
 
 def ShowInfo(pp):
 	desc = pp.Map.Description if pp.Name == 'MainForm' else pp.Description
@@ -719,12 +718,14 @@ def UpdateComplex(vs):
 		mp.Redraw()
 
 def SmoothenComplex(pId, singleChain=False):
+	if pId == None:
+		vv.Message('No polymer selected!')
+		return
 	chNames = GetChainName(pId) if singleChain else None
-	#chNames = ['5G_1', '5H_1', '5I_1', '5J_1', '5K_1', '5L_1']
-	mp = ShowPDB(pId,rp=3, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=True,
+	mp = ShowPDB(pId, rp=3, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=True,
 		setChainId=False, typeByChainIdx=False, unifyId=False, chainNames=chNames)
 	maxWS = cs.MaxChainLen(mp.BodyList)//2
-	vs = New.ValueSelector(0, maxWS, 14, 'UpdateComplex(pp)')  # 14,29,43,59,87
+	vs = New.ValueSelector(0, maxWS, 14, 'UpdateComplex(pp)')
 	vs.Title = 'Moving Window Size'
 	vs.StepSize = 1
 	vs.Tag = mp, New.BodyListClone(mp.BodyList)
@@ -733,7 +734,7 @@ def SmoothenComplex(pId, singleChain=False):
 	vs.Show()
 	UpdateComplex(vs)
 	mp.CentralizeView(False)
-	mp.ZoomByFactor(5.0)
+	mp.ZoomByFactor(12.0)
 
 #-------------------------------------------------------------------
 
