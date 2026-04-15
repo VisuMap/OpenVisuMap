@@ -1,9 +1,5 @@
 # functions to import and process pdb/cif files.
 
-fdInfo = MapInfo(vv.Folder.Description)
-PDB_CACHE = fdInfo.CifCache
-CHAIN_CACHE = fdInfo.ChainCache
-
 # get the path for the cached (PDB) CIF file.
 def PdbCacheFile(pId):
 	if len(pId)<4:
@@ -782,7 +778,8 @@ CleanupAllCache()
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'Locomotion', 'Biological Process 2024.7-2026.4')
+ImportPDBList(sList, 'Nervous', 'MeSH/Nervous System')
+ImportPDBList(sList, 'Viral', 'MeSH/Anatomy/Viral Structure')
 
 for dn in dnList:
 	vv.Folder.OpenDataset(dn+str(1))

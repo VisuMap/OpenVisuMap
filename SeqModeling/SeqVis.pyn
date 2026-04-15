@@ -1,6 +1,8 @@
 import math, random, time
 import numpy as np
 
+# -------------------------- global constants --------------------------------------------
+
 GENE_TABLE = 'Gene Features'
 ALPHABET = 'ARNDCEQGHILKMFPSTWYV'
 P = {ALPHABET[k]:k for k in range(len(ALPHABET))}
@@ -36,10 +38,17 @@ def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling
 		copy(vv.CurrentScriptDirectory + '/packages/MathNet.Numerics.5.0.0/lib/net48/' + 'MathNet.Numerics.dll', vv.CurrentScriptDirectory)
 	vv.LoadLibrary(dllFile)
 	return New.Instance(className)
-
-if 'cs' not in globals():
-	cs = LoadSeqModeling()
 		
+def LoadCacheDef():
+	global PDB_CACHE
+	global CHAIN_CACHE
+	fdInfo = MapInfo(vv.Folder.Description)
+	if fdInfo.Has('CifCache'):
+		PDB_CACHE = fdInfo.CifCache
+		CHAIN_CACHE = fdInfo.ChainCache	
+	vv.EventManager.RemoveAllHandles(vv)
+	vv.EventManager.OnFolderLoaded('LoadCacheDef()',vv)
+
 ss = New.CsObject('''
 
 public void SwapHiddenBodies(List<IBody> bsList) {
@@ -239,7 +248,6 @@ def AssertSeqMap(pMap):
 	else:
 		vv.Message('The view is not a protein seq map')
 		vv.Return()
-
 
 def AddHistory(wd):
 	global pIdHistory
@@ -1276,6 +1284,12 @@ def SelectPID():
 	vv.SelectedItems = info.pId.split(',')
 	pp.Title = f'PIDs: {info.pId}'
 	vv.GuiManager.SetClipboard(info.pId)
+
+if 'cs' not in globals():
+	cs = LoadSeqModeling()
+
+LoadCacheDef()
+
 
 '''
 
