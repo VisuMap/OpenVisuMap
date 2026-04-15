@@ -205,6 +205,12 @@ for dn in list(vv.Folder.DatasetNameList)[1:]:
 		ds.OpenMap(mp)
 		vv.Map.GlyphSet = 'Colored Particles||||'
 
+for dn in list(vv.Folder.DatasetNameList)[3:]:
+	ds = vv.Folder.OpenDataset(dn)
+	if ds.Description.startswith('; '):
+		ds.Description = ds.Description[2:]
+	ds.CommitChanges()
+
 for dn in list(vv.Folder.DatasetNameList)[1:]:
 	ds = vv.Folder.OpenDataset(dn)
 	mp = ds.OpenMap( ds.MapNameList[0] )

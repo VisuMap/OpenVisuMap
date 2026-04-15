@@ -190,9 +190,6 @@ class AtlasMapStore():
 		item.IsHidden = self.hideItems
 		item.CacheImage = not self.hideItems
 		csz = mp.TheForm.ClientSize
-		ratio = csz.Width/csz.Height
-		item.IconWidth = int(0.06*mp.Width)
-		item.IconHeight = 0
 		return None
 
 	def __del__(self):
@@ -1216,12 +1213,10 @@ def UndoLastOp(pp):
 	global ViewCfgList
 	if not ViewCfgList:
 		return False
-	pLeft, pTop, qLeft, qTop = ViewCfgList.pop()
+	pLeft, pTop, qLeft = ViewCfgList.pop()
 	p, q = pp.Items[0], pp.Items[1]
-	#
 	# Based on: p' = ap + B  and   q'=aq + B 
 	#        => a = (p' - q')/(p-q)  and B = p' - ap  and p = (p - B)/a
-	#
 	if (pLeft == qLeft) or (p.Left == q.Left):
 		return
 	a = (p.Left-q.Left)/(pLeft - qLeft)
@@ -1232,8 +1227,7 @@ def UndoLastOp(pp):
 	return True
 
 def SaveUndoCfg(atlas):
-	p, q = atlas.Items[0], atlas.Items[1]
-	ViewCfgList.append( (p.Left, p.Top, q.Left, q.Top) )
+	ViewCfgList.append( (atlas.Items[0].Left, atlas.Items[0].Top, atlas.Items[1].Left) )
 
 
 def ResetAtlas():
@@ -1245,12 +1239,9 @@ def ResetAtlas():
 
 	if cnt == 0 and parentName == 'Atlas':
 		if mk.AltPressed or len(ViewCfgList)==0:
-			if len(ViewCfgList) == 0:
-				showItems = []
-				for item in pp.Items:
-					if not item.IsHidden:
-						item.IsHidden = True
-						showItems.append(item)
+			if len(ViewCfgList) == 0 and mk.AltPressed:
+				showItems = [x for x in pp.Items if not x.IsHidden]
+				for x in showItems: x.IsHidden = True
 				pp.RedrawItemList(showItems, False)
 			else:
 				ViewCfgList.clear()

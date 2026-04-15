@@ -257,7 +257,7 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 		info.Map = vv.Map.Name
 		ma = mapStore.atlas
 		ma.Show()
-		MatchProteinMap(ma, 50)
+		MatchProteinMap(ma, 60)
 		ma.Description = info.Str
 		del mapStore
 
@@ -608,7 +608,11 @@ def ImportPDBList(sList, dsName, dsDescription=''):
 		msg = f'Skipped {len(skipped)} cif files: {skList}'
 		print(msg)
 		vv.Message(msg)
-
+	ds = vv.Dataset
+	if ds.Description != '': ds.Description += '; '
+	ds.Description += f'Dim:{ds.Rows}x{ds.Columns}'
+	ds.CommitChanges()
+		
 def GetAAGroup(idx=0):
 	aaHydrophobic = 'AVILMFYW'
 	aaPolarUncharged = 'STNQ'
@@ -778,7 +782,7 @@ CleanupAllCache()
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'AlphaHelix')
+ImportPDBList(sList, 'SarsCov2', 'Entities similar to 8CoY')
 
 for dn in dnList:
 	vv.Folder.OpenDataset(dn+str(1))
