@@ -58,7 +58,7 @@ def MainMain(menuKey):
 			ShowWeb(pId)
 		case 'LD':
 			pIds = vv.PromptMessage('Protein ID: ', '????')
-			if len(pIds) == 4:
+			if pIds != None:
 				ImportPDBList(pIds, 'Monthly')
 		case '3Dx':
 			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, unifyId=True)

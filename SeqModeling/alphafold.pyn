@@ -1,0 +1,42 @@
+#
+# code to import a compressed AlphaFold cif dataset 
+# from https://alphafold.ebi.ac.uk/download#proteomes-section
+#
+import os
+AFName = 'Influenzae'
+AFDir = f'C:\\temp\\{AFName}'
+AFProtRef = 'UP000000579'
+
+# Simplify the cif file names. Assuming the cif files have been extracted and stored in AFDir.
+os.chdir(AFDir)
+for f in os.listdir('.'):
+    if f.endswith('.cif'):
+        fn = f.split('-')[1] + '.cif'
+        os.rename(f, fn)
+
+# Convert cif file to chain cache format.
+os.chdir(AFDir)
+for f in os.listdir(AFDir):
+	if f.endswith('.cif'):
+		bs = cs.LoadCif(AFDir + '\\' + f, None)
+		chId = f.split('.')[0]
+		cs.SaveChain(AFDir + '\\' + chId + '.pmc', bs)
+
+# Create a new dataset to store the chains. 
+InitDatabase(AFName, f'ChDir:/temp/{AFName};Src:{AFProtRef}')
+
+# import all chains into the current dataset.
+os.chdir(AFDir)
+for f in os.listdir('.'):
+	if f.endswith('.pmc'):
+		bs = cs.LoadChain3D(AFDir + '\\' + f)
+		pSeq = ''.join([b.Name[0] for b in bs])
+		chName = bs[0].Name.split('.')[2]
+		ppType = 0
+		chType = 'A'
+		seqLen = len(pSeq)
+		chId = f.split('.')[0]
+		entityId = bs[0].Type + 1
+		vv.Dataset.AddRow(chId, None,  ppType, [chType, str(entityId), pSeq, str(seqLen), chName])
+
+vv.Dataset.CommitChanges()

@@ -520,10 +520,6 @@ def UnpackChain(pId):
 		if chIdName in nm2id:
 			SaveChain(nm2id[chIdName], ch)
 
-'''
-UnpackChain('2JU0')
-'''
-
 def PreloadPDB(sList):
 	from os.path import exists
 	pList = sList.split(',')
@@ -669,18 +665,6 @@ ss2 = New.CsObject('''
 			R[idx] += 1.0;
 		}
 	}
-	
-	public string GetPepSeq(List<IBody> bList) {
-		StringBuilder sb = new StringBuilder();
-		foreach(var b in bList) {
-			char c = b.Name[0];
-			if ( c.Equals('r') || c.Equals('d') )
-				c = char.ToLower( b.Name[2] );
-			sb.Append(c);
-		}
-		return sb.ToString();
-	}
-
 ''')
 
 def ToChainList(pList):
@@ -709,8 +693,6 @@ def ShowPepCounts(pList):
 			R = nt.Matrix[row]
 			for chId in chainList[pId]:
 				ss2.ToPepCount(LoadSeq(chId), R)
-		#bList = cs.LoadCif(f'{PDB_CACHE}/{pId}.cif', None)
-		#ss2.ToPepCount(ss2.GetPepSeq(bList), nt.Matrix[row])
 		if row%100 == 0:
 			print(f'{row}: {pId}')
 			vv.DoEvents()
@@ -773,105 +755,19 @@ def CleanupAllCache():
 	print('Done')
 
 '''
-CleanupAllCache()
 
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'Nervous', 'MeSH/Nervous System')
-ImportPDBList(sList, 'Viral', 'MeSH/Anatomy/Viral Structure')
+ImportPDBList(sList, 'HIV', 'MeSH/Diseases/Immune System/HIV')
 
-for dn in dnList:
-	vv.Folder.OpenDataset(dn+str(1))
-	vv.Dataset.Name = dn
-
-	sList = set([p[:4] for p in vv.AllItems])
-	sList = ','.join(list(sList))
-	ImportPDBList(sList, dn)
-	MainMain('P-Map')
-
+CleanupAllCache()
 
 RemoveAllChainCache()
 
-sList = ','.join([f[:4] for f in os.listdir(PDB_CACHE)])
-sList = ','.join(pList)
-print(len(sList))
-
-# Extract a chain list for each dataset:
-dnList = list(vv.Folder.DatasetNameList)[1:]
-dsInfo = New.FreeTable(len(dnList), 3)
-for k, dn in enumerate(dnList):
-	ds = vv.Folder.ReadDataset(dn)
-	pSet = set([b.Id[:4] for b in ds.BodyList])
-	pList = list(pSet)
-	dsInfo.Matrix[k][0] = dn
-	dsInfo.Matrix[k][1] = ','.join(pList)
-	dsInfo.Matrix[k][2] = str( len(pList) )
-New.DataDetails(dsInfo).Show()
-
-dsList = []
-ds = vv.Dataset
-for k in range(ds.Rows):
-	dsList.append( (ds.StringAt(k, 0), ds.StringAt(k, 1)) )
-dsList = dsList[5:]
-for dn, sList in dsList:
-	print(dn, len(sList.split(',')))
-	ImportPDBList(sList, dn)
 
 ds = vv.Folder.ReadDataset("P-Info")
 pList = [b.Id for b in ds.BodyList]
 ShowPepCounts(pList)
-
-AFDir = "C:\\temp\\UP000008827_3847_SOYBN_v6\\"
-cifPath = "C:\\Users\\james\\OneDrive\\Desktop\\AF-P06965-F1-model_v6.cif"
-cifPath = "C:\\Users\\james\\OneDrive\\Desktop\\AF-P06965-F1-model_v6 (1).cif"
-cifPath = AFDir + "AF-A0A0R0HRF3-F1-model_v6.cif"
-bs = cs.LoadCif(cifPath, None)
-
-ShowBodyList( cs.NormalizeChain( InterpolateChain(bs, rp=3) ) )
-SphereView0('alpha-fold', bs, False)
-
-#
-# code to import a compressed AlphaFold cif dataset from https://alphafold.ebi.ac.uk/download#proteomes-section
-#
-import os
-AFName = 'Influenzae'
-AFDir = f'C:\\temp\\{AFName}'
-AFProtRef = 'UP000000579'
-
-# Simplify the cif file names. Assuming the cif files have been extracted and stored in AFDir.
-os.chdir(AFDir)
-for f in os.listdir('.'):
-    if f.endswith('.cif'):
-        fn = f.split('-')[1] + '.cif'
-        os.rename(f, fn)
-
-# Convert cif file to chain cache format.
-os.chdir(AFDir)
-for f in os.listdir(AFDir):
-	if f.endswith('.cif'):
-		bs = cs.LoadCif(AFDir + '\\' + f, None)
-		chId = f.split('.')[0]
-		cs.SaveChain(AFDir + '\\' + chId + '.pmc', bs)
-
-# Create a new dataset to store the chains. 
-InitDatabase(AFName, f'ChDir:/temp/{AFName};Src:{AFProtRef}')
-
-# import all chains into the current dataset.
-os.chdir(AFDir)
-for f in os.listdir('.'):
-	if f.endswith('.pmc'):
-		bs = cs.LoadChain3D(AFDir + '\\' + f)
-		pSeq = ''.join([b.Name[0] for b in bs])
-		chName = bs[0].Name.split('.')[2]
-		ppType = 0
-		chType = 'A'
-		seqLen = len(pSeq)
-		chId = f.split('.')[0]
-		entityId = bs[0].Type + 1
-		vv.Dataset.AddRow(chId, None,  ppType, [chType, str(entityId), pSeq, str(seqLen), chName])
-
-vv.Dataset.CommitChanges()
-
 
 '''
