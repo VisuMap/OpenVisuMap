@@ -58,7 +58,7 @@ def MainMain(menuKey):
 			ShowWeb(pId)
 		case 'LD':
 			pIds = vv.PromptMessage('Protein ID: ', '????')
-			if len(pIds) > 0:
+			if len(pIds) == 4:
 				ImportPDBList(pIds, 'Monthly')
 		case '3Dx':
 			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, unifyId=True)
@@ -102,10 +102,9 @@ def MainMain(menuKey):
 			ShowBodyList(Interpolate(bs, rp=3))
 			ShowBondLength(pList[:20])
 			ShowTwistMap(pId, maxWsRows=4096)
-			ShowRamachandraw(pId)
 			'''
-			_, bs, _, _ = LoadCifData("C:\\Users\\james\\OneDrive\\Desktop\\AF_AFP0C8Z9F1.cif")
-			ShowBodyList(Interpolate(bs, rp=3))
+			vv.Import('ramachandraw.pyn')
+			ShowRamachandraw(pId)
 
 def ShowTwistMap(pId, maxWsRows=1024):
 	bList = InterpolateChain(LoadChain(pId), rp=3)

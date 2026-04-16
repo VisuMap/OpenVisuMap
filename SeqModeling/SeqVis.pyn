@@ -44,8 +44,8 @@ def LoadCacheDef():
 	global CHAIN_CACHE
 	fdInfo = MapInfo(vv.Folder.Description)
 	if fdInfo.Has('CifCache'):
-		PDB_CACHE = fdInfo.CifCache
-		CHAIN_CACHE = fdInfo.ChainCache	
+		PDB_CACHE = eval('f\'' + fdInfo.CifCache +'\'')
+		CHAIN_CACHE = eval('f\'' + fdInfo.ChainCache +'\'')
 	vv.EventManager.RemoveAllHandles(vv)
 	vv.EventManager.OnFolderLoaded('LoadCacheDef()',vv)
 
