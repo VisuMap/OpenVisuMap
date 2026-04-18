@@ -57,8 +57,11 @@ def AtlasMain(menuKey):
 		case 'info':
 			ShowInfo(pp)
 		case 'TT':		
+			ShowBondLength(pList[:20])
+			'''
 			ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
 			ShowBond(pId)
+			'''
 			
 
 def ShowBond(pId, f=0.99):

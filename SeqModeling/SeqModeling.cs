@@ -286,7 +286,7 @@ namespace VisuMap {
                     int ws = isNucleotide ? (int)(n * rRNA_AA) : n;
                     if (ws < bs.Count) {
                         MovingWindowVariance(bs, ws, bDist);
-                        MovingChainFT(bDist, tm, Rk, idx0);
+                        VectorizeChainFT(bDist, tm, Rk, idx0);
                         idx0 += tm.Columns;
                     }
                 }
@@ -297,7 +297,28 @@ namespace VisuMap {
             return D;
         }
 
-        public void MovingChainFT(double[] bDist, INumberTable tm,  double[] R, int index0 = 0) {
+        public INumberTable BondGapeSpetrum(IList<string> pList, INumberTable tm, string cacheDir = null) {
+            List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
+            INumberTable D = New.NumberTable(bList, tm.Columns);
+            MT.LoopNoblocking(0, pList.Count, k => {
+                string pId = pList[k];
+                var bs = LoadChain3D($"{cacheDir}/{pList[k]}.pmc");
+                double[] Rk = (double[])D.Matrix[k];
+                double[] bDist = new double[bs.Count - 1];
+                for (int i = 0; i < bDist.Length; i++) {
+                    double v = bs[i + 1].DistanceTo(bs[i]) - 3.8015;
+                    bDist[i] = v*v;
+                }
+                VectorizeChainFT(bDist, tm, Rk);
+                if ((k > 0) && (k % 500 == 0)) {
+                    vv.Title = $"Reading chains: {k} of {pList.Count}";
+                }
+            });
+            return D;
+        }
+
+
+        public void VectorizeChainFT(double[] bDist, INumberTable tm,  double[] R, int index0 = 0) {
             double[][] M = tm.Matrix as double[][];
             int L = bDist.Length;
             MT.Loop(0, M[0].Length, col=>{
