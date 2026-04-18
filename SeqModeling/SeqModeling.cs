@@ -297,24 +297,42 @@ namespace VisuMap {
             return D;
         }
 
-        public INumberTable BondGapeSpetrum(IList<string> pList, INumberTable tm, string cacheDir = null) {
+        public INumberTable BondGapeSpetrum(IList<string> pList, INumberTable tm=null, string cacheDir = null) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
-            INumberTable D = New.NumberTable(bList, tm.Columns);
+            List<double>[] M = new List<double>[pList.Count];
             MT.LoopNoblocking(0, pList.Count, k => {
-                string pId = pList[k];
                 var bs = LoadChain3D($"{cacheDir}/{pList[k]}.pmc");
-                double[] Rk = (double[])D.Matrix[k];
-                double[] bDist = new double[bs.Count - 1];
-                for (int i = 0; i < bDist.Length; i++) {
-                    double v = bs[i + 1].DistanceTo(bs[i]) - 3.8015;
-                    bDist[i] = v*v;
-                }
-                VectorizeChainFT(bDist, tm, Rk);
+                List<double> L = new List<double>();
+                for (int i = 0; i < bs.Count - 1; i++)
+                    L.Add(bs[i + 1].DistanceTo(bs[i]) - 3.8015);
+                M[k] = L;
                 if ((k > 0) && (k % 500 == 0)) {
                     vv.Title = $"Reading chains: {k} of {pList.Count}";
                 }
             });
-            return D;
+
+            if (tm == null) {
+                int columns = M.Select(L => L.Count).Max();
+                INumberTable D = New.NumberTable(bList, columns);
+                for(int row=0; row<pList.Count; row++) {
+                    var L = M[row];
+                    var R = D.Matrix[row];
+                    for (int col = 0; col < L.Count; col++)
+                        R[col] = L[col];
+                }
+                if ( pList.Count == 1) {
+                    var bs = LoadChain3D($"{cacheDir}/{pList[0]}.pmc");
+                    for (int k = 0; k < D.Columns; k++)
+                        D.ColumnSpecList[k].CopyFromBody( bs[k+1] );
+                }
+                return D;
+            } else {
+                INumberTable D = New.NumberTable(bList, tm.Columns);
+                MT.LoopNoblocking(0, pList.Count, k => {
+                    VectorizeChainFT(M[k].ToArray(), tm, D.Matrix[k] as double[], 0);
+                });
+                return D;
+            }
         }
 
 

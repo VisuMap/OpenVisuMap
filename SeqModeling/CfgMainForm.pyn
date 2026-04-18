@@ -33,13 +33,13 @@ def MainMain(menuKey):
 				gSz = 1.5 if len(pList) < 10000 else 0.7
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 10, 0), 
 					gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
-			for vt in 1*['mwV']: 
+			for vt in 1*['bGP']: 
 				match vt:
 					case 'mwV': 
 						ws = [13, 23, 37, 53]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'bGP':
-						PM2(waveCount=32, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
+						PM2(waveCount=128, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, waveLen=512, winSize=14*4, intRp=3, tSNE=(ppl_, 4.0, 1.0))	
 					case 'sFT':	
@@ -138,28 +138,11 @@ def ShowBondLength(pList):
 	if pList == None:
 		vv.Message('No polymer selected!')
 		return
-	chList = []
-	chTypes = []
-	for pId in pList:	
-		chList.append( LoadChain(pId) )
-		chType = vv.Dataset.StringAt(pId, 0)
-		chType = 15 if chType=='r' else ( 0 if chType=='d' else 6 )
-		chTypes.append(chType)
-	mxLen = max([len(ch) for ch in chList])
-	nt = New.NumberTable(len(chList), mxLen-1)
-	for row, ch in enumerate(chList):
-		nt.RowSpecList[row].Type = chTypes[row]
-		nt.RowSpecList[row].Id = pList[row]
-		R = nt.Matrix[row]
-		for k in range(1, mxLen):
-			if k < len(ch):
-				R[k-1] = ch[k].DistanceTo(ch[k-1])
-			else:
-				R[k-1] = BOND_LENGTH
+	nt = cs.BondGapeSpetrum(pList, cacheDir=ChainCacheDir())
 	bb = New.BarBand(nt)
 	bb.AutoScaling = True
 	bb.Vertical = True
-	bb.BaseLineType = 6
+	bb.BaseLineType = 0
 	bb.BaseValueExplicit = BOND_LENGTH
 	bb.AttributeMode = False
 	bb.Show()	
