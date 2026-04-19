@@ -273,9 +273,10 @@ namespace VisuMap {
             INumberTable D = New.NumberTable(bList, tm.Columns * wsList.Count);
             const double EPS = 0.085;
             const double rRNA_AA = 44 / 14.0;
+            System.IO.Directory.SetCurrentDirectory(cacheDir);
             MT.LoopNoblocking(0, pList.Count, k => {
                 string pId = pList[k];
-                var bs = LoadChain3D($"{cacheDir}/{pList[k]}.pmc");
+                var bs = LoadChain3D(pId + ".pmc");
                 if (intRp > 0)
                     bs = Interpolate3D(bs, intRp, EPS, bs.Count, 0);
                 int idx0 = 0;
@@ -300,11 +301,25 @@ namespace VisuMap {
         public INumberTable BondGapeSpetrum(IList<string> pList, INumberTable tm=null, string cacheDir = null) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
             double[][] M = new double[bList.Count][];
+            System.IO.Directory.SetCurrentDirectory(cacheDir);
             MT.LoopNoblocking(0, pList.Count, k => {
-                var bs = LoadChain3D($"{cacheDir}/{pList[k]}.pmc");
+                var bs = LoadChain3D(pList[k] + ".pmc");
                 double[] L = new double[bs.Count-1];
-                for (int i = 0; i < bs.Count - 1; i++)
-                    L[i] = bs[i + 1].DistanceTo(bs[i]) - BOND_LENGTH;
+                double sum = 0.0;
+                int sumCnt = 0;
+                for (int i = 0; i < bs.Count - 1; i++) {
+                    double v = bs[i + 1].DistanceTo(bs[i]);
+                    L[i] = v;
+                    if( (v<-0.2) || (v>0.2)) {
+                        sum += v;
+                        sumCnt++;
+                    }
+                }
+                if (sumCnt > 0) {
+                    double av = sum / sumCnt;
+                    for (int i = 0; i < L.Length; i++)
+                        L[i] -= av;
+                }
                 M[k] = L;
                 if ((k > 0) && (k % 500 == 0)) {
                     vv.Title = $"Reading chains: {k} of {pList.Count}";
@@ -317,7 +332,7 @@ namespace VisuMap {
                 for(int row=0; row<pList.Count; row++) 
                     Array.Copy(M[row], D.Matrix[row] as double[], M[row].Length);
                 if ( pList.Count == 1) {
-                    var bs = LoadChain3D($"{cacheDir}/{pList[0]}.pmc");
+                    var bs = LoadChain3D(pList[0] + ".pmc");
                     for (int k = 0; k < D.Columns; k++)
                         D.ColumnSpecList[k].CopyFromBody( bs[k+1] );
                 }

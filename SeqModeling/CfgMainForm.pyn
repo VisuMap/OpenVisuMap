@@ -30,16 +30,15 @@ def MainMain(menuKey):
 			ppl_ = round(2000.0/len(pList), 4)
 			ppl_ = np.clip(ppl_, 0.01, 0.25)
 			def PM2(*args, **kwargs):
-				gSz = 1.5 if len(pList) < 10000 else 0.7
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 10, 0), 
-					gSize=gSz, justShDt=ctrPressed, *args,**kwargs)
+					gSize=0.5, justShDt=ctrPressed, *args,**kwargs)
 			for vt in 1*['bGP']: 
 				match vt:
 					case 'mwV': 
 						ws = [13, 23, 37, 53]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'bGP':
-						PM2(waveCount=64, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
+						PM2(waveCount=256, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, waveLen=512, winSize=14*4, intRp=3, tSNE=(ppl_, 4.0, 1.0))	
 					case 'sFT':	
@@ -140,11 +139,13 @@ def ShowBondLength(pList):
 		return
 	nt = cs.BondGapeSpetrum(pList, cacheDir=ChainCacheDir())
 	bb = New.BarBand(nt)
+	bb.ReadOnly = True
 	bb.AutoScaling = False
 	bb.LowerLimit = min(-0.5, nt.MinimumValue())
 	bb.UpperLimit = max(2.0, nt.MaximumValue())
 	bb.Vertical = True
 	bb.BaseLineType = 0
+	bb.FineSelection = False
 	bb.AttributeMode = False
 	bb.Show()	
 
