@@ -304,7 +304,7 @@ namespace VisuMap {
                 var bs = LoadChain3D($"{cacheDir}/{pList[k]}.pmc");
                 List<double> L = new List<double>();
                 for (int i = 0; i < bs.Count - 1; i++)
-                    L.Add(bs[i + 1].DistanceTo(bs[i]) - 3.8015);
+                    L.Add(bs[i + 1].DistanceTo(bs[i]) - BOND_LENGTH);
                 M[k] = L;
                 if ((k > 0) && (k % 500 == 0)) {
                     vv.Title = $"Reading chains: {k} of {pList.Count}";
