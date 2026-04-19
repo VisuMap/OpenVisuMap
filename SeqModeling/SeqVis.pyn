@@ -888,6 +888,28 @@ def Scanning(pMap, stride=100, stepSize=20, broadcasting=False):
 
 #-------------------------------------------------------------------
 
+# Show the inter-peptide distance normalized by the average distances.
+def ShowBondLength(pList):	
+	if pList == None:
+		vv.Message('No polymer selected!')
+		return
+	nt = cs.BondGapeSpetrum(pList, cacheDir=ChainCacheDir())
+	bb = New.BarBand(nt)
+	bb.ReadOnly = True
+	bb.AutoScaling = False
+	bb.LowerLimit = min(-0.125, nt.MinimumValue())
+	bb.UpperLimit = max(0.5, nt.MaximumValue())
+	bb.Vertical = True
+	bb.BaseLineType = 0
+	bb.FineSelection = False
+	bb.AttributeMode = False
+	bb.ShowBaseLine = False
+	bb.ShowLabels = False
+	newWidth = min(4500, 3*nt.Columns)
+	newHeight = min(1350, 80*nt.Rows)
+	bb.ResizeClient(newWidth, newHeight)
+	bb.Show2()	
+
 def ShowAASeq(pMap):
 	info = MapInfo(pMap.Description)
 	pSelected = pMap.GetSelectedBodies()
