@@ -39,7 +39,7 @@ def MainMain(menuKey):
 						ws = [13, 23, 37, 53]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'bGP':
-						PM2(waveCount=128, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
+						PM2(waveCount=64, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, waveLen=512, winSize=14*4, intRp=3, tSNE=(ppl_, 4.0, 1.0))	
 					case 'sFT':	
@@ -140,10 +140,11 @@ def ShowBondLength(pList):
 		return
 	nt = cs.BondGapeSpetrum(pList, cacheDir=ChainCacheDir())
 	bb = New.BarBand(nt)
-	bb.AutoScaling = True
+	bb.AutoScaling = False
+	bb.LowerLimit = min(-0.5, nt.MinimumValue())
+	bb.UpperLimit = max(2.0, nt.MaximumValue())
 	bb.Vertical = True
 	bb.BaseLineType = 0
-	bb.BaseValueExplicit = BOND_LENGTH
 	bb.AttributeMode = False
 	bb.Show()	
 

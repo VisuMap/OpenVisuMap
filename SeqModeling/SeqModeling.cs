@@ -299,12 +299,12 @@ namespace VisuMap {
 
         public INumberTable BondGapeSpetrum(IList<string> pList, INumberTable tm=null, string cacheDir = null) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
-            List<double>[] M = new List<double>[pList.Count];
+            double[][] M = new double[bList.Count][];
             MT.LoopNoblocking(0, pList.Count, k => {
                 var bs = LoadChain3D($"{cacheDir}/{pList[k]}.pmc");
-                List<double> L = new List<double>();
+                double[] L = new double[bs.Count-1];
                 for (int i = 0; i < bs.Count - 1; i++)
-                    L.Add(bs[i + 1].DistanceTo(bs[i]) - BOND_LENGTH);
+                    L[i] = bs[i + 1].DistanceTo(bs[i]) - BOND_LENGTH;
                 M[k] = L;
                 if ((k > 0) && (k % 500 == 0)) {
                     vv.Title = $"Reading chains: {k} of {pList.Count}";
@@ -312,14 +312,10 @@ namespace VisuMap {
             });
 
             if (tm == null) {
-                int columns = M.Select(L => L.Count).Max();
+                int columns = M.Select(L => L.Length).Max();
                 INumberTable D = New.NumberTable(bList, columns);
-                for(int row=0; row<pList.Count; row++) {
-                    var L = M[row];
-                    var R = D.Matrix[row];
-                    for (int col = 0; col < L.Count; col++)
-                        R[col] = L[col];
-                }
+                for(int row=0; row<pList.Count; row++) 
+                    Array.Copy(M[row], D.Matrix[row] as double[], M[row].Length);
                 if ( pList.Count == 1) {
                     var bs = LoadChain3D($"{cacheDir}/{pList[0]}.pmc");
                     for (int k = 0; k < D.Columns; k++)
@@ -329,7 +325,7 @@ namespace VisuMap {
             } else {
                 INumberTable D = New.NumberTable(bList, tm.Columns);
                 MT.LoopNoblocking(0, pList.Count, k => {
-                    VectorizeChainFT(M[k].ToArray(), tm, D.Matrix[k] as double[], 0);
+                    VectorizeChainFT(M[k], tm, D.Matrix[k] as double[], 0);
                 });
                 return D;
             }
