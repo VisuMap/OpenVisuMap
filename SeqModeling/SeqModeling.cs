@@ -310,7 +310,7 @@ namespace VisuMap {
                 for (int i = 0; i < bs.Count - 1; i++) {
                     double v = bs[i + 1].DistanceTo(bs[i]);
                     L[i] = v;
-                    if( (v<-0.2) || (v>0.2)) {
+                    if ( Math.Abs(v - BOND_LENGTH) < 0.2 ) { 
                         sum += v;
                         sumCnt++;
                     }
@@ -340,7 +340,14 @@ namespace VisuMap {
             } else {
                 INumberTable D = New.NumberTable(bList, tm.Columns);
                 MT.LoopNoblocking(0, pList.Count, k => {
-                    VectorizeChainFT(M[k], tm, D.Matrix[k] as double[], 0);
+                    double[] R = M[k];
+                    for (int i = 0; i < R.Length; i++) {
+                        // Enlarge the bond lenght reduction 
+                        // (which is normally just ca. 0.8) by a factor.
+                        if (R[i] < -0.5)
+                            R[i] *= 15.0;
+                    }
+                    VectorizeChainFT(R, tm, D.Matrix[k] as double[], 0);
                 });
                 return D;
             }
