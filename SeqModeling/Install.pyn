@@ -5,7 +5,9 @@ import os
 if vv.ScriptDirectories.find( vv.CurrentScriptDirectory ) < 0:
 	vv.ScriptDirectories = vv.CurrentScriptDirectory + ";" + vv.ScriptDirectories
 
-vv.InstallPlugin('SeqVisInit', '@vv.Import("SeqVis.pyn")')
+#The Atlas form need to access the function ResetAtlas() from SeqVis.pyn. The following
+#statment makes that function available. It has been replaced by MenuLabels <Import> for atlas form.
+#vv.InstallPlugin('SeqVisInit', '@vv.Import("SeqVis.pyn")')
 
 for pf in os.listdir(vv.CurrentScriptDirectory):
 	if pf.endswith('.pyn') and pf.startswith('Cfg'):  

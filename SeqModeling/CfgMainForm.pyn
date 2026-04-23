@@ -6,6 +6,8 @@ vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
 
 def MainMain(menuKey):
+	if menuKey == '':
+		return
 	global ctrPressed
 	selected = list(vv.Map.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None

@@ -1,4 +1,4 @@
-#MenuLabels Cfg Match info ChmX Web Open Seq Align 3D 3Dx 3Ds 2D 2Ds S2 TT
+#MenuLabels <Import> Cfg Match info ChmX Web Open Seq Align 3D 3Dx 3Ds 2D 2Ds S2 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -11,6 +11,8 @@ def HighlightItems():
 		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])	
 
 def AtlasMain(menuKey):
+    if menuKey == '':
+        return
 	pSelected = pp.GetSelectedItems()
 	if pSelected.Count >= 1:
 		pId = pSelected[0].Name
