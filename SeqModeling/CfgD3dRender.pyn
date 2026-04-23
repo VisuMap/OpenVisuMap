@@ -34,6 +34,15 @@ def Map3DMain(menuKey):
 			SphereView(MapInfo(pp.Description).pId, unfolding = False)
 		case 'Info':
 			ShowInfo(pp)
+		case 'a':
+			global cType
+			if 'cType' not in globals(): cType = 0
+			hlp.SetBodyType2(pp.GetSelectedBodies(), cType)
+			cType += 1
+			pp.Redraw()	
+		case 'b':
+			hlp.EnableAll(pp.BodyList)
+			pp.Redraw()
 		case 'TT':
 			pass
 
@@ -57,6 +66,25 @@ def Tracing():
 			break
 	pp.Redraw()
 
-
 Map3DMain(vv.EventSource.Item)
 
+
+'''
+
+pp.OnKeyPress('a')
+pp.OnKeyPress('b')
+
+hlp = New.CsObject("""
+public void SetBodyType2(List<IBody> bList, int bType) {
+	foreach(var b in bList){
+		b.Type = (short)bType;
+		b.Disabled = true;
+	}
+}
+public void EnableAll(List<IBody> bList) {
+	foreach(var b in bList)
+		b.Disabled = false;
+}
+""")
+
+'''

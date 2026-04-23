@@ -903,7 +903,8 @@ def ShowBondLength(pList):
 	bb.BaseLineType = 0
 	bb.FineSelection = False
 	bb.AttributeMode = False
-	bb.ShowBaseLine = False
+	bb.ShowBaseLine = True
+	bb.ShowSeparator = False
 	bb.ShowLabels = False
 	newWidth = min(4500, 3*nt.Columns)
 	newHeight = min(1350, 80*nt.Rows)
@@ -1350,13 +1351,11 @@ def ResetAtlas():
 	parentName = vv.EventSource.Form.Name
 
 	if cnt == 0 and parentName == 'Atlas':
-		if mk.AltPressed or len(ViewCfgList)==0:
-			if len(ViewCfgList) == 0 and mk.AltPressed:
-				showItems = [x for x in pp.Items if not x.IsHidden]
-				for x in showItems: x.IsHidden = True
-				pp.RedrawItemList(showItems, False)
-			else:
-				ViewCfgList.clear()
+		if mk.AltPressed:
+			showItems = [x for x in pp.Items if not x.IsHidden]
+			for x in showItems: x.IsHidden = True
+			pp.RedrawItemList(showItems, False)
+			ViewCfgList.clear()
 			pp.ResetView(True)
 		else:
 			UndoLastOp(pp)
