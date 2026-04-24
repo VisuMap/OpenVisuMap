@@ -43,8 +43,11 @@ def Map3DMain(menuKey):
 		case 'b':
 			hlp.EnableAll(pp.BodyList)
 			pp.Redraw()
+		case 'c':
+			hlp.RemoveEndings(pp.BodyList)
+			pp.Redraw()
 		case 'TT':
-			pass
+			SetupABC(pp)
 
 def Tracing():
 	ob = New.Body()
@@ -66,25 +69,31 @@ def Tracing():
 			break
 	pp.Redraw()
 
-Map3DMain(vv.EventSource.Item)
-
-
-'''
-
-pp.OnKeyPress('a')
-pp.OnKeyPress('b')
-
-hlp = New.CsObject("""
-public void SetBodyType2(List<IBody> bList, int bType) {
-	foreach(var b in bList){
-		b.Type = (short)bType;
-		b.Disabled = true;
+def SetupABC(parentForm):
+	parentForm.OnKeyPress('abc')
+	if 'hlp' in globals(): 
+		return
+	global hlp
+	hlp = New.CsObject('''
+	public void SetBodyType2(List<IBody> bList, int bType) {
+		foreach(var b in bList){
+			b.Type = (short)bType;
+			b.Disabled = true;
+		}
 	}
-}
-public void EnableAll(List<IBody> bList) {
-	foreach(var b in bList)
-		b.Disabled = false;
-}
-""")
+	public void EnableAll(List<IBody> bList) {
+		foreach(var b in bList)
+			b.Disabled = false;
+	}
+	public void RemoveEndings(List<IBody> bList) {
+		for(int k=0; k<bList.Count; k++) {
+			var b = bList[k];
+			if ( b.Type == 171 )
+				b.Type = bList[k-1].Type;
+			else if (b.Type == 158)
+				b.Type = bList[k+1].Type;
+		}
+	}
+	''')
 
-'''
+Map3DMain(vv.EventSource.Item)

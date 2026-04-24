@@ -56,6 +56,9 @@ def UpdateSphere():
 	mp.Title = f'CF: {cf:.3}'
 
 def SphereView(pId, unfolding):
+	if pId == None:
+		vv.Message('No protein chain selected')
+		return
 	BodyListSphereView(pId, LoadChain(pId), unfolding )
 
 def BodyListSphereView(pId, bList, unfolding):

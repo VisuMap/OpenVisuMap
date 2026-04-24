@@ -1,4 +1,4 @@
-#MenuLabels <Import> Cfg Match info ChmX Web Open Seq Align 3D 3Dx 3Ds 2D 2Ds S2 TT
+#MenuLabels <Import> Cfg Match info ChmX Web Open Seq Align 3D 3Dx 3Ds 2D 2Ds S2 bSp TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -11,8 +11,8 @@ def HighlightItems():
 		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])	
 
 def AtlasMain(menuKey):
-    if menuKey == '':
-        return
+	if menuKey == '':
+		return
 	pSelected = pp.GetSelectedItems()
 	if pSelected.Count >= 1:
 		pId = pSelected[0].Name
@@ -58,38 +58,14 @@ def AtlasMain(menuKey):
 			SphereView(pId, unfolding=False)
 		case 'info':
 			ShowInfo(pp)
+		case 'bSp':
+			ShowBondLength(pList)
 		case 'TT':		
-			ShowBondLength(pList[:20])
-			'''
 			ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
-			ShowBond(pId)
-			'''
-			
-
-def ShowBond(pId, f=0.99):
-	itemList = New.ValueItemList()
-	bList = list( LoadChain(pId) )
-	mP = New.Body( bList[0] )
-	g = 1 - f
-	for b in bList[1:]:
-		vItem = New.ValueItem(b)
-		vItem.Value = b.DistanceTo(mP)
-		itemList.Add(vItem)
-		mP.Mult(f).Add(g*b.X, g*b.Y, g*b.Z)
-	vw = New.BarView(itemList)
-	vw.LowerLimit = 0
-	vw.UpperLimit = 50.0	
-	vw.UsingColorPalette = False
-	vw.BarLabelType = 0
-	vw.Show()
 
 AtlasMain(vv.EventSource.Item)
 
 '''
-for it in pp.GetSelectedItems():
-	mp = it.Open()
-	mp.ResetSize()
-	mp.Close()
 
 '''
 

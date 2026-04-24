@@ -1,5 +1,5 @@
 #MenuLabels P-Map P-2D C-Map Info ChmX Web Open LD Hst Siblings \
-# SeqMap Align 3D 3Dx 3Ds P-S2 S2 UF Lvt SM TT
+# SeqMap Align 3D 3Dx 3Ds P-S2 S2 UF Lvt SM bSp TT
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -34,10 +34,11 @@ def MainMain(menuKey):
 			def PM2(*args, **kwargs):
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 10, 0), 
 					gSize=0.5, justShDt=ctrPressed, *args,**kwargs)
-			for vt in 1*['bGP']: 
+			for vt in 1*['mwV']: 
 				match vt:
 					case 'mwV': 
 						ws = [13, 23, 37, 53]
+						#ws = [25*x for x in ws]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'bGP':
 						PM2(waveCount=32, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
@@ -97,7 +98,9 @@ def MainMain(menuKey):
 		case 'SM':
 			SmoothenComplex(pId, singleChain=ctrPressed)
 		case 'Hst':
-			ShowHistory()	
+			ShowHistory()
+		case 'bSp':
+			ShowBondLength(pList)
 		case 'TT':
 			'''
 			BroadcastMapCfg()
@@ -108,7 +111,8 @@ def MainMain(menuKey):
 			vv.Import('ramachandraw.pyn')
 			ShowRamachandraw(pId)
 			'''
-			ShowBondLength(pList)
+			vv.Import('ramachandraw.pyn')
+			ShowRamachandraw(pId)
 
 # ---------------------------------------------------------------------------------------
 

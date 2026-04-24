@@ -49,7 +49,7 @@ def LoadCacheDef():
 	vv.EventManager.RemoveAllHandles(vv)
 	vv.EventManager.OnFolderLoaded('LoadCacheDef()',vv)
 
-ss = New.CsObject('''
+if 'ss' not in globals(): ss = New.CsObject('''
 
 public void SwapHiddenBodies(List<IBody> bsList) {
     foreach(var b in bsList)
@@ -78,7 +78,6 @@ public void CompressTable(INumberTable nt) {
 	});
 }
 
-
 public void CopyToXYZ(List<IBody> bList1, List<IBody> bList2) {
 	for(int k=0; k<bList1.Count; k++) {
 		var b = bList1[k];
@@ -101,6 +100,20 @@ public void ShiftScale(IList<IAtlasBaseItem> Items, float scale, float BLeft, fl
 		e.Top = (e.Top - BTop)/scale;
 	}
 }
+
+Dictionary<char, int> ppIdx = null;
+
+public void Init_ppIdx(string pepList) {
+	ppIdx = Enumerable.Range(0, pepList.Length).ToDictionary(k=>pepList[k], k=>k);
+}
+
+public void ToPepCount(string seq, double[] R) {
+	foreach( char c in seq ) {
+		int idx = ppIdx.ContainsKey(c) ? ppIdx[c] : ppIdx['x'];
+		R[idx] += 1.0;
+	}
+}
+
 ''')
 
 #----------------------------- common classes ------------------------------------------------------------

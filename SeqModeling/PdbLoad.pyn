@@ -1,4 +1,5 @@
 # functions to import and process pdb/cif files.
+vv.Import('SeqVis.pyn')
 from os.path import exists
 
 # get the path for the cached (PDB) CIF file.
@@ -572,23 +573,6 @@ def GetAAGroup(idx=0):
 		case 22:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
 
-
-ss2 = New.CsObject('''
-
-	Dictionary<char, int> ppIdx = null;
-
-	public void Init_ppIdx(string pepList) {
-		ppIdx = Enumerable.Range(0, pepList.Length).ToDictionary(k=>pepList[k], k=>k);
-	}
-
-	public void ToPepCount(string seq, double[] R) {
-		foreach( char c in seq ) {
-			int idx = ppIdx.ContainsKey(c) ? ppIdx[c] : ppIdx['x'];
-			R[idx] += 1.0;
-		}
-	}
-''')
-
 def ToChainList(pList):
 	pSet = set(pList)
 	pChains = {}
@@ -607,14 +591,14 @@ def ShowPepCounts(pList):
 		nt.ColumnSpecList[k].Id = pepList[k]
 	for row, pId in enumerate(pList):
 		nt.RowSpecList[row].Id = pId
-	ss2.Init_ppIdx(pepList)
+	ss.Init_ppIdx(pepList)
 	chainList = ToChainList(pList)
 	chainKeys = set(chainList.keys())
 	for row, pId in enumerate(pList):
 		if pId in chainKeys:
 			R = nt.Matrix[row]
 			for chId in chainList[pId]:
-				ss2.ToPepCount(LoadSeq(chId), R)
+				ss.ToPepCount(LoadSeq(chId), R)
 		if row%100 == 0:
 			print(f'{row}: {pId}')
 			vv.DoEvents()
@@ -681,7 +665,7 @@ def CleanupAllCache():
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'Irregular', 'CATCH/Few Secondary Structures/Irregular')
+ImportPDBList(sList, 'AllAlpha', 'SCOP2/All-Alpha/2021-2026.4')
 
 CleanupAllCache()
 
