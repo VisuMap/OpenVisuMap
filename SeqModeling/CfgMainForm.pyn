@@ -105,14 +105,14 @@ def MainMain(menuKey):
 			vv.Import('ramachandraw.pyn')
 			ShowRamachandraw(pId)
 		case 'Twt':
-			ShowTwistMap(pId, maxWsRows=4096)
+			ShowTwistMap(pId, maxWsRows=4096, showMore=ctrPressed)
 		case 'TT':
 			return
 			BroadcastMapCfg()
 
 # ---------------------------------------------------------------------------------------
 
-def ShowTwistMap(pId, maxWsRows=1024):
+def ShowTwistMap(pId, maxWsRows=1024, showMore=False):
 	if pId == None:
 		vv.Message('No protein selected!')
 		return
@@ -126,9 +126,10 @@ def ShowTwistMap(pId, maxWsRows=1024):
 		cs.MovingWindowVariance(bList, wSz, nt.Matrix[row])
 		nt.RowSpecList[row].Id = 'ws.' + str(wSz)
 	ss.CompressTable(nt)   # to better discreminate low value regions.
-	New.MountainView(nt).Show()
-	
-	nt = nt.ReorderRows(list(reversed([rs.Id for rs in nt.RowSpecList])))
+	if showMore:
+		New.MountainView(nt).Show()
+		ShowProteinList([pId], includeHA=False, intRp=3, gsize=1.5, gopacity=0.5, mpSz=(800, 800))
+	nt = nt.Clone().ReorderRows(list(reversed([rs.Id for rs in nt.RowSpecList])))
 	hm = New.HeatMap(nt)
 	hm.ResizeClient(1200, 1200)
 	hm.AutoScaling = True
@@ -137,8 +138,6 @@ def ShowTwistMap(pId, maxWsRows=1024):
 	hm.ColorPaletteName = 'Gray256'
 	hm.ReadOnly = True
 	hm.Show2()
-	mp = ShowProteinList([pId], includeHA=False, intRp=3, gsize=1.5, gopacity=0.5, mpSz=(800, 800))
-	
 
 def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 	vv.SelectedItems.Clear()
