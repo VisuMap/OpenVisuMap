@@ -46,7 +46,7 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, matchPid=
 	mp.Title = f'{pId}, Len:{bsList.Count}:  {info.Get("PT")}'
 	return mp
 
-def ShowProteinList(pList, includeHA, atName=None, gsize=1.0, gopacity=0.75, intRp=3):
+def ShowProteinList(pList, includeHA, atName=None, gsize=1.0, gopacity=0.75, intRp=3, mpSz=None):
 	mapList = []
 	if len(pList) >= 12:
 		mapStore = NewMapStore(atName)
@@ -58,6 +58,8 @@ def ShowProteinList(pList, includeHA, atName=None, gsize=1.0, gopacity=0.75, int
 		chainNames = GetChainName(pId)
 		mp = ShowPDB(pId, chainNames=chainNames, includeHA=includeHA, 
 				rp=intRp, glyphSize=gsize, glyphOpacity=gopacity)
+		if mpSz != None:
+			mp.ResizeClient(mpSz[0], mpSz[1])
 		if mapStore != None:	
 			mapStore.AddMap('D3dRender')
 			mp.Close()
@@ -665,7 +667,7 @@ def CleanupAllCache():
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'AllAlpha', 'SCOP2/All-Alpha/2021-2026.4')
+ImportPDBList(sList, 'AllBeta', 'SCOP2/All beta proteins/2021-2026.4')
 
 CleanupAllCache()
 
