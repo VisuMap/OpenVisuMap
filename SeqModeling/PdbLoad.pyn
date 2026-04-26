@@ -49,7 +49,7 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, matchPid=
 def ShowProteinList(pList, includeHA, atName=None, gsize=1.0, gopacity=0.75, intRp=3, mpSz=None):
 	mapList = []
 	if len(pList) >= 12:
-		mapStore = NewMapStore(atName)
+		mapStore = AtlasMapStore(atName, True) if atName!=None else None
 		mapStore.atlas.Description = f'DS:{vv.Dataset.Name}'
 	else:
 		mapStore = None
@@ -113,7 +113,7 @@ def UnFoldProteinList(pList, includeHA=False, wholeComplex=False, tP = None,
 		vv.SelectedItems = pList
 		return
 	
-	mapStore = NewMapStore(atName)	
+	mapStore = AtlasMapStore(atName, True) if atName!=None else None	
 	rFreq = 100 if mapStore == None else 0
 	mds = NewMds(nt=None, epochs=epochs, is3D=False, refreshFreq=rFreq, repeats=0, metric='EuclideanMetric',
 		ppl=ppl, initExag=initExag, finalExag=finalExag, glyphSet=SeqMap_GLYPHSET, glyphOpacity=1.0)	

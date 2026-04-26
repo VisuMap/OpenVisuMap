@@ -1,5 +1,5 @@
 #MenuLabels P-Map P-2D C-Map Info ChmX Web Open LD Hst Siblings \
-# SeqMap Align 3D 3Dx 3Ds P-S2 S2 UF Lvt SM bSp RMD Twt TT
+# P-Seq Align 3D 3Dx 3Ds P-S2 S2 UF Lvt SM bSp RMD Twt TT
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -74,11 +74,11 @@ def MainMain(menuKey):
 			ShowProteinList(pList, includeHA=False, intRp=5, atName=atlasName, gsize=1.5, gopacity=0.5)
 		case '3Ds':
 			Merge3DList(pList)
-		case 'SeqMap':
+		case 'P-Seq':
 			aaGroups = GetAAGroup(idx=0)
 			if atlasName != None: 
 				atlasName += '-Seq'
-			CreateSeqMaps(pList, aaGroups, epochs=5000, initExag=6.0, ppl=0.1, 
+			CreateSeqMaps(pList, aaGroups, epochs=2000, initExag=6.0, ppl=0.1, 
 				saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
 		case 'Open': 
 			OpenCifFile(pId)
@@ -111,33 +111,6 @@ def MainMain(menuKey):
 			BroadcastMapCfg()
 
 # ---------------------------------------------------------------------------------------
-
-def ShowTwistMap(pId, maxWsRows=1024, showMore=False):
-	if pId == None:
-		vv.Message('No protein selected!')
-		return
-	bList = InterpolateChain(LoadChain(pId), rp=3)
-	stepSize = 1 if bList.Count < maxWsRows else bList.Count//maxWsRows
-	wSzCnt = bList.Count if bList.Count<maxWsRows else maxWsRows
-	info = MapInfo({'pId':pId, 'wsCnt':wSzCnt, 'stepSz':stepSize, 'Len':len(bList), 'rp':3})	
-	nt = New.NumberTable(bList, wSzCnt).Transpose2()
-	for row in range(nt.Rows):
-		wSz = stepSize*row
-		cs.MovingWindowVariance(bList, wSz, nt.Matrix[row])
-		nt.RowSpecList[row].Id = 'ws.' + str(wSz)
-	ss.CompressTable(nt)   # to better discreminate low value regions.
-	if showMore:
-		New.MountainView(nt).Show()
-		ShowProteinList([pId], includeHA=False, intRp=3, gsize=1.5, gopacity=0.5, mpSz=(800, 800))
-	nt = nt.Clone().ReorderRows(list(reversed([rs.Id for rs in nt.RowSpecList])))
-	hm = New.HeatMap(nt)
-	hm.ResizeClient(1200, 1200)
-	hm.AutoScaling = True
-	hm.SpectrumType = 4
-	hm.Description = info.Str
-	hm.ColorPaletteName = 'Gray256'
-	hm.ReadOnly = True
-	hm.Show2()
 
 def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 	vv.SelectedItems.Clear()

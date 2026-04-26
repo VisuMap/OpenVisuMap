@@ -141,7 +141,7 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 		mds.GlyphSize = 6.0
 		mds.RefreshFreq = 0
 		atlasName = 'S2.' + atlasName
-		mapStore = NewMapStore(atlasName)			
+		mapStore = AtlasMapStore(atlasName, True) if atlasName!=None else None			
 		info.cF = ctrF
 		if samplingDist != 0:
 			pList = cs.FlatSampling(pList, samplingDist=samplingDist)
