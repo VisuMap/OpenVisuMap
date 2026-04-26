@@ -268,11 +268,11 @@ namespace VisuMap {
             return vs;
         }
 
-        public INumberTable MovingWindowFT(IList<string> pList, IList<int> wsList, INumberTable tm, int intRp = 0, string cacheDir=null) {
+        public INumberTable MovingWindowFT(IList<string> pList, IList<double> wsList, 
+                INumberTable tm, int intRp = 0, string cacheDir=null) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
             INumberTable D = New.NumberTable(bList, tm.Columns * wsList.Count);
             const double EPS = 0.085;
-            const double rRNA_AA = 44 / 14.0;
             System.IO.Directory.SetCurrentDirectory(cacheDir);
             MT.LoopNoblocking(0, pList.Count, k => {
                 string pId = pList[k];
@@ -283,13 +283,13 @@ namespace VisuMap {
                 bool isNucleotide = vv.Dataset.StringAt(pId, 0)[0] != 'A';
                 double[] Rk = (double[])D.Matrix[k];
                 double[] bDist = new double[bs.Count];
-                foreach (int n in wsList) { 
-                    int ws = isNucleotide ? (int)(n * rRNA_AA) : n;
+                foreach (double w in wsList) {
+                    int ws = (int) ( (w<1.0) ? (bs.Count * w) : w ) ;
                     if (ws < bs.Count) {
                         MovingWindowVariance(bs, ws, bDist);
                         VectorizeChainFT(bDist, tm, Rk, idx0);
-                        idx0 += tm.Columns;
                     }
+                    idx0 += tm.Columns;
                 }
                 if ((k > 0) && (k % 500 == 0)) {
                     vv.Title = $"Reading chains: {k} of {pList.Count}";

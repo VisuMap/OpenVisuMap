@@ -273,6 +273,9 @@ def LoadCacheDef():
 	if fdInfo.Has('CifCache'):
 		PDB_CACHE = fdInfo.CifCache
 		CHAIN_CACHE = fdInfo.ChainCache
+	else:
+		PDB_CACHE = vv.CurrentDataDir2 + '\\CifCache'
+		CHAIN_CACHE = vv.CurrentDataDir2 + '\\ChCache'
 	vv.EventManager.RemoveAllHandles(vv)
 	vv.EventManager.OnFolderLoaded('LoadCacheDef()',vv)
 
@@ -1341,7 +1344,10 @@ def ResetAtlas():
 			ViewCfgList.clear()
 			pp.ResetView(True)
 		else:
-			UndoLastOp(pp)
+			if not ViewCfgList:
+				pp.ResetView(True)
+			else:
+				UndoLastOp(pp)
 		return
 
 	if mk.AltPressed or mk.ControlPressed or mk.ShiftPressed:

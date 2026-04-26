@@ -34,11 +34,12 @@ def MainMain(menuKey):
 			def PM2(*args, **kwargs):
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 10, 0), 
 					gSize=0.5, justShDt=ctrPressed, *args,**kwargs)
-			for vt in 1*['mwV']: 
+			for vt in ['mwV']: 
 				match vt:
 					case 'mwV': 
-						ws = [13, 23, 37, 53]
-						#ws = [50*x for x in ws]
+						#ws = [13.0, 23.0, 37.0, 53.0]
+						ws = [0.01, 0.025, 0.125, 0.25]
+						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'bGP':
 						PM2(waveCount=32, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
