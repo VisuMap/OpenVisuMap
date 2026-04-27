@@ -103,7 +103,6 @@ public void ToPepCount(string seq, double[] R) {
 		R[idx] += 1.0;
 	}
 }
-
 ''')
 
 #----------------------------- common classes ------------------------------------------------------------
@@ -159,7 +158,7 @@ def ShowInfo(pp):
 	winTitle = pp.Name + ': ' + pp.Title
 	New.TextPanel(winTitle, info.Text).Show()
 
-def ShowTwistMap(pId, maxWsRows=1024, showMore=False):
+def ShowTwistMap(pId, maxWsRows=1024, winSz=800):
 	if pId == None:
 		vv.Message('No protein selected!')
 		return
@@ -173,18 +172,19 @@ def ShowTwistMap(pId, maxWsRows=1024, showMore=False):
 		cs.MovingWindowVariance(bList, wSz, nt.Matrix[row])
 		nt.RowSpecList[row].Id = 'ws.' + str(wSz)
 	ss.CompressTable(nt)   # to better discreminate low value regions.
-	if showMore:
-		New.MountainView(nt).Show()
-		ShowProteinList([pId], includeHA=False, intRp=3, gsize=1.5, gopacity=0.5, mpSz=(800, 800))
 	nt = nt.Clone().ReorderRows(list(reversed([rs.Id for rs in nt.RowSpecList])))
 	hm = New.HeatMap(nt)
-	hm.ResizeClient(800, 800)
+	winHeight = int( winSz*nt.Rows/nt.Columns )
+	hm.ResizeClient(winSz, winHeight)
 	hm.AutoScaling = True
 	hm.SpectrumType = 4
 	hm.Description = info.Str
 	hm.ColorPaletteName = 'Gray256'
 	hm.ReadOnly = True
+	hm.ScrollingPause = 20
+	hm.ScrollingSteps = 2	
 	hm.Show2()
+	return hm
 
 class AtlasMapStore():	
 	def __init__(self, atName, clearAtlas=True):

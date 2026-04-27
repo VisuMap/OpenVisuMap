@@ -1,4 +1,4 @@
-#MenuLabels Merge PID, Info TT
+#MenuLabels Merge PID, Info UpDn LR abc TT
 vv.Import('SeqVis.pyn')
 
 def Map3DMain(menuKey):
@@ -9,6 +9,27 @@ def Map3DMain(menuKey):
 			SelectPID()
 		case 'Info':
 			ShowInfo(pp)
+		case 'UpDn':
+			nt = pp.GetNumberTable()
+			idList = list( reversed( [rs.Id for rs in nt.RowSpecList] ))
+			nt.ReorderRows(idList)
+			pp.Redraw()
+		case 'LR':
+			nt = pp.GetNumberTable()
+			idList = list( reversed( [cs.Id for cs in nt.ColumnSpecList] ))
+			nt.ReorderColumns(idList)			
+			pp.Redraw()
+		case 'abc':  # called when reading the <Import> label.
+			pp.OnKeyPress('abcdx')
+		case 'a':
+			New.MountainView(pp.GetNumberTable()).Show()
+		case 'b':
+			New.ValueDiagram(pp.GetNumberTable()).Show()
+		case 'c':
+			pId = MapInfo(pp.Description).pId
+			SmoothenComplex(pId, True)
+		case 'x':
+			vv.GuiManager.CloseAllWindows()
 		case 'TT':
 			SelectRows()
 

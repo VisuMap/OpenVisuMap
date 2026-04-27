@@ -21,10 +21,6 @@ def ChainCacheFile(chId):
 	chDir = ChainCacheDir()
 	return f'{chDir}/{chId}.pmc'
 
-def CheckCacheDir():
-	if not exists(PDB_CACHE) or not exists(CHAIN_CACHE):
-		vv.Message(f'Cache directories not setup: {PDB_CACHE} and {CHAIN_CACHE}')
-		vv.Return()
 
 def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, matchPid=False, unifyId=False,
 		setChainId=False, typeByChainIdx=False, glyphSize=1.0, glyphOpacity=0.75):
@@ -46,7 +42,7 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, matchPid=
 	mp.Title = f'{pId}, Len:{bsList.Count}:  {info.Get("PT")}'
 	return mp
 
-def ShowProteinList(pList, includeHA, atName=None, gsize=1.0, gopacity=0.75, intRp=3, mpSz=None):
+def ShowProteinList(pList, includeHA=False, atName=None, gsize=1.0, gopacity=0.75, intRp=3, mpSz=None):
 	mapList = []
 	if len(pList) >= 12:
 		mapStore = AtlasMapStore(atName, True) if atName!=None else None
@@ -254,7 +250,6 @@ def Download3DInfo(pId):
 	import requests
 	localPath = PdbCacheFile(pId)	
 	if not exists(localPath):
-		CheckCacheDir()
 		remotePath = f'https://files.rcsb.org/download/{pId[:4]}.cif'
 		#urlretrieve(remotePath, localPath)
 		#print(f'Downloading {pId}...')

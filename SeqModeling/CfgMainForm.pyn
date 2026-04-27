@@ -37,9 +37,8 @@ def MainMain(menuKey):
 			for vt in ['mwV']: 
 				match vt:
 					case 'mwV': 
-						#ws = [13.0, 23.0, 37.0, 53.0]
-						ws = [0.01, 0.025, 0.125, 0.25]
-						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 8.0, 1.0))
+						ws = [0.01, 0.025, 0.1, 0.15]
+						#ws = [13, 23, 37, 53]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'bGP':
 						PM2(waveCount=32, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
@@ -106,7 +105,8 @@ def MainMain(menuKey):
 			vv.Import('ramachandraw.pyn')
 			ShowRamachandraw(pId)
 		case 'Twt':
-			ShowTwistMap(pId, maxWsRows=4096, showMore=ctrPressed)
+			mpList = [ ShowTwistMap(id, maxWsRows=4096, winSz=500) for id in pList[:10] ]
+			vv.GuiManager.TileAllWindows(mpList, True)
 		case 'TT':
 			return
 			BroadcastMapCfg()
@@ -132,7 +132,7 @@ MainMain(vv.EventSource.Item)
 '''
 
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[2:], mpIdx=0, createPMap=True, createAtlas=True)
+DoDatasetList(dxList[1:], mpIdx=0, createPMap=True, createAtlas=False)
 vv.Folder.Save()
 
 RemoveAllChainCache( only_rd_chains=False )
