@@ -1,4 +1,4 @@
-#MenuLabels P-Map P-2D C-Map Info ChmX RCSB CIF LD Hst Siblings \
+#MenuLabels <Import> P-Map P-2D C-Map Info ChmX RCSB CIF LD Hst Siblings \
 # P-Seq Align 3D 3Dx 3Ds P-S2 S2 UF Lvt SM SMx bSp RMD Twt TT
 
 vv.Import('SeqVis.pyn')
@@ -57,13 +57,7 @@ def MainMain(menuKey):
 			ColorChainMap(0)
 			ColorChainMap(2)
 			'''
-			ColorChainMap(2)
-		case 'Info':
-			ShowInfo(pp)
-		case 'ChmX': 
-			ShowChimeraX(pId)
-		case 'RCSB':  
-			ShowWeb(pId)
+			ColorChainMap()
 		case 'LD':
 			pIds = vv.PromptMessage('Protein ID: ', '????')
 			if pIds != None:
@@ -84,27 +78,39 @@ def MainMain(menuKey):
 				atlasName += '-Seq'
 			CreateSeqMaps(pList, aaGroups, epochs=2000, initExag=6.0, ppl=0.1, 
 				saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
-		case 'CIF': 
-			OpenCifFile(pId)
 		case 'Siblings':
 			vv.SelectedItems, _ = Siblings(selected)
 			vv.Title = f'Selected: {len(selected)}, Expanded: {vv.SelectedItems.Count}'
 		case 'Align':
 			AlignSeqPair(vv.Map)
-		case 'P-S2':
-			ProteinS2Map(pList, atlasName, samplingDist=0.0, ctrF=0.85)
-		case 'S2':
-			SphereView(pId, unfolding=False)
 		case 'UF':
 			SphereView(pId, unfolding=True)
 		case 'Lvt':
 			LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=ctrPressed)
+		case 'ChmX'|'RCSB'|'CIF'|'Info'|'SM'|'SMx'|'P-S2'|'S2'|'bSp'|'RMD'|'Twt':
+			DoSimpleMenues(menuKey, pId, pList)
+		case 'Hst':
+			ShowHistory()
+		case 'TT':
+			return
+			BroadcastMapCfg()
+
+def DoSimpleMenues(menuKey, pId, pList):
+	match menuKey:
+		case 'ChmX': 
+			ShowChimeraX(pId)
+		case 'RCSB':  
+			ShowWeb(pId)
+		case 'CIF': 
+			OpenCifFile(pId)
 		case 'SM':
 			SmoothenComplex(pId, singleChain=True)
 		case 'SMx':
 			SmoothenComplex(pId, singleChain=False)
-		case 'Hst':
-			ShowHistory()
+		case 'P-S2':
+			ProteinS2Map(pList, atlasName, samplingDist=0.0, ctrF=0.85)
+		case 'S2':
+			SphereView(pId, unfolding=False)
 		case 'bSp':
 			ShowBondLength(pList)
 		case 'RMD':
@@ -113,9 +119,8 @@ def MainMain(menuKey):
 		case 'Twt':
 			mpList = [ ShowTwistMap(id, maxWsRows=4096, winSz=500) for id in pList[:10] ]
 			vv.GuiManager.TileAllWindows(mpList, True)
-		case 'TT':
-			return
-			BroadcastMapCfg()
+		case 'Info':
+			ShowInfo(pp)
 
 # ---------------------------------------------------------------------------------------
 

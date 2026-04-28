@@ -664,7 +664,7 @@ def CleanupAllCache():
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'BetaSandwitch', 'ECOD/100002')
+ImportPDBList(sList, 'SymmetryD3', 'Global Symmetry/D3/Resolution 0.5 - 2.5')
 
 CleanupAllCache()
 

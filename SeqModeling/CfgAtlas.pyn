@@ -1,4 +1,4 @@
-#MenuLabels <Import> Cfg Match info ChmX Web Open Seq Align 3D 3Dx 3Ds 2D 2Ds S2 bSp TT
+#MenuLabels <Import> Cfg Match ChmX RCSB CIF Info SM SMx P-S2 S2 bSp RMD Twt Seq Align 3D 3Dx 3Ds 2D 2Ds TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -16,6 +16,8 @@ def AtlasMain(menuKey):
 	pSelected = pp.GetSelectedItems()
 	if pSelected.Count >= 1:
 		pId = pSelected[0].Name
+	else:
+		pId = None
 	pList = [item.Name for item in pSelected]
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
@@ -35,12 +37,6 @@ def AtlasMain(menuKey):
 		case '2D':
 			pList = [item.Id for item in pSelected]
 			UnFoldProteinList(pList, includeHA=False, wholeComplex=False, samplingDist=0.0, iconWidth=50, tP=(2000,3,28, 0.15,4.0,1.0) )
-		case 'Web':
-			ShowWeb(pId)
-		case 'ChmX':
-			ShowChimeraX(pId)
-		case 'Open':  
-			OpenCifFile(pId)
 		case 'Match':
 			MatchProteinMap(pp, iconWidth=None)
 		case 'Seq':
@@ -54,12 +50,8 @@ def AtlasMain(menuKey):
 			Merge3DList([item.Name for item in pp.SelectedItems])
 		case '2Ds':
 			Merge2DList(pp)
-		case 'S2':
-			SphereView(pId, unfolding=False)
-		case 'info':
-			ShowInfo(pp)
-		case 'bSp':
-			ShowBondLength(pList)
+		case 'ChmX'|'RCSB'|'CIF'|'Info'|'SM'|'SMx'|'P-S2'|'S2'|'bSp'|'RMD'|'Twt':
+			DoSimpleMenues(menuKey, pId, pList)
 		case 'TT':		
 			ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
 
