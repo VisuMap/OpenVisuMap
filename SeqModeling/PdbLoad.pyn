@@ -29,9 +29,9 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, matchPid=
 		localPath, bsList, bsList2, pdbTitle = LoadCifData(pId, chainNames=chainNames)
 	else:
 		localPath, bsList, bsList2, pdbTitle = None, LoadChain(pId), None, "???"
-	
+
 	bsList = Interpolate(bsList, rp, hidIntp, pId, setChainId, typeByChainIdx, unifyId, matchPid)
-		
+
 	cs.NormalizeChain(bsList, -1, False)
 
 	if includeHA:
@@ -300,6 +300,8 @@ def ChainName(body):
 	return body.Name.split('.')[2]
 
 def Interpolate(bList, rp=3, hidIntp=False, pId=None, setChainId=False, typeByChainIdx=False, unifyId=False, matchPid=False):
+	if pId.endswith('.cif'):
+		pId = pId.split('\\')[-1][:4].upper()
 	return cs.InterpolateETC(bList, rp, hidIntp, pId, setChainId, typeByChainIdx, unifyId, matchPid)
 
 def InterpolateChain(bList, rp=3, hidIntp=False):
@@ -662,7 +664,7 @@ def CleanupAllCache():
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'AllBeta', 'SCOP2/All beta proteins/2021-2026.4')
+ImportPDBList(sList, 'BetaSandwitch', 'ECOD/100002')
 
 CleanupAllCache()
 

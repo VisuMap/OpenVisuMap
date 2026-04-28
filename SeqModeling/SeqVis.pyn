@@ -274,8 +274,8 @@ def LoadCacheDef():
 		PDB_CACHE = fdInfo.CifCache
 		CHAIN_CACHE = fdInfo.ChainCache
 	else:
-		PDB_CACHE = vv.CurrentDataDir2 + '\\CifCache'
-		CHAIN_CACHE = vv.CurrentDataDir2 + '\\ChCache'
+		PDB_CACHE = vv.CurrentDataDir + '\\CifCache'
+		CHAIN_CACHE = vv.CurrentDataDir + '\\ChCache'
 	vv.EventManager.RemoveAllHandles(vv)
 	vv.EventManager.OnFolderLoaded('LoadCacheDef()',vv)
 
@@ -837,7 +837,10 @@ def SmoothenComplex(pId, singleChain=False):
 	if pId == None:
 		vv.Message('No polymer selected!')
 		return
-	chNames = GetChainName(pId) if singleChain else None
+	if pId.endswith('.cif') or not singleChain:
+		chNames = None
+	else:
+		chNames = GetChainName(pId)
 	mp = ShowPDB(pId, rp=3, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=True,
 		setChainId=False, typeByChainIdx=False, unifyId=False, chainNames=chNames)
 	maxWS = cs.MaxChainLen(mp.BodyList)//2
