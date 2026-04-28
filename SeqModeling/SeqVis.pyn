@@ -837,10 +837,7 @@ def SmoothenComplex(pId, singleChain=False):
 	if pId == None:
 		vv.Message('No polymer selected!')
 		return
-	if pId.endswith('.cif') or not singleChain:
-		chNames = None
-	else:
-		chNames = GetChainName(pId)
+	chNames = GetChainName(pId) if singleChain else None
 	mp = ShowPDB(pId, rp=3, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=True,
 		setChainId=False, typeByChainIdx=False, unifyId=False, chainNames=chNames)
 	maxWS = cs.MaxChainLen(mp.BodyList)//2

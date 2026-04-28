@@ -1,5 +1,5 @@
 #MenuLabels P-Map P-2D C-Map Info ChmX RCSB CIF LD Hst Siblings \
-# P-Seq Align 3D 3Dx 3Ds P-S2 S2 UF Lvt SM bSp RMD Twt TT
+# P-Seq Align 3D 3Dx 3Ds P-S2 S2 UF Lvt SM SMx bSp RMD Twt TT
 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -15,7 +15,7 @@ def MainMain(menuKey):
 	atlasName = None if len(pList) == 1 else f'{vv.Dataset.Name}/{vv.Map.Name}.{len(pList)}'
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
-	if menuKey in ['3Dx', 'Web', 'ChmX', 'Open', '3D', 'SM']:
+	if menuKey in ['3Dx', 'Web', 'ChmX', 'Open', '3D', 'SMx']:
 		if ctrPressed:
 			pId = vv.PromptMessage('Protein ID or CIF File: ', '????')	
 			pList = [ pId ]
@@ -100,7 +100,9 @@ def MainMain(menuKey):
 		case 'Lvt':
 			LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=ctrPressed)
 		case 'SM':
-			SmoothenComplex(pId, singleChain=ctrPressed)
+			SmoothenComplex(pId, singleChain=True)
+		case 'SMx':
+			SmoothenComplex(pId, singleChain=False)
 		case 'Hst':
 			ShowHistory()
 		case 'bSp':

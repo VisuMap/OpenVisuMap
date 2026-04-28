@@ -1,4 +1,4 @@
-#MenuLabels Scanning Smoothen Info 2D Seq HideIPO MarkHelix MarkBeta RnaChain Flipping Looping PID Tr S2 TT
+#MenuLabels Scanning Smoothen Info 2D Seq HideIPO MarkHelix MarkBeta RnaChain Flipping Looping PID Tr S2 abc TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -46,8 +46,10 @@ def Map3DMain(menuKey):
 		case 'c':
 			hlp.RemoveEndings(pp.BodyList)
 			pp.Redraw()
-		case 'TT':
+		case 'abc':
 			SetupABC(pp)
+		case 'TT':
+			pass
 
 def Tracing():
 	ob = New.Body()
