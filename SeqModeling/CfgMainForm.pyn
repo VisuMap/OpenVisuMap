@@ -87,13 +87,18 @@ def MainMain(menuKey):
 			SphereView(pId, unfolding=True)
 		case 'Lvt':
 			LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=ctrPressed)
-		case 'ChmX'|'RCSB'|'CIF'|'Info'|'SM'|'SMx'|'P-S2'|'S2'|'bSp'|'RMD'|'Twt':
+		case smKey if IsSimpleMenu(menuKey):
 			DoSimpleMenues(menuKey, pId, pList)
 		case 'Hst':
 			ShowHistory()
 		case 'TT':
 			return
 			BroadcastMapCfg()
+
+def IsSimpleMenu(menuKey):
+	smKeys = set(['ChmX', 'RCSB', 'CIF', 'Info', 'SM', 'SMx', 'P-S2', 'S2', 'bSp', 'RMD', 'Twt'])
+	# print(' '.join(smKeys))
+	return menuKey in smKeys
 
 def DoSimpleMenues(menuKey, pId, pList):
 	match menuKey:

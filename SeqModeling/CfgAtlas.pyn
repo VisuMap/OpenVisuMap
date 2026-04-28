@@ -50,7 +50,7 @@ def AtlasMain(menuKey):
 			Merge3DList([item.Name for item in pp.SelectedItems])
 		case '2Ds':
 			Merge2DList(pp)
-		case 'ChmX'|'RCSB'|'CIF'|'Info'|'SM'|'SMx'|'P-S2'|'S2'|'bSp'|'RMD'|'Twt':
+		case smKey if IsSimpleMenu(menuKey):
 			DoSimpleMenues(menuKey, pId, pList)
 		case 'TT':		
 			ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
