@@ -650,7 +650,7 @@ def ShowWeb(pId):
 		vv.StartProcess(f'https://www.ncbi.nlm.nih.gov/protein/{pId}')
 
 def ShowChimeraX(pId):
-	localPath = Download3DInfo(pId[:4])
+	localPath = pId if pId.endswith('.cif') else Download3DInfo(pId[:4])
 	progPath = "C:\\Program Files\\ChimeraX 1.10\\bin\\ChimeraX.exe"
 	vv.StartProcess(progPath, localPath)
 
