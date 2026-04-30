@@ -1273,31 +1273,24 @@ def ColorChainMap(szType=2):
 
 # VisChainSize(4)
 
-def AlignSeqPair(parentWin):
+def AlignSeqPair(pList):
 	from Bio.Align import PairwiseAligner
-	if parentWin.Name == 'Atlas':
-		pIds = [item.Id for item in parentWin.SelectedItems]
-	else:
-		pIds = parentWin.SelectedItems
-	if len(pIds) < 2:
+	if len(pList) < 2:
 		vv.Message(f'Please select a pair of proteins!')
 		return
 	ds = vv.Dataset
-	s0 = ds.StringAt(pIds[0], 2)
-	s1 = ds.StringAt(pIds[1], 2)
-
+	s0 = ds.StringAt(pList[0], 2)
+	s1 = ds.StringAt(pList[1], 2)
 	isAASeq = s0[0].isupper()
 	if s0[0].islower(): 
 		s0 = s0.upper()
 	if s1[0].islower(): 
-		s1 = s1.upper()
-	
+		s1 = s1.upper()	
 	scType = 'blastp' if isAASeq else 'blastn'
-
 	aligner = PairwiseAligner(scoring=scType)
 	for k, ag in enumerate(aligner.align(s0, s1)):
 		ratio = ag.score/max(len(s0), len(s1))
-		New.TextPanel(f'Alignment-{k+1}: {pIds[0]}:{pIds[1]}; Score={int(ag.score)}; Ratio={ratio:.3g}', str(ag)).Show()
+		New.TextPanel(f'Alignment-{k+1}: {pList[0]}:{pList[1]}; Score={int(ag.score)}; Ratio={ratio:.3g}', str(ag)).Show()
 		if k >= 0: break
 
 def DoubleClicked():
@@ -1375,11 +1368,6 @@ def SelectPID():
 	vv.SelectedItems = info.pId.split(',')
 	pp.Title = f'PIDs: {info.pId}'
 	vv.GuiManager.SetClipboard(info.pId)
-
-if 'cs' not in globals():
-	cs = LoadSeqModeling()
-
-LoadCacheDef()
 
 
 '''

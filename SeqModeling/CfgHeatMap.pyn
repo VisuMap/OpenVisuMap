@@ -1,4 +1,4 @@
-#MenuLabels Merge PID, Info UpDn LR abc TT
+#MenuLabels <Init> Merge PID, Info UpDn LR TT
 vv.Import('SeqVis.pyn')
 
 def Map3DMain(menuKey):
@@ -19,7 +19,7 @@ def Map3DMain(menuKey):
 			idList = list( reversed( [cs.Id for cs in nt.ColumnSpecList] ))
 			nt.ReorderColumns(idList)			
 			pp.Redraw()
-		case 'abc':  # called when reading the <Import> label.
+		case '<Init>':
 			pp.OnKeyPress('abcdx')
 		case 'a':
 			New.MountainView(pp.GetNumberTable()).Show()

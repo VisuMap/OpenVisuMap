@@ -7,8 +7,9 @@ vv.Import('SphericalProj.pyn')
 
 def MainMain(menuKey):
 	if menuKey == '':
-		return
+		return	
 	global ctrPressed
+	global cs
 	selected = list(vv.Map.SelectedItems)
 	pId = selected[0] if len(selected) > 0 else None
 	pList = selected if len(selected) > 0 else [b.Id for b in vv.Dataset.BodyListEnabled()]
@@ -28,6 +29,10 @@ def MainMain(menuKey):
 	AddHistory(pId)
 			
 	match menuKey:
+		case '<Import>':  # called when executing the <Import> label
+			if 'cs' not in globals(): 
+				cs = LoadSeqModeling()			
+				LoadCacheDef()			
 		case 'P-Map':
 			ppl_ = round(2000.0/len(pList), 4)
 			ppl_ = np.clip(ppl_, 0.01, 0.25)
@@ -39,7 +44,7 @@ def MainMain(menuKey):
 					case 'mwV': 
 						ws = [0.01, 0.025, 0.1, 0.15]
 						ws = [13, 23, 37, 53]
-						ws = [37, 53, 0.1, 0.15]
+						ws = [53, 149, 0.2, 0.35]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'bGP':
 						PM2(waveCount=32, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
@@ -51,7 +56,7 @@ def MainMain(menuKey):
 						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(ppl_,6.0,0.9))
 		case 'P-2D':
 			tP_ = (1000, 3, 0.1, 4.0, 1.0)
-			CreateProteinMaps(pList, samplingDist=0.5, maxItems=15000, atlasName=atlasName, tP=tP_)
+			CreateProteinMaps(pList, samplingDist=0.1, maxItems=15000, atlasName=atlasName, tP=tP_)
 		case 'C-Map':
 			'''
 			ColorChainMap(0)
@@ -62,16 +67,12 @@ def MainMain(menuKey):
 			pIds = vv.PromptMessage('Protein ID: ', '????')
 			if pIds != None:
 				ImportPDBList(pIds, 'Monthly')
-		case '3Dx':
-			mp = ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, unifyId=True)
 		case '3D':
 			if atlasName != None: 
 				atlasName += '-3D'
 			if len(pList) > 1:
 				pList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
 			ShowProteinList(pList, includeHA=False, intRp=5, atName=atlasName, gsize=1.5, gopacity=0.5)
-		case '3Ds':
-			Merge3DList(pList)
 		case 'P-Seq':
 			aaGroups = GetAAGroup(idx=0)
 			if atlasName != None: 
@@ -81,8 +82,6 @@ def MainMain(menuKey):
 		case 'Siblings':
 			vv.SelectedItems, _ = Siblings(selected)
 			vv.Title = f'Selected: {len(selected)}, Expanded: {vv.SelectedItems.Count}'
-		case 'Align':
-			AlignSeqPair(vv.Map)
 		case 'UF':
 			SphereView(pId, unfolding=True)
 		case 'Lvt':
@@ -96,7 +95,7 @@ def MainMain(menuKey):
 			BroadcastMapCfg()
 
 def IsSimpleMenu(menuKey):
-	smKeys = set(['ChmX', 'RCSB', 'CIF', 'Info', 'SM', 'SMx', 'P-S2', 'S2', 'bSp', 'RMD', 'Twt'])
+	smKeys = set(['ChmX', 'RCSB', 'CIF', 'Align', 'Info', 'SM', 'SMx', 'P-S2', 'S2', 'bSp', 'RMD', 'Twt', '3Ds', '3Dx'])
 	# print(' '.join(smKeys))
 	return menuKey in smKeys
 
@@ -108,6 +107,8 @@ def DoSimpleMenues(menuKey, pId, pList):
 			ShowWeb(pId)
 		case 'CIF': 
 			OpenCifFile(pId)
+		case 'Align':
+			AlignSeqPair(pList)
 		case 'SM':
 			SmoothenComplex(pId, singleChain=True)
 		case 'SMx':
@@ -121,6 +122,10 @@ def DoSimpleMenues(menuKey, pId, pList):
 		case 'RMD':
 			vv.Import('ramachandraw.pyn')
 			ShowRamachandraw(pId)
+		case '3Ds':
+			Merge3DList(pList)
+		case '3Dx':
+			ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, unifyId=True)
 		case 'Twt':
 			mpList = [ ShowTwistMap(id, maxWsRows=4096, winSz=500) for id in pList[:10] ]
 			vv.GuiManager.TileAllWindows(mpList, True)
@@ -148,8 +153,10 @@ MainMain(vv.EventSource.Item)
 '''
 
 dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[1:], mpIdx=0, createPMap=True, createAtlas=False)
+DoDatasetList(dxList[6:], mpIdx=0, createPMap=True, createAtlas=True)
 vv.Folder.Save()
+
+-----------------
 
 RemoveAllChainCache( only_rd_chains=False )
 

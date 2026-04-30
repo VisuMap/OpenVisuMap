@@ -1,4 +1,4 @@
-#MenuLabels <Import> Cfg Match ChmX RCSB CIF Info SM SMx P-S2 S2 bSp RMD Twt Seq Align 3D 3Dx 3Ds 2D 2Ds TT
+#MenuLabels Cfg Match ChmX RCSB CIF Info SM SMx P-S2 S2 bSp RMD Twt Seq Align 3D 3Dx 3Ds 2D 2Ds TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -11,32 +11,14 @@ def HighlightItems():
 		pp.SetSelectedItems([x for x in pp.Items if x.Name in sIds])	
 
 def AtlasMain(menuKey):
-	if menuKey == '':
-		return
 	pSelected = pp.GetSelectedItems()
-	if pSelected.Count >= 1:
-		pId = pSelected[0].Name
-	else:
-		pId = None
+	pId = pSelected[0].Name if pSelected.Count >= 1 else None
 	pList = [item.Name for item in pSelected]
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
 	match vv.EventSource.Item:
 		case 'Cfg':
 			ConfigAtlasMaps(pp, 1000, 700, gSize=5.0, gOpacity=1.0, iconWidth=None, hiddenSize=4, reset=False)			
-		case '3D':
-			mpList = []
-			for pId in [item.Id for item in pSelected]:
-				mp = ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
-				mp.NormalizeView()
-				mpList.append(mp)
-			vv.GuiManager.TileAllWindows(mpList)
-		case '3Dx':
-			for e in pSelected:
-				mp = ShowPDB(e.Name, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, unifyId=True, chainNames=None)
-		case '2D':
-			pList = [item.Id for item in pSelected]
-			UnFoldProteinList(pList, includeHA=False, wholeComplex=False, samplingDist=0.0, iconWidth=50, tP=(2000,3,28, 0.15,4.0,1.0) )
 		case 'Match':
 			MatchProteinMap(pp, iconWidth=None)
 		case 'Seq':
@@ -44,16 +26,21 @@ def AtlasMain(menuKey):
 				mp = item.Open()
 				ShowAASeq(mp)
 				mp.Close()
-		case 'Align':
-			AlignSeqPair(pp)
-		case '3Ds':
-			Merge3DList([item.Name for item in pp.SelectedItems])
+		case '3D':
+			mpList = []
+			for pId in pList:
+				mp = ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
+				mp.NormalizeView()
+				mpList.append(mp)
+			vv.GuiManager.TileAllWindows(mpList)
+		case '2D':
+			UnFoldProteinList(pList, includeHA=False, wholeComplex=False, samplingDist=0.0, iconWidth=50, tP=(2000,3,28, 0.15,4.0,1.0) )
 		case '2Ds':
 			Merge2DList(pp)
-		case smKey if IsSimpleMenu(menuKey):
-			DoSimpleMenues(menuKey, pId, pList)
 		case 'TT':		
 			ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
+		case _ if IsSimpleMenu(menuKey):
+			DoSimpleMenues(menuKey, pId, pList)
 
 AtlasMain(vv.EventSource.Item)
 

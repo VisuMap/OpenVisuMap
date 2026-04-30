@@ -300,7 +300,7 @@ def ChainName(body):
 	return body.Name.split('.')[2]
 
 def Interpolate(bList, rp=3, hidIntp=False, pId=None, setChainId=False, typeByChainIdx=False, unifyId=False, matchPid=False):
-	if pId.endswith('.cif'):
+	if pId != None and pId.endswith('.cif'):
 		pId = pId.split('\\')[-1][:4].upper()
 	return cs.InterpolateETC(bList, rp, hidIntp, pId, setChainId, typeByChainIdx, unifyId, matchPid)
 
@@ -526,6 +526,8 @@ def ImportPDBList(sList, dsName, dsDescription=''):
 	if ds.Description != '': ds.Description += '; '
 	ds.Description += f'Dim:{ds.Rows}x{ds.Columns}'
 	ds.CommitChanges()
+	ColorChainMap()
+	vv.ClickMenu('Edit/Transform Map/Normalize Map')
 		
 def GetAAGroup(idx=0):
 	aaHydrophobic = 'AVILMFYW'
@@ -664,7 +666,7 @@ def CleanupAllCache():
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'SymmetryD3', 'Global Symmetry/D3/Resolution 0.5 - 2.5')
+ImportPDBList(sList, 'Tetrahedron', 'Advanced Search/Symmetry Type/Tetrahedron')
 
 CleanupAllCache()
 
