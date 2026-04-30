@@ -101,7 +101,7 @@ def UnFoldProteinList(pList, includeHA=False, wholeComplex=False, tP = None,
 
 	if samplingDist > 0:
 		pList = cs.FlatSampling(pList, samplingDist)
-		vv.Title = f'Sampled {len(pList)} chains!'
+		vv.Title = f'Sampled {len(pList)} chains'
 	else:
 		vv.Title = 'Sampled all chains'
 
@@ -666,7 +666,7 @@ def CleanupAllCache():
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'Tetrahedron', 'Advanced Search/Symmetry Type/Tetrahedron')
+ImportPDBList(sList, 'Icosahedron', 'Advanced Search/Assemly Features/Symmetry Type/Icosahedral')
 
 CleanupAllCache()
 

@@ -1,4 +1,5 @@
-#MenuLabels Cfg Match ChmX RCSB CIF Info SM SMx P-S2 S2 bSp RMD Twt Seq Align 3D 3Dx 3Ds 2D 2Ds TT
+#MenuLabels Cfg Match Seq ChmX RCSB CIF Align Info SM SMx \
+# P-S2 S2 bSp RMD Twt 3Ds 3Dx 3D 2D 2Ds TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')

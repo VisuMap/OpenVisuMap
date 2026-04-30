@@ -490,7 +490,7 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 	epochs, intRp, ppl, initE, finalE = tP
 	if samplingDist > 0:
 		pList = cs.FlatSampling(pList, samplingDist)
-		vv.Title = f'Sampled {len(pList)} chains by density {samplingDist}!'
+		vv.Title = f'Sampled {len(pList)} chains by density {samplingDist}.'
 		if ctrPressed:
 			vv.SelectedItems = pList
 			return
@@ -578,7 +578,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 		pList = [ pId for pId in pList if vv.Dataset.IntAt(pId, 3) <= maxLen ]
 	if samplingDist > 0.0:
 		pList = cs.FlatSampling(pList, samplingDist)
-		vv.Title = f'Sampled {len(pList)} chains!'
+		vv.Title = f'Sampled {len(pList)} chains.'
 
 	if len(pList) == 0:
 		vv.Message('No data selected after filtering!')

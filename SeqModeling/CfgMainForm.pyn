@@ -1,13 +1,10 @@
-#MenuLabels <Import> P-Map P-2D C-Map Info ChmX RCSB CIF LD Hst Siblings \
-# P-Seq Align 3D 3Dx 3Ds P-S2 S2 UF Lvt SM SMx bSp RMD Twt TT
-
+#MenuLabels <Import> P-Map P-2D C-Map ChmX RCSB CIF Align Info SM SMx \
+# P-S2 S2 bSp RMD Twt 3Ds 3Dx LD Hst Siblings P-Seq 3D P-S2 UF TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
 
 def MainMain(menuKey):
-	if menuKey == '':
-		return	
 	global ctrPressed
 	global cs
 	selected = list(vv.Map.SelectedItems)
@@ -44,7 +41,7 @@ def MainMain(menuKey):
 					case 'mwV': 
 						ws = [0.01, 0.025, 0.1, 0.15]
 						ws = [13, 23, 37, 53]
-						ws = [53, 149, 0.2, 0.35]
+						ws = [13, 23, 0.1, 0.2]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'bGP':
 						PM2(waveCount=32, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
@@ -95,9 +92,9 @@ def MainMain(menuKey):
 			BroadcastMapCfg()
 
 def IsSimpleMenu(menuKey):
-	smKeys = set(['ChmX', 'RCSB', 'CIF', 'Align', 'Info', 'SM', 'SMx', 'P-S2', 'S2', 'bSp', 'RMD', 'Twt', '3Ds', '3Dx'])
+	smKeys = ['ChmX', 'RCSB', 'CIF', 'Align', 'Info', 'SM', 'SMx', 'P-S2', 'S2', 'bSp', 'RMD', 'Twt', '3Ds', '3Dx']
 	# print(' '.join(smKeys))
-	return menuKey in smKeys
+	return menuKey in set(smKeys)
 
 def DoSimpleMenues(menuKey, pId, pList):
 	match menuKey:
