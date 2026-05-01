@@ -22,7 +22,15 @@ def Map3DMain(menuKey):
 		case '<Init>':
 			pp.OnKeyPress('abcdx')
 		case 'a':
-			New.MountainView(pp.GetNumberTable()).Show()
+			nt = pp.GetSelectedNumberTable()
+			if nt.Rows == 0: nt = pp.GetNumberTable().Clone()
+			nt.ReorderRows(list(reversed([rs.Id for rs in nt.RowSpecList])))
+			mv = New.MountainView(nt)
+			mv.DisplayStyle = 2
+			mv.EditMode = False
+			mv.BaseLineType = 0
+			mv.ResetView()
+			mv.Show()
 		case 'b':
 			New.ValueDiagram(pp.GetNumberTable()).Show()
 		case 'c':
