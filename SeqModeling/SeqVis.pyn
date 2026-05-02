@@ -103,6 +103,14 @@ public void ToPepCount(string seq, double[] R) {
 		R[idx] += 1.0;
 	}
 }
+
+public void MovingWindowVarianceX(dynamic cs, IList<IBody> bList, int stepSize, INumberTable nt) {
+	MT.Loop(0, nt.Rows, row=>{
+		int ws = stepSize*row;
+		cs.MovingWindowVariance(bList, ws, (double [])nt.Matrix[row]);
+		nt.RowSpecList[row].Id = "WS." + ws;
+	});
+}
 ''')
 
 #----------------------------- common classes ------------------------------------------------------------
@@ -167,10 +175,7 @@ def ShowTwistMap(pId, maxWsRows=1024, winSz=800):
 	wSzCnt = bList.Count if bList.Count<maxWsRows else maxWsRows
 	info = MapInfo({'pId':pId, 'wsCnt':wSzCnt, 'stepSz':stepSize, 'Len':len(bList), 'rp':3})	
 	nt = New.NumberTable(bList, wSzCnt).Transpose2()
-	for row in range(nt.Rows):
-		wSz = stepSize*row
-		cs.MovingWindowVariance(bList, wSz, nt.Matrix[row])
-		nt.RowSpecList[row].Id = 'ws.' + str(wSz)
+	ss.MovingWindowVarianceX(cs, bList, stepSize, nt)
 	ss.CompressTable(nt)   # to better discreminate low value regions.
 	nt = nt.Clone().ReorderRows(list(reversed([rs.Id for rs in nt.RowSpecList])))
 	hm = New.HeatMap(nt)

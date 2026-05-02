@@ -1,5 +1,5 @@
 #MenuLabels <Import> P-Map P-2D C-Map ChmX RCSB CIF Align Info SM SMx \
-# P-S2 S2 bSp RMD Twt 3Ds 3Dx LD Hst Siblings P-Seq 3D P-S2 UF TT
+# P-S2 S2 bSp RMD Twt 3Ds 3Dx Lvt LD Hst Siblings P-Seq 3D P-S2 UF TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')

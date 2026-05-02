@@ -1,4 +1,4 @@
-#MenuLabels <Init> Scanning Smoothen Info 2D Seq HideIPO MarkHelix MarkBeta RnaChain Flipping Looping PID Tr S2 TT
+#MenuLabels <Init> Scanning Smoothen Info 2D Seq HideIPO MarkHelix MarkBeta RnaChain Flipping Looping PID Tr S2 a b c TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 

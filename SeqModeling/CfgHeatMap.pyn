@@ -30,6 +30,7 @@ def Map3DMain(menuKey):
 			mv.EditMode = False
 			mv.BaseLineType = 0
 			mv.SurfaceBrightness = 0.25
+			mv.PeakColorA = New.Color('White')
 			mv.ResetView()			
 			mv.Show()
 		case 'b':
