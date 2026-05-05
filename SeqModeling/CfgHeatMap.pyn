@@ -23,18 +23,27 @@ def Map3DMain(menuKey):
 			pp.OnKeyPress('abcdx')
 		case 'a':
 			nt = pp.GetSelectedNumberTable()
-			if nt.Rows <= 1: nt = pp.GetNumberTable().Clone()
+			if nt.Columns<2 or nt.Rows <2: nt = pp.GetNumberTable()
+			nt = nt.Clone()		
+			ss.DecompressTable(nt)
 			nt.ReorderRows(list(reversed([rs.Id for rs in nt.RowSpecList])))
 			mv = New.MountainView(nt)
 			mv.DisplayStyle = 2
 			mv.EditMode = False
 			mv.BaseLineType = 0
-			mv.SurfaceBrightness = 0.25
+			mv.SurfaceBrightness = 0.1
 			mv.PeakColorA = New.Color('White')
+			mv.PeakColorB = New.Color('DarkGoldenrod')
 			mv.ResetView()			
 			mv.Show()
 		case 'b':
-			New.ValueDiagram(pp.GetNumberTable()).Show()
+			nt = pp.GetSelectedNumberTable()
+			if nt.Columns<2 or nt.Rows<2: nt = pp.GetNumberTable()
+			nt = nt.Clone()
+			ss.DecompressTable(nt)
+			vd = New.ValueDiagram(nt)
+			vd.NormalizeView()
+			vd.Show()
 		case 'c':
 			pId = MapInfo(pp.Description).pId
 			SmoothenComplex(pId, True)

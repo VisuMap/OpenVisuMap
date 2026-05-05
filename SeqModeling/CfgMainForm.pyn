@@ -42,6 +42,7 @@ def MainMain(menuKey):
 						ws = [0.01, 0.025, 0.1, 0.15]
 						ws = [13, 23, 37, 53]
 						ws = [13, 23, 0.1, 0.2]
+						#ws = [0.01, 0.02, 0.04, 0.08]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 8.0, 1.0))
 					case 'bGP':
 						PM2(waveCount=32, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
@@ -53,7 +54,7 @@ def MainMain(menuKey):
 						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(ppl_,6.0,0.9))
 		case 'P-2D':
 			tP_ = (1000, 3, 0.1, 4.0, 1.0)
-			CreateProteinMaps(pList, samplingDist=0.1, maxItems=15000, atlasName=atlasName, tP=tP_)
+			CreateProteinMaps(pList, samplingDist=0.5, maxItems=15000, atlasName=atlasName, tP=tP_)
 		case 'C-Map':
 			'''
 			ColorChainMap(0)
@@ -144,14 +145,13 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 					MainMain('P-2D')
 			if vv.GuiManager.StopFlag:
 				break
+		vv.Folder.Save()
 
 MainMain(vv.EventSource.Item)
 
 '''
-
-dxList = list(range(vv.Folder.DatasetNameList.Count))
-DoDatasetList(dxList[6:], mpIdx=0, createPMap=True, createAtlas=True)
-vv.Folder.Save()
+dxList = list(range(vv.Folder.DatasetCount))
+DoDatasetList(dxList[2:], mpIdx=0, createPMap=True, createAtlas=False)
 
 -----------------
 
