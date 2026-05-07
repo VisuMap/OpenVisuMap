@@ -557,6 +557,8 @@ def GetAAGroup(idx=0):
 			from itertools import combinations
 			#return ['|'.join(g) for g in combinations(list('CGPDEFWY'), 3)]
 			return ['|'.join(g) for g in combinations(list('AVILMFYW'), 3)]
+		case 5:
+			return '|'.join([aaHydrophobic, aaPolarUncharged, aaHydroxyl])
 		case 10:
 			return 'AVILMFYW|STNQ|CGP|RHK|DE|aut|cg'
 		case 12:
@@ -666,7 +668,7 @@ def CleanupAllCache():
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'Helical', 'Advanced Search/Assemly Features/Symmetry Type/Helical')
+ImportPDBList(sList, 'AngleAlpha', 'Advanced Search/Angle alpha: 90 - 102.5')
 
 CleanupAllCache()
 

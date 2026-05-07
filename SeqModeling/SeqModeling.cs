@@ -295,6 +295,22 @@ namespace VisuMap {
                     vv.Title = $"Reading chains: {k} of {pList.Count}";
                 }
             });
+
+            // Normalize each section by the average value of their first column.
+            double[] sum = new double[wsList.Count];
+            double[][] M = (double[][]) D.Matrix;
+            for(int row=0; row<D.Rows; row++)
+                for (int col = 0, c = 0; col < D.Columns; col += tm.Columns, c += 1)
+                    sum[c] += M[row][col];
+            for (int c = 0; c < sum.Length; c++) 
+                sum[c] /= D.Rows;
+            MT.ForEach(M, R=> {
+                for (int c = 0; c < sum.Length; c++) {
+                    int idx0 = c * tm.Columns;
+                    for (int col = 0; col < tm.Columns; col += 1)
+                        R[idx0 + col] /= sum[c];
+                }
+            });
             return D;
         }
 
@@ -363,7 +379,7 @@ namespace VisuMap {
                     int k1 = (k < L) ? k : (2 * L - 1 - k);
                     v += bDist[k1] * M[k % M.Length][col];
                 }
-                R[col + index0] = v;
+                R[index0+col] = v;
             });
         }
 
