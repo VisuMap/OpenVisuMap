@@ -40,12 +40,9 @@ def MainMain(menuKey):
 				match vt:
 					case 'mwV': 
 						ws = [13, 23, 37, 53]
-						#ws = [13, 23, 0.1, 0.2]
-						#ws = [0.01, 0.02, 0.04, 0.08]
-						#ws = [0.05, 0.1, 0.2, 0.4]
-						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 4.0, 1.0))
+						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 6.0, 1.0))
 						ws = [0.05, 0.1, 0.2, 0.4]
-						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 4.0, 1.0))
+						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 6.0, 1.0))
 					case 'bGP':
 						PM2(waveCount=32, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
 					case 'pFT':	
@@ -216,7 +213,11 @@ for dn in list(vv.Folder.DatasetNameList)[3:]:
 for dn in list(vv.Folder.DatasetNameList)[1:]:
 	ds = vv.Folder.OpenDataset(dn)
 	mp = ds.OpenMap( ds.MapNameList[0] )
-	mp.ScaleMap(400/mp.Width)
+	mp.ScaleMap(500/mp.Width)
+	mp.GlyphOpacity = 0.75
+	mp.GlyphSize = 1.35
+	mp.RefreshMap()
+
 
 
 BroadcastMapCfg()

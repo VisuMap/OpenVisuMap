@@ -599,6 +599,8 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 		vv.Message('No data selected after filtering!')
 		vv.Return()
 
+	print(f'Creating map for {len(pList)} chains...')
+
 	# vectorizing the sequence to a table.
 	match vType:
 		case 'mwV':
