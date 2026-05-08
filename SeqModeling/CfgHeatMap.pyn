@@ -32,18 +32,19 @@ def Map3DMain(menuKey):
 			mv.EditMode = False
 			mv.BaseLineType = 0
 			mv.SurfaceBrightness = 0.1
+			mv.ReadOnly = True
 			mv.PeakColorA = New.Color('White')
 			mv.PeakColorB = New.Color('DarkGoldenrod')
-			mv.ResetView()			
-			mv.Show()
+			mv.ResetView().ScaleXYZ(0.8, 0.8, 0.8).ShiftXYZ(0, 100.0, 0).Show()
 		case 'b':
 			nt = pp.GetSelectedNumberTable()
 			if nt.Columns<2 or nt.Rows<2: nt = pp.GetNumberTable()
 			nt = nt.Clone()
 			ss.DecompressTable(nt)
 			vd = New.ValueDiagram(nt)
-			vd.NormalizeView()
-			vd.Show()
+			vd.UsingGpu = True
+			vd.ReadOnly = True
+			vd.NormalizeView().Show()
 		case 'c':
 			pId = MapInfo(pp.Description).pId
 			SmoothenComplex(pId, True)

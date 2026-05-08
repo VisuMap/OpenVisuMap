@@ -1310,13 +1310,6 @@ def AlignSeqPair(pList):
 		New.TextPanel(f'Alignment-{k+1}: {pList[0]}:{pList[1]}; Score={int(ag.score)}; Ratio={ratio:.3g}', str(ag)).Show()
 		if k >= 0: break
 
-def DoubleClicked():
-	newClickTime = time.time()
-	preClickTime = pp.Tag or 0
-	dbClicked =  (newClickTime - preClickTime < 0.4)
-	pp.Tag = newClickTime
-	return dbClicked
-
 ViewCfgList = []
 
 def UndoLastOp(pp):
@@ -1365,12 +1358,9 @@ def ResetAtlas():
 	if cnt >= 6:
 		SaveUndoCfg(pp)
 	if parentName == 'Atlas':  # parent is an atlas
-		if DoubleClicked(): 
-			if not UndoLastOp(pp):
-				pp.ResetView(True)
-		elif cnt < 6: 
+		if cnt < 6: 
 			return
-		elif tm > 2000:
+		elif tm > 1500:
 			pp.ClickMenu('More.../Show Selected')
 			pp.ResetView(True)  # keep the selection.
 		else:

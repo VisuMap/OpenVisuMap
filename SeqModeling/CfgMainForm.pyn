@@ -34,13 +34,13 @@ def MainMain(menuKey):
 			ppl_ = round(2000.0/len(pList), 4)
 			ppl_ = np.clip(ppl_, 0.01, 0.25)
 			def PM2(*args, **kwargs):
-				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 10, 0), 
+				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 10, 0), is3D=False,
 					gSize=0.5, justShDt=ctrPressed, *args,**kwargs)
 			for vt in ['mwV']: 
 				match vt:
 					case 'mwV': 
-						ws = [13, 23, 37, 53]
-						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 6.0, 1.0))
+						#ws = [13, 23, 37, 53]
+						#PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 6.0, 1.0))
 						ws = [0.05, 0.1, 0.2, 0.4]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 6.0, 1.0))
 					case 'bGP':
@@ -53,7 +53,7 @@ def MainMain(menuKey):
 						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(ppl_,6.0,0.9))
 		case 'P-2D':
 			tP_ = (1000, 3, 0.1, 4.0, 1.0)
-			CreateProteinMaps(pList, samplingDist=0.5, maxItems=15000, atlasName=atlasName, tP=tP_)
+			CreateProteinMaps(pList, samplingDist=0.5, maxItems=20000, atlasName=atlasName, tP=tP_)
 		case 'C-Map':
 			'''
 			ColorChainMap(0)
