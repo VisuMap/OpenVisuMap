@@ -864,7 +864,9 @@ def SmoothenComplex(pId, singleChain=False):
 	vs.Tag = mp, New.BodyListClone(mp.BodyList)
 	vs.OnClose('pp.Tag[0].Close()')
 	vs.NumberFormat = 'f0'
-	vs.Show()
+	vs.ResizeClient(1000, 100)
+	vs.ReadOnly = True
+	vs.Show2()
 	UpdateComplex(vs)
 	mp.CentralizeView(False)
 	mp.ZoomByFactor(12.0)
