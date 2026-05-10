@@ -1,5 +1,5 @@
 #MenuLabels Cfg Match Seq ChmX RCSB CIF Align Info SM SMx \
-# P-S2 S2 bSp RMD Twt 3Ds 3Dx 3D 2D 2Ds TT
+# P-S2 S2 UF bSp RMD Twt 3Ds 3Dx 3D 2D 2Ds TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -17,7 +17,7 @@ def AtlasMain(menuKey):
 	pList = [item.Name for item in pSelected]
 	ctrPressed = vv.ModifierKeys.ControlPressed	
 
-	match vv.EventSource.Item:
+	match menuKey:
 		case 'Cfg':
 			ConfigAtlasMaps(pp, 1000, 700, gSize=5.0, gOpacity=1.0, iconWidth=None, hiddenSize=4, reset=False)			
 		case 'Match':
@@ -40,12 +40,9 @@ def AtlasMain(menuKey):
 			Merge2DList(pp)
 		case 'TT':		
 			ShowPDB(pId, rp=5, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
-		case _ if IsSimpleMenu(menuKey):
+		case _:
 			DoSimpleMenues(menuKey, pId, pList)
 
 AtlasMain(vv.EventSource.Item)
 
-'''
-
-'''
 

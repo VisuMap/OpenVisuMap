@@ -1,5 +1,5 @@
 #MenuLabels <Import> P-Map P-2D C-Map ChmX RCSB CIF Align Info SM SMx \
-# P-S2 S2 bSp RMD Twt 3Ds 3Dx Lvt LD Hst Siblings P-Seq 3D P-S2 UF TT
+# P-S2 S2 UF bSp RMD Twt 3Ds 3Dx Lvt LD Hst Siblings P-Seq 3D P-S2 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -39,10 +39,10 @@ def MainMain(menuKey):
 			for vt in ['mwV']: 
 				match vt:
 					case 'mwV': 
-						#ws = [13, 23, 37, 53]
-						#PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 6.0, 1.0))
-						ws = [0.05, 0.1, 0.2, 0.4]
+						ws = [13, 23, 37, 53]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 6.0, 1.0))
+						#ws = [0.05, 0.1, 0.2, 0.4]
+						#PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 6.0, 1.0))
 					case 'bGP':
 						PM2(waveCount=32, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
 					case 'pFT':	
@@ -79,12 +79,8 @@ def MainMain(menuKey):
 		case 'Siblings':
 			vv.SelectedItems, _ = Siblings(selected)
 			vv.Title = f'Selected: {len(selected)}, Expanded: {vv.SelectedItems.Count}'
-		case 'UF':
-			SphereView(pId, unfolding=True)
 		case 'Lvt':
 			LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=ctrPressed)
-		case smKey if IsSimpleMenu(menuKey):
-			DoSimpleMenues(menuKey, pId, pList)
 		case 'Hst':
 			ShowHistory()
 		case 'TT':
@@ -92,12 +88,9 @@ def MainMain(menuKey):
 			aaGroups = GetAAGroup(5)
 			aaGroups = 'C|G|P'
 			ShowSeqTwist(pId, xyzSet=aaGroups)
+		case _:
+			DoSimpleMenues(menuKey, pId, pList)
 			
-def IsSimpleMenu(menuKey):
-	smKeys = ['ChmX', 'RCSB', 'CIF', 'Align', 'Info', 'SM', 'SMx', 'P-S2', 'S2', 'bSp', 'RMD', 'Twt', '3Ds', '3Dx']
-	# print(' '.join(smKeys))
-	return menuKey in set(smKeys)
-
 def DoSimpleMenues(menuKey, pId, pList):
 	match menuKey:
 		case 'ChmX': 
@@ -116,6 +109,8 @@ def DoSimpleMenues(menuKey, pId, pList):
 			ProteinS2Map(pList, atlasName, samplingDist=0.0, ctrF=0.85)
 		case 'S2':
 			SphereView(pId, unfolding=False)
+		case 'UF':
+			SphereView(pId, unfolding=True)
 		case 'bSp':
 			ShowBondLength(pList)
 		case 'RMD':
