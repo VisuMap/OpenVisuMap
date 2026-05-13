@@ -513,6 +513,15 @@ def MergeTableToDataset(tb, dsName):
 
 # import a protein list into a new dataset table.
 def ImportPDBList(sList, dsName, dsDescription=''):
+	import os
+	import os.path
+	if not os.path.isdir(vv.Folder.FolderFileName):
+		raise Exception("The current data folder is not saved as directory!")
+	if not exists(PDB_CACHE): 
+		os.mkdir(PDB_CACHE)
+	if not exists(CHAIN_CACHE): 
+		os.mkdir(CHAIN_CACHE)
+
 	sList = sList.upper()
 	pList = PreloadPDB(sList)
 	InitDatabase(dsName, dsDescription)
@@ -671,7 +680,7 @@ def CleanupAllCache():
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'AngleAlpha', 'Advanced Search/Angle alpha: 90 - 102.5')
+ImportPDBList(sList, 'Ubiquitin', 'Eukaryota; X-RAY; Resolution: 1.0-2.0; Date: 2017.3 - 2026.5')
 
 CleanupAllCache()
 

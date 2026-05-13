@@ -39,9 +39,8 @@ def MainMain(menuKey):
 			for vt in ['mwV']: 
 				match vt:
 					case 'mwV': 
-						#ws = [13, 23, 37, 53]
+						ws = [13, 23, 37, 53]
 						#ws = [0.05, 0.1, 0.2, 0.4]
-						ws = [0.01, 0.005, 0.015, 0.02 ]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 6.0, 1.0))
 					case 'bGP':
 						PM2(waveCount=32, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
@@ -77,8 +76,8 @@ def MainMain(menuKey):
 			CreateSeqMaps(pList, aaGroups, epochs=2000, initExag=6.0, ppl=0.1, 
 				saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
 		case 'Siblings':
-			vv.SelectedItems, _ = Siblings(selected)
-			vv.Title = f'Selected: {len(selected)}, Expanded: {vv.SelectedItems.Count}'
+			vv.FocusEventEnabled = True
+			vv.EventManager.OnItemFocused('ShowSiblings()')
 		case 'Hst':
 			ShowHistory()
 		case 'TT':
