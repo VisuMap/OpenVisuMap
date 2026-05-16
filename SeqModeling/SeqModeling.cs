@@ -327,17 +327,13 @@ namespace VisuMap {
                 int L1 = L - 1;
                 int L2 = L - 2;
                 int L3 = L - 3;
-                Vector3[] P = new Vector3[L];
-                for (int k = 0; k < L; k++) {
-                    P[k].X = (float)bs[k].X;
-                    P[k].Y = (float)bs[k].Y;
-                    P[k].Z = (float)bs[k].Z;
-                }
-
+                Vector3[] P = new Vector3[L];   // The positions of alpha-C.
                 Vector3[] B = new Vector3[L1];  // The bond vectors.
+                Vector3[] S = new Vector3[L2];  // the directed triangle strip.
+                for (int k = 0; k < L; k++)
+                    P[k] = bs[k].ToV3();
                 for (int k = 0; k < L1; k++)
                     B[k] = P[k + 1] - P[k];
-                Vector3[] S = new Vector3[L2];  // the directed triangle strip.
                 for (int k = 0; k < L2; k++)
                     Vector3.Cross(ref B[k + 1], ref B[k], out S[k]);
 
@@ -345,8 +341,10 @@ namespace VisuMap {
                 double[] tB = new double[L3];
                 for (int k = 0; k < L2; k++) {
                     tA[k] = Math.Abs(Vector3.Dot(B[k], B[k + 1]));
-                    if (k < L3)
-                        tB[k] = Math.Sqrt(Math.Abs(Vector3.Dot(S[k], S[k + 1])));
+                    if (k < L3) {
+                        tB[k] = 0.25*Math.Sqrt(Math.Abs(S[k].Length() * S[k + 1].Length() - Math.Abs(Vector3.Dot(S[k], S[k + 1]))));
+                        //tB[k] = Math.Sqrt(Math.Abs(Vector3.Dot(S[k], S[k + 1])));
+                    }
                 }
                 VectorizeChainFT(tA, tm, M[row], 0);
                 VectorizeChainFT(tB, tm, M[row], tm.Columns);
@@ -927,8 +925,10 @@ namespace VisuMap {
             int L3 = L - 3;
             for (int k = 0; k < L - 2; k++) {
                 M[k][0] = Math.Abs( Vector3.Dot(B[k], B[k + 1]) );
-                if (k < L3)
-                    M[k][1] = Math.Sqrt(Math.Abs(Vector3.Dot(S[k], S[k + 1])));
+                if (k < L3) {
+                    //M[k][1] = Math.Sqrt(Math.Abs(Vector3.Dot(S[k], S[k + 1])));
+                    M[k][1] = Math.Sqrt(Math.Abs(S[k].Length() * S[k + 1].Length() - Math.Abs(Vector3.Dot(S[k], S[k + 1]))));
+                }
             }
             return nt;
         }
