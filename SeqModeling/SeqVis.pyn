@@ -356,9 +356,11 @@ def ShowSiblings():
 	if vv.EventSource.Item == None:
 		return
 	seedItem = vv.EventSource.Item
-	vv.SelectedItems = [b.Id for b in vv.Dataset.BodyListEnabled() if b.Id.startswith(seedItem[:4])]
-	vv.GuiManager.FlushingSelected(4)
-	vv.Title = f'Selected: {seedItem}, Expanded: {vv.Map.SelectedItems.Count}'
+	siblings = [b.Id for b in vv.Dataset.BodyListEnabled() if b.Id.startswith(seedItem[:4])]
+	vv.Title = f'Siblings: {vv.Map.SelectedItems.Count-1}'
+	vv.Sleep(2000)
+	vv.SelectedItems = siblings
+	vv.GuiManager.FlushingSelected(6)
 
 #-----------------------------------------------------------
 # Code to maintain the protein table.

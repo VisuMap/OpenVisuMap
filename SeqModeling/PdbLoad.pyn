@@ -680,7 +680,7 @@ def CleanupAllCache():
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'Ubiquitin', 'Eukaryota; X-RAY; Resolution: 1.0-2.0; Date: 2017.3 - 2026.5')
+ImportPDBList(sList, 'Hemoglobin', 'hemoglobin complex (GO:0005833)')
 
 CleanupAllCache()
 
