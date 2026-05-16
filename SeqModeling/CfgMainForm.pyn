@@ -36,7 +36,7 @@ def MainMain(menuKey):
 			def PM2(*args, **kwargs):
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 10, 0), is3D=False,
 					gSize=0.5, justShDt=ctrPressed, *args,**kwargs)
-			for vt in ['mwV']: 
+			for vt in ['tFT']: 
 				match vt:
 					case 'mwV': 
 						#ws = [13, 23, 37, 53]
@@ -46,6 +46,8 @@ def MainMain(menuKey):
 						PM2(waveCount=32, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, waveLen=512, winSize=14*4, intRp=3, tSNE=(ppl_, 4.0, 1.0))	
+					case 'tFT':	
+						PM2(waveCount=64, waveLen=512, tSNE=(ppl_, 4.0, 1.0))	
 					case 'sFT':	
 						PM2(aaGroups=GetAAGroup(20), tSNE=(ppl_, 6.0, 0.9))
 					case 'sMF':	
@@ -81,10 +83,13 @@ def MainMain(menuKey):
 		case 'Hst':
 			ShowHistory()
 		case 'TT':
+			TorsionMap(pId)
+			'''
 			aaGroups = 'FLSYCW|LPHQR|IMTNKSRVADEG'
 			aaGroups = GetAAGroup(5)
 			aaGroups = 'C|G|P'
 			ShowSeqTwist(pId, xyzSet=aaGroups)
+			'''
 		case _:
 			DoSimpleMenues(menuKey, pId, pList)
 

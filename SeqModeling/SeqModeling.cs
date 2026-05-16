@@ -313,6 +313,46 @@ namespace VisuMap {
             });
             return D;
         }
+        public INumberTable BondTorsionFT(IList<string> pList, INumberTable tm, string cacheDir = null) {
+            List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
+            INumberTable nt = New.NumberTable(pList.Count, 2 * tm.Columns);
+            double[][] M = (double[][])nt.Matrix;
+            for (int row = 0; row < nt.Rows; row++)
+                nt.RowSpecList[row].CopyFromBody(bList[row]);
+
+            System.IO.Directory.SetCurrentDirectory(cacheDir);
+            MT.LoopNoblocking(0, pList.Count, row => {
+                var bs = LoadChain3D(pList[row] + ".pmc");
+                int L = bs.Count;
+                int L1 = L - 1;
+                int L2 = L - 2;
+                int L3 = L - 3;
+                Vector3[] P = new Vector3[L];
+                for (int k = 0; k < L; k++) {
+                    P[k].X = (float)bs[k].X;
+                    P[k].Y = (float)bs[k].Y;
+                    P[k].Z = (float)bs[k].Z;
+                }
+
+                Vector3[] B = new Vector3[L1];  // The bond vectors.
+                for (int k = 0; k < L1; k++)
+                    B[k] = P[k + 1] - P[k];
+                Vector3[] S = new Vector3[L2];  // the directed triangle strip.
+                for (int k = 0; k < L2; k++)
+                    Vector3.Cross(ref B[k + 1], ref B[k], out S[k]);
+
+                double[] tA = new double[L2];
+                double[] tB = new double[L3];
+                for (int k = 0; k < L2; k++) {
+                    tA[k] = Math.Abs(Vector3.Dot(B[k], B[k + 1]));
+                    if (k < L3)
+                        tB[k] = Math.Sqrt(Math.Abs(Vector3.Dot(S[k], S[k + 1])));
+                }
+                VectorizeChainFT(tA, tm, M[row], 0);
+                VectorizeChainFT(tB, tm, M[row], tm.Columns);
+            });
+            return nt;
+        }
 
         public INumberTable BondGapeSpetrum(IList<string> pList, INumberTable tm=null, string cacheDir = null) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
@@ -866,139 +906,61 @@ namespace VisuMap {
             return newList;
         }
 
-
-        public INumberTable ToTorsionList(List<IBody> bList, double mom = 0.95, double nbEps= 1.0) {
+        public INumberTable ToTorsionList(List<IBody> bList, double mom = 0.95, double nbEps = 1.0) {
             int L = bList.Count;
-            if (L < 7)
+            if (L < 4)
                 return null;
+            Vector3[] P = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();
+            INumberTable nt = New.NumberTable(L - 2, 2);
+            for (int k = 0; k < nt.Rows; k++)
+                nt.RowSpecList[k].CopyFromBody(bList[k]);
+            nt.ColumnSpecList[0].Id = "TorsionA";
+            nt.ColumnSpecList[1].Id = "TorsionB";
 
-            Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();            
-            double DD(int i, int j) => Vector3.Distance(V[i], V[j]);
-
-            INumberTable nt = New.NumberTable(L, 9);
-            for (int k = 0; k < L; k++)  nt.RowSpecList[k].CopyFromBody(bList[k]);
-            nt.ColumnSpecList[0].Id = "CurvatureNb1";
-            nt.ColumnSpecList[1].Id = "CurvatureNb2";
-            nt.ColumnSpecList[2].Id = "CurvatureNb3";
-            nt.ColumnSpecList[3].Id = "TorsionA";
-            nt.ColumnSpecList[4].Id = "TorsionB";
-            nt.ColumnSpecList[5].Id = "Bnd_LenRatio";
-            nt.ColumnSpecList[6].Id = "Cnt_Bnd_Dist";
-            nt.ColumnSpecList[7].Id = "NB_Size";
-            nt.ColumnSpecList[8].Id = "NB_Cnt";
-
-            for (int k = 1; k < L-1; k++) {
-                double[] R = nt.Matrix[k] as double[];
-                if ( (k>=1) && (k+1)<L )
-                    R[0] = 2 * BOND_LENGTH / DD(k + 1, k - 1);
-                if ((k >= 2) && (k + 2) < L)
-                    R[1] = 2 * BOND_LENGTH / DD(k + 2, k - 2);
-                if ((k >= 3) && (k + 3) < L)
-                    R[2] = 3 * BOND_LENGTH / DD(k + 3, k - 3);
+            Vector3[] B = new Vector3[L - 1];  // The bond vectors.
+            for (int k = 0; k < L - 1; k++)
+                B[k] = P[k + 1] - P[k];
+            Vector3[] S = new Vector3[L - 2];
+            for (int k = 0; k < L - 2; k++)
+                Vector3.Cross(ref B[k + 1], ref B[k], out S[k]);
+            double[][] M = (double[][])nt.Matrix;
+            int L3 = L - 3;
+            for (int k = 0; k < L - 2; k++) {
+                M[k][0] = Math.Abs( Vector3.Dot(B[k], B[k + 1]) );
+                if (k < L3)
+                    M[k][1] = Math.Sqrt(Math.Abs(Vector3.Dot(S[k], S[k + 1])));
             }
+            return nt;
+        }
 
-            // Fill the zeros with neighboring value.
-            double[][] M = nt.Matrix as double[][];
-            for (int r=0; r<3; r++) 
-            for(int k=0; k<=r; k++) {
-                M[k][r] = M[r + 1][r];
-                M[L - 1 - k][r] = M[L - 2 - r][r];
-            }
-            
-            Vector3[] dV = new Vector3[L - 1];
-            for (int k=0; k<L-1; k++)  {
+        public INumberTable ToTorsionList1(List<IBody> bList, double mom = 0.95, double nbEps = 1.0) {
+            int L = bList.Count;
+            if (L < 4)
+                return null;
+            Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();
+            INumberTable nt = New.NumberTable(L-3, 2);
+            double[][] M = (double[][]) nt.Matrix;
+            for (int k = 0; k < nt.Rows; k++)
+                nt.RowSpecList[k].CopyFromBody(bList[k]);            
+            nt.ColumnSpecList[0].Id = "TorsionA";
+            nt.ColumnSpecList[1].Id = "TorsionB";
+
+            Vector3[] dV = new Vector3[L - 1];  // The bond vectors.
+            for (int k = 0; k < L - 1; k++) {
                 dV[k] = V[k + 1] - V[k];
                 dV[k].Normalize();
             }
-
-            MT.Loop(0, L - 3, k => {                
+            MT.Loop(0, L - 3, k => {
                 float cosA = Vector3.Dot(dV[k + 1], dV[k]);
                 Vector3 P0 = cosA * dV[k];
                 Vector3 P1 = dV[k + 1] - P0;
                 Vector3 P2 = dV[k + 2] - P0;
                 P1.Normalize();
                 P2.Normalize();
-                M[k][3] = Math.Acos(cosA);
-                M[k][4] = Math.Acos(Vector3.Dot(P2, P1));
+                M[k][0] = Math.Acos(cosA);
+                M[k][1] = Math.Acos(Vector3.Dot(P2, P1));
             });
-
-            for(int k=L-3; k<L; k++) {
-                M[k][3] = M[L - 4][3];
-                M[k][4] = M[L - 4][4];
-            }
-
-            for (int k = 1; k < L; k++) 
-                M[k][5] = Vector3.Distance(V[k], V[k - 1]);
-
-            double[] vs = GlobeDistances(bList, mom);
-            for (int k = 0; k < L; k++)
-                M[k][6] = vs[k];
-
-
-            var kd = new VisuMap.Clustering.KdTree3D(bList);
-            const int BL = 7;
-            for (int k = 0; k < L; k++) {
-                int[] nbs = kd.FindNeighbors(bList[k], BL*BOND_LENGTH, 1000);
-                vs[k] = (nbs.Length - 2*BL)/(0.5*BL*BL);
-            }
-            SmoothenSeries(vs);
-            for (int k = 0; k < L; k++)
-                M[k][7] = vs[k];
-
-            KdTree3D kd3d = new VisuMap.Clustering.KdTree3D(bList);
-            double nbDist = 5.25 * BOND_LENGTH;
-            const int maxNB = 30;
-            for (int k = 1; k < L; k++) {
-                int[] nbList = kd3d.FindNeighbors(bList[k], nbDist, maxNB);
-                double x = 0;
-                double y = 0;
-                double z = 0;
-                int n = 0;
-                foreach (int i in nbList) {
-                    if ((i < k) && (i > 0)) {
-                        IBody b = bList[i];
-                        x += b.X;
-                        y += b.Y;
-                        z += b.Z;
-                        n++;
-                    }
-                }
-                if (n > 0) {
-                    IBody b = bList[k];
-                    x = x / n - b.X;
-                    y = y / n - b.Y;
-                    z = z / n - b.Z;
-                    M[k][8] = x * x + y * y + z * z;
-                }
-            }
-
-            double[] cMax = new double[nt.Columns];
-            for(int row=0; row<nt.Rows; row++)
-                for (int col = 0; col < nt.Columns; col++)
-                    cMax[col] = Math.Max(cMax[col], nt.Matrix[row][col]);
-            for (int row = 0; row < nt.Rows; row++) 
-                for (int col = 0; col < nt.Columns; col++)
-                    nt.Matrix[row][col] /= cMax[col];
-
             return nt;
-        }
-
-        public double[] GlobeDistances(IList<IBody> bList, double mom = 0.99) {
-            int L = bList.Count-1;
-            double[] vs = new double[L];
-            double g = 1.0f - mom;
-            IBody mp = bList[0].Clone(); // The mean-point.
-            for (int k =0; k < L; k++) {
-                IBody b = bList[k+1];
-                vs[k] = b.DistanceSquared(mp);
-                mp.X = mom * mp.X + g * b.X;
-                mp.Y = mom * mp.Y + g * b.Y;
-                mp.Z = mom * mp.Z + g * b.Z;
-            }
-            //MT.Loop(0, L, k => vs[k] = Math.Sqrt(vs[k]));
-            MT.Loop(0, L, k => vs[k] = 1.0/(1.0+vs[k]));
-            //MT.Loop(0, L, k => vs[k] = 1.0 / Math.Sqrt(vs[k]));
-            return vs;
         }
 
         public void ToSphere(INumberTable nt, double fct = 0.0) {

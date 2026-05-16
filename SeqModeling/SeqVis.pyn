@@ -616,6 +616,10 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 			PreloadChainList(pList)
 			tm = GetFourier(waveLen, waveCount)	
 			dt = cs.BondGapeSpetrum(pList, tm, cacheDir=ChainCacheDir())
+		case 'tFT':
+			PreloadChainList(pList)
+			tm = GetFourier(waveLen, waveCount)	
+			dt = cs.BondTorsionFT(pList, tm, cacheDir=ChainCacheDir())			
 		case 'pFT':
 			dt = GetFourierTrans(pList, waveLen, waveCount, winSize=winSize, intRp=intRp)
 		case 'sFT': 
