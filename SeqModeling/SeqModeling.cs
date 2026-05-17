@@ -329,22 +329,20 @@ namespace VisuMap {
                 int L3 = L - 3;
                 Vector3[] P = new Vector3[L];   // The positions of alpha-C.
                 Vector3[] B = new Vector3[L1];  // The bond vectors.
-                Vector3[] S = new Vector3[L2];  // the directed triangle strip.
+                Vector3[] T = new Vector3[L2];  // the directed triangle strip.
                 for (int k = 0; k < L; k++)
                     P[k] = bs[k].ToV3();
                 for (int k = 0; k < L1; k++)
                     B[k] = P[k + 1] - P[k];
                 for (int k = 0; k < L2; k++)
-                    Vector3.Cross(ref B[k + 1], ref B[k], out S[k]);
+                    T[k] = B[k+1] - B[k];
 
                 double[] tA = new double[L2];
                 double[] tB = new double[L3];
                 for (int k = 0; k < L2; k++) {
-                    tA[k] = Math.Abs(Vector3.Dot(B[k], B[k + 1]));
-                    if (k < L3) {
-                        tB[k] = 0.25*Math.Sqrt(Math.Abs(S[k].Length() * S[k + 1].Length() - Math.Abs(Vector3.Dot(S[k], S[k + 1]))));
-                        //tB[k] = Math.Sqrt(Math.Abs(Vector3.Dot(S[k], S[k + 1])));
-                    }
+                    tA[k] = Vector3.Dot(B[k], B[k + 1]);
+                    if (k < L3)
+                        tB[k] = -Vector3.Dot(T[k], T[k + 1]);
                 }
                 VectorizeChainFT(tA, tm, M[row], 0);
                 VectorizeChainFT(tB, tm, M[row], tm.Columns);
@@ -904,7 +902,7 @@ namespace VisuMap {
             return newList;
         }
 
-        public INumberTable ToTorsionList(List<IBody> bList, double mom = 0.95, double nbEps = 1.0) {
+        public INumberTable ToTorsionList(List<IBody> bList) {
             int L = bList.Count;
             if (L < 4)
                 return null;
@@ -918,48 +916,16 @@ namespace VisuMap {
             Vector3[] B = new Vector3[L - 1];  // The bond vectors.
             for (int k = 0; k < L - 1; k++)
                 B[k] = P[k + 1] - P[k];
-            Vector3[] S = new Vector3[L - 2];
+            Vector3[] T = new Vector3[L - 2];
             for (int k = 0; k < L - 2; k++)
-                Vector3.Cross(ref B[k + 1], ref B[k], out S[k]);
+                T[k] = B[k + 1] - B[k];
             double[][] M = (double[][])nt.Matrix;
             int L3 = L - 3;
             for (int k = 0; k < L - 2; k++) {
-                M[k][0] = Math.Abs( Vector3.Dot(B[k], B[k + 1]) );
-                if (k < L3) {
-                    //M[k][1] = Math.Sqrt(Math.Abs(Vector3.Dot(S[k], S[k + 1])));
-                    M[k][1] = Math.Sqrt(Math.Abs(S[k].Length() * S[k + 1].Length() - Math.Abs(Vector3.Dot(S[k], S[k + 1]))));
-                }
+                M[k][0] = Vector3.Dot(B[k], B[k + 1]);
+                if (k < L3)
+                    M[k][1] = -Vector3.Dot(T[k], T[k + 1]);
             }
-            return nt;
-        }
-
-        public INumberTable ToTorsionList1(List<IBody> bList, double mom = 0.95, double nbEps = 1.0) {
-            int L = bList.Count;
-            if (L < 4)
-                return null;
-            Vector3[] V = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();
-            INumberTable nt = New.NumberTable(L-3, 2);
-            double[][] M = (double[][]) nt.Matrix;
-            for (int k = 0; k < nt.Rows; k++)
-                nt.RowSpecList[k].CopyFromBody(bList[k]);            
-            nt.ColumnSpecList[0].Id = "TorsionA";
-            nt.ColumnSpecList[1].Id = "TorsionB";
-
-            Vector3[] dV = new Vector3[L - 1];  // The bond vectors.
-            for (int k = 0; k < L - 1; k++) {
-                dV[k] = V[k + 1] - V[k];
-                dV[k].Normalize();
-            }
-            MT.Loop(0, L - 3, k => {
-                float cosA = Vector3.Dot(dV[k + 1], dV[k]);
-                Vector3 P0 = cosA * dV[k];
-                Vector3 P1 = dV[k + 1] - P0;
-                Vector3 P2 = dV[k + 2] - P0;
-                P1.Normalize();
-                P2.Normalize();
-                M[k][0] = Math.Acos(cosA);
-                M[k][1] = Math.Acos(Vector3.Dot(P2, P1));
-            });
             return nt;
         }
 

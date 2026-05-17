@@ -436,7 +436,7 @@ def UnpackChain(pId):
 def PreloadChainList(pList):
 	pCnt = 0
 	chDir = ChainCacheDir()
-	print(f'Preloading {len(pList)} from {chDir}...')
+	#print(f'Preloading {len(pList)} from {chDir}...')
 	for pId in pList:
 		fPath = f'{chDir}/{pId}.pmc'
 		if not exists(fPath):
@@ -444,7 +444,7 @@ def PreloadChainList(pList):
 			pCnt += 1
 			if pCnt % 50 == 0:
 				vv.Title = f'Unpacked {pCnt} pdb files'
-	print('Preloading completed')
+	#print('Preloading completed')
 
 def PreloadPDB(sList):
 	pList = sList.split(',')

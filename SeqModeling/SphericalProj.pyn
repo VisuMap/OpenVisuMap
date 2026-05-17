@@ -101,7 +101,7 @@ def BodyListSphereView(pId, bList, unfolding):
 def TorsionMap(pId, mom=0.9):
 	info = MapInfo().Set('pId', pId)
 	bs = LoadChain(pId)
-	nt = cs.ToTorsionList(bs, mom)
+	nt = cs.ToTorsionList(bs)
 	nt = nt.Transpose2()
 	bb = New.BarBand(nt)
 	bb.Description = info.Str
@@ -112,7 +112,7 @@ def TorsionMap(pId, mom=0.9):
 	bb.Resize(0, 0, min(1800, 10*bs.Count), 400)
 	bb.AutoScaling = True
 	bb.AttributeMode = True
-	bb.BaseLineType = 4
+	bb.BaseLineType = 0
 	bb.BaseValueExplicit = 0.0
 	bb.FineSelection = True
 	bb.ShowLabels = True
