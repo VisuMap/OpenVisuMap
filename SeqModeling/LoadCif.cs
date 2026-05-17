@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using EntityInfo = System.Tuple<int, string, string, int>;
+using Vector3 = SharpDX.Vector3;
 using System.IO;
 using VisuMap.Script;
 
@@ -40,6 +41,23 @@ namespace VisuMap {
             });
             return bList.ToList();
         }
+
+        public Vector3[] LoadChainV3(string cacheFile) {
+            string[] lines = File.ReadAllLines(cacheFile);
+            IBody[] bList = new IBody[lines.Length];
+            Vector3[] pList = new Vector3[lines.Length];
+            for(int k=0; k<lines.Length; k++) { 
+                string line = lines[k];
+                if (line == null)
+                    return null;
+                string[] fs = line.Split('|');
+                pList[k].X = float.Parse(fs[3]);
+                pList[k].Y = float.Parse(fs[4]);
+                pList[k].Z = float.Parse(fs[5]);
+            }
+            return pList;
+        }
+
 
         public string LoadChainSeq(string cacheFile) {
             StringBuilder sb = new StringBuilder();

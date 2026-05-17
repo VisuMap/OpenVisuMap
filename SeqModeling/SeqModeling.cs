@@ -319,29 +319,21 @@ namespace VisuMap {
             double[][] M = (double[][])nt.Matrix;
             for (int row = 0; row < nt.Rows; row++)
                 nt.RowSpecList[row].CopyFromBody(bList[row]);
-
             System.IO.Directory.SetCurrentDirectory(cacheDir);
             MT.LoopNoblocking(0, pList.Count, row => {
-                var bs = LoadChain3D(pList[row] + ".pmc");
-                int L = bs.Count;
-                int L1 = L - 1;
-                int L2 = L - 2;
-                int L3 = L - 3;
-                Vector3[] P = new Vector3[L];   // The positions of alpha-C.
-                Vector3[] B = new Vector3[L1];  // The bond vectors.
-                Vector3[] T = new Vector3[L2];  // the directed triangle strip.
-                for (int k = 0; k < L; k++)
-                    P[k] = bs[k].ToV3();
-                for (int k = 0; k < L1; k++)
+                Vector3[] P = LoadChainV3(pList[row] + ".pmc"); // The positions of alpha-C.
+                int L = P.Length;
+                Vector3[] B = new Vector3[L-1];  // The bond vectors.
+                Vector3[] T = new Vector3[L-2];  // the directed triangle strip.
+                for (int k = 0; k < (L-1); k++)
                     B[k] = P[k + 1] - P[k];
-                for (int k = 0; k < L2; k++)
+                for (int k = 0; k < (L-2); k++)
                     T[k] = B[k+1] - B[k];
-
-                double[] tA = new double[L2];
-                double[] tB = new double[L3];
-                for (int k = 0; k < L2; k++) {
+                double[] tA = new double[L-2];
+                double[] tB = new double[L-3];
+                for (int k = 0; k < (L-2); k++) {
                     tA[k] = Vector3.Dot(B[k], B[k + 1]);
-                    if (k < L3)
+                    if (k < (L-3) )
                         tB[k] = -Vector3.Dot(T[k], T[k + 1]);
                 }
                 VectorizeChainFT(tA, tm, M[row], 0);
