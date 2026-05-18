@@ -615,8 +615,6 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 			dt = GetFourierTrans(pList, waveLen, waveCount, winSize=winSize, intRp=intRp)
 		case 'sFT': 
 			dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
-		case 'sMF': 
-			dt = GetMFSeq(pList, aaGroups, mfL)
 		case _:
 			vv.Message('Invalid vectorization type: ' + vType)
 			return

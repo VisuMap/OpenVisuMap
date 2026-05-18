@@ -42,16 +42,12 @@ def MainMain(menuKey):
 						#ws = [13, 23, 37, 53]
 						ws = [0.05, 0.1, 0.2, 0.4]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 6.0, 1.0))
-					case 'bGP':
-						PM2(waveCount=32, waveLen=512, tSNE=(ppl_, 4.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, waveLen=512, winSize=14*4, intRp=3, tSNE=(ppl_, 6.0, 1.0))
 					case 'tFT':	
 						PM2(waveCount=16, waveLen=512, tSNE=(ppl_, 6.0, 1.0))	
 					case 'sFT':	
 						PM2(aaGroups=GetAAGroup(20), tSNE=(ppl_, 4.0, 0.9))
-					case 'sMF':	
-						PM2(aaGroups=GetAAGroup(20), mfL=20, tSNE=(ppl_,6.0,0.9))
 		case 'P-2D':
 			tP_ = (2000, 3, 0.1, 3.0, 1.0)
 			CreateProteinMaps(pList, samplingDist=0.1, maxItems=20000, atlasName=atlasName, tP=tP_)
