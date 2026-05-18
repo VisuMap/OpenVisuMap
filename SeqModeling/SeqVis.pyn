@@ -450,11 +450,6 @@ def LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True):
 		vs.Show()
 		vs.OnClose('for vw in pp.Tag[1:]: vw.Close()')
 
-def BondGapeSpectrum(pList, waveCount, waveLen):
-	tm = GetFourier(waveLen, waveCount)	
-	return cs.BondGapeSpetrum(pList, tm, cacheDir=ChainCacheDir())
-
-
 # t-SNE reduced data
 def MaxRows(ds, pList, intRp):
 	maxV = max([ds.IntAt(p, 3) for p in pList])
@@ -612,10 +607,6 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 			PreloadChainList(pList)
 			tm = GetFourier(waveLen, waveCount)	
 			dt = cs.MovingWindowFT(pList, winSize, tm, intRp=intRp, cacheDir=ChainCacheDir())
-		case 'bGP':
-			PreloadChainList(pList)
-			tm = GetFourier(waveLen, waveCount)	
-			dt = cs.BondGapeSpetrum(pList, tm, cacheDir=ChainCacheDir())
 		case 'tFT':
 			PreloadChainList(pList)
 			tm = GetFourier(waveLen, waveCount)	
