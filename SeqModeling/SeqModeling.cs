@@ -313,6 +313,24 @@ namespace VisuMap {
             });
             return D;
         }
+
+        void CalculateTorsions(Vector3[] P, double[] tA, double[] tB) {
+            int L = P.Length;
+            Vector3[] B = new Vector3[L - 1];  // The bond vectors.
+            for (int k = 0; k < L - 1; k++)
+                B[k] = P[k + 1] - P[k];
+            Vector3[] T = new Vector3[L - 2];
+            for (int k = 0; k < L - 2; k++)
+                T[k] = B[k + 1] - B[k];
+            for (int k = 0; k < L - 2; k++) {
+                float v = Vector3.Dot(B[k], B[k + 1]);
+                tA[k] = 4 * v;
+            }
+            for (int k = 0; k < L - 3; k++) {
+                tB[k] = -Vector3.Dot(T[k], T[k + 1]);
+            }
+        }
+
         public INumberTable BondTorsionFT(IList<string> pList, INumberTable tm, string cacheDir = null) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
             INumberTable nt = New.NumberTable(pList.Count, 2 * tm.Columns);
@@ -322,25 +340,29 @@ namespace VisuMap {
             System.IO.Directory.SetCurrentDirectory(cacheDir);
             MT.LoopNoblocking(0, pList.Count, row => {
                 Vector3[] P = LoadChainV3(pList[row] + ".pmc"); // The positions of alpha-C.
-                int L = P.Length;
-                Vector3[] B = new Vector3[L-1];  // The bond vectors.
-                Vector3[] T = new Vector3[L-2];  // the directed triangle strip.
-                for (int k = 0; k < (L-1); k++)
-                    B[k] = P[k + 1] - P[k];
-                for (int k = 0; k < (L-2); k++)
-                    T[k] = B[k+1] - B[k];
-                double[] tA = new double[L-2];
-                double[] tB = new double[L-3];
-                for (int k = 0; k < (L-2); k++) {
-                    tA[k] = Vector3.Dot(B[k], B[k + 1]);
-                    if (k < (L-3) )
-                        tB[k] = -Vector3.Dot(T[k], T[k + 1]);
-                }
+                double[] tA = new double[P.Length - 2];
+                double[] tB = new double[P.Length - 3];
+                CalculateTorsions(P, tA, tB);
                 VectorizeChainFT(tA, tm, M[row], 0);
                 VectorizeChainFT(tB, tm, M[row], tm.Columns);
             });
             return nt;
         }
+
+        public INumberTable ToTorsionList(List<IBody> bList) {
+            int L = bList.Count;
+            if (L < 4)
+                return null;
+            Vector3[] P = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();
+            INumberTable nt = New.NumberTable(2, L - 2);
+            for (int k = 0; k < nt.Columns; k++)
+                nt.ColumnSpecList[k].CopyFromBody(bList[k]);
+            nt.RowSpecList[0].Id = "TorsionA";
+            nt.RowSpecList[1].Id = "TorsionB";
+            CalculateTorsions(P, (double[])nt.Matrix[0], (double[])nt.Matrix[1]);
+            return nt;
+        }
+
 
         public INumberTable BondGapeSpetrum(IList<string> pList, INumberTable tm=null, string cacheDir = null) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
@@ -894,32 +916,6 @@ namespace VisuMap {
             return newList;
         }
 
-        public INumberTable ToTorsionList(List<IBody> bList) {
-            int L = bList.Count;
-            if (L < 4)
-                return null;
-            Vector3[] P = bList.Select(b => new Vector3((float)b.X, (float)b.Y, (float)b.Z)).ToArray();
-            INumberTable nt = New.NumberTable(L - 2, 2);
-            for (int k = 0; k < nt.Rows; k++)
-                nt.RowSpecList[k].CopyFromBody(bList[k]);
-            nt.ColumnSpecList[0].Id = "TorsionA";
-            nt.ColumnSpecList[1].Id = "TorsionB";
-
-            Vector3[] B = new Vector3[L - 1];  // The bond vectors.
-            for (int k = 0; k < L - 1; k++)
-                B[k] = P[k + 1] - P[k];
-            Vector3[] T = new Vector3[L - 2];
-            for (int k = 0; k < L - 2; k++)
-                T[k] = B[k + 1] - B[k];
-            double[][] M = (double[][])nt.Matrix;
-            int L3 = L - 3;
-            for (int k = 0; k < L - 2; k++) {
-                M[k][0] = Vector3.Dot(B[k], B[k + 1]);
-                if (k < L3)
-                    M[k][1] = -Vector3.Dot(T[k], T[k + 1]);
-            }
-            return nt;
-        }
 
         public void ToSphere(INumberTable nt, double fct = 0.0) {
             for (int k = 0; k < (nt.Rows - 1); k++) {

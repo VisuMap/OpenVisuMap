@@ -102,7 +102,6 @@ def TorsionMap(pId, mom=0.9):
 	info = MapInfo().Set('pId', pId)
 	bs = LoadChain(pId)
 	nt = cs.ToTorsionList(bs)
-	nt = nt.Transpose2()
 	bb = New.BarBand(nt)
 	bb.Description = info.Str
 	bb.Vertical = True
@@ -118,6 +117,10 @@ def TorsionMap(pId, mom=0.9):
 	bb.ShowLabels = True
 	bb.AutoScaling = True
 	bb.Show2()
+	nt.Transpose()
+	xy = New.XyPlot(nt)
+	xy.NormalizeView()
+	xy.Show()
 
 def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 	mds = NewMds(None, epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 
