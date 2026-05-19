@@ -302,6 +302,55 @@ def AssertSeqMap(pMap):
 		vv.Message('The view is not a protein seq map')
 		vv.Return()
 
+def GetAAGroup(idx=0):
+	aaHydrophobic = 'AVILMFYW'
+	aaPolarUncharged = 'STNQ'
+	aaSpecial = 'CGP'
+	aaSpC = 'C'
+	aaSpG = 'G'
+	aaSpP = 'P'
+	aaNoPolar = 'AGILMPV'
+	aaCarboxyl = 'DE'
+	aaAmine = 'RHK'
+	aaAromatic = 'FWY'
+	aaHydroxyl = 'STY'
+
+	match idx:
+		case 0:
+			return 'AVILMFYW|STNQ|CGP|RHK|DE'
+		case 1:
+			return '|'.join( [ aaHydrophobic, aaPolarUncharged,  aaSpecial, aaNoPolar, aaCarboxyl, aaAmine, aaAromatic, aaHydroxyl] )
+		case 11:
+			return [ aaHydrophobic, aaPolarUncharged,  aaSpecial, aaNoPolar, aaCarboxyl, aaAmine, aaAromatic, aaHydroxyl]
+		case 2:
+			return aaHydrophobic
+		case 3:
+			return aaAromatic
+		case 4:
+			from itertools import combinations
+			#return ['|'.join(g) for g in combinations(list('CGPDEFWY'), 3)]
+			return ['|'.join(g) for g in combinations(list('AVILMFYW'), 3)]
+		case 5:
+			return '|'.join([aaHydrophobic, aaPolarUncharged, aaHydroxyl])
+		case 10:
+			return 'AVILMFYW|STNQ|CGP|RHK|DE|aut|cg'
+		case 12:
+			return 'FL|S|Y|CW|L|P|HQ|R|IM|T|N|K|S|R|V|A|D|E|G|aut|cg'
+		case 13:
+			return 'FLSYCW|LPHQR|IMTNKSR|VADEG|aut|cg'
+		case 14:
+			return 'IMTNKSR|aut|cg'
+		case 9:
+			return '|'.join('AVILMFYWSTNQCGPRHKDE')
+		case 20:
+			return 'AVILMFYW|STNQ|CGP|RHK|DE|ctu'
+		case 21:
+			return 'AVILMFYW|STNQ|CGP|RHK|DE|c|g|u|a'
+		case 22:
+			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
+		case 9:
+			return '|'.join([c for c in ALPHABET])
+
 def AddHistory(wd):
 	global pIdHistory
 	if wd == None:
