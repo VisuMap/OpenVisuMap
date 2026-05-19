@@ -715,9 +715,9 @@ namespace VisuMap {
 
         public INumberTable VectorizeProtein(IList<string> seqList, string aaGroups, INumberTable transMatrix) {
             var P = Cluster2IdxList(aaGroups);
-            int clusters = P.Values.Max(vs=>vs.Max()) + 1;
-            int L = transMatrix.Rows;
-            int N = transMatrix.Columns;
+            int clusters = P.Values.Max(vs => vs.Max()) + 1;
+            int L = transMatrix.Rows;    // wave length
+            int N = transMatrix.Columns; // wave count
             double[][] tM = transMatrix.Matrix as double[][];
 
             double[][] vList = new double[seqList.Count][];
@@ -732,11 +732,11 @@ namespace VisuMap {
                     int cirIdx = k % L;
                     if ((k / L) % 2 == 1)
                         cirIdx = L - 1 - cirIdx;
-                    double[] R_k = tM[cirIdx];
+                    double[] Tk = tM[cirIdx];   // vectors in tM to transform 1-hot vector (or signature vector) of pSeq[k]
                     foreach (int idx in P[c]) {
                         int col0 = idx * N;
                         for (int col = 0; col < N; col++)
-                            pVector[col0 + col] += R_k[col];
+                            pVector[col0 + col] += Tk[col];
                     }
                 }
             }

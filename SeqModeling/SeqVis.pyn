@@ -477,10 +477,6 @@ def GetFourierTrans(pList, waveLen, waveCount, winSize=0, intRp=0):
 
 def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount):
 	tm = GetFourier(waveLen, waveCount)	
-	#Scaling base vectors to reduce dominance of the first base that reflect the seq-length.
-	for R in tm.Matrix:
-		for k, f in enumerate([1.0, 4.0, 4.0, 2.0, 2.0]): 
-			R[k] *= f
 	seqList = []
 	pTable = vv.Dataset
 	for pId in pList:
