@@ -316,19 +316,17 @@ namespace VisuMap {
 
         void CalculateTorsions(Vector3[] P, double[] tA, double[] tB) {
             int L = P.Length;
-            Vector3[] B = new Vector3[L - 1];  // The bond vectors.
             for (int k = 0; k < L - 1; k++)
-                B[k] = P[k + 1] - P[k];
-            Vector3[] T = new Vector3[L - 2];
+                P[k] -= P[k + 1];
+            P[L - 1] = new Vector3();
             for (int k = 0; k < L - 2; k++)
-                T[k] = B[k + 1] - B[k];
-            for (int k = 0; k < L - 2; k++) {
-                float v = Vector3.Dot(B[k], B[k + 1]);
-                tA[k] = 4 * v;
-            }
-            for (int k = 0; k < L - 3; k++) {
-                tB[k] = -Vector3.Dot(T[k], T[k + 1]);
-            }
+                tA[k] = 4 * Vector3.Dot(P[k], P[k + 1]);
+
+            for (int k = 0; k < L - 2; k++)
+                P[k] -= P[k + 1];
+            P[L - 2] = new Vector3();
+            for (int k = 0; k < L - 3; k++)
+                tB[k] = -Vector3.Dot(P[k], P[k + 1]);
         }
 
         public INumberTable BondTorsionFT(IList<string> pList, INumberTable tm, string cacheDir = null) {

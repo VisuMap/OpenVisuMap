@@ -98,10 +98,12 @@ def BodyListSphereView(pId, bList, unfolding):
 	vs.ResizeClient(1000, 100)
 	vs.Show2()
 
-def TorsionMap(pId, mom=0.9):
+def ShowTorsionMap(pId, mom=0.9):
 	info = MapInfo().Set('pId', pId)
 	bs = LoadChain(pId)
 	nt = cs.ToTorsionList(bs)
+
+	'''
 	bb = New.BarBand(nt)
 	bb.Description = info.Str
 	bb.Vertical = True
@@ -117,10 +119,25 @@ def TorsionMap(pId, mom=0.9):
 	bb.ShowLabels = True
 	bb.AutoScaling = True
 	bb.Show2()
-	nt.Transpose()
+	'''
+
+	nt = nt.Transpose2()
+	for rs in nt.RowSpecList:
+		rs.Type = 64 + P[rs.Name[0]]
 	xy = New.XyPlot(nt)
+	xy.Description = info.Str
 	xy.NormalizeView()
+	xy.UpperLimitX = 60
+	xy.LowerLimitX = -20
+	xy.UpperLimitY = 50
+	xy.LowerLimitY = -20
+	xy.ShowScale = False
+	xy.ShowAxes = False
+	xy.ShowConnection = False
+	xy.GlyphOpacity = 0.8
+	xy.GlyphSize = 0.7
 	xy.Show()
+	return xy
 
 def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 	mds = NewMds(None, epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=200, 

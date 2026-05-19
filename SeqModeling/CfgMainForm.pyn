@@ -1,5 +1,5 @@
 #MenuLabels <Import> P-Map P-2D C-Map ChmX RCSB CIF Align Info SM SMx \
-# P-S2 S2 UF bSp RMD Twt 3Ds 3Dx Lvt LD Hst Siblings P-Seq 3D P-S2 TT
+# P-S2 S2 UF bSp RMD TM Twt 3Ds 3Dx Lvt LD Hst Siblings P-Seq 3D P-S2 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -39,8 +39,8 @@ def MainMain(menuKey):
 			for vt in ['tFT']: 
 				match vt:
 					case 'mwV': 
-						#ws = [13, 23, 37, 53]
-						ws = [0.05, 0.1, 0.2, 0.4]
+						ws = [13, 23, 37, 53]
+						#ws = [0.05, 0.1, 0.2, 0.4]
 						PM2(waveCount=8, waveLen=512*(2**3), winSize=ws, intRp=3, tSNE=(ppl_, 6.0, 1.0))
 					case 'pFT':	
 						PM2(waveCount=30, waveLen=512, winSize=14*4, intRp=3, tSNE=(ppl_, 6.0, 1.0))
@@ -79,13 +79,10 @@ def MainMain(menuKey):
 		case 'Hst':
 			ShowHistory()
 		case 'TT':
-			TorsionMap(pId)
-			'''
 			aaGroups = 'FLSYCW|LPHQR|IMTNKSRVADEG'
 			aaGroups = GetAAGroup(5)
 			aaGroups = 'C|G|P'
 			ShowSeqTwist(pId, xyzSet=aaGroups)
-			'''
 		case _:
 			DoSimpleMenues(menuKey, pId, pList)
 
@@ -116,6 +113,8 @@ def DoSimpleMenues(menuKey, pId, pList):
 		case 'RMD':
 			vv.Import('ramachandraw.pyn')
 			ShowRamachandraw(pId)
+		case 'TM':
+			vv.GuiManager.TileAllWindows( [ShowTorsionMap(id) for id in pList[:10]] )
 		case '3Ds':
 			Merge3DList(pList)
 		case '3Dx':
