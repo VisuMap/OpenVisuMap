@@ -616,13 +616,12 @@ namespace VisuMap {
             int dim = vList[0].Length;
             int N = vList.Length;
             int iN = (N - 1) * (1 << repeats) + 1;
-
-            double[] P = Enumerable.Range(0, N).Select(k=>(double)k).ToArray();
-            double dx = P[N - 1] / (iN - 1);
+            double[] S = Enumerable.Range(0, N).Select(k=>(double)k).ToArray();
+            double dx = S[N - 1] / (iN - 1);
             double[][] T = MathUtil.NewMatrix(iN, dim);
             for (int col = 0; col < dim; col++) {
                 double[] V = vList.Select(v => (double) v[col]).ToArray();
-                var sp = CubicSpline.InterpolateNaturalSorted(P, V);                
+                var sp = CubicSpline.InterpolateNaturalSorted(S, V);                
                 for (int row = 0; row < iN; row++)
                     T[row][col] = sp.Interpolate(row * dx);
             }
@@ -760,10 +759,22 @@ namespace VisuMap {
                         foreach (int idx in aa2cIdxes[c])
                             P[idx][k] = 1.0f;
                 }
+
                 //Interpolating the vectors.
+                int iL = (L - 1) * 8 + 1;
+                double[] S = Enumerable.Range(0, L).Select(k => (double)k).ToArray();
+                double dx = S[L - 1] / (iL - 1);
+                for (int row = 0; row < P.Length; row++) {
+                    double[] V = P[row].Select(v => (double)v).ToArray();
+                    float[] newP = new float[iL];
+                    var sp = CubicSpline.InterpolateNaturalSorted(S, V);
+                    for (int col = 0; col < iL; col++)
+                        newP[col] = (float) sp.Interpolate(col * dx);
+                    P[row] = newP;
+                }
 
                 // calculate mmV of P.
-                float[][] P1 = MathUtil.NewMatrix<float>(clusters, L);
+                float[][] P1 = MathUtil.NewMatrix<float>(P.Length, P[0].Length);
                 MovingWindowMean(P, P1, winSize);
                 MovingWindowMean(P1, P, winSize);
                 double[] vs = new double[s.Length - 2];  // Local variances at each aa excepting the first and the last one.
