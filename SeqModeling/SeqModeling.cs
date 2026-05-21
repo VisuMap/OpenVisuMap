@@ -713,7 +713,7 @@ namespace VisuMap {
 
         }
 
-        public INumberTable VectorizeProtein(IList<string> seqList, string aaGroups, INumberTable transMatrix) {
+        public INumberTable VectorizeProtein1(IList<string> seqList, string aaGroups, INumberTable transMatrix, int winSize=0) {
             var P = Cluster2IdxList(aaGroups);
             int clusters = P.Values.Max(vs => vs.Max()) + 1;
             int L = transMatrix.Rows;    // wave length
@@ -741,6 +741,66 @@ namespace VisuMap {
                 }
             }
             return New.NumberTable(vList);
+        }
+
+        void MovingWindowMean(float[][] P, float[][] P1, int winSize) {
+            int L = P[0].Length - 1;
+            winSize = Math.Min(L, winSize);
+            int WS = 2 * winSize + 1;
+            float cf = (float)(1.0 / WS);
+
+            float GetValue(float[] R, int i) {
+                return (i < 0) ? (2 * R[0] - R[-i]) :
+                       (i > L) ? (2 * R[L] - R[2 * L - i]) : R[i];
+            }
+
+            for (int row=0; row<P.Length; row++) {
+                var R = P[row];
+                var T = P1[row];
+                float S = WS * R[0];
+                for(int col=1; col<L; col++) {
+                    S += GetValue(R, col + winSize) - GetValue(R, col - winSize - 1);
+                    T[col] = cf * S;
+                }
+                T[0] = R[0];
+                T[L] = R[L];
+            }
+        }
+
+        public INumberTable VectorizeProtein(IList<string> seqList, string aaGroups, INumberTable transMatrix, int winSize=3) {
+            var aa2cIdxes = Cluster2IdxList(aaGroups);
+            int clusters = aa2cIdxes.Values.Max(vs => vs.Max()) + 1;
+            INumberTable nt = New.NumberTable(seqList.Count, clusters * transMatrix.Columns);
+
+            for (int pIdx = 0; pIdx < seqList.Count; pIdx++) {
+                string s = seqList[pIdx];
+                int L = s.Length;
+                float[][] P = MathUtil.NewMatrix<float>(clusters, L);
+                for (int k = 0; k < L; k++) {
+                    char c = s[k];
+                    if ( aa2cIdxes.ContainsKey(c) )
+                        foreach (int idx in aa2cIdxes[c])
+                            P[idx][k] = 1.0f;
+                }
+                // calculate mmV of P.
+                float[][] P1 = MathUtil.NewMatrix<float>(clusters, L);
+                MovingWindowMean(P, P1, winSize);
+                MovingWindowMean(P1, P, winSize);
+                double[] vs = new double[s.Length - 2];  // Local variances at each aa excepting the first and the last one.
+                for(int k=1; k<(L-1); k++) {
+                    double sum2 = 0.0f;
+                    for (int cIdx = 0; cIdx < clusters; cIdx++) {
+                        double diff = P[cIdx][k] - P1[cIdx][k];
+                        sum2 += diff * diff;
+                    }
+                    vs[k - 1] = Math.Sqrt(sum2);
+                }
+
+                // Apply FFT on the mmV and store the result into nt.Matrix[pIdx]
+                VectorizeChainFT(vs, transMatrix, (double[]) nt.Matrix[pIdx], 0);
+            }
+
+            return nt;
         }
 
         public void FourierTrans(INumberTable tm, INumberTable dt, double[] R) {
@@ -817,9 +877,9 @@ namespace VisuMap {
             Vector3 S = WS * P[0];  // the sum of current initial moving-window [-winSize, +winSize]
             float cf = (float)(1.0 / WS);
 
-            Vector3 xP(int idx) {
-                return (idx < 0) ? (2*P[0] - P[-idx]) : 
-                       (idx > L) ? (2*P[L] - P[2*L - idx]) : P[idx];
+            Vector3 xP(int i) {
+                return (i < 0) ? (2*P[0] - P[-i]) : 
+                       (i > L) ? (2*P[L] - P[2*L - i]) : P[i];
             }
             for (int k = 1; k < L; k++) {  // k is the index of window center.
                 S += xP(k + winSize) - xP(k - winSize - 1);

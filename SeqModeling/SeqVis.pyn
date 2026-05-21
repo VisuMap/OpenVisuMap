@@ -524,15 +524,19 @@ def GetFourierTrans(pList, waveLen, waveCount, winSize=0, intRp=0):
 		cs.FourierTrans(tm, nt, pD.Matrix[k])
 	return pD
 
-def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount):
+def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount, winSize):
 	tm = GetFourier(waveLen, waveCount)	
+	#Scaling base vectors to reduce dominance of the first base that reflect the seq-length.
+	for R in tm.Matrix:
+		for k, f in enumerate([0.25]): 
+			R[k] *= f
 	seqList = []
 	pTable = vv.Dataset
 	for pId in pList:
 		rowIdx = pTable.IndexOfRow(pId)
 		if rowIdx >= 0:
 			seqList.append( pTable.StringAt(rowIdx, 2) )
-	return cs.VectorizeProtein(seqList, aaGroups, tm)
+	return cs.VectorizeProtein(seqList, aaGroups, tm, winSize)
 
 def GetMFSeq(pList, aaGroups, mfL):
 	seqList = []
@@ -659,7 +663,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 		case 'pFT':
 			dt = GetFourierTrans(pList, waveLen, waveCount, winSize=winSize, intRp=intRp)
 		case 'sFT': 
-			dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount)
+			dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount, winSize)
 		case _:
 			vv.Message('Invalid vectorization type: ' + vType)
 			return
