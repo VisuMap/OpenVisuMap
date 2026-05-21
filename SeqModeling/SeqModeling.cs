@@ -744,10 +744,12 @@ namespace VisuMap {
             }
         }
 
-        public INumberTable VectorizeProtein(IList<string> seqList, string aaGroups, INumberTable transMatrix, int winSize=3) {
+        public INumberTable VectorizeProtein(IList<string> seqList, string aaGroups, INumberTable transMatrix=null, int winSize=7, int intp=8) {
             var aa2cIdxes = Cluster2IdxList(aaGroups);
             int clusters = aa2cIdxes.Values.Max(v => v.Max()) + 1;
-            INumberTable nt = New.NumberTable(seqList.Count, transMatrix.Columns);
+            int maxL = seqList.Select(s => s.Length).Max();
+            INumberTable nt = New.NumberTable(seqList.Count, (transMatrix!=null) ? transMatrix.Columns : maxL);
+
             MT.Loop(0, seqList.Count, pIdx => {
                 // Convert sequence to multidimensional 1-hot vectors.
                 string s = seqList[pIdx];
@@ -761,16 +763,18 @@ namespace VisuMap {
                 }
 
                 //Interpolating the vectors.
-                int iL = (L - 1) * 8 + 1;
-                double[] S = Enumerable.Range(0, L).Select(k => (double)k).ToArray();
-                double dx = S[L - 1] / (iL - 1);
-                for (int row = 0; row < P.Length; row++) {
-                    double[] V = P[row].Select(v => (double)v).ToArray();
-                    float[] newP = new float[iL];
-                    var sp = CubicSpline.InterpolateNaturalSorted(S, V);
-                    for (int col = 0; col < iL; col++)
-                        newP[col] = (float) sp.Interpolate(col * dx);
-                    P[row] = newP;
+                if (intp > 1) {
+                    int iL = (L - 1) * intp + 1;
+                    double[] S = Enumerable.Range(0, L).Select(k => (double)k).ToArray();
+                    double dx = S[L - 1] / (iL - 1);
+                    for (int row = 0; row < P.Length; row++) {
+                        double[] V = P[row].Select(v => (double)v).ToArray();
+                        float[] newP = new float[iL];
+                        var sp = CubicSpline.InterpolateNaturalSorted(S, V);
+                        for (int col = 0; col < iL; col++)
+                            newP[col] = (float)sp.Interpolate(col * dx);
+                        P[row] = newP;
+                    }
                 }
 
                 // calculate mmV of P.
@@ -786,8 +790,13 @@ namespace VisuMap {
                     }
                     vs[k - 1] = Math.Sqrt(sum2);
                 }
+
                 // Apply FFT on the mmV and store the result into nt.Matrix[pIdx]
-                VectorizeChainFT(vs, transMatrix, (double[])nt.Matrix[pIdx], 0);
+                if (transMatrix != null) {
+                    VectorizeChainFT(vs, transMatrix, (double[])nt.Matrix[pIdx], 0);
+                } else {
+                    Array.Copy(vs, (double[])nt.Matrix[pIdx], Math.Min(vs.Length, nt.Columns));
+                }
             });
             return nt;
         }

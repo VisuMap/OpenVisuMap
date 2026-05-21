@@ -527,14 +527,15 @@ def GetFourierTrans(pList, waveLen, waveCount, winSize=0, intRp=0):
 def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount, winSize):
 	tm = GetFourier(waveLen, waveCount)	
 	#Scaling base vectors to reduce dominance of the first base that reflect the seq-length.
-	# for R in tm.Matrix:	for k, f in enumerate([0.25]): R[k] *= f
+	for R in tm.Matrix:	
+		for k, f in enumerate([0.125]): R[k] *= f
 	seqList = []
 	pTable = vv.Dataset
 	for pId in pList:
 		rowIdx = pTable.IndexOfRow(pId)
 		if rowIdx >= 0:
-			seqList.append( pTable.StringAt(rowIdx, 2) )
-	return cs.VectorizeProtein(seqList, aaGroups, tm, winSize)
+			seqList.append( pTable.StringAt(rowIdx, 2) )	
+	return cs.VectorizeProtein(seqList, aaGroups, tm, winSize, 4)
 
 def GetMFSeq(pList, aaGroups, mfL):
 	seqList = []
@@ -642,8 +643,8 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 		pList = cs.FlatSampling(pList, samplingDist)
 		vv.Title = f'Sampled {len(pList)} chains.'
 
-	if len(pList) == 0:
-		vv.Message('No data selected after filtering!')
+	if len(pList) < 2:
+		vv.Message('Not enough data selected!')
 		vv.Return()
 
 	#print(f'Creating map for {len(pList)} chains...')
@@ -660,7 +661,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 			dt = cs.BondTorsionFT(pList, tm, cacheDir=ChainCacheDir())			
 		case 'pFT':
 			dt = GetFourierTrans(pList, waveLen, waveCount, winSize=winSize, intRp=intRp)
-		case 'sFT': 
+		case 'sFT': 			
 			dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount, winSize)
 		case _:
 			vv.Message('Invalid vectorization type: ' + vType)
