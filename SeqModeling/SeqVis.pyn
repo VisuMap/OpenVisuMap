@@ -527,9 +527,7 @@ def GetFourierTrans(pList, waveLen, waveCount, winSize=0, intRp=0):
 def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount, winSize):
 	tm = GetFourier(waveLen, waveCount)	
 	#Scaling base vectors to reduce dominance of the first base that reflect the seq-length.
-	for R in tm.Matrix:
-		for k, f in enumerate([0.25]): 
-			R[k] *= f
+	# for R in tm.Matrix:	for k, f in enumerate([0.25]): R[k] *= f
 	seqList = []
 	pTable = vv.Dataset
 	for pId in pList:
@@ -777,7 +775,7 @@ def AugmentData(nt, augCfg='a|400|0.02|0.02'):
 	return np.hstack((nt, A))
 
 
-def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
+def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0', repeats=3):
 	L = max(aaClusters.values()) + 1
 	hv = np.zeros((L))  # head-vector.
 	stepSz = np.ones((L))
@@ -793,7 +791,6 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 				dt[i, j] = 1.0/(dt[i, j] + decay)
 	dt = AugmentData(dt, augCfg)	
 	# add interpolation
-	repeats = 3
 	if repeats == 0:
 		nt = mm.ToTable(dt)
 		for k, c in enumerate(S):
@@ -802,8 +799,7 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0'):
 		for col in range(L):
 			nt.ColumnSpecList[col].Id = chr(col+ord('a'))
 	else:
-		EPS = 0.085
-		nt = cs.InterpolateVector(mm.ToMatrix32(dt), repeats, EPS)
+		nt = cs.InterpolateVector(mm.ToMatrix32(dt), repeats)
 		secL = 2**repeats
 		L2 = int(secL / 2)
 		for k in range(0, nt.Rows, secL):
@@ -940,8 +936,11 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 	mds.RefreshFreq = 500
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Add({'AugCfg':augCfg, 'DS':vv.Dataset.Name})
-	mapStore = AtlasMapStore(saveTo, clearAtlas=True)
-	mapStore.hideItems = True
+	if saveTo != None:
+		mapStore = AtlasMapStore(saveTo, clearAtlas=True)
+		mapStore.hideItems = True
+	else:
+		mapStore = None
 
 	aaClusters = {}  # maps aa to cluster indexes.
 	for k, aaG in enumerate(aaGroups.split('|')):
@@ -958,8 +957,8 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 		RunMds(mds, repeats=0, info=info, nt=nt)
 		if mapStore != None:
 			mapStore.AddMap('MdsCluster')
-	mds.Close()
 	if mapStore != None: 
+		mds.Close()
 		ma = mapStore.atlas
 		ma.Description = info.Str
 		ma.Show()

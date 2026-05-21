@@ -610,45 +610,24 @@ namespace VisuMap {
             return bs;
         }
 
-        public INumberTable InterpolateVector(float[][] vList, int repeats, double convexcity) {
+        public INumberTable InterpolateVector(float[][] vList, int repeats) {
             if ((vList.Length <= 1) || (repeats == 0))
                 return null;
-            VectorN[] D = new VectorN[vList.Length];
-            for (int k = 0; k < vList.Length; k++)
-                D[k] = new VectorN(vList[k]);
-            int vDim = vList[0].Length;
-            float eps = (float)convexcity;
+            int dim = vList[0].Length;
+            int N = vList.Length;
+            int iN = (N - 1) * (1 << repeats) + 1;
 
-            for (int n = 0; n < repeats; n++) {
-                int L = D.Length;
-                int K = 2 * L - 1;
-                VectorN[] P = VectorN.NewVectorN(K, vDim);
-                for (int i = 0; i < vDim; i++)
-                    P[0][i] = D[0][i];
-                for (int k = 1; k < L; k++) {
-                    for (int i = 0; i < vDim; i++) {
-                        P[2 * k - 1][i] = 0.5f * (D[k - 1][i] + D[k][i]);
-                        P[2 * k][i] = D[k][i];
-                    }
-                }
-
-                for (int k = 3; k < (K - 2); k += 2)
-                    for (int i = 0; i < vDim; i++) {
-                        P[k][i] += eps * (2 * P[k][i] - P[k - 3][i] - P[k + 3][i]);
-                    }
-
-                if (K > 4) {
-                    for (int i = 0; i<vDim; i++) {
-                        P[1][i] += 0.35f * eps * (P[1][i] - P[4][i]);
-                        P[K - 2][i] += 0.35f * eps * (P[K - 2][i] - P[K - 5][i]) ;
-                    }
-                }
-                D = P;
+            double[] P = Enumerable.Range(0, N).Select(k=>(double)k).ToArray();
+            double dx = P[N - 1] / (iN - 1);
+            double[][] T = MathUtil.NewMatrix(iN, dim);
+            for (int col = 0; col < dim; col++) {
+                double[] V = vList.Select(v => (double) v[col]).ToArray();
+                var sp = CubicSpline.InterpolateNaturalSorted(P, V);                
+                for (int row = 0; row < iN; row++)
+                    T[row][col] = sp.Interpolate(row * dx);
             }
-
-            return New.NumberTable(D.Select(v => v.Vector).ToArray());            
+            return New.NumberTable(T);
         }
-
 
         Dictionary<char, List<int>> Cluster2IdxList(string aaGroups) {
             string[] cList = aaGroups.Split('|');
@@ -781,6 +760,8 @@ namespace VisuMap {
                         foreach (int idx in aa2cIdxes[c])
                             P[idx][k] = 1.0f;
                 }
+                //Interpolating the vectors.
+
                 // calculate mmV of P.
                 float[][] P1 = MathUtil.NewMatrix<float>(clusters, L);
                 MovingWindowMean(P, P1, winSize);
