@@ -750,8 +750,7 @@ namespace VisuMap {
             float cf = (float)(1.0 / WS);
 
             float GetValue(float[] R, int i) {
-                return (i < 0) ? (2 * R[0] - R[-i]) :
-                       (i > L) ? (2 * R[L] - R[2 * L - i]) : R[i];
+                return (i<0) ? (2*R[0]-R[-i]) : ((i>L) ? (2*R[L]-R[2*L-i]) : R[i]);
             }
 
             for (int row=0; row<P.Length; row++) {
@@ -769,16 +768,16 @@ namespace VisuMap {
 
         public INumberTable VectorizeProtein(IList<string> seqList, string aaGroups, INumberTable transMatrix, int winSize=3) {
             var aa2cIdxes = Cluster2IdxList(aaGroups);
-            int clusters = aa2cIdxes.Values.Max(vs => vs.Max()) + 1;
-            INumberTable nt = New.NumberTable(seqList.Count, clusters * transMatrix.Columns);
-
-            for (int pIdx = 0; pIdx < seqList.Count; pIdx++) {
+            int clusters = aa2cIdxes.Values.Max(v => v.Max()) + 1;
+            INumberTable nt = New.NumberTable(seqList.Count, transMatrix.Columns);
+            MT.Loop(0, seqList.Count, pIdx => {
+                // Convert sequence to multidimensional 1-hot vectors.
                 string s = seqList[pIdx];
                 int L = s.Length;
                 float[][] P = MathUtil.NewMatrix<float>(clusters, L);
                 for (int k = 0; k < L; k++) {
                     char c = s[k];
-                    if ( aa2cIdxes.ContainsKey(c) )
+                    if (aa2cIdxes.ContainsKey(c))
                         foreach (int idx in aa2cIdxes[c])
                             P[idx][k] = 1.0f;
                 }
@@ -787,7 +786,7 @@ namespace VisuMap {
                 MovingWindowMean(P, P1, winSize);
                 MovingWindowMean(P1, P, winSize);
                 double[] vs = new double[s.Length - 2];  // Local variances at each aa excepting the first and the last one.
-                for(int k=1; k<(L-1); k++) {
+                for (int k = 1; k < (L - 1); k++) {
                     double sum2 = 0.0f;
                     for (int cIdx = 0; cIdx < clusters; cIdx++) {
                         double diff = P[cIdx][k] - P1[cIdx][k];
@@ -795,11 +794,9 @@ namespace VisuMap {
                     }
                     vs[k - 1] = Math.Sqrt(sum2);
                 }
-
                 // Apply FFT on the mmV and store the result into nt.Matrix[pIdx]
-                VectorizeChainFT(vs, transMatrix, (double[]) nt.Matrix[pIdx], 0);
-            }
-
+                VectorizeChainFT(vs, transMatrix, (double[])nt.Matrix[pIdx], 0);
+            });
             return nt;
         }
 
