@@ -133,24 +133,13 @@ def ShowSeqTwist(pId, maxWsRows=4096, winSz=500, xyzSet='' ):
 	if pId == None:
 		vv.Message('No protein selected!')
 		return
-	setList = (xyzSet + '||').split('|')
-	xSet = set(setList[0])
-	ySet = set(setList[1])
-	zSet = set(setList[2])
-	S = vv.Dataset.StringAt(pId, 2)	
-	bList = New.BodyList(len(S))
-	for k, b in enumerate(bList):		
-		b.Id = str(k)
-		b.Name = S[k]
-		b.X = 1.0 if S[k] in xSet else 0.0
-		b.Y = 1.0 if S[k] in ySet else 0.0
-		b.Z = 1.0 if S[k] in zSet else 0.0
-	bList = InterpolateChain(bList, rp=3)
-	stepSize = 1 if bList.Count < maxWsRows else bList.Count//maxWsRows
-	wSzCnt = bList.Count if bList.Count<maxWsRows else maxWsRows
-	nt = New.NumberTable(bList, wSzCnt).Transpose2()
-	ss.MovingWindowVarianceX(cs, bList, stepSize, nt)
-	nt = nt.Clone().ReorderRows(list(reversed([rs.Id for rs in nt.RowSpecList])))
+	S = vv.Dataset.StringAt(pId, 2)
+	intp = 8
+	L = (len(S) - 1)*intp + 1    # the length after interpolation.
+	stepSize = 1 if L < maxWsRows else L//maxWsRows
+	wSzCnt = L if L<maxWsRows else maxWsRows
+	nt = cs.MovingWinVar(S, xyzSet, stepSize, wSzCnt, intp)
+	nt = nt.ReorderRows(list(reversed([rs.Id for rs in nt.RowSpecList])))
 	ss.CompressTable(nt)
 	hm = New.HeatMap(nt)
 	winHeight = int( winSz*nt.Rows/nt.Columns )
@@ -162,10 +151,9 @@ def ShowSeqTwist(pId, maxWsRows=4096, winSz=500, xyzSet='' ):
 	hm.ScrollingPause = 20
 	hm.ScrollingSteps = 10
 	hm.AttributeMode = False	
-	info = MapInfo({'pId':pId, 'wsCnt':wSzCnt, 'stepSz':stepSize, 'Len':len(bList), 'rp':3, 'seqSet':xyzSet})
+	info = MapInfo({'pId':pId, 'wsCnt':wSzCnt, 'stepSz':stepSize, 'Len':len(S), 'rp':3, 'seqSet':xyzSet})
 	hm.Description = info.Str
-	hm.Show2()
-	ShowBodyList(bList)
+	hm.Show2()	
 
 def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 	vv.SelectedItems.Clear()
