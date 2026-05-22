@@ -320,36 +320,31 @@ def GetAAGroup(idx=0):
 			return 'AVILMFYW|STNQ|CGP|RHK|DE'
 		case 1:
 			return '|'.join( [ aaHydrophobic, aaPolarUncharged,  aaSpecial, aaNoPolar, aaCarboxyl, aaAmine, aaAromatic, aaHydroxyl] )
-		case 11:
-			return [ aaHydrophobic, aaPolarUncharged,  aaSpecial, aaNoPolar, aaCarboxyl, aaAmine, aaAromatic, aaHydroxyl]
 		case 2:
 			return aaHydrophobic
 		case 3:
 			return aaAromatic
 		case 4:
-			from itertools import combinations
-			#return ['|'.join(g) for g in combinations(list('CGPDEFWY'), 3)]
-			return ['|'.join(g) for g in combinations(list('AVILMFYW'), 3)]
-		case 5:
 			return '|'.join([aaHydrophobic, aaPolarUncharged, aaHydroxyl])
-		case 10:
+		case 5:
 			return 'AVILMFYW|STNQ|CGP|RHK|DE|aut|cg'
-		case 12:
+		case 6:
 			return 'FL|S|Y|CW|L|P|HQ|R|IM|T|N|K|S|R|V|A|D|E|G|aut|cg'
-		case 13:
+		case 7:
 			return 'FLSYCW|LPHQR|IMTNKSR|VADEG|aut|cg'
-		case 14:
+		case 8:
 			return 'IMTNKSR|aut|cg'
 		case 9:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE')
-		case 20:
+		case 10:
 			return 'AVILMFYW|STNQ|CGP|RHK|DE|ctu'
-		case 21:
+		case 11:
 			return 'AVILMFYW|STNQ|CGP|RHK|DE|c|g|u|a'
-		case 22:
+		case 12:
 			return '|'.join('AVILMFYWSTNQCGPRHKDE') + '|c|g|u|a'
-		case 9:
-			return '|'.join([c for c in ALPHABET])
+		case 'g':
+			from itertools import combinations
+			return ['|'.join(g) for g in combinations(list('AVILMFYW'), 3)]
 
 def AddHistory(wd):
 	global pIdHistory
@@ -524,18 +519,18 @@ def GetFourierTrans(pList, waveLen, waveCount, winSize=0, intRp=0):
 		cs.FourierTrans(tm, nt, pD.Matrix[k])
 	return pD
 
-def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount, winSize):
+def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount, winSize, intp=4):
 	tm = GetFourier(waveLen, waveCount)	
 	#Scaling base vectors to reduce dominance of the first base that reflect the seq-length.
 	for R in tm.Matrix:	
-		for k, f in enumerate([0.125]): R[k] *= f
+		for k, f in enumerate([0.25]): R[k] *= f
 	seqList = []
 	pTable = vv.Dataset
 	for pId in pList:
 		rowIdx = pTable.IndexOfRow(pId)
 		if rowIdx >= 0:
 			seqList.append( pTable.StringAt(rowIdx, 2) )	
-	return cs.VectorizeProtein(seqList, aaGroups, tm, winSize, 4)
+	return cs.VectorizeProtein(seqList, aaGroups, tm, winSize, intp)
 
 def GetMFSeq(pList, aaGroups, mfL):
 	seqList = []
@@ -628,10 +623,11 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 
 
 def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winSize=10,
-		gSize=0.7, gOpacity=0.2, tSNE=None, tP=None, cf=0.0, justShDt=False, intRp=0,
-		aaGroups='A', waveLen=1024, waveCount=33, mfL=20, mom=0.95, staged=False, filterP=(0.0,2,0)):
+		gSize=0.7, gOpacity=0.2, tSNE=None, tP=None, cf=0.0, justShDt=False, intRp=0, intp=8,
+		aaGroups='A', ftP=(33, 1024), mfL=20, mom=0.95, staged=False, filterP=(0.0,2,0)):
 	pTable = vv.Dataset
 	ppl, initExag, finalExag = tSNE
+	waveCount, waveLen = ftP
 	t0 = time.time()
 
 	samplingDist, minLen, maxLen = filterP
@@ -662,7 +658,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 		case 'pFT':
 			dt = GetFourierTrans(pList, waveLen, waveCount, winSize=winSize, intRp=intRp)
 		case 'sFT': 			
-			dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount, winSize)
+			dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount, winSize, intp)
 		case _:
 			vv.Message('Invalid vectorization type: ' + vType)
 			return
@@ -682,7 +678,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Add({'vType':vType, 'aaG':aaGroups, 'wvL':waveLen, 'wvCnt':waveCount, 'mfL':mfL, 'mom':mom, 'cf':cf, 
-		'pCnt':dt.Rows, 'PPn':round(dt.Rows*ppl, 2), 'tP':tP, 'fP':filterP, 'wSz':winSize, 'intRp':intRp })
+		'pCnt':dt.Rows, 'PPn':round(dt.Rows*ppl, 2), 'tP':tP, 'fP':filterP, 'wSz':winSize, 'intRp':intRp, 'intp':intp })
 
 	snMap = RunMds(mds, repeats=1, info=info)
 	snMap.Dataset = dt.ToDataset()
