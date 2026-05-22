@@ -744,21 +744,18 @@ namespace VisuMap {
             }
         }
 
-        public INumberTable MovingWinVar(string s, string aaGroups, int wsStepSize, int wsCnt, int intp) {
-            var aa2cIdxes = Cluster2IdxList(aaGroups);
-            int clusters = aa2cIdxes.Values.Max(v => v.Max()) + 1;
-            
-            int L = s.Length;
-            // Create the 1-hot table for s
-            float[][] P = MathUtil.NewMatrix<float>(clusters, L);
-            for (int k = 0; k < L; k++) {
-                char c = s[k];
-                if (aa2cIdxes.ContainsKey(c))
-                    foreach (int idx in aa2cIdxes[c])
-                        P[idx][k] = 1.0f;
+        static void VectorVariance(float[][] A, float[][] B, double[] R) {
+            for (int col = 0; col < A[0].Length; col++) {
+                double sum2 = 0.0;
+                for (int row = 0; row < A.Length; row++) {
+                    float diff = A[row][col] - B[row][col];
+                    sum2 += diff * diff;
+                }
+                R[col] = sum2;
             }
-
-            // Intepolate the table P.
+        }
+        static void InterpolateColumns(float[][] P, int intp) {
+            int L = P[0].Length;
             int iL = (L - 1) * intp + 1;
             double[] S = Enumerable.Range(0, L).Select(k => (double)k).ToArray();
             double dx = S[L - 1] / (iL - 1);
@@ -770,19 +767,33 @@ namespace VisuMap {
                     newP[col] = (float)sp.Interpolate(col * dx);
                 P[row] = newP;
             }
+        }
 
-            void EuclideanDist(float[][] A, float[][] B, double[] R) {
-                for(int col=0; col<A[0].Length; col++) {
-                    double sum2 = 0.0;
-                    for(int row=0; row<A.Length; row++) {
-                        float diff = A[row][col] - B[row][col];
-                        sum2 += diff * diff;
-                    }
-                    R[col] = sum2;
-                }
+        float[][] SeqToOneHot(string s, Dictionary<char, List<int>> aa2cIdxes) {
+            int clusters = aa2cIdxes.Values.Max(v => v.Max()) + 1;
+
+            int L = s.Length;
+            // Create the 1-hot table for s
+            float[][] P = MathUtil.NewMatrix<float>(clusters, L);
+            for (int k = 0; k < L; k++) {
+                char c = s[k];
+                if (aa2cIdxes.ContainsKey(c))
+                    foreach (int idx in aa2cIdxes[c])
+                        P[idx][k] = 1.0f;
             }
+            return P;
+        }
+
+        public INumberTable MovingWinVar(string s, string aaGroups, int wsStepSize, int wsCnt, int intp) {
+            var aa2cIdxes = Cluster2IdxList(aaGroups);
+            float[][] P = SeqToOneHot(s, aa2cIdxes);
+
+            // Intepolate the table P.
+            if (intp > 1)
+                InterpolateColumns(P, intp);
 
             // Calculate the mwMean.
+            int iL = P[0].Length;
             INumberTable nt = New.NumberTable(wsCnt, iL);
             for (int row = 0; row < wsCnt; row++) {
                 float[][] P1 = MathUtil.NewMatrix<float>(P.Length, iL);
@@ -790,63 +801,37 @@ namespace VisuMap {
                 int ws = row * wsStepSize;
                 MovingWindowMean(P, P1, ws);
                 MovingWindowMean(P1, P2, ws);
-                EuclideanDist(P1, P2, (double []) nt.Matrix[row]);
+                VectorVariance(P1, P2, (double []) nt.Matrix[row]);
             }
             return nt;
         }
 
         public INumberTable VectorizeProtein(IList<string> seqList, string aaGroups, INumberTable transMatrix=null, int winSize=7, int intp=8) {
             var aa2cIdxes = Cluster2IdxList(aaGroups);
-            int clusters = aa2cIdxes.Values.Max(v => v.Max()) + 1;
             int maxL = seqList.Select(s => s.Length).Max();
             INumberTable nt = New.NumberTable(seqList.Count, (transMatrix!=null) ? transMatrix.Columns : maxL);
 
             MT.Loop(0, seqList.Count, pIdx => {
                 // Convert sequence to multidimensional 1-hot vectors.
                 string s = seqList[pIdx];
-                int L = s.Length;
-                float[][] P = MathUtil.NewMatrix<float>(clusters, L);
-                for (int k = 0; k < L; k++) {
-                    char c = s[k];
-                    if (aa2cIdxes.ContainsKey(c))
-                        foreach (int idx in aa2cIdxes[c])
-                            P[idx][k] = 1.0f;
-                }
+                float[][] P = SeqToOneHot(s, aa2cIdxes);
 
                 //Interpolating the vectors.
-                if (intp > 1) {
-                    int iL = (L - 1) * intp + 1;
-                    double[] S = Enumerable.Range(0, L).Select(k => (double)k).ToArray();
-                    double dx = S[L - 1] / (iL - 1);
-                    for (int row = 0; row < P.Length; row++) {
-                        double[] V = P[row].Select(v => (double)v).ToArray();
-                        float[] newP = new float[iL];
-                        var sp = CubicSpline.InterpolateNaturalSorted(S, V);
-                        for (int col = 0; col < iL; col++)
-                            newP[col] = (float)sp.Interpolate(col * dx);
-                        P[row] = newP;
-                    }
-                }
+                if (intp > 1) 
+                    InterpolateColumns(P, intp);
 
                 // calculate mmV of P.
                 float[][] P1 = MathUtil.NewMatrix<float>(P.Length, P[0].Length);
                 MovingWindowMean(P, P1, winSize);
                 MovingWindowMean(P1, P, winSize);
-                double[] vs = new double[P[0].Length - 2];  // Local variances at each aa excepting the first and the last one.
-                for (int k = 1; k < (P[0].Length - 1); k++) {
-                    double sum2 = 0.0f;
-                    for (int cIdx = 0; cIdx < clusters; cIdx++) {
-                        double diff = P[cIdx][k] - P1[cIdx][k];
-                        sum2 += diff * diff;
-                    }
-                    vs[k - 1] = sum2;
-                }
+                double[] vvs = new double[P[0].Length];  // Local variances at each aa.
+                VectorVariance(P, P1, vvs);
 
                 // Apply FFT on the mmV and store the result into nt.Matrix[pIdx]
                 if (transMatrix != null) {
-                    VectorizeChainFT(vs, transMatrix, (double[])nt.Matrix[pIdx], 0);
+                    VectorizeChainFT(vvs, transMatrix, (double[])nt.Matrix[pIdx], 0);
                 } else {
-                    Array.Copy(vs, (double[])nt.Matrix[pIdx], Math.Min(vs.Length, nt.Columns));
+                    Array.Copy(vvs, (double[])nt.Matrix[pIdx], Math.Min(vvs.Length, nt.Columns));
                 }
             });
             return nt;
