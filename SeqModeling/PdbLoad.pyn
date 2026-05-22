@@ -22,7 +22,7 @@ def ChainCacheFile(chId):
 	return f'{chDir}/{chId}.pmc'
 
 
-def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, matchPid=False, unifyId=False,
+def ShowPDB(pId, intp=8, chainNames=None, includeHA=True, hidIntp=False, matchPid=False, unifyId=False,
 		setChainId=False, typeByChainIdx=False, glyphSize=1.0, glyphOpacity=0.75):
 
 	if includeHA or chainNames==None or len(chainNames)>1:
@@ -30,7 +30,7 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, matchPid=
 	else:
 		localPath, bsList, bsList2, pdbTitle = None, LoadChain(pId), None, "???"
 
-	bsList = Interpolate(bsList, rp, hidIntp, pId, setChainId, typeByChainIdx, unifyId, matchPid)
+	bsList = Interpolate(bsList, intp, hidIntp, pId, setChainId, typeByChainIdx, unifyId, matchPid)
 
 	cs.NormalizeChain(bsList, -1, False)
 
@@ -42,7 +42,7 @@ def ShowPDB(pId, rp=3, chainNames=None, includeHA=True, hidIntp=False, matchPid=
 	mp.Title = f'{pId}, Len:{bsList.Count}:  {info.Get("PT")}'
 	return mp
 
-def ShowProteinList(pList, includeHA=False, atName=None, gsize=1.0, gopacity=0.75, intRp=3, mpSz=None):
+def ShowProteinList(pList, includeHA=False, atName=None, gsize=1.0, gopacity=0.75, intp=8, mpSz=None):
 	mapList = []
 	if len(pList) >= 12:
 		mapStore = AtlasMapStore(atName, True) if atName!=None else None
@@ -53,7 +53,7 @@ def ShowProteinList(pList, includeHA=False, atName=None, gsize=1.0, gopacity=0.7
 		vv.Title = f'Loading {pId}: {k+1}-th of {len(pList)}'
 		chainNames = GetChainName(pId)
 		mp = ShowPDB(pId, chainNames=chainNames, includeHA=includeHA, 
-				rp=intRp, glyphSize=gsize, glyphOpacity=gopacity)
+				intp=intp, glyphSize=gsize, glyphOpacity=gopacity)
 		if mpSz != None:
 			mp.ResizeClient(mpSz[0], mpSz[1])
 		if mapStore != None:	
@@ -97,7 +97,7 @@ def UnFoldProteinList(pList, includeHA=False, wholeComplex=False, tP = None,
 				selected.add(p[:4])
 		pList = pList2
 
-	epochs, intRp, winSize, ppl, initExag, finalExag = tP
+	epochs, intp, winSize, ppl, initExag, finalExag = tP
 
 	if samplingDist > 0:
 		pList = cs.FlatSampling(pList, samplingDist)
@@ -127,7 +127,7 @@ def UnFoldProteinList(pList, includeHA=False, wholeComplex=False, tP = None,
 				for b in bList:
 					b.Hidden = False
 				cs.NormalizeChain(bList, 184)						
-			bList = Interpolate(bList, rp=intRp)
+			bList = Interpolate(bList, intp=intp)
 			if includeHA:
 				bList.AddRange(bList2)
 			SimplifySeq(bList, winSize)		
@@ -299,18 +299,18 @@ def LoadSeq(pId):
 def ChainName(body):
 	return body.Name.split('.')[2]
 
-def Interpolate(bList, rp=3, hidIntp=False, pId=None, setChainId=False, typeByChainIdx=False, unifyId=False, matchPid=False):
+def Interpolate(bList, intp=8, hidIntp=False, pId=None, setChainId=False, typeByChainIdx=False, unifyId=False, matchPid=False):
 	if pId != None and pId.endswith('.cif'):
 		pId = pId.split('\\')[-1][:4].upper()
-	return cs.InterpolateETC(bList, rp, hidIntp, pId, setChainId, typeByChainIdx, unifyId, matchPid)
+	return cs.InterpolateETC(bList, intp, hidIntp, pId, setChainId, typeByChainIdx, unifyId, matchPid)
 
-def InterpolateChain(bList, rp=3, hidIntp=False):
+def InterpolateChain(bList, intp=8, hidIntp=False):
 	EPS = 0.085
 	marked = bList[0].Type == SeqMap_HEAD
 	if marked:
 		bList[0].Type = bList[1].Type
 		bList[bList.Count-1].Type = bList[1].Type			
-	bList = cs.Interpolate3D(bList, rp, EPS, bList.Count, 0)
+	bList = cs.Interpolate3D(bList, intp, EPS, bList.Count, 0)
 	if marked:
 		bList[0].Type = SeqMap_HEAD
 		bList[bList.Count-1].Type = SeqMap_TAIL

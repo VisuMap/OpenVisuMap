@@ -431,7 +431,7 @@ namespace VisuMap {
             });
         }
 
-        public List<IBody> InterpolateETC(List<IBody> bList, int rp = 3, bool hidIntp = false,
+        public List<IBody> InterpolateETC(List<IBody> bList, int intp = 8, bool hidIntp = false,
                 string pId = null,  bool setChainId = false, bool typeByChainIdx=false, bool unifyId=false, bool matchPid=false) {
             string ChainName(IBody body) { return body.Name.Split('.')[2]; }
 
@@ -443,7 +443,7 @@ namespace VisuMap {
             for (int k = 0; k <= bList.Count; k++) {
                 if ((k == bList.Count) || (ChainName(bList[k]) != t0)) {
                     List<IBody> P0 = bList.GetRange(k0, k - k0);
-                    List<IBody> P1 = Interpolate3D(P0, rp, EPS, bs.Count, chIdx);
+                    List<IBody> P1 = Interpolate3D(P0, intp, EPS, bs.Count, chIdx);
                     chIdx += 1;
                     bs.AddRange(P1);
                     if (k < bList.Count) {
@@ -563,10 +563,10 @@ namespace VisuMap {
         }
 
 
-        public List<IBody> Interpolate3D(List<IBody> bList, int repeats, double convexcity, int bIdx0, int chIdx) {
-            if ((bList.Count <= 1) || (repeats == 0))
+        public List<IBody> Interpolate3D(List<IBody> bList, int intp, double convexcity, int bIdx0, int chIdx) {
+            if ((bList.Count <= 1) || (intp <= 1))
                 return bList;
-            int L = 1 << repeats;
+            int L = intp;
             int N = bList.Count;
             int iN = (N - 1) * L + 1;
             List<IBody> bs = new List<IBody>();
@@ -610,12 +610,12 @@ namespace VisuMap {
             return bs;
         }
 
-        public INumberTable InterpolateVector(float[][] vList, int repeats) {
-            if ((vList.Length <= 1) || (repeats == 0))
+        public INumberTable InterpolateVector(float[][] vList, int intp) {
+            if ((vList.Length <= 1) || (intp <= 1))
                 return null;
             int dim = vList[0].Length;
             int N = vList.Length;
-            int iN = (N - 1) * (1 << repeats) + 1;
+            int iN = (N - 1) * intp + 1;
             double[] S = Enumerable.Range(0, N).Select(k=>(double)k).ToArray();
             double dx = S[N - 1] / (iN - 1);
             double[][] T = MathUtil.NewMatrix(iN, dim);

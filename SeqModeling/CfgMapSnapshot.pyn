@@ -34,15 +34,15 @@ match vv.EventSource.Item:
 		else:
 			pId = pp.SelectedItems[0]
 			chainNames = GetChainName(pId)
-		ShowPDB(pId, rp=3, includeHA=False, chainNames=chainNames) 
+		ShowPDB(pId, intp=8, includeHA=False, chainNames=chainNames) 
 	case '3Dx':
 		info = MapInfo(pp.Description)				
 		if info.Has('pId'):
 			pId = info.pId
-			ShowPDB(pId, rp=3, includeHA=False, chainNames=None) 
+			ShowPDB(pId, intp=8, includeHA=False, chainNames=None) 
 		else:
 			for pId in list( pp.SelectedItems )[:5]:
-				ShowPDB(pId, rp=3, includeHA=False) 
+				ShowPDB(pId, intp=8, includeHA=False) 
 	case 'HideIPO':
 		HideInterpolates()
 		pp.HiddenBodySize = 1

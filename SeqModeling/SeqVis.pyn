@@ -179,10 +179,11 @@ def ShowTwistMap(pId, maxWsRows=1024, winSz=800):
 	if pId == None:
 		vv.Message('No protein selected!')
 		return
-	bList = InterpolateChain(LoadChain(pId), rp=3)
+	intp = 8
+	bList = InterpolateChain(LoadChain(pId), intp=intp)
 	stepSize = 1 if bList.Count < maxWsRows else bList.Count//maxWsRows
 	wSzCnt = bList.Count if bList.Count<maxWsRows else maxWsRows
-	info = MapInfo({'pId':pId, 'wsCnt':wSzCnt, 'stepSz':stepSize, 'Len':len(bList), 'rp':3})	
+	info = MapInfo({'pId':pId, 'wsCnt':wSzCnt, 'stepSz':stepSize, 'Len':len(bList), 'intp':intp})
 	nt = New.NumberTable(bList, wSzCnt).Transpose2()
 	ss.MovingWindowVarianceX(cs, bList, stepSize, nt)
 	nt = nt.Clone().ReorderRows(list(reversed([rs.Id for rs in nt.RowSpecList])))
@@ -453,9 +454,9 @@ def UpdateLvt():
 		cs.MovingWindowMean(mp.BodyList, winSize)
 		mp.RedrawAll()
 
-def LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True):
+def LocalVarianceTrans(pId, winSize=14, intp=8, addCtrl=True):
 	bList = LoadChain(pId)
-	bList = InterpolateChain(bList, rp=intRp)
+	bList = InterpolateChain(bList, intp=intp)
 	cs.NormalizeChain(bList)
 	info = MapInfo({'pId':pId})
 
@@ -495,11 +496,11 @@ def LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=True):
 		vs.OnClose('for vw in pp.Tag[1:]: vw.Close()')
 
 # t-SNE reduced data
-def MaxRows(ds, pList, intRp):
+def MaxRows(ds, pList, intp):
 	maxV = max([ds.IntAt(p, 3) for p in pList])
-	return min(vv.GpuCacheLimit, (2**intRp)*maxV)
+	return min(vv.GpuCacheLimit, intp*maxV)
 
-def GetFourierTrans(pList, waveLen, waveCount, winSize=0, intRp=0):
+def GetFourierTrans(pList, waveLen, waveCount, winSize=0, intp=1):
 	# The first component of the FT is the sume of all components which
 	# will be zero because of the centerization before apply FT. Thus, we remove
 	# the useless first FT component.
@@ -510,8 +511,8 @@ def GetFourierTrans(pList, waveLen, waveCount, winSize=0, intRp=0):
 	for k, pId in enumerate(pList):
 		ReportLoop(k, pId, pList)
 		bList = LoadChain(pId)
-		if intRp > 0:
-			bList = InterpolateChain(bList, intRp)
+		if intp > 1:
+			bList = InterpolateChain(bList, intp)
 		if winSize != 0:
 			SimplifySeq(bList, winSize)
 		nt = New.NumberTable(bList,  3)
@@ -545,7 +546,7 @@ def GetMFSeq(pList, aaGroups, mfL):
 def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 	global ctrPressed
 
-	epochs, intRp, ppl, initE, finalE = tP
+	epochs, intp, ppl, initE, finalE = tP
 	if samplingDist > 0:
 		pList = cs.FlatSampling(pList, samplingDist)
 		vv.Title = f'Sampled {len(pList)} chains by density {samplingDist}.'
@@ -557,7 +558,7 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 	if atlasName != None:
 		atlasName = f'{vv.Dataset.Name}/{vv.Map.Name}.{len(pList)}'
 
-	maxRows = MaxRows(vv.Dataset, pList, intRp)
+	maxRows = MaxRows(vv.Dataset, pList, intp)
 	tsne = FastTsne(maxRows, 4, 2, epochs, ppl, initE, finalE)
 	L = len(pList)
 	if L > 10:
@@ -571,9 +572,8 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 	for k, pId in enumerate(pList):
 		bList = LoadChain(pId)
 		info = MapInfo({'pId':pId, 'pLen':bList.Count, 'tP':tP})
-		bList = InterpolateChain(bList, intRp)
-		rpFct = 2**intRp
-		ws = 0 if bList.Count < rpFct*80 else 14 if bList.Count < rpFct*240 else 4*14
+		bList = InterpolateChain(bList, intp)
+		ws = 0 if bList.Count < intp*80 else 14 if bList.Count < intp*240 else 4*14
 		SimplifySeq(bList, ws)
 		info.Set('winSize', ws)
 
@@ -588,7 +588,7 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 			continue
 		if removedIntp: # Add back the interpolation.
 			bList = nt.ToBodyList()
-			bList = InterpolateChain(bList, intRp)
+			bList = InterpolateChain(bList, intp)
 			nt = New.NumberTable(bList, 3)	
 		
 		bList = nt.ToBodyList()
@@ -623,7 +623,7 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 
 
 def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winSize=10,
-		gSize=0.7, gOpacity=0.2, tSNE=None, tP=None, cf=0.0, justShDt=False, intRp=0, intp=8,
+		gSize=0.7, gOpacity=0.2, tSNE=None, tP=None, cf=0.0, justShDt=False, intp=8,
 		aaGroups='A', ftP=(33, 1024), mfL=20, mom=0.95, staged=False, filterP=(0.0,2,0)):
 	pTable = vv.Dataset
 	ppl, initExag, finalExag = tSNE
@@ -650,13 +650,13 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 		case 'mwV':
 			PreloadChainList(pList)
 			tm = GetFourier(waveLen, waveCount)	
-			dt = cs.MovingWindowFT(pList, winSize, tm, intRp=intRp, cacheDir=ChainCacheDir())
+			dt = cs.MovingWindowFT(pList, winSize, tm, intp=intp, cacheDir=ChainCacheDir())
 		case 'tFT':
 			PreloadChainList(pList)
 			tm = GetFourier(waveLen, waveCount)	
 			dt = cs.BondTorsionFT(pList, tm, cacheDir=ChainCacheDir())			
 		case 'pFT':
-			dt = GetFourierTrans(pList, waveLen, waveCount, winSize=winSize, intRp=intRp)
+			dt = GetFourierTrans(pList, waveLen, waveCount, winSize=winSize, intp=intp)
 		case 'sFT': 			
 			dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount, winSize, intp)
 		case _:
@@ -678,7 +678,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
 	info.Add({'vType':vType, 'aaG':aaGroups, 'wvL':waveLen, 'wvCnt':waveCount, 'mfL':mfL, 'mom':mom, 'cf':cf, 
-		'pCnt':dt.Rows, 'PPn':round(dt.Rows*ppl, 2), 'tP':tP, 'fP':filterP, 'wSz':winSize, 'intRp':intRp, 'intp':intp })
+		'pCnt':dt.Rows, 'PPn':round(dt.Rows*ppl, 2), 'tP':tP, 'fP':filterP, 'wSz':winSize, 'intp':intp })
 
 	snMap = RunMds(mds, repeats=1, info=info)
 	snMap.Dataset = dt.ToDataset()
@@ -772,7 +772,7 @@ def AugmentData(nt, augCfg='a|400|0.02|0.02'):
 	return np.hstack((nt, A))
 
 
-def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0', repeats=3):
+def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0', intp=8):
 	L = max(aaClusters.values()) + 1
 	hv = np.zeros((L))  # head-vector.
 	stepSz = np.ones((L))
@@ -788,7 +788,7 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0', repeats=3):
 				dt[i, j] = 1.0/(dt[i, j] + decay)
 	dt = AugmentData(dt, augCfg)	
 	# add interpolation
-	if repeats == 0:
+	if intp <= 2:
 		nt = mm.ToTable(dt)
 		for k, c in enumerate(S):
 			nt.RowSpecList[k].Name = c
@@ -796,11 +796,10 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0', repeats=3):
 		for col in range(L):
 			nt.ColumnSpecList[col].Id = chr(col+ord('a'))
 	else:
-		nt = cs.InterpolateVector(mm.ToMatrix32(dt), repeats)
-		secL = 2**repeats
-		L2 = int(secL / 2)
-		for k in range(0, nt.Rows, secL):
-			k0 = int(k / secL)
+		nt = cs.InterpolateVector(mm.ToMatrix32(dt), intp)
+		L2 = int(intp / 2)
+		for k in range(0, nt.Rows, intp):
+			k0 = int(k / intp)
 			c = S[k0]
 			rs0 = nt.RowSpecList[k]
 			rs0.Id = f'R{k0}'
@@ -895,7 +894,7 @@ def SmoothenComplex(pId, singleChain=False):
 		vv.Message('No polymer selected!')
 		return
 	chNames = GetChainName(pId) if singleChain else None
-	mp = ShowPDB(pId, rp=3, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=True,
+	mp = ShowPDB(pId, intp=8, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=True,
 		setChainId=False, typeByChainIdx=False, unifyId=False, chainNames=chNames)
 	maxWS = cs.MaxChainLen(mp.BodyList)
 	vs = New.ValueSelector(0, maxWS, 14, 'UpdateComplex(pp)')
@@ -1221,7 +1220,7 @@ def Merge3DList(pList):
 	for k, pId in enumerate(pList):
 		bList = LoadChain(pId)
 		bList = cs.PcaNormalizePositive(New.NumberTable(bList, 3)).ToBodyList()	
-		bList = Interpolate(bList, 4)
+		bList = Interpolate(bList, intp=16)
 		if k == 0:
 			xc = statistics.mean([b.X for b in bList])
 			yc = statistics.mean([b.Y for b in bList])

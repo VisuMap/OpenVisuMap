@@ -41,9 +41,9 @@ def MainMain(menuKey):
 					case 'mwV': 
 						ws = [13, 23, 37, 53]
 						#ws = [0.05, 0.1, 0.2, 0.4]
-						PM2(ftP=(8, 512*(2**3)), winSize=ws, intRp=3, tSNE=(ppl_, 6.0, 1.0))
+						PM2(ftP=(8, 512*(2**3)), winSize=ws, intp=8, tSNE=(ppl_, 6.0, 1.0))
 					case 'pFT':	
-						PM2(ftP=(1, 512), winSize=14*4, intRp=3, tSNE=(ppl_, 6.0, 1.0))
+						PM2(ftP=(1, 512), winSize=14*4, intp=8, tSNE=(ppl_, 6.0, 1.0))
 					case 'tFT':	
 						PM2(ftP=(16, 512), tSNE=(ppl_, 6.0, 1.0))	
 					case 'sFT':	
@@ -67,7 +67,7 @@ def MainMain(menuKey):
 				atlasName += '-3D'
 			if len(pList) > 1:
 				pList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
-			ShowProteinList(pList, includeHA=False, intRp=5, atName=atlasName, gsize=1.5, gopacity=0.5)
+			ShowProteinList(pList, includeHA=False, intp=32, atName=atlasName, gsize=1.5, gopacity=0.5)
 		case 'P-Seq':
 			aaGroups = GetAAGroup(idx=0)
 			if atlasName != None: 
@@ -102,7 +102,7 @@ def DoSimpleMenues(menuKey, pId, pList):
 		case 'SMx':
 			SmoothenComplex(pId, singleChain=False)
 		case 'P-S2':
-			ProteinS2Map(pList, atlasName, samplingDist=0.0, ctrF=0.85)
+			ProteinS2Map(pList, None, samplingDist=0.0, ctrF=0.85)
 		case 'S2':
 			SphereView(pId, unfolding=False)
 		case 'UF':
@@ -117,14 +117,14 @@ def DoSimpleMenues(menuKey, pId, pList):
 		case '3Ds':
 			Merge3DList(pList)
 		case '3Dx':
-			ShowPDB(pId, rp=3, includeHA=True, setChainId=False, typeByChainIdx=True, unifyId=True)
+			ShowPDB(pId, intp=8, includeHA=True, setChainId=False, typeByChainIdx=True, unifyId=True)
 		case 'Twt':
 			mpList = [ ShowTwistMap(id, maxWsRows=4096, winSz=500) for id in pList[:10] ]
 			vv.GuiManager.TileAllWindows(mpList, True)
 		case 'Info':
 			ShowInfo(pp)
 		case 'Lvt':
-			LocalVarianceTrans(pId, winSize=14, intRp=3, addCtrl=ctrPressed)
+			LocalVarianceTrans(pId, winSize=14, intp=8, addCtrl=ctrPressed)
 
 # ---------------------------------------------------------------------------------------
 
@@ -150,7 +150,7 @@ def ShowSeqTwist(pId, maxWsRows=4096, winSz=500, xyzSet='' ):
 	hm.ScrollingPause = 20
 	hm.ScrollingSteps = 10
 	hm.AttributeMode = False	
-	info = MapInfo({'pId':pId, 'wsCnt':wSzCnt, 'stepSz':stepSize, 'Len':len(S), 'rp':3, 'seqSet':xyzSet})
+	info = MapInfo({'pId':pId, 'wsCnt':wSzCnt, 'stepSz':stepSize, 'Len':len(S), 'intp':intp, 'seqSet':xyzSet})
 	hm.Description = info.Str
 	hm.Show2()	
 

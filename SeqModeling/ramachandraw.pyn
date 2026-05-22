@@ -66,7 +66,7 @@ def ShowRamachandraw(chId):
 	mp.GlyphOpacity = 0.3
 	mp.GlyphSize = 2.0
 	mp.Show()
-	bList = InterpolateChain(bList,rp=3, hidIntp=True)
+	bList = InterpolateChain(bList, intp=8, hidIntp=True)
 	bList = cs.NormalizeChain(bList, 1)
 	mp.Tag = ShowBodyList(bList)
 	mp.OnClose('pp.Tag.Close()')

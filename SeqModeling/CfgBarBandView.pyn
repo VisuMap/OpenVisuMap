@@ -6,7 +6,7 @@ pId0 = MapInfo(pp.Description).pId
 
 match vv.EventSource.Item:
 	case '3D':
-		ShowProteinList([pId0], includeHA=False, intRp=5, gsize=1.5, gopacity=0.5)
+		ShowProteinList([pId0], includeHA=False, intp=32, gsize=1.5, gopacity=0.5)
 	case 'PID':
 		vv.SelectedItems = [pId0]
 

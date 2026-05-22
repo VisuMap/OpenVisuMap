@@ -1,7 +1,7 @@
 #SphericalProj.pyn
 import math
 
-def GetSphereDataset(cId, interRp=0, contracting=0):
+def GetSphereDataset(cId, intp=1, contracting=0):
 	bList = LoadChain(cId)
 	if bList.Count < 3:
 		return None
@@ -9,8 +9,8 @@ def GetSphereDataset(cId, interRp=0, contracting=0):
 	for b in bList: 
 		b.Type = bType
 	bList = cs.ToSphere(bList, contracting)
-	if interRp>0:
-		bList = Interpolate(bList, interRp)
+	if intp>1:
+		bList = Interpolate(bList, intp)
 		for b in bList: 
 			b.Hidden = b.Id.startswith('i')
 	bList[0].Type = SeqMap_HEAD
@@ -21,7 +21,7 @@ def ShowSphere3(pId):
 	bList = LoadChain(pId)
 	bList = cs.ToSphere(bList, 0)
 	bList = cs.ToSphere(bList, 0.9)
-	bList = Interpolate(bList, 5, hidIntp=True)
+	bList = Interpolate(bList, intp=32, hidIntp=True)
 	cs.NormalizeChain(bList)
 	mp = ShowBodyList(bList, hSize=2, gSize=3.0, gOpacity=0.5, info=MapInfo('pId:'+pId))
 	mp.ShowBoundingBox = False
@@ -38,17 +38,17 @@ def UpdateSphere():
 		winSize = 0
 	if unfolding:
 		bs = cs.TorsionUnfold(bList, cf)
-		bs = InterpolateChain(bs, rp=5, hidIntp=True)
+		bs = InterpolateChain(bs, intp=32, hidIntp=True)
 		cs.NormalizeChain(bs)
 		mp.MoveBodiesTo(bs, 5, 50, 0, 0)
 	else:
 		bs = New.BodyListClone(bList)
 		if winSize > 0:
-			bs = InterpolateChain(bs, 6)
+			bs = InterpolateChain(bs, intp=64)
 			cs.MovingWindowMean(bs, winSize)
 			bs = New.BodyList( [b for b in bs if b.Id[0] != 'i'] )
 		cs.ShrinkSphere(bs, cf)
-		bs = InterpolateChain(bs, rp=5, hidIntp=True)
+		bs = InterpolateChain(bs, intp=32, hidIntp=True)
 		cs.NormalizeChain(bs)
 		bs.Insert(0, New.Body('ic', bs[0].Name, 144) )	
 		cs.ShiftChain(bs, 200, 200, 250)
@@ -67,7 +67,7 @@ def BodyListSphereView(pId, bList, unfolding):
 	for b in bList: 
 		b.Mult(2.0 if unfolding else 60.0)
 
-	bs = InterpolateChain(bList, rp=5, hidIntp=True)
+	bs = InterpolateChain(bList, intp=32, hidIntp=True)
 	if unfolding:		
 		mp = ShowBodyList(bs, gSize=1.5, gOpacity=0.5, hSize=3)
 		mp.MoveBodiesTo(bs, 5, 50, 0, 0)
@@ -145,7 +145,7 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 
 	def DoTsne(info, bList):
 		RunMds(mds, info=info, repeats=0, nt=New.NumberTable(bList, 3))
-		bList = Interpolate(mds.BodyList, rp=5)
+		bList = Interpolate(mds.BodyList, intp=32)
 		for b in bList:
 			b.Hidden = True if b.Id[0] == 'i' else False
 		return bList
@@ -154,7 +154,7 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 	if len(pList) < 10:
 		for pId in pList:
 			info.pId = pId
-			bList = GetSphereDataset(pId, interRp=0, contracting=ctrF)
+			bList = GetSphereDataset(pId, intp=1, contracting=ctrF)
 			bList = DoTsne(info, bList)
 			mp = New.MapSnapshot(bList).Show()
 			mp.HiddenBodySize = 3
@@ -169,7 +169,7 @@ def ProteinS2Map(pList, atlasName, samplingDist, ctrF):
 		if samplingDist != 0:
 			pList = cs.FlatSampling(pList, samplingDist=samplingDist)
 		for k, pId in enumerate(pList):				
-			bList = GetSphereDataset(pId, interRp=0, contracting=ctrF)
+			bList = GetSphereDataset(pId, intp=1, contracting=ctrF)
 			if bList == None:
 				continue
 			info.Add({'pId':pId, 'pLen':bList.Count})
