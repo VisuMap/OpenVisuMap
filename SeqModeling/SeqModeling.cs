@@ -691,36 +691,6 @@ namespace VisuMap {
 
         }
 
-        public INumberTable VectorizeProtein1(IList<string> seqList, string aaGroups, INumberTable transMatrix, int winSize=0) {
-            var P = Cluster2IdxList(aaGroups);
-            int clusters = P.Values.Max(vs => vs.Max()) + 1;
-            int L = transMatrix.Rows;    // wave length
-            int N = transMatrix.Columns; // wave count
-            double[][] tM = transMatrix.Matrix as double[][];
-
-            double[][] vList = new double[seqList.Count][];
-            for (int pIdx = 0; pIdx < seqList.Count; pIdx++) {
-                vList[pIdx] = new double[clusters * N];
-                double[] pVector = vList[pIdx];
-                string pSeq = seqList[pIdx];
-                for (int k = 0; k < pSeq.Length; k++) {
-                    char c = pSeq[k];
-                    if (!P.ContainsKey(c))
-                        continue;
-                    int cirIdx = k % L;
-                    if ((k / L) % 2 == 1)
-                        cirIdx = L - 1 - cirIdx;
-                    double[] Tk = tM[cirIdx];   // vectors in tM to transform 1-hot vector (or signature vector) of pSeq[k]
-                    foreach (int idx in P[c]) {
-                        int col0 = idx * N;
-                        for (int col = 0; col < N; col++)
-                            pVector[col0 + col] += Tk[col];
-                    }
-                }
-            }
-            return New.NumberTable(vList);
-        }
-
         void MovingWindowMean(float[][] P, float[][] P1, int winSize) {
             int L = P[0].Length - 1;
             winSize = Math.Min(L, winSize);
@@ -770,11 +740,11 @@ namespace VisuMap {
         }
 
         float[][] SeqToOneHot(string s, Dictionary<char, List<int>> aa2cIdxes) {
-            int clusters = aa2cIdxes.Values.Max(v => v.Max()) + 1;
+            int groups = aa2cIdxes.Values.Max(v => v.Max()) + 1;
 
             int L = s.Length;
             // Create the 1-hot table for s
-            float[][] P = MathUtil.NewMatrix<float>(clusters, L);
+            float[][] P = MathUtil.NewMatrix<float>(groups, L);
             for (int k = 0; k < L; k++) {
                 char c = s[k];
                 if (aa2cIdxes.ContainsKey(c))
@@ -806,10 +776,14 @@ namespace VisuMap {
             return nt;
         }
 
-        public INumberTable VectorizeProtein(IList<string> seqList, string aaGroups, INumberTable transMatrix=null, int winSize=7, int intp=8) {
+        public INumberTable VectorizeProtein(IList<string> seqList, string aaGroups, INumberTable trMatrix=null, int winSize=7, int intp=8) {
             var aa2cIdxes = Cluster2IdxList(aaGroups);
             int maxL = seqList.Select(s => s.Length).Max();
-            INumberTable nt = New.NumberTable(seqList.Count, (transMatrix!=null) ? transMatrix.Columns : maxL);
+            int groups = aa2cIdxes.Values.Max(v => v.Max()) + 1;  // number of aa-groups in aaGroups
+            int columns = maxL;
+            if (trMatrix != null) 
+                columns = (winSize != 0) ? trMatrix.Columns : groups * trMatrix.Columns;           
+            INumberTable nt = New.NumberTable(seqList.Count, columns);
 
             MT.Loop(0, seqList.Count, pIdx => {
                 // Convert sequence to multidimensional 1-hot vectors.
@@ -820,18 +794,28 @@ namespace VisuMap {
                 if (intp > 1) 
                     InterpolateColumns(P, intp);
 
-                // calculate mmV of P.
-                float[][] P1 = MathUtil.NewMatrix<float>(P.Length, P[0].Length);
-                MovingWindowMean(P, P1, winSize);
-                MovingWindowMean(P1, P, winSize);
-                double[] vvs = new double[P[0].Length];  // Local variances at each aa.
-                VectorVariance(P, P1, vvs);
+                double[] R = (double[])nt.Matrix[pIdx];
 
-                // Apply FFT on the mmV and store the result into nt.Matrix[pIdx]
-                if (transMatrix != null) {
-                    VectorizeChainFT(vvs, transMatrix, (double[])nt.Matrix[pIdx], 0);
+                // calculate mmV of P.
+                if (winSize > 0) {
+                    float[][] P1 = MathUtil.NewMatrix<float>(P.Length, P[0].Length);
+                    MovingWindowMean(P, P1, winSize);
+                    MovingWindowMean(P1, P, winSize);
+                    double[] vvs = new double[P[0].Length];  // Local variances at each aa.
+                    VectorVariance(P, P1, vvs);
+                    // Apply FFT on the mmV and store the result into nt.Matrix[pIdx]
+                    if (trMatrix != null) {
+                        VectorizeChainFT(vvs, trMatrix, R, 0);
+                    } else {
+                        Array.Copy(vvs, R, Math.Min(vvs.Length, nt.Columns));
+                    }
                 } else {
-                    Array.Copy(vvs, (double[])nt.Matrix[pIdx], Math.Min(vvs.Length, nt.Columns));
+                    // apply FFT directly on P
+                    for(int row=0; row<P.Length; row++) {
+                        double[] Prow = new double[P[row].Length];
+                        Array.Copy(P[row], Prow, Prow.Length);
+                        VectorizeChainFT(Prow, trMatrix, R, row * trMatrix.Columns);
+                    }
                 }
             });
             return nt;
