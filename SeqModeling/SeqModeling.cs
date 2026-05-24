@@ -431,6 +431,19 @@ namespace VisuMap {
             });
         }
 
+        public void VectorizeChainFT32(float[] bDist, INumberTable tm, double[] R, int index0 = 0) {
+            double[][] M = tm.Matrix as double[][];
+            int L = bDist.Length;
+            MT.Loop(0, M[0].Length, col => {
+                double v = 0.0;
+                for (int k = 0; k < L; k++) {
+                    int k1 = (k < L) ? k : (2 * L - 1 - k);
+                    v += bDist[k1] * M[k % M.Length][col];
+                }
+                R[index0 + col] = v;
+            });
+        }
+
         public List<IBody> InterpolateETC(List<IBody> bList, int intp = 8, bool hidIntp = false,
                 string pId = null,  bool setChainId = false, bool typeByChainIdx=false, bool unifyId=false, bool matchPid=false) {
             string ChainName(IBody body) { return body.Name.Split('.')[2]; }
@@ -776,6 +789,23 @@ namespace VisuMap {
             return nt;
         }
 
+        public INumberTable VectorizeProtein1(IList<string> seqList, string aaGroups, INumberTable trMatrix = null, int winSize = 7, int intp = 8) {
+            var aa2cIdxes = Cluster2IdxList(aaGroups);
+            int groups = aa2cIdxes.Values.Max(v => v.Max()) + 1;  // number of aa-groups in aaGroups
+            INumberTable nt = New.NumberTable(seqList.Count, groups * trMatrix.Columns);
+            MT.Loop(0, seqList.Count, pIdx => {
+                string s = seqList[pIdx];
+                float[][] P = SeqToOneHot(s, aa2cIdxes);
+                if (intp > 1)
+                    InterpolateColumns(P, intp);
+                float[][] P1 = MathUtil.NewMatrix<float>(P.Length, P[0].Length);
+                MovingWindowMean(P, P1, winSize);
+                for (int row = 0; row < P1.Length; row++)
+                    VectorizeChainFT32(P1[row], trMatrix, (double[])nt.Matrix[pIdx], row * trMatrix.Columns);
+            });
+            return nt;
+        }
+
         public INumberTable VectorizeProtein(IList<string> seqList, string aaGroups, INumberTable trMatrix=null, int winSize=7, int intp=8) {
             var aa2cIdxes = Cluster2IdxList(aaGroups);
             int maxL = seqList.Select(s => s.Length).Max();
@@ -811,11 +841,8 @@ namespace VisuMap {
                     }
                 } else {
                     // apply FFT directly on P
-                    for(int row=0; row<P.Length; row++) {
-                        double[] Prow = new double[P[row].Length];
-                        Array.Copy(P[row], Prow, Prow.Length);
-                        VectorizeChainFT(Prow, trMatrix, R, row * trMatrix.Columns);
-                    }
+                    for(int row=0; row<P.Length; row++)
+                        VectorizeChainFT32(P[row], trMatrix, R, row * trMatrix.Columns);
                 }
             });
             return nt;
