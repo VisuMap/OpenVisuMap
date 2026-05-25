@@ -533,15 +533,6 @@ def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount, winSize, intp=4):
 			seqList.append( pTable.StringAt(rowIdx, 2) )	
 	return cs.VectorizeProtein(seqList, aaGroups, tm, winSize, intp)
 
-def GetMFSeq(pList, aaGroups, mfL):
-	seqList = []
-	ds = vv.Dataset
-	for pId in pList:
-		rowIdx = ds.IndexOfRow(pId)
-		if rowIdx >= 0:
-			seqList.append( ds.StringAt(rowIdx, 2) )
-	return cs.MFVectorize(seqList, aaGroups, mfL)
-
 # CreateProteinMaps() is a fast version of UnFoldProteinList(), it is limited to sequences with less than 23K PP.
 def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 	global ctrPressed
@@ -623,8 +614,8 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 
 
 def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winSize=10,
-		gSize=0.7, gOpacity=0.2, tSNE=None, tP=None, cf=0.0, justShDt=False, intp=8,
-		aaGroups='A', ftP=(33, 1024), mfL=20, mom=0.95, staged=False, filterP=(0.0,2,0)):
+		gSize=0.7, gOpacity=0.2, tSNE=None, tP=None, justShDt=False, intp=8,
+		aaGroups='A', ftP=(33, 1024), staged=False, filterP=(0.0,2,0)):
 	pTable = vv.Dataset
 	ppl, initExag, finalExag = tSNE
 	waveCount, waveLen = ftP
@@ -677,7 +668,7 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 		staged=staged, initExag=initExag, finalExag=finalExag, ppl=ppl)
 
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	info.Add({'vType':vType, 'aaG':aaGroups, 'wvL':waveLen, 'wvCnt':waveCount, 'mfL':mfL, 'mom':mom, 'cf':cf, 
+	info.Add({'vType':vType, 'aaG':aaGroups, 'wvL':waveLen, 'wvCnt':waveCount, 
 		'pCnt':dt.Rows, 'PPn':round(dt.Rows*ppl, 2), 'tP':tP, 'fP':filterP, 'wSz':winSize, 'intp':intp })
 
 	snMap = RunMds(mds, repeats=1, info=info)

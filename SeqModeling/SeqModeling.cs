@@ -823,10 +823,8 @@ namespace VisuMap {
                 //Interpolating the vectors.
                 if (intp > 1) 
                     InterpolateColumns(P, intp);
-
-                double[] R = (double[])nt.Matrix[pIdx];
-
                 // calculate mmV of P.
+                double[] R = (double[])nt.Matrix[pIdx];
                 if (winSize > 0) {
                     float[][] P1 = MathUtil.NewMatrix<float>(P.Length, P[0].Length);
                     MovingWindowMean(P, P1, winSize);
