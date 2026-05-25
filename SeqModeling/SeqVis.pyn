@@ -500,13 +500,8 @@ def MaxRows(ds, pList, intp):
 	maxV = max([ds.IntAt(p, 3) for p in pList])
 	return min(vv.GpuCacheLimit, intp*maxV)
 
-def GetFourierTrans(pList, waveLen, waveCount, winSize=0, intp=1):
-	# The first component of the FT is the sume of all components which
-	# will be zero because of the centerization before apply FT. Thus, we remove
-	# the useless first FT component.
-	tm = GetFourier(waveLen, waveCount+1)
-	tm = tm.RemoveColumns([0])
-	L = 3*waveCount
+def GetFourierTrans(pList, transMatrix, winSize=0, intp=1):
+	L = 3*transMatrix.Columns
 	pD = New.NumberTable(vv.Dataset.BodyListForId(pList), L)
 	for k, pId in enumerate(pList):
 		ReportLoop(k, pId, pList)
@@ -517,14 +512,10 @@ def GetFourierTrans(pList, waveLen, waveCount, winSize=0, intp=1):
 			SimplifySeq(bList, winSize)
 		nt = New.NumberTable(bList,  3)
 		cs.PcaNormalizePositive(nt)
-		cs.FourierTrans(tm, nt, pD.Matrix[k])
+		cs.FourierTrans(transMatrix, nt, pD.Matrix[k])
 	return pD
 
-def GetFourierTransSeq(pList, aaGroups, waveLen, waveCount, winSize, intp=4):
-	tm = GetFourier(waveLen, waveCount)	
-	#Scaling base vectors to reduce dominance of the first base that reflect the seq-length.
-	for R in tm.Matrix:	
-		for k, f in enumerate([0.25]): R[k] *= f
+def GetFourierTransSeq(pList, tm, aaGroups, winSize, intp=4):
 	seqList = []
 	pTable = vv.Dataset
 	for pId in pList:
@@ -613,7 +604,7 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 		del mapStore
 
 
-def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winSize=10,
+def ProteinMap2(pList, vType='mwV', epochs=2000, is3D=False, save2Map=None, winSize=10,
 		gSize=0.7, gOpacity=0.2, tSNE=None, tP=None, justShDt=False, intp=8,
 		aaGroups='A', ftP=(33, 1024), staged=False, filterP=(0.0,2,0)):
 	pTable = vv.Dataset
@@ -637,19 +628,21 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 	#print(f'Creating map for {len(pList)} chains...')
 
 	# vectorizing the sequence to a table.
+	PreloadChainList(pList)
+	tm = GetFourier(waveLen, waveCount)	
+	#Scaling base vectors to reduce dominance of the first base that reflect the seq-length.
+	for R in tm.Matrix:	
+		for k, f in enumerate([0.25]): R[k] *= f		
+
 	match vType:
 		case 'mwV':
-			PreloadChainList(pList)
-			tm = GetFourier(waveLen, waveCount)	
 			dt = cs.MovingWindowFT(pList, winSize, tm, intp=intp, cacheDir=ChainCacheDir())
 		case 'tFT':
-			PreloadChainList(pList)
-			tm = GetFourier(waveLen, waveCount)	
 			dt = cs.BondTorsionFT(pList, tm, cacheDir=ChainCacheDir())			
 		case 'pFT':
-			dt = GetFourierTrans(pList, waveLen, waveCount, winSize=winSize, intp=intp)
-		case 'sFT': 			
-			dt = GetFourierTransSeq(pList, aaGroups, waveLen, waveCount, winSize, intp)
+			dt = GetFourierTrans(pList, tm, winSize=winSize, intp=intp)
+		case 'sFT': 	
+			dt = GetFourierTransSeq(pList, tm, aaGroups, winSize, intp)
 		case _:
 			vv.Message('Invalid vectorization type: ' + vType)
 			return
@@ -668,8 +661,8 @@ def ProteinMap2(pList, vType='sMF', epochs=2000, is3D=False, save2Map=None, winS
 		staged=staged, initExag=initExag, finalExag=finalExag, ppl=ppl)
 
 	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
-	info.Add({'vType':vType, 'aaG':aaGroups, 'wvL':waveLen, 'wvCnt':waveCount, 
-		'pCnt':dt.Rows, 'PPn':round(dt.Rows*ppl, 2), 'tP':tP, 'fP':filterP, 'wSz':winSize, 'intp':intp })
+	info.Add({'vType':vType, 'aaG':aaGroups,  'pCnt':dt.Rows, 'PPn':round(dt.Rows*ppl, 2), 
+		'ftP':ftP, 'tP':tP, 'fP':filterP, 'wSz':winSize, 'intp':intp })
 
 	snMap = RunMds(mds, repeats=1, info=info)
 	snMap.Dataset = dt.ToDataset()
@@ -1155,7 +1148,9 @@ def AtlasTileAll(atlas, aaGroups, using3DInfo=False, waveLen=128, waveCount=16):
 	pTable = vv.Dataset	
 	pList = [item.Name for item in atlas.Items]
 	if using3DInfo:
-		dt = GetFourierTrans(pList, waveLen, waveCount)
+		tm = GetFourier(waveLen, waveCount+1)
+		tm = tm.RemoveColumns([0])
+		dt = GetFourierTrans(pList, tm)
 	else:
 		tm = GetFourier(waveLen, waveCount)
 		seqList = [LoadSeq(pId) for pId in pList]
