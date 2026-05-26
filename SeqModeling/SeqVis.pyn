@@ -440,7 +440,11 @@ def IsCreated(vw):
 def UpdateLvt():
 	bList, bv, mp = pp.Tag	
 	winSize = int(pp.CurrentValue)
-	pp.CurrentValue = winSize	
+	pp.CurrentValue = winSize
+	selected = []
+	for i in range(20):
+		selected.append('WS.'+str(winSize+i))
+	vv.SelectedItems = selected
 	if IsCreated(bv):
 		bv.SetValues( cs.MovingWindowVariance(bList, winSize) )
 		mxV = bv.MaxValue()
@@ -487,7 +491,7 @@ def LocalVarianceTrans(pId, winSize=14, intp=8, addCtrl=True):
 		mp.CentralizeView(False)
 		mp.Title = "Moving Window Mean"
 
-		mxLen = cs.MaxChainLen(bList)//2
+		mxLen = cs.MaxChainLen(bList)
 		vs = New.ValueSelector(0, mxLen, winSize, 'UpdateLvt()')	
 		vs.Title = 'Window Size'
 		vs.StepSize = 1
@@ -632,7 +636,7 @@ def ProteinMap2(pList, vType='mwV', epochs=2000, is3D=False, save2Map=None, winS
 	tm = GetFourier(waveLen, waveCount)	
 	#Scaling base vectors to reduce dominance of the first base that reflect the seq-length.
 	for R in tm.Matrix:	
-		for k, f in enumerate([0.25]): R[k] *= f		
+		for k, f in enumerate([0.25, 0.5, 0.5]): R[k] *= f		
 
 	match vType:
 		case 'mwV':
@@ -1126,23 +1130,6 @@ def MatchProteinMap(pAtlas, iconWidth=50):
 	else:
 		pAtlas.Refresh()
 	pAtlas.DataChanged = True
-
-def ReCreateMap(pMap):
-	pSeq = ''.join([b.Name for b in pMap.BodyList]).upper()	
-	info = MapInfo(pMap.Description)
-	nt = NewDataset(pSeq, augCfg=info.AugCfg)
-
-	for k, b in enumerate(pMap.BodyList):
-		nt.RowSpecList[k].CopyFromBody(b)
-
-	mds = NewMds(nt, epochs=int(info.Epochs), is3D=eval(info.Is3D), 
-		initExag=float(info.InitE), finalExag=float(info.FinalE), ppl=float(info.PP))
-	mds.GlyphSet = pMap.GlyphSet
-	mds.GlyphSize = pMap.GlyphSize
-	mds.GlyphOpacity = pMap.GlyphOpacity
-	RunMds(mds, info=info)
-	mds.Close()
-
 
 def AtlasTileAll(atlas, aaGroups, using3DInfo=False, waveLen=128, waveCount=16):
 	pTable = vv.Dataset	

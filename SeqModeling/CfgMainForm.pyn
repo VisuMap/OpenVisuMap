@@ -45,9 +45,9 @@ def MainMain(menuKey):
 						#ws = [0.05, 0.1, 0.2, 0.4]
 						PM2(ftP=(8, 512*8), winSize=ws, intp=8, tSNE=(ppl_, 6.0, 1.0))
 					case 'pFT':	
-						PM2(ftP=(8, 512),   winSize=49, intp=0, tSNE=(ppl_, 6.0, 1.0))
+						PM2(ftP=(8, 512),   winSize=49, intp=0, tSNE=(ppl_, 4.0, 1.0))
 					case 'tFT':	
-						PM2(ftP=(16, 512), tSNE=(ppl_, 6.0, 1.0))	
+						PM2(ftP=(16, 512), tSNE=(ppl_, 4.0, 1.0))	
 					case 'sFT':	
 						PM2(ftP=(8,512), winSize=23, intp=4, aaGroups=GetAAGroup(0), tSNE=(ppl_,3.0,1.0))
 		case 'P-2D':

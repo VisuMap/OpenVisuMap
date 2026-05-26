@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning ReCreateMap info Smoothen Seq Open Web ChmX 3D 3Dx HideIPO MarkHelix MarkBeta vsSz 'RNA/DNA' Align PID S2
+#MenuLabels ShowData Scanning info Smoothen Seq Open Web ChmX 3D 3Dx HideIPO MarkHelix MarkBeta vsSz 'RNA/DNA' Align PID S2
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -10,9 +10,6 @@ match vv.EventSource.Item:
 		Scanning(pp, stride=50, stepSize=2, broadcasting=vv.ModifierKeys.ControlPressed)
 	case 'Seq':
 		ShowAASeq(pp)
-	case 'ReCreateMap':
-		AssertSeqMap(pp)
-		ReCreateMap(pp)
 	case 'info':
 		ShowInfo(pp)
 	case 'Smoothen':
