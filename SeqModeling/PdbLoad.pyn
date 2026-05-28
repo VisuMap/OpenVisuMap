@@ -186,65 +186,6 @@ def LoadCifData(pId, chainNames=None):
 def OpenCifFile(pId):
 	vv.StartProcess("vi", PdbCacheFile(pId))
 
-def Augment2Table(bList, stretch, clusterStretch=1.0, expandFactor=1.0):
-
-	if expandFactor != 1.0:
-		bList = New.BodyListClone(bList)
-		bList = cs.LocalExpand(bList, expandFactor)
-	nt = New.NumberTable(bList,3)
-
-	if stretch == 0 and clusterStretch == 0:
-		return nt
-	if nt.Rows <= 1:
-		return nt	
-
-	if clusterStretch == 0:
-		nt.AddColumns(1)
-	else:
-		nt.AddColumns(4)
-
-	M = nt.Matrix
-	rsList = nt.RowSpecList
-	# get the number of interpolation points, ipp, which is normally 8
-	dx = 0
-	for ipp in range(1, min(64, rsList.Count)):		
-		if rsList[ipp].Id[0] == 'A':
-			dx = 0.1*stretch/ipp
-			break
-	if dx == 0:
-		return nt
-
-	meanV = {}
-	meanCnt = {}
-	for row, rs in enumerate(rsList):
-		if rs.Type not in meanCnt:
-			meanCnt[rs.Type] = 0
-			meanV[rs.Type] = [0, 0, 0]
-		meanCnt[rs.Type] += 1
-		V, R = meanV[rs.Type], M[row]
-		for dim in range(3):
-			V[dim] += R[dim]
-
-	for row, rs in enumerate(rsList):
-		if (row==0) or (rs.Type != rsList[row-1].Type): 
-			offset = -0.5*meanCnt[rs.Type]*dx
-		# hetero atoms don't participate in the unfold stretching
-		if rs.Id[0] == 'H': continue
-		#if rs.Name[0] == 'r': continue
-		M[row][3] += offset
-		offset += dx
-
-	if clusterStretch != 0:
-		for t in meanCnt:
-			n, V = meanCnt[t], meanV[t]
-			for dim in range(3):
-				V[dim] = clusterStretch * V[dim]/n
-		for row, rs in enumerate(rsList):
-			V, R = meanV[rs.Type], M[row]
-			for dim in range(3):
-				R[4+dim] = V[dim]
-	return nt
-
 def Download3DInfo(pId):
 	#from urllib.request import urlretrieve
 	import requests
@@ -318,13 +259,19 @@ def InterpolateChain(bList, intp=8, hidIntp=False):
 		ss.HideInterpolation(bList)
 	return bList
 
-def UnFoldMap(pMap, epochs=1000, ppl=0.1, staged=False, repeats=1, stretch=0, clusterStretch=1.0, expandFactor=1.0, initExag=10.0, finalExag=1.0, is3D=False):
+def UnFoldMap(pMap, epochs=1000, ppl=0.1, repeats=1, stretch=0.0, winSize=27, initExag=10.0, finalExag=1.0, is3D=False):
 	bList = pMap.BodyListEnabled()
-	nt = Augment2Table(bList, stretch=stretch, clusterStretch=clusterStretch, expandFactor=expandFactor)
-	mds = NewMds(nt, is3D=is3D, glyphSet=pMap.GlyphSet, initExag=initExag, finalExag=finalExag,
-		epochs=epochs, ppl=ppl, staged=staged)
+	bList = New.BodyListClone(bList)
+
+	cs.MovingWindowMean(bList, winSize)
+	nt = New.NumberTable(bList, 4)		
+	for k in range(nt.Rows): 
+		nt.Matrix[k][3] = stretch*k
+		nt.RowSpecList[k].Id += '.' + str(k)
+
+	mds = NewMds(nt, is3D=is3D, glyphSet=pMap.GlyphSet, initExag=initExag, finalExag=finalExag,	epochs=epochs, ppl=ppl )
 	info = MapInfo(pMap.Description).SetMds(mds)
-	info.Add({'SF': stretch, 'CF':expandFactor})
+	info.Add({'SF': stretch, 'winSz':winSize})
 	winTitle = pMap.Title
 	mds.GlyphSize = 0.5
 	RunMds(mds, repeats=repeats, info=info)
@@ -633,7 +580,7 @@ def CleanupAllCache():
 --- Steps to import a list of PDB id into VisuMap: ---
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'FewSecondary', 'CATH')
+ImportPDBList(sList, 'G2-SeqSimilarity', 'Chains with similar seq with 95% identity')
 
 CleanupAllCache()
 

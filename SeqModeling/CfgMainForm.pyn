@@ -1,5 +1,5 @@
-#MenuLabels <Import> P-Map P-2D C-Map ChmX RCSB CIF Align Info SM SMx \
-# P-S2 S2 UF bSp RMD TM Twt 3Ds 3Dx Lvt LD Hst Siblings P-Seq 3D P-S2 TT
+#MenuLabels <Import> P-Map P-2D C0 C5 ChmX RCSB CIF Align Info SM SMx \
+# P-S2 S2 UF bSp RMD TM Twt 3Ds 3Dx Lvt LD Sib P-Seq 3D TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -23,8 +23,6 @@ def MainMain(menuKey):
 				vv.Message('No protein has been selected')
 			return
 
-	AddHistory(pId)
-			
 	match menuKey:
 		case '<Import>':  # called when executing the <Import> label
 			if 'cs' not in globals(): 
@@ -37,28 +35,29 @@ def MainMain(menuKey):
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 10, 0), is3D=False,
 					gSize=1.0, justShDt=ctrPressed, *args,**kwargs)
 			vcList = ['sFT', 'tFT', 'pFT', 'mwV']
-			#vcList = ['pFT']
+			#vcList = ['mwV']
 			for vt in vcList: 
 				match vt:
 					case 'mwV': 
 						ws = [13, 23, 37, 53]
-						#ws = [0.05, 0.1, 0.2, 0.4]
-						PM2(ftP=(8, 512*8), winSize=ws, intp=8, tSNE=(ppl_, 6.0, 1.0))
+						PM2(ftP=(16, 512), winSize=ws, intp=8, tSNE=(ppl_, 6.0, 1.0))
+						ws = [0.05, 0.1, 0.2, 0.4]
+						PM2(ftP=(16, 512), winSize=ws, intp=8, tSNE=(ppl_, 6.0, 1.0))
 					case 'pFT':	
 						PM2(ftP=(8, 512),   winSize=49, intp=0, tSNE=(ppl_, 4.0, 1.0))
 					case 'tFT':	
 						PM2(ftP=(16, 512), tSNE=(ppl_, 4.0, 1.0))	
 					case 'sFT':	
-						PM2(ftP=(8,512), winSize=23, intp=4, aaGroups=GetAAGroup(0), tSNE=(ppl_,3.0,1.0))
+						PM2(ftP=(8, 512), winSize=23, intp=4, aaGroups=GetAAGroup(0), tSNE=(ppl_,3.0,1.0))
 		case 'P-2D':
 			tP_ = (2000, 3, 0.1, 3.0, 1.0)
 			CreateProteinMaps(pList, samplingDist=0.1, maxItems=20000, atlasName=atlasName, tP=tP_)
-		case 'C-Map':
-			'''
+		case 'C0':
 			ColorChainMap(0)
-			ColorChainMap(2)
-			'''
-			ColorChainMap()
+		case 'C5':
+			ColorChainMap(5)
+		case 'BC':
+			BroadcastMapCfg()
 		case 'LD':
 			pIds = vv.PromptMessage('Protein ID: ', '????')
 			if pIds != None:
@@ -77,13 +76,11 @@ def MainMain(menuKey):
 				saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
 		case 'P-S2':
 			ProteinS2Map(pList, atlasName, samplingDist=0.0, ctrF=0.85)
-		case 'Siblings':
+		case 'Sib':
 			vv.FocusEventEnabled = True
 			vv.EventManager.OnItemFocused('ShowSiblings()')
-		case 'Hst':
-			ShowHistory()
 		case 'TT':
-			aaGroups = GetAAGroup(0)
+			aaGroups = GetAAGroup(9)
 			ShowSeqTwist(pId, xyzSet=aaGroups)
 		case _:
 			DoSimpleMenues(menuKey, pId, pList)
