@@ -272,13 +272,12 @@ namespace VisuMap {
                 INumberTable tm, int intRp = 0, string cacheDir=null) {
             List<IBody> bList = vv.Dataset.BodyListForId(pList) as List<IBody>;
             INumberTable D = New.NumberTable(bList, tm.Columns * wsList.Count);
-            const double EPS = 0.085;
             System.IO.Directory.SetCurrentDirectory(cacheDir);
             MT.LoopNoblocking(0, pList.Count, k => {
                 string pId = pList[k];
                 var bs = LoadChain3D(pId + ".pmc");
                 if (intRp > 0)
-                    bs = Interpolate3D(bs, intRp, EPS, bs.Count, 0);
+                    bs = Interpolate3D(bs, intRp, 0);
                 int idx0 = 0;
                 bool isNucleotide = vv.Dataset.StringAt(pId, 0)[0] != 'A';
                 double[] Rk = (double[])D.Matrix[k];
@@ -448,7 +447,6 @@ namespace VisuMap {
                 string pId = null,  bool setChainId = false, bool typeByChainIdx=false, bool unifyId=false, bool matchPid=false) {
             string ChainName(IBody body) { return body.Name.Split('.')[2]; }
 
-            double EPS = 0.085;
             List<IBody> bs = New.BodyList();
             int k0 = 0;
             string t0 = ChainName(bList[0]);
@@ -456,7 +454,7 @@ namespace VisuMap {
             for (int k = 0; k <= bList.Count; k++) {
                 if ((k == bList.Count) || (ChainName(bList[k]) != t0)) {
                     List<IBody> P0 = bList.GetRange(k0, k - k0);
-                    List<IBody> P1 = Interpolate3D(P0, intp, EPS, bs.Count, chIdx);
+                    List<IBody> P1 = Interpolate3D(P0, intp, chIdx);
                     chIdx += 1;
                     bs.AddRange(P1);
                     if (k < bList.Count) {
@@ -576,7 +574,7 @@ namespace VisuMap {
         }
 
 
-        public List<IBody> Interpolate3D(List<IBody> bList, int intp, double convexcity, int bIdx0, int chIdx) {
+        public List<IBody> Interpolate3D(List<IBody> bList, int intp, int chIdx) {
             if ((bList.Count <= 1) || (intp <= 1))
                 return bList;
             int L = intp;

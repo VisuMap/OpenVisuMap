@@ -1,5 +1,5 @@
 #MenuLabels <Import> P-Map P-2D C0 C5 ChmX RCSB CIF Align Info SM SMx \
-# P-S2 S2 UF bSp RMD TM Twt 3Ds 3Dx Lvt LD Sib P-Seq 3D TT
+# P-S2 S2 UF bSp RMD TM Twt 3D 3Ds 3Dx 2D Lvt LD Sib P-Seq TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -68,6 +68,8 @@ def MainMain(menuKey):
 			if len(pList) > 1:
 				pList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
 			ShowProteinList(pList, includeHA=False, intp=32, atName=atlasName, gsize=1.5, gopacity=0.5)
+		case '2D':
+			Create2DMap(pId, intp=32, winSize=41, stretch=0.0075)
 		case 'P-Seq':
 			aaGroups = GetAAGroup(idx=0)
 			if atlasName != None: 
