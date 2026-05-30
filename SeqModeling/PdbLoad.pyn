@@ -258,35 +258,6 @@ def InterpolateChain(bList, intp=8, hidIntp=False):
 		ss.HideInterpolation(bList)
 	return bList
 
-def Create2DMap0(bList, info, epochs=1000, stretch=0.05, winSize=27, ppl=0.1, initExag=10.0, finalExag=1.0):
-	cs.MovingWindowMean(bList, winSize)
-	nt = New.NumberTable(bList, 4)
-	dx = 0
-	delta = stretch/float(info.intp)
-	rsList = nt.RowSpecList
-	for k, R in enumerate(nt.Matrix): 
-		R[3] = dx
-		dx += delta
-		rsList[k].Id += '.' + str(k)
-		#if rsList[k].Type == SeqMap_TAIL: dx += 5.0
-	info.Add({'stretch': stretch, 'winSz':winSize})
-	mds = NewMds(nt, initExag=initExag, finalExag=finalExag, epochs=epochs, ppl=ppl, info=info)
-	mds.GlyphSize = 0.75
-	mds.GlyphSet = SeqMap_GLYPHSET
-	RunMds(mds, repeats=0, info=info)
-
-def UnFoldMap(pMap, epochs=1000, stretch=0.0, winSize=7, ppl=0.1, initExag=10.0, finalExag=1.0):
-	bList = New.BodyListClone(pMap.BodyListEnabled())
-	info = MapInfo(pMap.Description)
-	Create2DMap0(bList, info=info, winSize=winSize, stretch=stretch, epochs=epochs, ppl=ppl, initExag=initExag, finalExag=finalExag)
-
-def Create2DMap(pId, intp, winSize, stretch, epochs=1000, ppl=0.1, initExag=4, finalExag=1.0):
-	bList = LoadChain(pId)
-	bList = InterpolateChain(bList, intp)
-	cs.NormalizeChain(bList, -1, True)
-	info = MapInfo({'pId':pId, 'intp':intp})
-	Create2DMap0(bList, info, winSize=winSize, stretch=stretch, epochs=epochs, ppl=ppl, initExag=initExag, finalExag=finalExag)
-
 # Extract chains from PDB complex and store then in current table. Heter-atoms and singltons will be ignored.
 def LoadChains(pId):
 	ds = vv.Dataset

@@ -932,6 +932,30 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 		ma.Show()
 		MatchProteinMap(ma, 50)
 
+def Create2DMap0(bList, info, epochs=1000, stretch=0.05, winSize=27, ppl=0.1, initExag=10.0, finalExag=1.0):
+	cs.MovingWindowMean(bList, winSize)
+	nt = New.NumberTable(bList, 4)
+	dx = 0
+	delta = stretch/float(info.intp)
+	rsList = nt.RowSpecList
+	for k, R in enumerate(nt.Matrix): 
+		R[3] = dx
+		dx += delta
+		rsList[k].Id += '.' + str(k)
+	info.Add({'stretch': stretch, 'winSz':winSize})
+	mds = NewMds(nt, initExag=initExag, finalExag=finalExag, epochs=epochs, ppl=ppl, info=info)
+	mds.GlyphSize = 0.75
+	mds.GlyphSet = SeqMap_GLYPHSET
+	RunMds(mds, repeats=0, info=info)
+
+def Create2DMap(pId, intp, winSize, stretch, epochs=1000, ppl=0.1, initExag=4, finalExag=1.0):
+	bList = LoadChain(pId)
+	bList = InterpolateChain(bList, intp)
+	cs.NormalizeChain(bList, -1, True)
+	info = MapInfo({'pId':pId, 'intp':intp})
+	Create2DMap0(bList, info, winSize=winSize, stretch=stretch, epochs=epochs, ppl=ppl, initExag=initExag, finalExag=finalExag)
+
+
 def Scanning(pMap, stride=100, stepSize=20, broadcasting=False):
 	bsList = [b.Id for b in pMap.BodyList]
 	for rp in range(5):
