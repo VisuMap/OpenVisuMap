@@ -934,10 +934,10 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 
 def Create2DMap0(bList, info, epochs=1000, stretch=0.05, winSize=27, ppl=0.1, initExag=10.0, finalExag=1.0):
 	cs.MovingWindowMean(bList, winSize)
-	if len([b for b in bList if b.Type == SeqMap_HEAD]) > 1:
+	idList = [b.Id for b in bList]
+	if len(idList) > len(set(idList)):
 		# For MdsCluster the identify must be unique
-		for k, b in enumerate(bList):
-			b.Id += '_' + str(k)
+		for k, b in enumerate(bList): b.Id += f'_{k}'
 	nt = New.NumberTable(bList, 4)
 	delta = stretch/float(info.intp)
 	rsList = nt.RowSpecList
