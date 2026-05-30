@@ -934,6 +934,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 
 def Create2DMap0(bList, info, epochs=1000, stretch=0.05, winSize=27, ppl=0.1, initExag=10.0, finalExag=1.0):
 	cs.MovingWindowMean(bList, winSize)
+	multiChain = len([b for b in bList if b.Type == SeqMap_HEAD]) > 1
 	nt = New.NumberTable(bList, 4)
 	dx = 0
 	delta = stretch/float(info.intp)
@@ -941,7 +942,8 @@ def Create2DMap0(bList, info, epochs=1000, stretch=0.05, winSize=27, ppl=0.1, in
 	for k, R in enumerate(nt.Matrix): 
 		R[3] = dx
 		dx += delta
-		rsList[k].Id += '.' + str(k)
+		if multiChain:  # the MdsCluster class requires that the id's are unique in the table.
+			rsList[k].Id += '_' + str(k)
 	info.Add({'stretch': stretch, 'winSz':winSize})
 	mds = NewMds(nt, initExag=initExag, finalExag=finalExag, epochs=epochs, ppl=ppl, info=info)
 	mds.GlyphSize = 0.75
@@ -954,7 +956,6 @@ def Create2DMap(pId, intp, winSize, stretch, epochs=1000, ppl=0.1, initExag=4, f
 	cs.NormalizeChain(bList, -1, True)
 	info = MapInfo({'pId':pId, 'intp':intp})
 	Create2DMap0(bList, info, winSize=winSize, stretch=stretch, epochs=epochs, ppl=ppl, initExag=initExag, finalExag=finalExag)
-
 
 def Scanning(pMap, stride=100, stepSize=20, broadcasting=False):
 	bsList = [b.Id for b in pMap.BodyList]
