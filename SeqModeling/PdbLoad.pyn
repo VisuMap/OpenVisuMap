@@ -37,9 +37,9 @@ def ShowPDB(pId, intp=8, chainNames=None, includeHA=True, hidIntp=False, matchPi
 	if includeHA:
 		bsList.AddRange(bsList2)
 
-	info = MapInfo({'pId':pId, 'pLen':bsList.Count, 'PT':SimplifyTitle(pdbTitle), 'HA':includeHA})
+	info = MapInfo({'pId':pId, 'pLen':bsList.Count, 'intp':intp, 'PTitle':SimplifyTitle(pdbTitle), 'HmAtom':includeHA})
 	mp = ShowBodyList(bsList, gSize=glyphSize, gOpacity=glyphOpacity, info=info)
-	mp.Title = f'{pId}, Len:{bsList.Count}:  {info.Get("PT")}'
+	mp.Title = f'{info.pId}, Len:{bsList.Count}:  {info.PTitle}'
 	return mp
 
 def ShowProteinList(pList, includeHA=False, atName=None, gsize=1.0, gopacity=0.75, intp=8, mpSz=None):
@@ -262,17 +262,16 @@ def Create2DMap0(bList, info, epochs=1000, stretch=0.05, winSize=27, ppl=0.1, in
 	cs.MovingWindowMean(bList, winSize)
 	nt = New.NumberTable(bList, 4)
 	dx = 0
+	delta = stretch/float(info.intp)
 	rsList = nt.RowSpecList
 	for k, R in enumerate(nt.Matrix): 
 		R[3] = dx
+		dx += delta
 		rsList[k].Id += '.' + str(k)
-		dx += stretch
-	mds = NewMds(nt, initExag=initExag, finalExag=finalExag, epochs=epochs, ppl=ppl )
-	info.SetMds(mds)
 	info.Add({'stretch': stretch, 'winSz':winSize})
-	mds.Description = info.Str
-	mds.GlyphSize = 0.5
-	mds.GlyphSet = '36 Clusters||||Colored Balls|Ordered Glyphs'
+	mds = NewMds(nt, initExag=initExag, finalExag=finalExag, epochs=epochs, ppl=ppl, info=info)
+	mds.GlyphSize = 0.75
+	mds.GlyphSet = SeqMap_GLYPHSET
 	RunMds(mds, repeats=0, info=info)
 
 def UnFoldMap(pMap, epochs=1000, stretch=0.0, winSize=7, ppl=0.1, initExag=10.0, finalExag=1.0):

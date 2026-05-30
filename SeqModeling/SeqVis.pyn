@@ -781,7 +781,7 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0', intp=8):
 
 #-----------------------------------------------------------------------------
 
-def NewMds(nt=None, epochs=1000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, staged=False, zoomFactor=10.0,
+def NewMds(nt=None, epochs=1000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, staged=False, zoomFactor=10.0, info=None,
 		repeats=1, metric='EuclideanMetric', glyphSet=None, glyphSize=0.5, glyphOpacity=1.0, refreshFreq=50, glyphScale=10.0):
 	mds = New.MdsCluster(nt)
 	mds.Show()
@@ -805,7 +805,11 @@ def NewMds(nt=None, epochs=1000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0
 	mds.MapZoomFactor = zoomFactor
 	mds.GlyphScale = glyphScale
 	mds.GlyphSet = vv.Map.GlyphType if glyphSet==None else glyphSet
-	mds.Description = ''	
+	if info != None:
+		info.SetMds(mds)
+		mds.Description = info.Str
+	else:
+		mds.Description = ''	
 	return mds
 
 def RunMds(mds, repeats=1, info=None, nt=None):
