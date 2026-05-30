@@ -268,6 +268,7 @@ def Create2DMap0(bList, info, epochs=1000, stretch=0.05, winSize=27, ppl=0.1, in
 		R[3] = dx
 		dx += delta
 		rsList[k].Id += '.' + str(k)
+		#if rsList[k].Type == SeqMap_TAIL: dx += 5.0
 	info.Add({'stretch': stretch, 'winSz':winSize})
 	mds = NewMds(nt, initExag=initExag, finalExag=finalExag, epochs=epochs, ppl=ppl, info=info)
 	mds.GlyphSize = 0.75
