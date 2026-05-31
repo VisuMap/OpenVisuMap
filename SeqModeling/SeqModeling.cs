@@ -725,6 +725,18 @@ namespace VisuMap {
             }
         }
 
+        public INumberTable AugmentLinear(List<IBody>bList, double delta) {
+            INumberTable nt = New.NumberTable(bList, 4);
+            double[][] M = (double[][]) nt.Matrix;
+            var uf = vv.New.UniqueNameFinder();
+            var rsList = nt.RowSpecList;
+            for(int k=0; k<nt.Rows; k++) {
+                M[k][3] = k * delta;
+                rsList[k].Id = uf.LookupName(rsList[k].Id);
+            }
+            return nt;
+        }
+
         static void VectorVariance(float[][] A, float[][] B, double[] R) {
             for (int col = 0; col < A[0].Length; col++) {
                 double sum2 = 0.0;
