@@ -69,8 +69,11 @@ def MainMain(menuKey):
 				pList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
 			ShowProteinList(pList, includeHA=False, intp=32, atName=atlasName, gsize=1.5, gopacity=0.5)
 		case '2D':
-			for id in pList[:3]:
-				Create2DMap(id, epochs=2000, intp=16, winSize=30, stretch=0.25, ppl=0.1)
+			def Do2DMap(id):
+				return Create2DMap(id, epochs=5000, intp=16, winSize=30, 
+					stretch=0.5, ppl=0.1, initExag=10.0)
+			mpList = [ Do2DMap(id) for id in pList[:5] ]
+			vv.GuiManager.TileAllWindows(mpList, True)
 		case 'P-Seq':
 			aaGroups = GetAAGroup(idx=0)
 			if atlasName != None: 

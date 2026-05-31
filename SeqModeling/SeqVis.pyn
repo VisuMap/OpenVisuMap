@@ -943,13 +943,14 @@ def Create2DMap0(bList, info, epochs=1000, stretch=0.05, winSize=27, ppl=0.1, in
 	mds.GlyphSet = SeqMap_GLYPHSET
 	RunMds(mds, repeats=1, info=info).NormalizeView()
 	mds.Close()	
+	return vv.LastView
 
 def Create2DMap(pId, intp, winSize, stretch, epochs=1000, ppl=0.1, initExag=4, finalExag=1.0):
 	bList = LoadChain(pId)
 	bList = InterpolateChain(bList, intp)
 	cs.NormalizeChain(bList, -1, True)
 	info = MapInfo({'pId':pId, 'intp':intp})
-	Create2DMap0(bList, info, winSize=winSize, stretch=stretch, epochs=epochs, ppl=ppl, initExag=initExag, finalExag=finalExag)
+	return Create2DMap0(bList, info, winSize=winSize, stretch=stretch, epochs=epochs, ppl=ppl, initExag=initExag, finalExag=finalExag)
 
 def Scanning(pMap, stride=100, stepSize=20, broadcasting=False):
 	bsList = [b.Id for b in pMap.BodyList]

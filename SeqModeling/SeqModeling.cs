@@ -728,11 +728,12 @@ namespace VisuMap {
         public INumberTable AugmentLinear(List<IBody>bList, double delta) {
             INumberTable nt = New.NumberTable(bList, 4);
             double[][] M = (double[][]) nt.Matrix;
-            var uf = vv.New.UniqueNameFinder();
             var rsList = nt.RowSpecList;
+            bool hasDuplicates = bList.Count > bList.Select(b => b.Id).ToHashSet().Count;
             for(int k=0; k<nt.Rows; k++) {
                 M[k][3] = k * delta;
-                rsList[k].Id = uf.LookupName(rsList[k].Id);
+                if (hasDuplicates)
+                    rsList[k].Id += "_" + k;
             }
             return nt;
         }
