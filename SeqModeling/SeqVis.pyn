@@ -944,8 +944,8 @@ def Create2DMap0(bList, info, epochs=1000, stretch=0.05, winSize=27, ppl=0.1, in
 	mds = NewMds(nt, initExag=initExag, finalExag=finalExag, epochs=epochs, ppl=ppl, info=info)
 	mds.GlyphSize = 0.75
 	mds.GlyphSet = SeqMap_GLYPHSET
-	RunMds(mds, repeats=1, info=info).NormalizeView()
-	mds.Close()	
+	#RunMds(mds, repeats=0, info=info).NormalizeView()
+	RunMds(mds, repeats=1, info=info).NormalizeView(); mds.Close()	
 	return vv.LastView
 
 def Create2DMap(pId, intp, winSize, stretch, epochs=1000, ppl=0.1, initExag=4, finalExag=1.0):
