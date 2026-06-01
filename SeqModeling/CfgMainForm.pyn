@@ -70,8 +70,7 @@ def MainMain(menuKey):
 			ShowProteinList(pList, includeHA=False, intp=32, atName=atlasName, gsize=1.5, gopacity=0.5)
 		case '2D':
 			def Do2DMap(id):
-				return Create2DMap(id, epochs=5000, intp=16, winSize=27, 
-					stretch=0.25, ppl=0.1, initExag=10.0)
+				return Create2DMap(id, intp=32, winSize=28, stretch=0.2, epochs=2000, ppl=0.1, initExag=10.0)
 			mpList = [ Do2DMap(id) for id in pList[:5] ]
 			vv.GuiManager.TileAllWindows(mpList, True)
 		case 'P-Seq':
