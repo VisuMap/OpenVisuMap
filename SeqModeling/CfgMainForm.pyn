@@ -1,4 +1,4 @@
-#MenuLabels <Import> P-Map P-2D C0 C5 ChmX RCSB CIF Align Info SM SMx \
+#MenuLabels <Import> P-Map P-2D C0 DBSCAN ChmX RCSB CIF Align Info SM SMx \
 # P-S2 S2 UF bSp RMD TM Twt 3D 3Ds 3Dx 2D Lvt LD Sib P-Seq TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -54,7 +54,7 @@ def MainMain(menuKey):
 			CreateProteinMaps(pList, samplingDist=0.1, maxItems=20000, atlasName=atlasName, tP=tP_)
 		case 'C0':
 			ColorChainMap(0)
-		case 'C5':
+		case 'DBSCAN':
 			ColorChainMap(5)
 		case 'BC':
 			BroadcastMapCfg()
@@ -70,7 +70,8 @@ def MainMain(menuKey):
 			ShowProteinList(pList, includeHA=False, intp=32, atName=atlasName, gsize=1.5, gopacity=0.5)
 		case '2D':
 			def Do2DMap(id):
-				return Create2DMap(id, intp=32, winSize=28, stretch=0.2, epochs=2000, ppl=0.1, initExag=10.0)
+				f = 2
+				return Create2DMap(id, intp=4*f, winSize=15*f, stretch=1.0, epochs=2000, ppl=0.1, initExag=10.0)
 			mpList = [ Do2DMap(id) for id in pList[:5] ]
 			vv.GuiManager.TileAllWindows(mpList, True)
 		case 'P-Seq':
@@ -105,7 +106,7 @@ def DoSimpleMenues(menuKey, pId, pList):
 		case 'SM':
 			SmoothenComplex(pId, singleChain=True)
 		case 'SMx':
-			SmoothenComplex(pId, singleChain=False)
+			SmoothenComplex(pId, singleChain=False, intp=32)
 		case 'S2':
 			SphereView(pId, unfolding=False)
 		case 'UF':

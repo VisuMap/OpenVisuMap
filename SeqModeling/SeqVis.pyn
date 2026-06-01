@@ -863,17 +863,17 @@ def UpdateComplex(vs):
 		vv.SelectedItems = [ 'WS.'+str(ws+i) for i in range(20) ]
 
 
-def SmoothenComplex(pId, singleChain=False):
+def SmoothenComplex(pId, singleChain=False, intp=8):
 	if pId == None:
 		vv.Message('No polymer selected!')
 		return
 	chNames = GetChainName(pId) if singleChain else None
-	mp = ShowPDB(pId, intp=8, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=True,
+	mp = ShowPDB(pId, intp=intp, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=True,
 		setChainId=False, typeByChainIdx=False, unifyId=False, chainNames=chNames)
 	maxWS = cs.MaxChainLen(mp.BodyList)
 	vs = New.ValueSelector(0, maxWS, 14, 'UpdateComplex(pp)')
 	vs.Title = 'Moving Window Size'
-	vs.StepSize = 5
+	vs.StepSize = 1
 	vs.Tag = mp, New.BodyListClone(mp.BodyList)
 	vs.OnClose('pp.Tag[0].Close()')
 	vs.NumberFormat = 'f0'
@@ -937,7 +937,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 def Create2DMap0(bList, info, epochs=1000, stretch=0.0, winSize=0, ppl=0.1, initExag=10.0, finalExag=1.0):
 	cs.MovingWindowMean(bList, winSize)
 	nt = New.NumberTable(bList, 4)
-	delta = 0.01*stretch*int(info.intp)*bList[0].DistanceTo(bList[1])
+	delta = 0.064*stretch*bList[0].DistanceTo(bList[1])
 	for k, R in enumerate(nt.Matrix):
 		R[3] = k * delta
 	info.Add({'stretch': stretch, 'winSz':winSize})
@@ -992,6 +992,7 @@ def ShowBondLength(pList):
 	newWidth = min(4500, 3*nt.Columns)
 	newHeight = min(1350, 80*nt.Rows)
 	bb.ResizeClient(newWidth, newHeight)
+	bb.SetMouseWheelHandler('pp.UpperLimit *= (0.95 if vv.EventSource.Argument>0 else 1.05); pp.Redraw()')
 	bb.Show2()	
 
 def ShowAASeq(pMap):

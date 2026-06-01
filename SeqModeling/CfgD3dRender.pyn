@@ -12,7 +12,7 @@ def Map3DMain(menuKey):
 		case '2D':
 			bList = New.BodyListClone(pp.BodyListEnabled())
 			info = MapInfo(pp.Description)
-			Create2DMap0(bList, info=info, winSize=28, stretch=0.2, epochs=2000, ppl=0.1, initExag=10.0)
+			Create2DMap0(bList, info=info, winSize=int(int(info.intp)*15/8.0), stretch=1.0, epochs=2000, ppl=0.1, initExag=10.0)
 		case 'Seq':
 			ShowAASeq(pp)
 		case 'HideIPO':
