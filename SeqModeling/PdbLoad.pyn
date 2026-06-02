@@ -372,8 +372,8 @@ def PreloadChainList(pList):
 				vv.Title = f'Unpacked {pCnt} pdb files'
 	#print('Preloading completed')
 
-def PreloadPDB(sList):
-	pList = sList.split(',')
+def PreloadPDB(pList):
+	# pList is a list of protein id or chain id, i.e. protein-id appended with chain index.
 	print(f'Preloading {len(pList)} pIds...')
 	pList = list(set([p[:4] for p in pList]))
 	print(f'Preloading {len(pList)} files...')
@@ -448,8 +448,8 @@ def ImportPDBList(sList, dsName, dsDescription=''):
 	if not exists(CHAIN_CACHE): 
 		os.mkdir(CHAIN_CACHE)
 
-	sList = sList.upper()
-	pList = PreloadPDB(sList)
+	pList = sList.upper().split(',')
+	pList = PreloadPDB(pList)
 	InitDatabase(dsName, dsDescription)
 	infoTable, loaded, skipped = LoadAllChains(pList)
 	MergeTableToDataset(infoTable, "P-Info")
@@ -557,9 +557,18 @@ def CleanupAllCache():
 '''
 
 --- Steps to import a list of PDB id into VisuMap: ---
+# Importing a list of protein into VisuMap via the site: https://rcsb.or/search
+# If the list is shorten than 2500, we can directly click on the button "Downlad All/Selected Files" to
+# open the page that display all protein ids.
+#
+# To obtain a list larger than 2500 ids, click on button "Tabular Reports"; then in the field
+# "Select Report" choose the "Entry IDs"; then click on the button "Display IDs", a list of chain ids
+# will be displayed. We can then copy this list into the clipboard and continues with the following stmts
+# to import then into VisuMap. 
+
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'G2-SeqSimilarity', 'Chains with similar seq with 95% identity')
+ImportPDBList(sList, 'TTT', 'xxx')
 
 CleanupAllCache()
 
