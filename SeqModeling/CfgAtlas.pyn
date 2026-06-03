@@ -35,8 +35,6 @@ def AtlasMain(menuKey):
 				mp.NormalizeView()
 				mpList.append(mp)
 			vv.GuiManager.TileAllWindows(mpList)
-		case '2D':
-			UnFoldProteinList(pList, includeHA=False, wholeComplex=False, samplingDist=0.0, iconWidth=50, tP=(2000,8,28, 0.15,4.0,1.0) )
 		case '2Ds':
 			Merge2DList(pp)
 		case 'TT':		

@@ -934,13 +934,14 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 		ma.Show()
 		MatchProteinMap(ma, 50)
 
-def Create2DMap0(bList, info, epochs=1000, stretch=0.0, winSize=0, ppl=0.1, initExag=10.0, finalExag=1.0):
+def Create2DMap0(bList, info, stretch, winSize, tP):	
 	cs.MovingWindowMean(bList, winSize)
 	nt = New.NumberTable(bList, 4)
 	delta = 0.064*stretch*bList[0].DistanceTo(bList[1])
 	for k, R in enumerate(nt.Matrix):
 		R[3] = k * delta
 	info.Add({'stretch': stretch, 'winSz':winSize})
+	epochs, ppl, initExag, finalExag = tP
 	mds = NewMds(nt, initExag=initExag, finalExag=finalExag, epochs=epochs, ppl=ppl, info=info)
 	mds.GlyphSize = 0.75
 	mds.GlyphSet = SeqMap_GLYPHSET
@@ -948,12 +949,12 @@ def Create2DMap0(bList, info, epochs=1000, stretch=0.0, winSize=0, ppl=0.1, init
 	RunMds(mds, repeats=1, info=info).NormalizeView(); mds.Close()	
 	return vv.LastView
 
-def Create2DMap(pId, intp, winSize, stretch, epochs=1000, ppl=0.1, initExag=4, finalExag=1.0):
+def Create2DMap(pId, intp, winSize, stretch, tP):
 	bList = LoadChain(pId)
 	bList = InterpolateChain(bList, intp)
 	cs.NormalizeChain(bList, -1, True)
 	info = MapInfo({'pId':pId, 'intp':intp})
-	return Create2DMap0(bList, info, winSize=winSize, stretch=stretch, epochs=epochs, ppl=ppl, initExag=initExag, finalExag=finalExag)
+	return Create2DMap0(bList, info, winSize=winSize, stretch=stretch, tP=tP)
 
 def Scanning(pMap, stride=100, stepSize=20, broadcasting=False):
 	bsList = [b.Id for b in pMap.BodyList]
@@ -1399,10 +1400,15 @@ def ResetAtlas():
 
 def SelectPID():
 	info = MapInfo(pp.Description)
-	vv.SelectedItems = info.pId.split(',')
+	if vv.ModifierKeys.ControlPressed:
+		vv.SelectedItems.AddRange( info.pId.split(',') )
+		vv.SelectedItems = vv.SelectedItems
+		print(vv.SelectedItems.Count)
+	else:		
+		vv.SelectedItems = info.pId.split(',')
+	idList = ','.join(vv.SelectedItems)
 	pp.Title = f'PIDs: {info.pId}'
-	vv.GuiManager.SetClipboard(info.pId)
-
+	vv.GuiManager.SetClipboard(idList)
 
 '''
 
