@@ -31,9 +31,8 @@ def AtlasMain(menuKey):
 		case '3D':
 			mpList = []
 			for pId in pList:
-				mp = ShowPDB(pId, intp=32, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
-				mp.NormalizeView()
-				mpList.append(mp)
+				mp = ShowPDB(pId, intp=32, glyphSize=1.2,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))		
+				mpList.append(mp.ResizeClient(600, -1))
 			vv.GuiManager.TileAllWindows(mpList)
 		case '2Ds':
 			Merge2DList(pp)

@@ -65,8 +65,6 @@ def MainMain(menuKey):
 		case '3D':
 			if atlasName != None: 
 				atlasName += '-3D'
-			if len(pList) > 1:
-				pList.sort(key=lambda id:vv.Dataset.BodyForId(id).X)
 			ShowProteinList(pList, includeHA=False, intp=32, atName=atlasName, gsize=1.5, gopacity=0.5)
 		case 'P-Seq':
 			aaGroups = GetAAGroup(idx=0)
@@ -126,9 +124,8 @@ def DoSimpleMenues(menuKey, pId, pList):
 		case '2D':
 			mpList = []
 			for p in pList[:10]:
-				mp = Create2DMap(p, intp=2*4, winSize=2*15, stretch=1.0, tP=(750, 0.2, 10.0, 1.0))
-				mp.ResizeClient(600, int(600.0*mp.Height/mp.Width))
-				mpList.append( mp )
+				mp = Create2DMap(p, aP=(2*4, 2*15, 0.25), tP=(1000, 0.2, 10.0, 1.0))
+				mpList.append( mp.ResizeClient(500, -1) )
 			vv.GuiManager.TileAllWindows(mpList, True)
             #UnFoldProteinList(pList, includeHA=False, wholeComplex=False, samplingDist=0.0, iconWidth=50, tP=(2000,8,28, 0.15,4.0,1.0) )
 

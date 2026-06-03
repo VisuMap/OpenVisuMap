@@ -949,7 +949,8 @@ def Create2DMap0(bList, info, stretch, winSize, tP):
 	RunMds(mds, repeats=1, info=info).NormalizeView(); mds.Close()	
 	return vv.LastView
 
-def Create2DMap(pId, intp, winSize, stretch, tP):
+def Create2DMap(pId, aP, tP):
+	intp, winSize, stretch = aP   # parameters for augmentation.
 	bList = LoadChain(pId)
 	bList = InterpolateChain(bList, intp)
 	cs.NormalizeChain(bList, -1, True)

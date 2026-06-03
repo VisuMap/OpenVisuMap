@@ -61,7 +61,7 @@ def ShowProteinList(pList, includeHA=False, atName=None, gsize=1.0, gopacity=0.7
 			mp.Close()
 		else:
 			cs.NormalizeChain(mp.BodyList, chType=-1, hidIntp=True)
-			mp.NormalizeView()
+			mp.NormalizeView().ResizeClient(600, -1)
 			mapList.append(mp)
 	if mapStore != None:
 		ma = mapStore.atlas
@@ -568,7 +568,7 @@ def CleanupAllCache():
 
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'TTT', 'xxx')
+ImportPDBList(sList, 'Isomerases', 'Enzyme Classification')
 
 CleanupAllCache()
 
