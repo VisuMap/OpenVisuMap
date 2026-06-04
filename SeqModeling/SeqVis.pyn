@@ -936,10 +936,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 
 def Create2DMap0(bList, info, stretch, winSize, tP):	
 	cs.MovingWindowMean(bList, winSize)
-	nt = New.NumberTable(bList, 4)
-	delta = 0.064*stretch*bList[0].DistanceTo(bList[1])
-	for k, R in enumerate(nt.Matrix):
-		R[3] = k * delta
+	nt = cs.AugmentLinear(bList, stretch)
 	info.Add({'stretch': stretch, 'winSz':winSize})
 	epochs, ppl, initExag, finalExag = tP
 	mds = NewMds(nt, initExag=initExag, finalExag=finalExag, epochs=epochs, ppl=ppl, info=info)

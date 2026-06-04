@@ -124,7 +124,7 @@ def DoSimpleMenues(menuKey, pId, pList):
 		case '2D':
 			mpList = []
 			for p in pList[:10]:
-				mp = Create2DMap(p, aP=(2*4, 2*15, 0.25), tP=(1000, 0.2, 10.0, 1.0))
+				mp = Create2DMap(p, aP=(2*4, 2*15, 1.0), tP=(1000, 0.2, 10.0, 1.0))
 				mpList.append( mp.ResizeClient(500, -1) )
 			vv.GuiManager.TileAllWindows(mpList, True)
             #UnFoldProteinList(pList, includeHA=False, wholeComplex=False, samplingDist=0.0, iconWidth=50, tP=(2000,8,28, 0.15,4.0,1.0) )

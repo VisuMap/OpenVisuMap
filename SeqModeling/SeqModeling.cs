@@ -765,6 +765,17 @@ namespace VisuMap {
             return P;
         }
 
+        public INumberTable AugmentLinear(List<IBody>bList, double stretch) {
+            if (stretch == 0)
+                return New.NumberTable(bList, 3);
+            INumberTable nt = New.NumberTable(bList, 4);
+            double[][] M = (double[][]) nt.Matrix;
+            double delta = 0.064 * stretch * bList[0].DistanceTo(bList[1]);
+            for(int row=0; row<nt.Rows; row++)
+                M[row][3] = row * delta;
+            return nt;
+        }
+
         public INumberTable MovingWinVar(string s, string aaGroups, int wsStepSize, int wsCnt, int intp) {
             var aa2cIdxes = Cluster2IdxList(aaGroups);
             float[][] P = SeqToOneHot(s, aa2cIdxes);
