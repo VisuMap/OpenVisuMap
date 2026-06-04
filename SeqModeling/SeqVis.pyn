@@ -510,7 +510,7 @@ def GetFourierTransSeq(pList, tm, aaGroups, winSize, intp=4):
 def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 	global ctrPressed
 
-	epochs, intp, ppl, initE, finalE = tP
+	epochs, intp, stretch, ppl, initE, finalE = tP
 	if samplingDist > 0:
 		pList = cs.FlatSampling(pList, samplingDist)
 		vv.Title = f'Sampled {len(pList)} chains by density {samplingDist}.'
@@ -545,7 +545,8 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 		if bList.Count > maxRows:  # remove the interpolation of too-long chains.
 			bList = ss.SelectAA(bList)
 			removedIntp = True
-		nt = New.NumberTable(bList, 3)
+		#nt = New.NumberTable(bList, 3)
+		nt = cs.AugmentLinear(bList, stretch)
 		nt = tsne.Fit(nt)
 		if nt == None:
 			errCnt += 1
@@ -586,7 +587,7 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 		del mapStore
 
 
-def ProteinMap2(pList, vType='mwV', epochs=2000, is3D=False, save2Map=None, winSize=10,
+def ProteinMap2(pList, vType='mwV', epochs=2000, is3D=False, save2Map=None, winSize=10, stretch=0.0,
 		gSize=0.7, gOpacity=0.2, tSNE=None, tP=None, justShDt=False, intp=8,
 		aaGroups='A', ftP=(33, 1024), staged=False, filterP=(0.0,2,0)):
 	pTable = vv.Dataset
@@ -634,9 +635,6 @@ def ProteinMap2(pList, vType='mwV', epochs=2000, is3D=False, save2Map=None, winS
 
 	if justShDt:
 		hm = dt.ShowHeatMap()
-		#hm.MouseClick(5,5)
-		#hm.ClickMenu('PyUtils/UMAP')
-		#hm.Close()
 		return
 
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=gSize, glyphOpacity=gOpacity, 
@@ -1409,5 +1407,4 @@ def SelectPID():
 	vv.GuiManager.SetClipboard(idList)
 
 '''
-
 '''
