@@ -587,7 +587,7 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 		del mapStore
 
 
-def ProteinMap2(pList, vType='mwV', epochs=2000, is3D=False, save2Map=None, winSize=10, stretch=0.0,
+def ProteinMap2(pList, vType='mwV', epochs=2000, is3D=False, save2Map=None, winSize=10, 
 		gSize=0.7, gOpacity=0.2, tSNE=None, tP=None, justShDt=False, intp=8,
 		aaGroups='A', ftP=(33, 1024), staged=False, filterP=(0.0,2,0)):
 	pTable = vv.Dataset
