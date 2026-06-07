@@ -39,10 +39,10 @@ def MainMain(menuKey):
 			for vt in vcList: 
 				match vt:
 					case 'mwV': 
-						ws = [13, 23, 37, 53]
-						PM2(ftP=(16, 512), winSize=ws, intp=8, tSNE=(ppl_, 6.0, 1.0))
-						#ws = [0.05, 0.1, 0.2, 0.4]
+						#ws = [13, 23, 37, 53]
 						#PM2(ftP=(16, 512), winSize=ws, intp=8, tSNE=(ppl_, 6.0, 1.0))
+						ws = [0.05, 0.1, 0.2, 0.4]
+						PM2(ftP=(16, 512), winSize=ws, intp=8, tSNE=(ppl_, 6.0, 1.0))
 					case 'pFT':	
 						PM2(ftP=(8, 512),   winSize=49, intp=0, tSNE=(ppl_, 4.0, 1.0))
 					case 'tFT':	
@@ -63,12 +63,12 @@ def MainMain(menuKey):
 			if pIds != None:
 				ImportPDBList(pIds, 'Monthly')
 		case '3D':
-			if atlasName != None: 
+			if atlasName: 
 				atlasName += '-3D'
 			ShowProteinList(pList, includeHA=False, intp=32, atName=atlasName, gsize=1.5, gopacity=0.5)
 		case 'P-Seq':
 			aaGroups = GetAAGroup(idx=0)
-			if atlasName != None: 
+			if atlasName: 
 				atlasName += '-Seq'
 			CreateSeqMaps(pList, aaGroups, epochs=2000, initExag=6.0, ppl=0.1, 
 				saveTo=atlasName, decay=1.0, augCfg='s|25|0.25|1.0')
@@ -176,7 +176,7 @@ MainMain(vv.EventSource.Item)
 
 '''
 dxList = list(range(vv.Folder.DatasetCount))
-DoDatasetList(dxList[2:], mpIdx=0, createPMap=True, createAtlas=False)
+DoDatasetList(dxList[2:-2], mpIdx=0, createPMap=True, createAtlas=True)
 
 -----------------
 

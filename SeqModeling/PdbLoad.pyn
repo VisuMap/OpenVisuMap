@@ -54,7 +54,7 @@ def ShowProteinList(pList, includeHA=False, atName=None, gsize=1.0, gopacity=0.7
 		chainNames = GetChainName(pId)
 		mp = ShowPDB(pId, chainNames=chainNames, includeHA=includeHA, 
 				intp=intp, glyphSize=gsize, glyphOpacity=gopacity)
-		if mpSz != None:
+		if mpSz:
 			mp.ResizeClient(mpSz[0], mpSz[1])
 		if mapStore != None:	
 			mapStore.AddMap('D3dRender')
@@ -152,14 +152,14 @@ def UnFoldProteinList(pList, includeHA=False, wholeComplex=False, tP = None,
 
 			RunMds(mds, info=info, repeats=0)
 
-			if mapStore != None:
+			if mapStore:
 				mapStore.AddRawMap(pId, mds.BodyList, scale=10)
 			else:
 				mds.NormalizeView()
 				mds.ShowSnapshot()
 	except Exception as e:
 		vv.Message(str(e))
-	if mapStore != None:
+	if mapStore:
 		mds.Close()
 		ma = mapStore.atlas
 		MatchProteinMap(ma, iconWidth)
