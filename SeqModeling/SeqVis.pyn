@@ -491,7 +491,7 @@ def GetFourierTrans(pList, transMatrix, winSize=0, intp=1):
 		if intp > 1:
 			bList = InterpolateChain(bList, intp)
 		if winSize != 0:
-			SimplifySeq(bList, winSize)
+			cs.MovingWindowMean(bList, winSize)
 		nt = New.NumberTable(bList,  3)
 		cs.PcaNormalizePositive(nt)
 		cs.FourierTrans(transMatrix, nt, pD.Matrix[k])
@@ -537,15 +537,14 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 		bList = LoadChain(pId)
 		info = MapInfo({'pId':pId, 'pLen':bList.Count, 'tP':tP})
 		bList = InterpolateChain(bList, intp)
-		ws = 0 if bList.Count < intp*80 else 14 if bList.Count < intp*240 else 4*14
-		SimplifySeq(bList, ws)
+		ws = int( intp*math.sqrt(bList.Count)/36 )*7
+		cs.MovingWindowMean(bList, ws)
 		info.Set('winSize', ws)
 
 		removedIntp = False
 		if bList.Count > maxRows:  # remove the interpolation of too-long chains.
 			bList = ss.SelectAA(bList)
 			removedIntp = True
-		#nt = New.NumberTable(bList, 3)
 		nt = cs.AugmentLinear(bList, stretch)
 		nt = tsne.Fit(nt)
 		if nt == None:

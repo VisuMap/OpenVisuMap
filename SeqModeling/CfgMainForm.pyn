@@ -50,7 +50,7 @@ def MainMain(menuKey):
 					case 'sFT':	
 						PM2(ftP=(8, 512), winSize=23, intp=4, aaGroups=GetAAGroup(0), tSNE=(ppl_,3.0,1.0))
 		case 'P-2D':
-			tP_ = (2000, 8, 0.25,     0.15, 3.0, 1.0)
+			tP_ = (2000, 6, 0.25,     0.2, 6.0, 1.0)
 			CreateProteinMaps(pList, samplingDist=0.5, maxItems=20000, atlasName=atlasName, tP=tP_)
 		case 'C0':
 			ColorChainMap(0)

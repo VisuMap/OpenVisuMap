@@ -7,7 +7,7 @@ def Map3DMain(menuKey):
 		case 'Scanning':
 			Scanning(pp, stepSize=2, broadcasting=vv.ModifierKeys.ControlPressed)
 		case 'Smoothen':
-			SimplifySeq(pp.BodyList, 3)
+			cs.MovingWindowMean(pp.BodyList, 3)
 			pp.Redraw()
 		case '2D':
 			bList = New.BodyListClone(pp.BodyListEnabled())

@@ -13,7 +13,7 @@ match vv.EventSource.Item:
 	case 'info':
 		ShowInfo(pp)
 	case 'Smoothen':
-		SimplifySeq(pp.BodyList, 3)
+		cs.MovingWindowMean(pp.BodyList, 3)
 		pp.RedrawBodies()		
 	case 'RNA/DNA':
 		pp.SelectedItems = [b.Id for b in pp.BodyList if (b.Name[0] == 'r') or (b.Name[0] == 'd') ]
