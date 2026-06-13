@@ -4,7 +4,6 @@ def InstallMain():
 	icon = vv.CurrentScriptDirectory + "\\MenuIcon.png"
 
 	for (label, script, view, img) in [
-		("Dual Clustering", "DualClustering.js", "HeatMap", None),
 		("Active Genes", "ShowActiveGenes.js", "HeatMap", None),
 		("Active Cells", "ShowActiveCells.js", "HeatMap", None),
 		("Save Data", "SaveDataset.js", "HeatMap", None),

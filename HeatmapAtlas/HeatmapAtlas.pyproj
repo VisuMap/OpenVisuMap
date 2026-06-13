@@ -24,7 +24,6 @@
     <Content Include="CascadingTsne.pyn" />
     <Content Include="DualClustering.js" />
     <Content Include="DualEmbedding.js" />
-    <Content Include="DualSorting.js" />
     <Content Include="GeneMonitor.pyn" />
     <Content Include="H5adRead.pyn" />
     <Content Include="H5Read.pyn" />

@@ -1,15 +1,67 @@
-#MenuLabels D-Sorting D-Embedding Info
+#MenuLabels D-Sorting D-Embedding D-Clustering Info
 
 def HeatMapMain(menu):
 	match menu:
 		case 'D-Sorting':
-			vv.RunScript('DualSorting.js', pp)
+			DualSorting(pp, pRow=(1000, 2000, 0.05, 10.0, 1.0), pColumn=(5000, 2000, 0.05, 4.0, 1.0))
 		case 'D-Embedding':
 			vv.RunScript('DualEmbedding.js', pp)
+		case 'D-Clustering':
+			vv.RunScript('DualClustering.js', pp)
 		case 'Info':
 			ShowInfo(pp)
 
 #---------------------------------------------------
+
+def SelectFeatures(nt, featureCount):
+	if featureCount >= nt.Columns:
+		return nt
+	return nt.SelectColumns([col for col in range(featureCount)])
+
+def SortTable(D, epochs, ppl, initE, finalE):
+	tsne = New.TsneSorter(D, 'EuclideanMetric')
+	tsne.MaxLoops = epochs
+	tsne.InitExaggeration = initE
+	tsne.FinalExaggeration = finalE
+	tsne.PerplexityRatio = ppl
+	tsne.RefreshFreq = 50
+	tsne.StagedTraining = False
+	tsne.Repeats = 1
+	tsne.Broadcasting = True
+	tsne.Show().Start()
+	if math.isnan( tsne.ItemList[0].Value ):
+		raise Exception("Training degraded!\nPlease try with smaller initial exaggeration.")
+	if tsne.CurrentLoops != tsne.MaxLoops:
+		vv.Return()
+	tsne.Close()
+	tsne = None
+
+
+def DualSorting(hm, pRow, pColumn):
+	if (pRow is None) and (pColumn is None):
+		return
+	hm.DisableReorder = False
+	nt = hm.GetNumberTable()
+
+	if pRow is not None:
+		hm.Title = 'Sorting Rows...'
+		hm.SelectionMode = 0
+		hm.RandomizeRows()
+		maxFeatures, epochs, ppl, initE, finalE = pRow
+		D = SelectFeatures(nt, maxFeatures)
+		SortTable(D, epochs, ppl, initE, finalE)
+	if pColumn is not None:
+		hm.Title = 'Sorting Columns...';
+		hm.SelectionMode = 1;
+		hm.RandomizeColumns();
+		maxFeatures, epochs, ppl, initE, finalE = pColumn
+		D = SelectFeatures(nt.Transpose2(), maxFeatures)
+		SortTable(D, epochs, ppl, initE, finalE)		
+
+	hm.Title = 'Sorted'
+	hm.DisableReorder = True
+	nt = None
+	D = None
 
 class MapInfo():
 	def __init__(self, inits = None):
