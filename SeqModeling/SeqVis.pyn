@@ -821,14 +821,18 @@ def RunMds(mds, repeats=1, info=None, nt=None):
 		mds.Description = info.Str
 	mds.Reset().Start()
 	if not mds.Completed:
-		raise Exception("MDS aborted")
-	if mds.GlyphSpan < 0.1:
-		print('Repeating with reduced exaggeration...')
-		mds.InitialExaggeration /= 3.0
-		if info:
-			info.InitE = mds.InitialExaggeration
-		mds.Reset().Start()
-		mds.InitialExaggeration *= 3.0	
+		if mds.GlyphSpan < 0.01:
+			print('Repeating with reduced exaggeration...')
+			mds.InitialExaggeration /= 2.0
+			mds.PerplexityRatio /= 2.0
+			if info:
+				info.InitE = mds.InitialExaggeration
+				info.PP = mds.PerplexityRatio
+			mds.Reset().Start()
+			mds.InitialExaggeration *= 2.0
+			mds.PerplexityRatio *= 2.0
+		if not mds.Completed:
+			raise Exception("MDS aborted")
 	if info:
 		info.GlyphSpan = f'{mds.GlyphSpan:.2f}'
 		mds.Description = info.Str

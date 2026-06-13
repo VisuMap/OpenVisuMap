@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.1525
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeqModeling", "SeqModeling.csproj", "{638212DB-3DE2-4FAF-8782-678D464475D3}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "HeatmapAtlas", "..\HeatmapAtlas\HeatmapAtlas.pyproj", "{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,24 @@ Global
 		{638212DB-3DE2-4FAF-8782-678D464475D3}.Setup32|x64.Build.0 = Release|Any CPU
 		{638212DB-3DE2-4FAF-8782-678D464475D3}.Setup32|x86.ActiveCfg = Release|Any CPU
 		{638212DB-3DE2-4FAF-8782-678D464475D3}.Setup32|x86.Build.0 = Release|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Debug32|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Debug32|x64.ActiveCfg = Debug|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Debug32|x86.ActiveCfg = Debug|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Release|x64.ActiveCfg = Release|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Release|x86.ActiveCfg = Release|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Release32|Any CPU.ActiveCfg = Release|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Release32|x64.ActiveCfg = Release|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Release32|x86.ActiveCfg = Release|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Setup|Any CPU.ActiveCfg = Release|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Setup|x64.ActiveCfg = Release|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Setup|x86.ActiveCfg = Release|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Setup32|Any CPU.ActiveCfg = Release|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Setup32|x64.ActiveCfg = Release|Any CPU
+		{8A44DCE8-FAC1-4E80-9BFF-DE63FF114022}.Setup32|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

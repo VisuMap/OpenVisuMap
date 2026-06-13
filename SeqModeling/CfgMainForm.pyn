@@ -30,7 +30,7 @@ def MainMain(menuKey):
 				LoadCacheDef()			
 		case 'P-Map':
 			ppl_ = round(2000.0/len(pList), 4)
-			ppl_ = np.clip(ppl_, 0.01, 0.25)
+			ppl_ = np.clip(ppl_, 0.01, 0.2)
 			def PM2(*args, **kwargs):
 				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 10, 0), is3D=False,
 					gSize=1.0, justShDt=ctrPressed, *args,**kwargs)
@@ -176,7 +176,8 @@ MainMain(vv.EventSource.Item)
 
 '''
 dxList = list(range(vv.Folder.DatasetCount))
-DoDatasetList(dxList[2:-2], mpIdx=0, createPMap=True, createAtlas=True)
+DoDatasetList(dxList[3:-1], mpIdx=0, createPMap=True, createAtlas=True)
+
 
 -----------------
 
