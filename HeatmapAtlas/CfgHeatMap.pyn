@@ -3,9 +3,10 @@
 def HeatMapMain(menu):
 	match menu:
 		case 'D-Sorting':
-			DualSorting(pp, pRow=(5000, 2000, 0.05, 2.0, 1.0), pColumn=(50000, 2000, 0.05, 2.0, 1.0))
+			DualSorting(pp, pRow=(1000, 2000, 0.05, 2.0, 1.0), pColumn=(50000, 2000, 0.05, 2.0, 1.0))
 		case 'D-Embedding':
-			vv.RunScript('DualEmbedding.js', pp)
+			#vv.RunScript('DualEmbedding.js', pp)
+			DualEmbedding(pp, pRow=(1000, 2000, 0.05, 2.0, 1.0), pColumn=(50000, 2000, 0.05, 1.5, 1.0))
 		case 'D-Clustering':
 			vv.RunScript('DualClustering.js', pp)
 		case 'Info':
@@ -43,6 +44,7 @@ def DualSorting(hm, pRow, pColumn):
 		return
 	hm.DisableReorder = False
 	nt = hm.GetNumberTable()
+	info = MapInfo(hm.Description)
 
 	if pRow is not None:
 		hm.Title = 'Sorting Rows...'
@@ -51,6 +53,7 @@ def DualSorting(hm, pRow, pColumn):
 		maxFeatures, epochs, ppl, initE, finalE = pRow
 		D = SelectFeatures(nt, maxFeatures)
 		SortTable(D, epochs, ppl, initE, finalE)
+		info.Set('SrtRow', str(pRow))
 	if pColumn is not None:
 		hm.Title = 'Sorting Columns...';
 		hm.SelectionMode = 1;
@@ -58,9 +61,11 @@ def DualSorting(hm, pRow, pColumn):
 		maxFeatures, epochs, ppl, initE, finalE = pColumn
 		D = SelectFeatures(nt.Transpose2(), maxFeatures)
 		SortTable(D, epochs, ppl, initE, finalE)		
+		info.Set('SrtColumn', str(pRow))
 
 	hm.Title = 'Sorted'
 	hm.DisableReorder = True
+	hm.Description = info.Str
 	nt = None
 	D = None
 
@@ -110,6 +115,82 @@ def ShowInfo(pView):
 	info = MapInfo(desc)
 	winTitle = pView.Name + ': ' + pView.Title
 	New.TextPanel(winTitle, info.Text).Show()
+
+def EmbeddingData(mds, D, epochs, ppl, initE, finalE):
+	mds.MdsAlgorithm = 2;
+	mds.SetTrainingData(D);
+	mds.Is3D = False;
+	#mds.Metric = "EuclideanMetric"
+	mds.Metric = "Correlation.Cosine Distance"
+	mds.AutoClustering = False
+	mds.AutoNormalizing = False
+	mds.StagedTraining = False
+	mds.RefreshFreq = 50
+	mds.Repeats = 1
+	mds.GlyphSet = "36 Clusters|||||"
+	mds.MaxLoops = epochs
+	mds.PerplexityRatio = ppl
+	mds.InitialExaggeration = initE
+	mds.FinalExaggeration = finalE
+	mds.Reset().Start()
+	if mds.LoopsTsne != mds.MaxLoops:
+		vv.GuiManager.StopFlag = True
+		vv.Return()
+	return mds.Show2DView().NormalizeView()
+
+def CopyColoring2Heatmap():
+	mp, hm = pp, vv.EventSource.Item
+	info = MapInfo(mp.Description)
+	if hm == None or not info.Has('MapType'):
+		vv.Message('Wrong parent type')
+		return
+	nt = hm.GetNumberTable()
+	spList = nt.RowSpecList if info.MapType == 'Cell Map' else nt.ColumnSpecList	
+	for k, b in enumerate( mp.BodyList ):
+		spList[k].Type = b.Type
+	hm.Redraw()
+	
+def LinkToHeatMap(mp, hm, isCellMap, info):
+	hmSZ = hm.Width
+	if isCellMap:
+		mp.TheForm.SetBounds(hm.TheForm.Left - hmSZ + 15, hm.TheForm.Top, hmSZ, hmSZ)
+		mp.BackgroundColor = New.Color(0, 0, 64)
+	else:
+		mp.TheForm.SetBounds(hm.TheForm.Left, hm.TheForm.Top - hmSZ + 8, hmSZ, hmSZ);
+		mp.BackgroundColor = New.Color(0, 64, 64);
+	mp.Refresh()
+	mp.Title = "Cell Map" if isCellMap else "Gene Map"
+	mp.AddContextMenu("Atlas/Capture Coloring", "CopyColoring2Heatmap()", hm, None, "Push the cluster coloring to the heatmap")
+	mpType = 'Cell Map' if isCellMap else 'Gene Map'
+	info.Set('MapType', mpType)
+	mp.Description = info.Str
+
+def DualEmbedding(hm, pRow, pColumn):
+	hm.TheForm.SetBounds(1000, 700, 600, 600)
+	nt = hm.GetNumberTable();
+	mds = New.MdsCluster().Show()
+	if pRow is not None:
+		hm.RowHeaderPalette = "36 Clusters"
+		hm.Redraw()
+		hm.Title = 'Creating cell embedding...'
+		maxFeatures, epochs, ppl, initE, finalE = pRow
+		D = SelectFeatures(nt, maxFeatures)
+		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE)
+		info = MapInfo().Set('EmbRow', str(pRow))
+		LinkToHeatMap(mp, hm, True, info)
+	if pColumn is not None:
+		hm.ColumnHeaderPalette = "36 Clusters"
+		hm.Redraw()
+		hm.Title = 'Creating gene embedding...';
+		maxFeatures, epochs, ppl, initE, finalE = pColumn
+		D = SelectFeatures(nt.Transpose2(), maxFeatures)
+		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE)
+		info = MapInfo().Set('EmbRow', str(pRow))
+		LinkToHeatMap(mp, hm, False, info)
+	mds.Close()
+
+#-------------------------------------------------------------------------------------
+
 
 
 HeatMapMain(vv.EventSource.Item)
