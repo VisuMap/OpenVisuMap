@@ -8,7 +8,8 @@ def HeatMapMain(menu):
 			#vv.RunScript('DualEmbedding.js', pp)
 			DualEmbedding(pp, pRow=(1000, 2000, 0.05, 2.0, 1.0), pColumn=(50000, 2000, 0.05, 1.5, 1.0))
 		case 'D-Clustering':
-			vv.RunScript('DualClustering.js', pp)
+			#vv.RunScript('DualClustering.js', pp)
+			DualClustering(pp, pRow=(0, 40, 15, 2.0, 30), pColumn=(0, 40, 15, 3.0, 30) )
 		case 'Info':
 			ShowInfo(pp)
 
@@ -155,9 +156,11 @@ def LinkToHeatMap(mp, hm, isCellMap, info):
 	if isCellMap:
 		mp.TheForm.SetBounds(hm.TheForm.Left - hmSZ + 15, hm.TheForm.Top, hmSZ, hmSZ)
 		mp.BackgroundColor = New.Color(0, 0, 64)
+		hm.Tag[0] = mp
 	else:
 		mp.TheForm.SetBounds(hm.TheForm.Left, hm.TheForm.Top - hmSZ + 8, hmSZ, hmSZ);
 		mp.BackgroundColor = New.Color(0, 64, 64);
+		hm.Tag[1] = mp
 	mp.Refresh()
 	mp.Title = "Cell Map" if isCellMap else "Gene Map"
 	mp.AddContextMenu("Atlas/Capture Coloring", "CopyColoring2Heatmap()", hm, None, "Push the cluster coloring to the heatmap")
@@ -169,6 +172,7 @@ def DualEmbedding(hm, pRow, pColumn):
 	hm.TheForm.SetBounds(1000, 700, 600, 600)
 	nt = hm.GetNumberTable();
 	mds = New.MdsCluster().Show()
+	hm.Tag = [None, None]
 	if pRow is not None:
 		hm.RowHeaderPalette = "36 Clusters"
 		hm.Redraw()
@@ -188,6 +192,30 @@ def DualEmbedding(hm, pRow, pColumn):
 		info = MapInfo().Set('EmbRow', str(pRow))
 		LinkToHeatMap(mp, hm, False, info)
 	mds.Close()
+
+def DoClustering(map, hm, pSettings):
+	alg, minSize, minPoint, epsilon, dbMinPoint = pSettings
+	map.AddContextMenu("Atlas/Capture Coloring", "CopyColoring2Heatmap()", hm, None, 'Push the cluster coloring to the heatmap')	
+	map.ClusterAlgorithm = alg   	# 0: for DBSCAN; 1: for HDBSCAN.
+	map.EpsilonRatio = epsilon    		# for DBSCAN
+	map.MinClusterPoint = dbMinPoint	# for DBSCAN
+	map.MinClusterSize = minSize 		# for HDBSCAN
+	map.HdMinPoints = minPoint	 		# for HDBSCAN
+	map.ClusterNoise = True	
+	map.DoDataClustering()
+	return map.Clusters
+
+def DualClustering(hm, pRow, pColumn):
+	nt = hm.GetNumberTable()
+	cellMap, geneMap = hm.Tag
+
+	rowClusters = DoClustering(cellMap, hm, pRow)
+	cellMap.ClickMenu("Atlas/Capture Coloring")
+
+	colClusters = DoClustering(geneMap, hm, pColumn)
+	geneMap.ClickMenu("Atlas/Capture Coloring")
+
+	hm.Title = "Row/Column Clusters: " + str(rowClusters) + "/" + str(colClusters)
 
 #-------------------------------------------------------------------------------------
 
