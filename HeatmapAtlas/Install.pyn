@@ -4,8 +4,6 @@ def InstallMain():
 	icon = vv.CurrentScriptDirectory + "\\MenuIcon.png"
 
 	for (label, script, view, img) in [
-		("Dual Sorting", "DualSorting.js", "HeatMap", icon),
-		("Dual Embedding", "DualEmbedding.js", "HeatMap", None),
 		("Dual Clustering", "DualClustering.js", "HeatMap", None),
 		("Active Genes", "ShowActiveGenes.js", "HeatMap", None),
 		("Active Cells", "ShowActiveCells.js", "HeatMap", None),
@@ -27,7 +25,6 @@ def InstallMain():
 		("Imp Cnt Mtx (*.mtx.gz)", None, "MatrixRead.pyn"),
 		("Show Maps", None, "ShowMaps.js")]:
 		mgr.SetCustomButton("Atlas/" + label, img, script)
-
 
 	if vv.ScriptDirectories.find( vv.CurrentScriptDirectory ) < 0:
 		vv.ScriptDirectories += ";" + vv.CurrentScriptDirectory
