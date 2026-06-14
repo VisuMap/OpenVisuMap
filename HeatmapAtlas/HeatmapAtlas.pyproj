@@ -27,7 +27,7 @@
     <Content Include="GeneMonitor.pyn" />
     <Content Include="H5adRead.pyn" />
     <Content Include="H5Read.pyn" />
-    <Content Include="Install.js" />
+    <Content Include="Install.pyn" />
     <Content Include="LoomRead.pyn" />
     <Content Include="MapFolding.js" />
     <Content Include="MapMorph.js" />
@@ -41,7 +41,7 @@
     <Content Include="ShowMaps.js" />
     <Content Include="ShowMeanVector.js" />
     <Content Include="StagedTraining.js" />
-    <Content Include="UnInstall.js" />
+    <Content Include="UnInstall.pyn" />
     <Content Include="VariationTracing.js" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

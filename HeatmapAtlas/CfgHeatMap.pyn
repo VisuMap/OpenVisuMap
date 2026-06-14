@@ -1,4 +1,4 @@
-#MenuLabels D-Sorting D-Embedding D-Clustering ActiveGenes ActiveCells Info
+#MenuLabels D-Sorting D-Embedding D-Clustering ActiveGenes ActiveCells SaveData SaveHeatmap SaveDsHm ShowMean Info
 
 def HeatMapMain(menu):
 	match menu:
@@ -16,10 +16,114 @@ def HeatMapMain(menu):
 		case 'ActiveCells':
 			#vv.RunScript('ShowActiveCells.js', pp)
 			ShowActiveCells(pp)
+		case 'SaveData':
+			#vv.RunScript('SaveDataset.js', pp)
+			SaveHeatmapComplex(pp)
+		case 'SaveHeatmap':
+			#vv.RunScript('SaveSortedHeatmap.js', pp)
+			SaveSortedHeatmap(pp)
+		case 'SaveDsHm':
+			#vv.RunScript('!vv.Import('AtlasHelp.js');SaveDsHm(pp);', pp)
+			SaveDsHm(pp)
+		case 'ShowMean':
+			#vv.RunScript('ShowMeanVector.js', pp)
+			ShowHeatmapMean(pp)
 		case 'Info':
 			ShowInfo(pp)
 
 #---------------------------------------------------
+
+def UpdateMeanView():
+	hm = pp.Tag
+	nt =  hm.GetSelectedNumberTable()
+	if (nt.Rows * nt.Columns == 0)  or (nt.Columns != pp.ItemList.Count):
+		return
+	dt = nt.ColumnMean()
+	pp.ItemList.Clear()
+	pp.ItemList.AddRange(dt)
+	pp.Redraw()
+	pp.Title = "Selected rows: " + str(nt.Rows)
+
+def ShowHeatmapMean(hm):
+	bv = New.BarView(hm.GetSelectedNumberTable())
+	bv.Horizontal = False
+	bv.AggregationMethod = 0
+	bv.AggregationOrientation = 0
+	bv.Show()
+	bv.Tag = hm	
+	vv.EventManager.OnItemsSelected("UpdateMeanView()", bv)
+
+
+def SaveHeatmapComplex(hm):
+	vv.Message('Hi')
+
+
+def LoadSortedHeatmap():
+	tbItem = vv.EventSource.Item;
+	vs = New.StringSplit(tbItem.Tag);
+
+	hmId = tbItem.Id if (tbItem.Name == "") else tbItem.Name
+
+	fs = New.StringSplit(vs[0], '&')
+	if fs.Count == 1:
+		dsName = vv.Dataset.Name
+		rows = int(fs[0])
+
+	if fs.Count >= 2:
+		dsName = fs[0]
+		rows = int(fs[1])
+
+	columns = vs.Count - 1 - rows
+	rowIds = vs.GetRange(1, rows)
+	colIds = vs.GetRange(1 + rows, columns)
+	if dsName != vv.Dataset.Name:
+		if not vv.Folder.OpenDataset(dsName):
+			vv.Message('Cannot open dataset "' + dsName + '".')
+			vv.Return()
+	nt = vv.GetNumberTableView(False)
+	nt = nt.SelectRowsById2(rowIds)
+	nt = nt.SelectColumnsById2(colIds, 0)
+	hm = New.HeatMap(nt)
+	hm.SelectionMode = 2
+	if fs.Count >= 4:
+		hm.Width = int(fs[2])
+		hm.Height = int(fs[3])
+	hm.Tag = tbItem;
+	hm.Title = hmId + ": Sorted table; " + dsName + ": " + str(rows) + "x" + str(columns)
+	hm.Show2()
+
+def SaveSortedHeatmap(hm):
+	nt = pp.GetNumberTable()
+	info = []
+	info.append(vv.Dataset.Name+'&'+str(nt.Rows)+'&'+str(pp.Width)+'&'+str(pp.Height))
+	for rs in nt.RowSpecList:
+		info.append(rs.Id)
+	for cs in nt.ColumnSpecList:
+		info.append(cs.Id)
+
+	atList = vv.FindFormList("Atlas")
+	at = atList[0] if atList.Count>0 else New.Atlas().Show()
+	itemCount = at.Items.Count
+
+	ii = at.NewRectItem()
+	ii.Name = vv.Dataset.Name[:8]
+	ii.Tag = '|'.join(info)
+	ii.Top = 50*(itemCount % 15)
+	ii.Left = 25
+	ii.FillColor = New.Color('Green')
+	ii.Filled = True
+	ii.IsEllipse = False
+	ii.Opacity = 0.75
+	ii.LabelStyle = 3
+	ii.IconHeight = 30
+	ii.IconWidth = 50
+	ii.Script = "LoadSortedHeatmap()"
+	
+	at.RedrawItem(ii)
+	return ii.Id
+
+def SaveDsHm(hm):
+	vv.Message('Hi')
 
 def SelectFeatures(nt, featureCount):
 	if featureCount >= nt.Columns:
