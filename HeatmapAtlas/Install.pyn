@@ -5,8 +5,7 @@ def InstallMain():
 
 	for (label, script, view, img) in [
 		("Merge DS", "!vv.Import('AtlasHelp.js');ConcatDatasets(SelectedDs(), 5000, None)", "Atlas", None),
-		("Compare Maps", "MapMorph.js", "MainForm|MapSnapshot|D3dRender", icon),
-		("Variation Tracing", "VariationTracing.js", "MainForm", None),
+		("Variation Tracing", "VariationTracing.pyn", "MainForm", None),
 		("Merge Maps", "CascadingTsne.pyn", "Atlas", None)]:
 		mgr.SetCustomMenu("Atlas/" + label, True, script, view, img)
 
@@ -15,8 +14,7 @@ def InstallMain():
 		("Import H5AD", None, "H5adRead.pyn"),
 		("Import H5", None, "H5Read.pyn"),
 		("Import VCF", None, "VcfRead.pyn"),
-		("Imp Cnt Mtx (*.mtx.gz)", None, "MatrixRead.pyn"),
-		("Show Maps", None, "ShowMaps.js")]:
+		("Imp Cnt Mtx (*.mtx.gz)", None, "MatrixRead.pyn")]:
 		mgr.SetCustomButton("Atlas/" + label, img, script)
 
 	if vv.ScriptDirectories.find( vv.CurrentScriptDirectory ) < 0:

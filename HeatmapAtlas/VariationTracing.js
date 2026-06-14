@@ -25,7 +25,7 @@ var csFct = New.CsObject(`
 	}
 `);
 
-//var ntBase = vv.GetNumberTableView(true);
+var ntBase = vv.GetNumberTableView(true);
 var refBase = ntBase.SelectRowsByIdView(vv.SelectedItems).ColumnMean();
 
 var bv = New.BarView(refBase);

@@ -1,4 +1,4 @@
-#MenuLabels - Monitor Clustering LabelAll CaptureMaps EmbedSelected ShowData 3D-Expression ShowGraph ShowGeneTable ShowSuperCluster
+#MenuLabels Monitor Clustering LabelAll CaptureMaps EmbedSelected ShowData 3D-Expression ShowGraph ShowGeneTable ShowSuperCluster
 vv.Import('GeneMonitor.pyn')
 thresholdLevel = 1.0
 match vv.EventSource.Item:

@@ -1,0 +1,37 @@
+#VariationTracing.pyn
+#Display the variation of selected cells on cell map.
+
+csFct = New.CsObject('''
+	public void UpdateValues(IBarView bv, IList<string> selected, IList<IValueItem> refBase, INumberTable ntBase) {
+		if (vv.EventSource.Item == bv.TheForm) // data selected from the bar view.
+			return;
+		bv.Title = "Data points selected: " + vv.SelectedItems.Count;
+		var htSelected = new HashSet<string>(selected);
+		var rsList = ntBase.RowSpecList;
+		var M = ntBase.Matrix;
+		double[][] selectedRows = Enumerable.Range(0, ntBase.Rows)
+			.Where(row=>htSelected.Contains(rsList[row].Id))
+			.Select(row=>M[row] as double[]).ToArray();
+		double[] colMean = VisuMap.MathUtil.ColumnMean(selectedRows);
+		if ( colMean == null ) 
+			colMean = new double[ntBase.Columns];
+		for(int col=0; col<ntBase.Columns; col++)
+			bv.ItemList[col].Value = colMean[col] - refBase[col].Value;
+		bv.Redraw();	
+	}
+''')
+
+def StartVariationTraching():
+	ntBase = vv.GetNumberTableView(True);
+	refBase = ntBase.SelectRowsByIdView(vv.SelectedItems).ColumnMean();	
+	bv = New.BarView(refBase)
+	bv.Tag = [refBase, ntBase]
+	bv.ReadOnly = True
+	bv.AutoScaling = True
+	bv.DisableReorder = True
+	bv.Horizontal = False
+	bv.BaseLineType = 0
+	bv.Show()	
+	bv.AddEventHandler("ItemsSelected", 'csFct.UpdateValues(pp, vv.SelectedItems, pp.Tag[0], pp.Tag[1])')
+
+StartVariationTraching()
