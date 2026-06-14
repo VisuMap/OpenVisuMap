@@ -1,25 +1,25 @@
 # HeatmapHelp.pyn
 # Functions used by Heatmap view
 #
-def UpdateMeanView():
+def UpdateMeanView(bv):
 	hm = pp.Tag
 	nt =  hm.GetSelectedNumberTable()
-	if (nt.Rows * nt.Columns == 0)  or (nt.Columns != pp.ItemList.Count):
+	if (nt.Rows * nt.Columns == 0)  or (nt.Columns != bv.ItemList.Count):
 		return
 	dt = nt.ColumnMean()
-	pp.ItemList.Clear()
-	pp.ItemList.AddRange(dt)
-	pp.Redraw()
-	pp.Title = "Selected rows: " + str(nt.Rows)
+	bv.ItemList.Clear()
+	bv.ItemList.AddRange(dt)
+	bv.Redraw()
+	bv.Title = f'Selected rows: {nt.Rows}'
 
 def ShowHeatmapMean(hm):
 	bv = New.BarView(hm.GetSelectedNumberTable())
 	bv.Horizontal = False
 	bv.AggregationMethod = 0
 	bv.AggregationOrientation = 0
-	bv.Show()
 	bv.Tag = hm	
-	vv.EventManager.OnItemsSelected("UpdateMeanView()", bv)
+	bv.Show()
+	vv.EventManager.OnItemsSelected("UpdateMeanView(pp)", bv)
 
 
 def SaveHeatmapComplex(hm):
