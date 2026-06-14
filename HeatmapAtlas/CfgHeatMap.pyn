@@ -1,4 +1,4 @@
-#MenuLabels D-Sorting D-Embedding D-Clustering Info
+#MenuLabels D-Sorting D-Embedding D-Clustering ActiveGenes ActiveCells Info
 
 def HeatMapMain(menu):
 	match menu:
@@ -10,6 +10,12 @@ def HeatMapMain(menu):
 		case 'D-Clustering':
 			#vv.RunScript('DualClustering.js', pp)
 			DualClustering(pp, pRow=(0, 40, 15, 2.0, 30), pColumn=(0, 40, 15, 3.0, 30) )
+		case 'ActiveGenes':
+			#vv.RunScript('ShowActiveGenes.js', pp)
+			ShowActiveGenes(pp)
+		case 'ActiveCells':
+			#vv.RunScript('ShowActiveCells.js', pp)
+			ShowActiveCells(pp)
 		case 'Info':
 			ShowInfo(pp)
 
@@ -217,8 +223,183 @@ def DualClustering(hm, pRow, pColumn):
 
 	hm.Title = "Row/Column Clusters: " + str(rowClusters) + "/" + str(colClusters)
 
-#-------------------------------------------------------------------------------------
+def NewExpressionMap(parent, winTitle):
+	vv.SelectedItems = None;
+	if parent.Name == "D3dRender":
+		exMap = parent.NewWindow()
+	else:
+		exMap = parent.NewSnapshot()
+		exMap.ShowMarker(False)
+	exMap.GlyphSet="Ordered 64"
+	exMap.GlyphOpacity = 0.75
+	exMap.GlyphSize = 1.0
+	exMap.Width = parent.Width
+	exMap.Height = parent.Height
+	exMap.Title = winTitle
+	return exMap
 
+def FlushMarkers(map1, map2, map3):
+	if map1.Name == "MapSnapshot": 
+		if map2.Name == "MapSnapshot":
+			map2.ShowMarker(False)
+		if map3.Name == "MapSnapshot":
+			map3.ShowMarker(False)
+		for i in range(4):
+			map1.ShowMarker(False);
+			vv.Sleep(250)
+			map1.ShowMarker(True)
+			vv.Sleep(250)
+
+def ShowActiveGenes(hm):
+	expTable = hm.GetNumberTable()
+	cellMap, geneMap = hm.Tag
+	sp = NewExpressionMap(geneMap, "Active Genes")
+	sp.Top = geneMap.Top
+	sp.Left = cellMap.Left	
+	bv = New.BarView(expTable.SelectRows(New.IntArray(0)))
+	bv.Show()
+	bv.Top = hm.Top + hm.Height - 8
+	bv.Left = hm.Left + 24
+	bv.Width = hm.Width - 24
+	bv.Height = int(sp.Height/2)
+	bv.AutoScaling = True
+	bv.Horizontal = False
+	bv.Title = "Cell Expression Profile"
+	sp.Tag = bv
+	bv.Redraw()
+
+	hm.SelectionMode = 0;
+	vv.EventManager.OnItemsSelected("csHM.ShowActiveGenes(vv.EventSource.Item, pp, vv.EventSource.Argument)", hm, sp)
+	FlushMarkers(cellMap, geneMap, sp)
+
+def ShowActiveCells(hm):
+	expTable = hm.GetNumberTable()
+	cellMap, geneMap = hm.Tag
+	sp = NewExpressionMap(cellMap, "Active Cells")
+	sp.Top = hm.Top - hm.Height + 8
+	sp.Left = hm.Left - hm.TheForm.ClientSize.Width
+	bv = New.BarView(expTable.SelectColumns( New.IntArray(0) ))
+	bv.Show()
+	bv.Top = hm.Top + 14
+	bv.Left = hm.Left + hm.TheForm.ClientSize.Width + 1
+	bv.Width = int(hm.Width*2/3)
+	bv.Height = sp.Height - 10
+	bv.AutoScaling = False
+	bv.Horizontal = True
+	bv.Title = "Gene Expression Profile"
+	bv.BaseLineType = 4
+	csHM.SetRange(expTable, bv)
+	bv.Redraw()
+	
+	sp.Tag = bv
+	hm.SelectionMode = 1
+	vv.EventManager.OnItemsSelected("csHM.ShowActiveCells(vv.EventSource.Item, pp, vv.EventSource.Argument)", hm, sp)
+	FlushMarkers(geneMap, cellMap, sp)
+
+csHM = New.CsObject('''
+	public void ShowActiveGenes(IList<string> selectedItems, IHeatMap hm, IForm map) {
+		if ( (selectedItems==null) || (selectedItems.Count==0) )
+			return;
+		INumberTable expTable = hm.GetNumberTable();
+		INumberTable selected = expTable.SelectRowsById(selectedItems);
+		if ( selected.Rows == 0 )
+			return;
+		var colMean = selected.ColumnMean().Select(it=>it.Value).ToArray();
+
+		var bv = map.Tag as IBarView;
+		if (bv.TheForm.IsDisposed || map.TheForm.IsDisposed) return;
+		bool is2D = (map.Name == "MapSnapshot");
+		var bList = is2D ? (map as IMapSnapshot).BodyList : (map as IMap3DView).BodyList;
+
+		int N = bList.Count;
+		double hiThreasHold = 0.75*colMean.Max();
+		for(int i=0; i<N; i++) {
+			double v = colMean[i];
+			bv.ItemList[i].Value = v;
+			bv.ItemList[i].Group = (short)((v>hiThreasHold)?0:4);
+		}
+
+		for(int i=0; i<N; i++)
+			colMean[i] *= colMean[i];
+		double minExpr = colMean.Min();
+		double maxExpr = colMean.Max();
+		double stepSize = (maxExpr - minExpr)/64;
+		if ( stepSize <= 0 )
+			return;
+		for(int i=0; i<N; i++) 
+			bList[i].Type = (short) ( (colMean[i] - minExpr)/stepSize );
+
+		bv.Redraw();
+		if ( is2D )
+			(map as IMapSnapshot).RedrawBodiesType();
+		else
+			(map as IMap3DView).Redraw();
+	}
+
+	public void ShowActiveCells(IList<string> selectedItems, IHeatMap hm, IForm map) {
+		if ( (selectedItems==null) || (selectedItems.Count==0) )
+			return;
+		INumberTable expTable = hm.GetNumberTable();
+		INumberTable selected = expTable.SelectColumnsById(selectedItems);
+		if ( selected.Columns == 0 )
+			return;
+		var bv = map.Tag as IBarView;
+		if (bv.TheForm.IsDisposed || map.TheForm.IsDisposed) return;
+		bool is2D = (map.Name == "MapSnapshot");
+		var bList = is2D ? (map as IMapSnapshot).BodyList : (map as IMap3DView).BodyList;
+
+		var items = bv.ItemList;
+		double overflow = 0;
+		int overCount = 0;
+		for(int row=0; row<selected.Rows; row++) {
+			double rowMean = 0;
+			double[] R = (double[])selected.Matrix[row];
+			for(int col=0; col<selected.Columns; col++)
+				rowMean += R[col];
+			rowMean /= selected.Columns;
+			items[row].Value = rowMean;
+			if ( rowMean > bv.UpperLimit ) {
+				overflow += rowMean;
+				overCount++;
+			}
+		}
+		if ( overCount > (int)(0.02 * selected.Rows) )
+			bv.UpperLimit = overflow/overCount;
+
+		bv.AutoScaling = true;
+		double hiMarker = 0.75 * bv.MaxValue();
+		for(int i=0; i<items.Count; i++)
+			items[i].Group = (short)( (items[i].Value<hiMarker) ? 4 : 0);
+
+		double minExpr = bv.LowerLimit;
+		double maxExpr = bv.UpperLimit;
+		double stepSize = (maxExpr - minExpr)/64;
+		if ( stepSize <= 0 )
+			return;
+		for(int row=0; row<bList.Count; row++)
+			bList[row].Type = (short) ( (items[row].Value - minExpr)/stepSize);
+
+		bv.Redraw();
+		if ( is2D )
+			(map as IMapSnapshot).RedrawBodiesType();
+		else
+			(map as IMap3DView).Redraw();
+	}
+
+	public void SetRange(INumberTable expTable, IBarView bv) {
+		double[] colMean = expTable.ColumnMean().Select(it=>it.Value).ToArray();
+		Array.Sort(colMean);
+		Array.Reverse(colMean);
+		int n = (int)(0.15 * colMean.Length);		
+		double sum = 0;
+		for(int i=0; i<n; i++)
+			sum += colMean[i] * colMean[i];
+		bv.UpperLimit = 3* Math.Sqrt(sum/n);
+		bv.LowerLimit = 0;		
+	}
+''')
+
+#-------------------------------------------------------------------------------------
 
 
 HeatMapMain(vv.EventSource.Item)

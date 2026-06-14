@@ -4,8 +4,8 @@ def InstallMain():
 	icon = vv.CurrentScriptDirectory + "\\MenuIcon.png"
 
 	for (label, script, view, img) in [
-		("Active Genes", "ShowActiveGenes.js", "HeatMap", None),
-		("Active Cells", "ShowActiveCells.js", "HeatMap", None),
+		#("Active Genes", "ShowActiveGenes.js", "HeatMap", None),
+		#("Active Cells", "ShowActiveCells.js", "HeatMap", None),
 		("Save Data", "SaveDataset.js", "HeatMap", None),
 		("Save HeatMap", "SaveSortedHeatmap.js", "HeatMap", None),
 		("Save DsHm", "!vv.Import('AtlasHelp.js');SaveDsHm(pp);", "HeatMap", None),
