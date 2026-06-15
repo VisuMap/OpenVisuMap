@@ -86,18 +86,27 @@ def LoadSortedHeatmap():
 	hm.Width = int(info.WinWidth)
 	hm.Height = int(info.WinHeight)
 	hm.Title = hmId + ": Sorted table; " + dsName + ": " + str(rows) + "x" + str(columns)
-	hm.Tag = [None, None]
 	hm.Show2()
 
+	cellMap, geneMap = None, None
 	if info.Has('CellMpId'):
 		mpItem = atlas.FindItemById(info.CellMpId)
 		if mpItem is not None:
-			hm.Tag[0] = mpItem.Open()
+			cellMap = mpItem.Open()
+			cellMap.Tag = hm
 	if info.Has('GeneMpId'):
 		mpItem = atlas.FindItemById(info.GeneMpId)
 		if mpItem is not None:
-			hm.Tag[1] = mpItem.Open()
+			geneMap = mpItem.Open()
+			geneMap.Tag = hm
+	hm.Tag = [cellMap, geneMap]
 	LayoutMaps(hm, hm.Tag[0], hm.Tag[1])
+	hm.OnClose('CloseSortedHeatmap(pp)')
+
+def CloseSortedHeatmap(hm):
+	for mp in hm.Tag:
+		if mp is not None:
+			mp.Close()
 
 def LayoutMaps(hm, cellMap, geneMap):
 	sz = 600
@@ -171,7 +180,8 @@ def SaveSortedHeatmap(hm):
 def SelectFeatures(nt, featureCount):
 	if featureCount >= nt.Columns:
 		return nt.Clone()
-	return nt.SelectColumns([col for col in range(featureCount)])
+	columns = nt.Columns
+	return nt.SelectColumns([(col*997)%columns  for col in range(featureCount)])
 
 def SortTable(D, epochs, ppl, initE, finalE):
 	D.Centralize() # needed only for cosine metric.
@@ -252,7 +262,7 @@ def EmbeddingData(mds, D, epochs, ppl, initE, finalE):
 	return mds.Show2DView().NormalizeView()
 
 def CopyColoring2Heatmap():
-	mp, hm = pp, vv.EventSource.Item
+	mp, hm = pp, pp.Tag
 	info = MapInfo(mp.Description)
 	if hm == None or not info.Has('MapType'):
 		vv.Message('Wrong parent type')
@@ -275,10 +285,10 @@ def LinkToHeatMap(mp, hm, isCellMap, info):
 		hm.Tag[1] = mp
 	mp.Refresh()
 	mp.Title = "Cell Map" if isCellMap else "Gene Map"
-	mp.AddContextMenu("Atlas/Capture Coloring", "CopyColoring2Heatmap()", hm, None, "Push the cluster coloring to the heatmap")
 	mpType = 'Cell Map' if isCellMap else 'Gene Map'
 	info.Set('MapType', mpType)
 	mp.Description = info.Str
+	mp.Tag = hm
 
 def DualEmbedding(hm, pRow, pColumn):
 	hm.TheForm.SetBounds(1000, 700, 600, 600)
@@ -307,7 +317,6 @@ def DualEmbedding(hm, pRow, pColumn):
 
 def DoClustering(map, hm, pSettings):
 	alg, minSize, minPoint, epsilon, dbMinPoint = pSettings
-	map.AddContextMenu("Atlas/Capture Coloring", "CopyColoring2Heatmap()", hm, None, 'Push the cluster coloring to the heatmap')	
 	map.ClusterAlgorithm = alg   	# 0: for DBSCAN; 1: for HDBSCAN.
 	map.EpsilonRatio = epsilon    		# for DBSCAN
 	map.MinClusterPoint = dbMinPoint	# for DBSCAN

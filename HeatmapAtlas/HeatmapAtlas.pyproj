@@ -19,31 +19,23 @@
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="AtlasHelp.js" />
     <Content Include="AtlasHelp.pyn" />
     <Content Include="CascadingTsne.pyn" />
-    <Content Include="DualClustering.js" />
-    <Content Include="DualEmbedding.js" />
+    <Content Include="CfgAtlas.pyn" />
+    <Content Include="CfgGroupManager.pyn" />
+    <Content Include="CfgHeatMap.pyn" />
+    <Content Include="CfgMainForm.pyn" />
+    <Content Include="CfgMapSnapshot.pyn" />
     <Content Include="GeneMonitor.pyn" />
     <Content Include="H5adRead.pyn" />
     <Content Include="H5Read.pyn" />
     <Content Include="HeatmapHelp.pyn" />
     <Content Include="Install.pyn" />
     <Content Include="LoomRead.pyn" />
-    <Content Include="MapFolding.js" />
-    <Content Include="MapMorph.js" />
     <Content Include="MatrixRead.pyn" />
-    <Content Include="MenuCfg.pyn" />
     <Content Include="MenuIcon.png" />
     <Content Include="Package.bat" />
-    <Content Include="SaveDataset.js" />
-    <Content Include="ShowActiveCells.js" />
-    <Content Include="ShowActiveGenes.js" />
-    <Content Include="ShowMaps.js" />
-    <Content Include="ShowMeanVector.js" />
-    <Content Include="StagedTraining.js" />
     <Content Include="UnInstall.pyn" />
-    <Content Include="VariationTracing.js" />
     <Content Include="VariationTracing.pyn" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

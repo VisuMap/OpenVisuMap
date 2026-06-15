@@ -1,27 +1,25 @@
 #MenuLabels D-Sorting D-Embedding D-Clustering ActiveGenes ActiveCells SaveHeatmap ShowMean Info
 vv.Import('HeatmapHelp.pyn')
 
+ctrPressed = vv.ModifierKeys.ControlPressed
+
 def HeatMapMain(menu):
 	match menu:
 		case 'D-Sorting':
 			DualSorting(pp, pRow=(1000, 2000, 0.05, 2.0, 1.0), pColumn=(50000, 2000, 0.05, 2.0, 1.0))
+			if ctrPressed:
+				HeatMapMain('D-Embedding')		
 		case 'D-Embedding':
-			#vv.RunScript('DualEmbedding.js', pp)
-			DualEmbedding(pp, pRow=(1000, 2000, 0.05, 2.0, 1.0), pColumn=(50000, 2000, 0.05, 1.5, 1.0))
+			DualEmbedding(pp, pRow=(5000, 2000, 0.05, 2.0, 1.0), pColumn=(15000, 2000, 0.05, 1.5, 1.0))
 		case 'D-Clustering':
-			#vv.RunScript('DualClustering.js', pp)
 			DualClustering(pp, pRow=(0, 40, 15, 2.0, 30), pColumn=(0, 40, 15, 3.0, 30) )
 		case 'ActiveGenes':
-			#vv.RunScript('ShowActiveGenes.js', pp)
 			ShowActiveGenes(pp)
 		case 'ActiveCells':
-			#vv.RunScript('ShowActiveCells.js', pp)
 			ShowActiveCells(pp)
 		case 'SaveHeatmap':
-			#vv.RunScript('SaveSortedHeatmap.js', pp)
 			SaveSortedHeatmap(pp)
 		case 'ShowMean':
-			#vv.RunScript('ShowMeanVector.js', pp)
 			ShowHeatmapMean(pp)
 		case 'Info':
 			ShowInfo(pp)

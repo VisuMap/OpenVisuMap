@@ -1,4 +1,5 @@
-#MenuLabels - Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap ShowSuperCluster ShowGraph
+#MenuLabels Info Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap \
+# ShowSuperCluster ShowGraph "Capture Coloring"
 vv.Import('GeneMonitor.pyn')
 thresholdLevel = 1.0
 match vv.EventSource.Item:
@@ -26,3 +27,9 @@ match vv.EventSource.Item:
 		ShowSuperClusters(pp)
 	case 'ShowGraph':
 		ShowGraph(pp, showEdges=True, showPilotes=False)
+	case 'Info':
+		ShowInfo(pp)
+	case 'Capture Coloring':  
+		# copy the cluster coloring to the linked heatmap's rows or columns depending on the map type.
+		CopyColoring2Heatmap()
+		
