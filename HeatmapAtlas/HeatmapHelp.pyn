@@ -147,8 +147,8 @@ def SaveSortedHeatmap(hm):
 
 	ii = at.NewRectItem()
 	ii.Name = vv.Dataset.Name[:8]
-	ii.Top = 20*(itemCount % 15)
-	ii.Left = 20*(itemCount % 15)
+	ii.Top = 20*(itemCount % 15 + 1)
+	ii.Left = ii.Top
 	ii.FillColor = New.Color('Green')
 	ii.Filled = True
 	ii.IsEllipse = False
@@ -165,13 +165,16 @@ def SaveSortedHeatmap(hm):
 	cellMap = CheckForm(cellMap)
 	geneMap = CheckForm(geneMap)	
 
+	itemList = [ ii ]
 	if cellMap is not None:
 		mp = at.NewSnapshotItem(cellMap)
 		mp.Top = ii.Top + 5
 		mp.Left = ii.Left + 5
 		mp.IconWidth = 30
 		mp.IconHeight = 30
+		mp.Script = " "
 		info.Set('CellMpId', mp.Id)
+		itemList.append(mp)
 		at.RedrawItem(mp, False)
 	if geneMap is not None:
 		mp = at.NewSnapshotItem(geneMap)
@@ -179,10 +182,13 @@ def SaveSortedHeatmap(hm):
 		mp.Left = ii.Left + 10
 		mp.IconWidth = 30
 		mp.IconHeight = 30
+		mp.Script = " "
+		itemList.append(mp)
 		info.Set('GeneMpId', mp.Id)
 		at.RedrawItem(mp, False)
 	ii.Tag = info.Str
 	at.BringToFront([ii])
+	at.GroupItems(itemList)
 
 def SelectFeatures(nt, featureCount):
 	if featureCount >= nt.Columns:

@@ -6,7 +6,7 @@ ctrPressed = vv.ModifierKeys.ControlPressed
 def HeatMapMain(menu):
 	match menu:
 		case 'D-Sorting':
-			#DualSorting(pp,                                     pColumn=(15000, 2000, 0.05, 2.0, 1.0))
+			#DualSorting(pp,                                     pColumn=(25000, 4000, 0.05, 8.0, 1.0))
 			#DualSorting(pp, pRow=(5000, 2000, 0.05, 2.0, 1.0))
 			DualSorting(pp, pRow=(5000, 2000, 0.05, 2.0, 1.0), pColumn=(15000, 2000, 0.05, 2.0, 1.0))
 			if ctrPressed:
