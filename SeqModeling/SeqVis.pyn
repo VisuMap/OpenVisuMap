@@ -127,12 +127,15 @@ public void MovingWindowVarianceX(dynamic cs, IList<IBody> bList, int stepSize, 
 # protein embedding map information
 class MapInfo():
 	def __init__(self, inits = None):
-		if inits == None:
+		self.form = None
+		if inits is None:
 			return
-		if isinstance(inits, str):
+		elif isinstance(inits, str):
 			self.ParseStr(inits)
 		elif isinstance(inits, dict):
 			self.Add(inits)
+		elif str(inits).startswith('VisuMap.Script.'):
+			self.form = inits
 	def Set(self, name, value):
 		setattr(self, name, value)
 		return self
@@ -142,9 +145,6 @@ class MapInfo():
 		return hasattr(self, attrName)
 	def Add(self, aList):
 		self.__dict__.update( aList )
-		return self
-	def Init(self, epochs, is3D, initExag, finalExag, ppl):
-		self.Add({'Epochs':epochs, 'Is3D':is3D, 'InitE':initExag, 'FinalE':finalExag, 'PP':ppl})
 		return self
 	def SetMds(self, mds):
 		self.Add({'Epochs':mds.MaxLoops, 'Is3D':mds.Is3D, 'InitE':mds.InitialExaggeration, 
@@ -168,6 +168,10 @@ class MapInfo():
 				fs = f.split(':', 1)
 				if len(fs) == 2:
 					dic[fs[0].strip()] = fs[1].strip()
+	def Save(self):
+		if self.form is not None:
+			self.form.Description = self.Str
+		return self
 
 def ShowInfo(pp):
 	desc = pp.Map.Description if pp.Name == 'MainForm' else pp.Description
@@ -639,7 +643,7 @@ def ProteinMap2(pList, vType='mwV', epochs=2000, is3D=False, save2Map=None, winS
 	mds = NewMds(dt, epochs=epochs, is3D=is3D, glyphSize=gSize, glyphOpacity=gOpacity, 
 		staged=staged, initExag=initExag, finalExag=finalExag, ppl=ppl)
 
-	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
+	info = MapInfo({'Epochs':epochs, 'Is3D':is3D, 'InitE':initExag, 'FinalE':finalExag, 'PP':ppl})
 	info.Add({'vType':vType, 'aaG':aaGroups,  'pCnt':dt.Rows, 'PPn':round(dt.Rows*ppl, 2), 
 		'ftP':ftP, 'tP':tP, 'fP':filterP, 'wSz':winSize, 'intp':intp })
 
@@ -912,7 +916,7 @@ def CreateSeqMaps(pList, aaGroups=None, epochs=1000, decay=1.0, saveTo=None, gly
 	mds.GlyphOpacity = glyphOpacity
 	mds.AutoNormalizing = True
 	mds.RefreshFreq = 500
-	info = MapInfo().Init(epochs, is3D, initExag, finalExag, ppl)
+	info = MapInfo({'Epochs':epochs, 'Is3D':is3D, 'InitE':initExag, 'FinalE':finalExag, 'PP':ppl})
 	info.Add({'AugCfg':augCfg, 'DS':vv.Dataset.Name})
 	if saveTo:
 		mapStore = AtlasMapStore(saveTo, clearAtlas=True)

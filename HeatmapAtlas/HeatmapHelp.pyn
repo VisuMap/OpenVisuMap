@@ -4,12 +4,15 @@
 
 class MapInfo():
 	def __init__(self, inits = None):
-		if inits == None:
+		self.form = None
+		if inits is None:
 			return
-		if isinstance(inits, str):
+		elif isinstance(inits, str):
 			self.ParseStr(inits)
 		elif isinstance(inits, dict):
 			self.Add(inits)
+		elif str(inits).startswith('VisuMap.Script.'):
+			self.form = inits
 	def Set(self, name, value):
 		setattr(self, name, value)
 		return self
@@ -42,6 +45,10 @@ class MapInfo():
 				fs = f.split(':', 1)
 				if len(fs) == 2:
 					dic[fs[0].strip()] = fs[1].strip()
+	def Save(self):
+		if self.form is not None:
+			self.form.Description = self.Str
+		return self
 
 def UpdateMeanView(bv):
 	hm = pp.Tag
@@ -203,12 +210,12 @@ def SortTable(D, epochs, ppl, initE, finalE):
 	tsne = None
 
 
-def DualSorting(hm, pRow, pColumn):
+def DualSorting(hm, pRow=None, pColumn=None):
 	if (pRow is None) and (pColumn is None):
 		return
 	hm.DisableReorder = False
 	nt = hm.GetNumberTable()
-	info = MapInfo(hm.Description)
+	info = MapInfo(hm)
 
 	if pRow is not None:
 		hm.Title = 'Sorting Rows...'
@@ -229,7 +236,7 @@ def DualSorting(hm, pRow, pColumn):
 
 	hm.Title = 'Sorted'
 	hm.DisableReorder = True
-	hm.Description = info.Str
+	info.Save()
 	nt = None
 	D = None
 
@@ -263,7 +270,7 @@ def EmbeddingData(mds, D, epochs, ppl, initE, finalE):
 
 def CopyColoring2Heatmap():
 	mp, hm = pp, pp.Tag
-	info = MapInfo(mp.Description)
+	info = MapInfo(mp)
 	if hm == None or not info.Has('MapType'):
 		vv.Message('Wrong parent type')
 		return
@@ -290,7 +297,7 @@ def LinkToHeatMap(mp, hm, isCellMap, info):
 	mp.Description = info.Str
 	mp.Tag = hm
 
-def DualEmbedding(hm, pRow, pColumn):
+def DualEmbedding(hm, pRow=None, pColumn=None):
 	hm.TheForm.SetBounds(1000, 700, 600, 600)
 	nt = hm.GetNumberTable();
 	mds = New.MdsCluster().Show()
@@ -326,16 +333,16 @@ def DoClustering(map, hm, pSettings):
 	map.DoDataClustering()
 	return map.Clusters
 
-def DualClustering(hm, pRow, pColumn):
+def DualClustering(hm, pRow=None, pColumn=None):
 	nt = hm.GetNumberTable()
 	cellMap, geneMap = hm.Tag
-
-	rowClusters = DoClustering(cellMap, hm, pRow)
-	cellMap.ClickMenu("Atlas/Capture Coloring")
-
-	colClusters = DoClustering(geneMap, hm, pColumn)
-	geneMap.ClickMenu("Atlas/Capture Coloring")
-
+	rowClusters, colClusters = 0, 0
+	if pRow is not None:
+		rowClusters = DoClustering(cellMap, hm, pRow)
+		cellMap.ClickMenu("Atlas/Capture Coloring")
+	if pColumn is not None:
+		colClusters = DoClustering(geneMap, hm, pColumn)
+		geneMap.ClickMenu("Atlas/Capture Coloring")
 	hm.Title = "Row/Column Clusters: " + str(rowClusters) + "/" + str(colClusters)
 
 def NewExpressionMap(parent, winTitle):
