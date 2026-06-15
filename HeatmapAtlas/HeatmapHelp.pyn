@@ -1,6 +1,48 @@
 # HeatmapHelp.pyn
 # Functions used by Heatmap view
 #
+
+class MapInfo():
+	def __init__(self, inits = None):
+		if inits == None:
+			return
+		if isinstance(inits, str):
+			self.ParseStr(inits)
+		elif isinstance(inits, dict):
+			self.Add(inits)
+	def Set(self, name, value):
+		setattr(self, name, value)
+		return self
+	def Get(self, name):
+		return getattr(self, name)
+	def Has(self, attrName):
+		return hasattr(self, attrName)
+	def Add(self, aList):
+		self.__dict__.update( aList )
+		return self
+	def SetMds(self, mds):
+		self.Add({'Epochs':mds.MaxLoops, 'Is3D':mds.Is3D, 'InitE':mds.InitialExaggeration, 
+			'FinalE':mds.ExaggerationFinal, 'PP':mds.PerplexityRatio})
+		return self		
+	@property
+	def Str(self):
+		dic = self.__dict__
+		return ';'.join([f'{key}:{str(dic[key])}' for  key in dic if dic[key] is not None])
+	@property
+	def Text(self):
+		sInfo = ''
+		for pn, pv in self.__dict__.items():
+			if pv:
+				sInfo += f'{pn:>10}: {pv:<16}\n'
+		return sInfo
+	def ParseStr(self, initStr):
+		dic = self.__dict__
+		for f in initStr.split(';'):
+			if f is not None:
+				fs = f.split(':', 1)
+				if len(fs) == 2:
+					dic[fs[0].strip()] = fs[1].strip()
+
 def UpdateMeanView(bv):
 	hm = pp.Tag
 	nt =  hm.GetSelectedNumberTable()
@@ -21,29 +63,17 @@ def ShowHeatmapMean(hm):
 	bv.Show()
 	vv.EventManager.OnItemsSelected("UpdateMeanView(pp)", bv)
 
-
-def SaveHeatmapComplex(hm):
-	vv.Message('Hi')
-
-
 def LoadSortedHeatmap():
-	tbItem = vv.EventSource.Item;
-	vs = New.StringSplit(tbItem.Tag);
-
+	tbItem = vv.EventSource.Item
+	atlas = tbItem.Atlas
 	hmId = tbItem.Id if (tbItem.Name == "") else tbItem.Name
+	info = MapInfo(tbItem.Tag)
 
-	fs = New.StringSplit(vs[0], '&')
-	if fs.Count == 1:
-		dsName = vv.Dataset.Name
-		rows = int(fs[0])
-
-	if fs.Count >= 2:
-		dsName = fs[0]
-		rows = int(fs[1])
-
-	columns = vs.Count - 1 - rows
-	rowIds = vs.GetRange(1, rows)
-	colIds = vs.GetRange(1 + rows, columns)
+	dsName = info.DsName
+	rows = int(info.Rows)
+	columns = int(info.Columns)
+	rowIds = info.RowIds.split('|')
+	colIds = info.ColumnIds.split('|')
 	if dsName != vv.Dataset.Name:
 		if not vv.Folder.OpenDataset(dsName):
 			vv.Message('Cannot open dataset "' + dsName + '".')
@@ -53,30 +83,56 @@ def LoadSortedHeatmap():
 	nt = nt.SelectColumnsById2(colIds, 0)
 	hm = New.HeatMap(nt)
 	hm.SelectionMode = 2
-	if fs.Count >= 4:
-		hm.Width = int(fs[2])
-		hm.Height = int(fs[3])
-	hm.Tag = tbItem;
+	hm.Width = int(info.WinWidth)
+	hm.Height = int(info.WinHeight)
 	hm.Title = hmId + ": Sorted table; " + dsName + ": " + str(rows) + "x" + str(columns)
+	hm.Tag = [None, None]
 	hm.Show2()
+
+	if info.Has('CellMpId'):
+		mpItem = atlas.FindItemById(info.CellMpId)
+		if mpItem is not None:
+			hm.Tag[0] = mpItem.Open()
+	if info.Has('GeneMpId'):
+		mpItem = atlas.FindItemById(info.GeneMpId)
+		if mpItem is not None:
+			hm.Tag[1] = mpItem.Open()
+	LayoutMaps(hm, hm.Tag[0], hm.Tag[1])
+
+def LayoutMaps(hm, cellMap, geneMap):
+	sz = 600
+	hm.TheForm.SetBounds(1000, 700, sz, sz)
+	if cellMap is not None:
+		cellMap.TheForm.SetBounds(hm.TheForm.Left - sz + 15, hm.TheForm.Top, sz, sz)
+		cellMap.Title = "Cell Map"
+	if geneMap is not None:
+		geneMap.TheForm.SetBounds(hm.TheForm.Left, hm.TheForm.Top - sz + 8, sz, sz)
+		geneMap.Title = "Gene Map"
+
+def CheckForm(frm):
+	if frm is None or frm.TheForm.IsDisposed:
+		return None
+	return frm
 
 def SaveSortedHeatmap(hm):
 	nt = pp.GetNumberTable()
-	info = []
-	info.append(vv.Dataset.Name+'&'+str(nt.Rows)+'&'+str(pp.Width)+'&'+str(pp.Height))
-	for rs in nt.RowSpecList:
-		info.append(rs.Id)
-	for cs in nt.ColumnSpecList:
-		info.append(cs.Id)
+	info = MapInfo()
+	info.Set('DsName', vv.Dataset.Name)
+	info.Set('Rows', nt.Rows)
+	info.Set('Columns', nt.Columns)
+	info.Set('WinWidth', pp.Width)
+	info.Set('WinHeight', pp.Height)
+	info.Set('RowIds', '|'.join([rs.Id for rs in nt.RowSpecList]))
+	info.Set('ColumnIds', '|'.join([cs.Id for cs in nt.ColumnSpecList]))
 
-	at = New.Atlas('HmAtlas').Show()
-	itemCount = at.Items.Count
+	atList = [x for x in vv.FindFormList("Atlas") if x.AtlasName=='HmAtlas']
+	at = atList[0] if len(atList)>0 else New.Atlas('HmAtlas').Show()
+	itemCount = len( [x for x in at.Items if x.ItemType == 'RectItem'] )
 
 	ii = at.NewRectItem()
 	ii.Name = vv.Dataset.Name[:8]
-	ii.Tag = '|'.join(info)
-	ii.Top = 50*(itemCount % 15)
-	ii.Left = 25
+	ii.Top = 20*(itemCount % 15)
+	ii.Left = 20*(itemCount % 15)
 	ii.FillColor = New.Color('Green')
 	ii.Filled = True
 	ii.IsEllipse = False
@@ -84,13 +140,33 @@ def SaveSortedHeatmap(hm):
 	ii.LabelStyle = 3
 	ii.IconHeight = 30
 	ii.IconWidth = 50
-	ii.Script = "LoadSortedHeatmap()"
-	
+	ii.Script = "LoadSortedHeatmap()"	
 	at.RedrawItem(ii)
-	return ii.Id
 
-def SaveDsHm(hm):
-	vv.Message('Hi')
+	cellMap, geneMap = None, None
+	if type(hm.Tag) is list and len(hm.Tag) == 2:
+		cellMap, geneMap = hm.Tag
+	cellMap = CheckForm(cellMap)
+	geneMap = CheckForm(geneMap)	
+
+	if cellMap is not None:
+		mp = at.NewSnapshotItem(cellMap)
+		mp.Top = ii.Top + 5
+		mp.Left = ii.Left + 5
+		mp.IconWidth = 30
+		mp.IconHeight = 30
+		info.Set('CellMpId', mp.Id)
+		at.RedrawItem(mp, False)
+	if geneMap is not None:
+		mp = at.NewSnapshotItem(geneMap)
+		mp.Top = ii.Top + 10
+		mp.Left = ii.Left + 10
+		mp.IconWidth = 30
+		mp.IconHeight = 30
+		info.Set('GeneMpId', mp.Id)
+		at.RedrawItem(mp, False)
+	ii.Tag = info.Str
+	at.BringToFront([ii])
 
 def SelectFeatures(nt, featureCount):
 	if featureCount >= nt.Columns:
@@ -146,47 +222,6 @@ def DualSorting(hm, pRow, pColumn):
 	hm.Description = info.Str
 	nt = None
 	D = None
-
-class MapInfo():
-	def __init__(self, inits = None):
-		if inits == None:
-			return
-		if isinstance(inits, str):
-			self.ParseStr(inits)
-		elif isinstance(inits, dict):
-			self.Add(inits)
-	def Set(self, name, value):
-		setattr(self, name, value)
-		return self
-	def Get(self, name):
-		return getattr(self, name)
-	def Has(self, attrName):
-		return hasattr(self, attrName)
-	def Add(self, aList):
-		self.__dict__.update( aList )
-		return self
-	def SetMds(self, mds):
-		self.Add({'Epochs':mds.MaxLoops, 'Is3D':mds.Is3D, 'InitE':mds.InitialExaggeration, 
-			'FinalE':mds.ExaggerationFinal, 'PP':mds.PerplexityRatio})
-		return self		
-	@property
-	def Str(self):
-		dic = self.__dict__
-		return ';'.join([f'{key}:{str(dic[key])}' for  key in dic if dic[key] is not None])
-	@property
-	def Text(self):
-		sInfo = ''
-		for pn, pv in self.__dict__.items():
-			if pv:
-				sInfo += f'{pn:>10}: {pv:<16}\n'
-		return sInfo
-	def ParseStr(self, initStr):
-		dic = self.__dict__
-		for f in initStr.split(';'):
-			if f is not None:
-				fs = f.split(':', 1)
-				if len(fs) == 2:
-					dic[fs[0].strip()] = fs[1].strip()
 
 def ShowInfo(pView):
 	desc = pView.Map.Description if pView.Name == 'MainForm' else pView.Description

@@ -1,4 +1,4 @@
-#MenuLabels D-Sorting D-Embedding D-Clustering ActiveGenes ActiveCells SaveData SaveHeatmap SaveDsHm ShowMean Info
+#MenuLabels D-Sorting D-Embedding D-Clustering ActiveGenes ActiveCells SaveHeatmap ShowMean Info
 vv.Import('HeatmapHelp.pyn')
 
 def HeatMapMain(menu):
@@ -17,15 +17,9 @@ def HeatMapMain(menu):
 		case 'ActiveCells':
 			#vv.RunScript('ShowActiveCells.js', pp)
 			ShowActiveCells(pp)
-		case 'SaveData':
-			#vv.RunScript('SaveDataset.js', pp)
-			SaveHeatmapComplex(pp)
 		case 'SaveHeatmap':
 			#vv.RunScript('SaveSortedHeatmap.js', pp)
 			SaveSortedHeatmap(pp)
-		case 'SaveDsHm':
-			#vv.RunScript('!vv.Import('AtlasHelp.js');SaveDsHm(pp);', pp)
-			SaveDsHm(pp)
 		case 'ShowMean':
 			#vv.RunScript('ShowMeanVector.js', pp)
 			ShowHeatmapMean(pp)
