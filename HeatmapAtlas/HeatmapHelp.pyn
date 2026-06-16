@@ -1,54 +1,7 @@
 # HeatmapHelp.pyn
 # Functions used by Heatmap view
 #
-
-class MapInfo():
-	def __init__(self, inits = None):
-		self.form = None
-		if inits is None:
-			return
-		elif isinstance(inits, str):
-			self.ParseStr(inits)
-		elif isinstance(inits, dict):
-			self.Add(inits)
-		elif str(inits).startswith('VisuMap.Script.'):
-			self.form = inits
-	def Set(self, name, value):
-		setattr(self, name, value)
-		return self
-	def Get(self, name):
-		return getattr(self, name)
-	def Has(self, attrName):
-		return hasattr(self, attrName)
-	def Add(self, aList):
-		self.__dict__.update( aList )
-		return self
-	def SetMds(self, mds):
-		self.Add({'Epochs':mds.MaxLoops, 'Is3D':mds.Is3D, 'InitE':mds.InitialExaggeration, 
-			'FinalE':mds.ExaggerationFinal, 'PP':mds.PerplexityRatio})
-		return self		
-	@property
-	def Str(self):
-		dic = self.__dict__
-		return ';'.join([f'{key}:{str(dic[key])}' for  key in dic if dic[key] is not None])
-	@property
-	def Text(self):
-		sInfo = ''
-		for pn, pv in self.__dict__.items():
-			if pv:
-				sInfo += f'{pn:>10}: {pv:<16}\n'
-		return sInfo
-	def ParseStr(self, initStr):
-		dic = self.__dict__
-		for f in initStr.split(';'):
-			if f is not None:
-				fs = f.split(':', 1)
-				if len(fs) == 2:
-					dic[fs[0].strip()] = fs[1].strip()
-	def Save(self):
-		if self.form is not None:
-			self.form.Description = self.Str
-		return self
+vv.Import('Common.pyn')
 
 def UpdateMeanView(bv):
 	hm = pp.Tag
@@ -111,6 +64,10 @@ def LoadSortedHeatmap():
 	hm.OnClose('CloseSortedHeatmap(pp)')
 
 def CloseSortedHeatmap(hm):
+	if hm.Tag is None:
+		return
+	if not isinstance(hm.Tag, list):
+		return 
 	for mp in hm.Tag:
 		if mp is not None:
 			mp.Close()
@@ -172,7 +129,7 @@ def SaveSortedHeatmap(hm):
 		mp.Left = ii.Left + 5
 		mp.IconWidth = 30
 		mp.IconHeight = 30
-		mp.Script = " "
+		mp.Script = "pass"
 		info.Set('CellMpId', mp.Id)
 		itemList.append(mp)
 		at.RedrawItem(mp, False)
@@ -182,7 +139,7 @@ def SaveSortedHeatmap(hm):
 		mp.Left = ii.Left + 10
 		mp.IconWidth = 30
 		mp.IconHeight = 30
-		mp.Script = " "
+		mp.Script = "pass"
 		itemList.append(mp)
 		info.Set('GeneMpId', mp.Id)
 		at.RedrawItem(mp, False)
@@ -246,12 +203,6 @@ def DualSorting(hm, pRow=None, pColumn=None):
 	nt = None
 	D = None
 
-def ShowInfo(pView):
-	desc = pView.Map.Description if pView.Name == 'MainForm' else pView.Description
-	info = MapInfo(desc)
-	winTitle = pView.Name + ': ' + pView.Title
-	New.TextPanel(winTitle, info.Text).Show()
-
 def EmbeddingData(mds, D, epochs, ppl, initE, finalE):
 	mds.MdsAlgorithm = 2;
 	mds.SetTrainingData(D);
@@ -261,6 +212,8 @@ def EmbeddingData(mds, D, epochs, ppl, initE, finalE):
 	mds.AutoClustering = False
 	mds.AutoNormalizing = False
 	mds.StagedTraining = False
+	mds.GlyphOpacity = 0.2
+	mds.GlyphSize =0.75
 	mds.RefreshFreq = 50
 	mds.Repeats = 1
 	mds.GlyphSet = "36 Clusters|||||"
@@ -326,6 +279,7 @@ def DualEmbedding(hm, pRow=None, pColumn=None):
 		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE)
 		info = MapInfo().Set('EmbRow', str(pRow))
 		LinkToHeatMap(mp, hm, False, info)
+	hm.OnClose('CloseSortedHeatmap(pp)')
 	mds.Close()
 
 def DoClustering(map, hm, pSettings):

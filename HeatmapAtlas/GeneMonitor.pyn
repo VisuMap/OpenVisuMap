@@ -1,5 +1,6 @@
 import math
 import numpy as np
+vv.Import('Common.pyn')
 
 # global constants
 mpWidth = 500
@@ -488,9 +489,9 @@ def ResetAtlasMaps(atlas, itemList, mpWidth=1000, mpHeight=700, gSize=0.35, gOpa
 # --------------------------------------------------------------
 
 def CheckDataset(pMap):
-	dsName = InfoFromStr(pMap.Description)['DS']
-	if dsName != vv.Dataset.Name:
-		vv.Folder.OpenDataset(dsName)	
+	info = MapInfo(pMap)
+	if info.Has('DS') and info.DS != vv.Dataset.Name:
+		vv.Folder.OpenDataset(info.DS)	
 
 def IsMainMap(pMap):
 	return str(pMap).endswith('.MapImp')

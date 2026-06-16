@@ -1,9 +1,7 @@
-#MenuLabels Monitor Clustering LabelAll CaptureMaps EmbedSelected ShowData 3D-Expression ShowGraph ShowGeneTable ShowSuperCluster
+#MenuLabels Monitor Clustering LabelAll Info EmbedSelected ShowData 3D-Expression ShowGraph ShowGeneTable ShowSuperCluster
 vv.Import('GeneMonitor.pyn')
 thresholdLevel = 1.0
 match vv.EventSource.Item:
-	case 'CaptureMaps':
-		vv.AtlasManager.OpenAtlas().CaptureAllOpenViews()
 	case 'EmbedSelected':
 		EmbedGenes(vv.SelectedItems, epochs=2000, EX=4, ex=1.0, PP=0.05, repeats=1)
 	case 'Monitor':
@@ -22,4 +20,6 @@ match vv.EventSource.Item:
 		ShowLegend(pp.Map)
 	case 'ShowSuperCluster':
 		ShowSuperClusters(pp.Map)
+	case 'Info':
+		ShowInfo(pp)
 
