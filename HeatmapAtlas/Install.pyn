@@ -23,7 +23,7 @@ def InstallMain():
 	for pf in os.listdir(vv.CurrentScriptDirectory):
 		if pf.endswith('.pyn') and pf.startswith('Cfg'):  
 			fpath = vv.CurrentScriptDirectory + '\\' + pf
-			vv.GuiManager.SetCustomMenu('Atlas/*', True, fpath, pf[3:-4], None)
+			vv.GuiManager.SetCustomMenu('Atlas/*', True, fpath, pf[3:-4], icon)
 
 InstallMain()
 

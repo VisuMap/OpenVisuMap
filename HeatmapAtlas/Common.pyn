@@ -11,6 +11,7 @@ class MapInfo():
 		elif isinstance(inits, dict):
 			self.Add(inits)
 		elif str(inits).startswith('VisuMap.Script.'):
+			self.ParseStr(inits.Description)
 			self.form = inits
 	def Set(self, name, value):
 		setattr(self, name, value)

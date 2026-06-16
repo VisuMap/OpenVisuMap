@@ -227,10 +227,10 @@ def EmbeddingData(mds, D, epochs, ppl, initE, finalE):
 		vv.Return()
 	return mds.Show2DView().NormalizeView()
 
-def CopyColoring2Heatmap():
-	mp, hm = pp, pp.Tag
+def CopyColoring2Heatmap(mp):
+	hm = mp.Tag
 	info = MapInfo(mp)
-	if hm == None or not info.Has('MapType'):
+	if hm is None or not info.Has('MapType'):
 		vv.Message('Wrong parent type')
 		return
 	nt = hm.GetNumberTable()

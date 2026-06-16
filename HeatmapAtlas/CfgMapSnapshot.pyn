@@ -31,5 +31,5 @@ match vv.EventSource.Item:
 		ShowInfo(pp)
 	case 'Capture Coloring':  
 		# copy the cluster coloring to the linked heatmap's rows or columns depending on the map type.
-		CopyColoring2Heatmap()
+		CopyColoring2Heatmap(pp)
 		

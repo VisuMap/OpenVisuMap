@@ -26,6 +26,7 @@
     <Content Include="CfgHeatMap.pyn" />
     <Content Include="CfgMainForm.pyn" />
     <Content Include="CfgMapSnapshot.pyn" />
+    <Content Include="Common.pyn" />
     <Content Include="GeneMonitor.pyn" />
     <Content Include="H5adRead.pyn" />
     <Content Include="H5Read.pyn" />
