@@ -448,12 +448,6 @@ def SaveToAtlas(atName=None, x0=50, y0=50):
 
 # --------------- operations for atlas panel -------------------
 
-def ClusterAtlasMaps(atlas, itemList, epsilon=0.0, minPoints=25, cSize=80, minSamples=50):
-	for item in itemList:
-		mp = item.Open()
-		ClusterMap(mp, cSize, minSamples)
-		mp.Close()	
-
 def LabelAtlasMaps(atlas, itemList):
 	for item in itemList:
 		mp = item.Open()
@@ -496,70 +490,20 @@ def CheckDataset(pMap):
 def IsMainMap(pMap):
 	return str(pMap).endswith('.MapImp')
 
-def ClusterMap(pMap, cSize=20, minSamples=100):
-	import fast_hdbscan
-
-	allBodies = pMap.BodyListEnabled()
-	if pMap.SelectedBodies.Count > 2:
-		bsList = pMap.SelectedBodies
-		#minSamples = int(1.0 * minSamples * bsList.Count/allBodies.Count )
-	else:
-		bsList = allBodies
-
-	if IsMainMap(pMap):  # The method is called from the main window.
-		vv.GuiManager.RememberCurrentMap()
-
-	D = mm.ToNumpy(New.NumberTable(bsList, 2))
-	C = fast_hdbscan.HDBSCAN(min_cluster_size=cSize, min_samples=minSamples)
-	labels = C.fit_predict(D)
-	labels = [int(lb) for lb in labels]
-	clusters = max(labels) + 1
-	hiddenType = clusters
-	noisePts = len([k for k in labels if k < 0])
-
-	if bsList.Count != allBodies.Count:
-		maxNewIdx = max(labels) + 1 
-		idxMap = []
-		bsRest = set(allBodies) - set(bsList)
-		usedIdxes = {b.Type for b in bsRest}
-		for k in range(10000):
-			if k not in usedIdxes:
-				idxMap.append(k)
-			if len(idxMap) > maxNewIdx:
-				break;
-		hiddenType = idxMap[maxNewIdx-1]
-		for b in bsRest:
-			if b.Hidden:
-				hiddenType = b.Type
-				break
-		labels2 = []
-		for t in labels:
-			if t >=0 :
-				labels2.append(idxMap[t])
-			else:
-				labels2.append(-1)
-		labels = labels2
-		for b in bsList:
-			b.Type = 0
-		pMap.SelectedItems = None
-	else:
-		ResetMap(pMap)
-
-	for k, t in enumerate(labels):
-		b = bsList[k]
-		if t>=0:
-			b.Type = t
-			b.Hidden = False
-		else:
-			b.Type = hiddenType
-			b.Hidden = True
-	pMap.RedrawBodiesType()
-	title = f'Clusters: {clusters}; NoisePts: {noisePts} of {bsList.Count}'
-	if IsMainMap(pMap):
-		vv.Title = title
-	else:
-		pMap.Title = title
-	MapInfo(pMap).Add({'MCS':cSize, 'MSS':minSamples}).Save()
+def ClusterMap(map, epsilon=1.0, minPoints=10):
+	map.GlyphSet = '36 Clusters||||'
+	map.HiddenGlyphSize = 2
+	map.GlyphSize = 0.4
+	map.GlyphOpacity = 0.8
+	map.Redraw()
+	dbs = New.DbscanCluster()
+	dbs.EpsilonRatio = epsilon
+	dbs.AutoColoring = True
+	dbs.MinimumPoints = minPoints			
+	dbs.Show()
+	dbs.Reset().Start()
+	MapInfo(map).Add({'ClusterAlg':'DBSCAN', 'Epsilon':dbs.EpsilonRatio, 'MinPoints':dbs.MinimumPoints}).Save()
+	dbs.Close()
 
 # --------- Labelling related ----------
 

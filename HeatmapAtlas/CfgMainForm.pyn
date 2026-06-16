@@ -7,7 +7,7 @@ match vv.EventSource.Item:
 	case 'Monitor':
 		MonitorMap(vv.Map)
 	case 'Clustering':
-		ClusterMap(vv.Map, cSize=50, minSamples=50)
+		ClusterMap(vv.Map, epsilon=1.5, minPoints=20)
 	case 'LabelAll':
 		LabelAllClusters(vv.Map)
 	case 'ShowData':

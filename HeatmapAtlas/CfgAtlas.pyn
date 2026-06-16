@@ -1,4 +1,4 @@
-#MenuLabels <Import> SetLabels ResetMaps Clustering LabelMaps
+#MenuLabels <Import> SetLabels ResetMaps LabelMaps
 vv.Import('GeneMonitor.pyn')
 
 thresholdLevel = 1.0
@@ -11,8 +11,6 @@ match vv.EventSource.Item:
 		SetAtlasItemName(pp, selected)
 	case 'ResetMaps':		
 		ResetAtlasMaps(pp, selected, 1000, 700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=True)
-	case 'Clustering':
-		ClusterAtlasMaps(pp, selected, cSize=50, minSamples=50)
 	case 'LabelMaps':
 		LabelAtlasMaps(pp, selected)
 

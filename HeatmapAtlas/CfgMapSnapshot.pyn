@@ -1,4 +1,4 @@
-#MenuLabels Info Monitor ShowData ReEmbedding 3D-Expression ActiveCells Clustering LabelGenes LabelAll ShowGeneTable MatchMap \
+#MenuLabels Info Monitor ShowData ReEmbedding 3D-Expression ActiveCells LabelGenes LabelAll ShowGeneTable MatchMap \
 # ShowSuperCluster ShowGraph "Capture Coloring"
 vv.Import('GeneMonitor.pyn')
 thresholdLevel = 1.0
@@ -13,8 +13,6 @@ match vv.EventSource.Item:
 		ShowExpress3D(pp)
 	case 'ActiveCells':
 		ShowActiveCells(pp)
-	case 'Clustering':
-		ClusterMap(pp, cSize=50, minSamples=50)
 	case 'LabelGenes':
 		LabelGenes(pp)
 	case 'LabelAll':
