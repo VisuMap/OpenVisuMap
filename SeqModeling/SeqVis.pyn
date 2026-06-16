@@ -127,7 +127,7 @@ public void MovingWindowVarianceX(dynamic cs, IList<IBody> bList, int stepSize, 
 # protein embedding map information
 class MapInfo():
 	def __init__(self, inits = None):
-		self.form = None
+		self._form_ = None
 		if inits is None:
 			return
 		elif isinstance(inits, str):
@@ -136,7 +136,7 @@ class MapInfo():
 			self.Add(inits)
 		elif str(inits).startswith('VisuMap.Script.'):
 			self.ParseStr(inits.Description)
-			self.form = inits
+			self._form_ = inits
 	def Set(self, name, value):
 		setattr(self, name, value)
 		return self
@@ -154,12 +154,12 @@ class MapInfo():
 	@property
 	def Str(self):
 		dic = self.__dict__
-		return ';'.join([f'{key}:{str(dic[key])}' for  key in dic if dic[key] is not None])
+		return ';'.join([f'{k}:{str(dic[k])}' for k in dic if (dic[k] is not None and k!='_form_')])
 	@property
 	def Text(self):
 		sInfo = ''
 		for pn, pv in self.__dict__.items():
-			if pv:
+			if pv is not None and pn != '_form_':
 				sInfo += f'{pn:>10}: {pv:<16}\n'
 		return sInfo
 	def ParseStr(self, initStr):
@@ -170,8 +170,8 @@ class MapInfo():
 				if len(fs) == 2:
 					dic[fs[0].strip()] = fs[1].strip()
 	def Save(self):
-		if self.form is not None:
-			self.form.Description = self.Str
+		if self._form_ is not None:
+			self._form_.Description = self.Str
 		return self
 
 def ShowInfo(pp):

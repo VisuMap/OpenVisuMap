@@ -558,11 +558,8 @@ def ClusterMap(pMap, cSize=20, minSamples=100):
 	if IsMainMap(pMap):
 		vv.Title = title
 	else:
-		pMap.Title = title 
-	info = InfoFromStr(pMap.Description)
-	info['MCS'] = cSize
-	info['MSS'] = minSamples
-	pMap.Description = InfoToStr(info)
+		pMap.Title = title
+	MapInfo(pMap).Add({'MCS':cSize, 'MSS':minSamples}).Save()
 
 # --------- Labelling related ----------
 
@@ -725,7 +722,6 @@ def MergeNullClusters(pMap, bList):
 	b.Name = nullName
 	b.ShowName = True
 	pMap.RedrawAll()
-
 
 def LabelAllClusters(pMap):
 	CheckDataset(pMap)
