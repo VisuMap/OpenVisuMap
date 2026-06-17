@@ -265,15 +265,17 @@ def ExtractFeatures(pMap):
 	return ExtractFeatures0(pMap.Description)
 
 def ExtractFeatures0(desc):
-	info = InfoFromStr(desc)
-	if 'Ids' in info:
-		return info['Ids'].split('|')
-	sq = info['SQ']
-	fs = info['RG'].split('-')
-	idMon = 	list(vv.GroupManager.GetGroupLabels(sq))
-	n, n2 = int(fs[0]), int(fs[1])
-	idMon = idMon[n:n2]
-	return idMon
+	info = MapInfo(desc)
+	if info.Has('Ids'):
+		return info.Ids.split('|')
+	if info.Has('SQ') and info.Has('RG'):
+		fs = info.RG.split('-')
+		idMon = list(vv.GroupManager.GetGroupLabels(info.SQ))
+		n, n2 = int(fs[0]), int(fs[1])
+		idMon = idMon[n:n2]
+		return idMon
+	else:
+		return None
 
 def ReEmbedding(pMap):
 	CheckDataset(pMap)
@@ -490,21 +492,6 @@ def CheckDataset(pMap):
 def IsMainMap(pMap):
 	return str(pMap).endswith('.MapImp')
 
-def ClusterMap(map, epsilon=1.0, minPoints=10):
-	map.GlyphSet = '36 Clusters||||'
-	map.HiddenGlyphSize = 2
-	map.GlyphSize = 0.4
-	map.GlyphOpacity = 0.8
-	map.Redraw()
-	dbs = New.DbscanCluster()
-	dbs.EpsilonRatio = epsilon
-	dbs.AutoColoring = True
-	dbs.MinimumPoints = minPoints			
-	dbs.Show()
-	dbs.Reset().Start()
-	MapInfo(map).Add({'ClusterAlg':'DBSCAN', 'Epsilon':dbs.EpsilonRatio, 'MinPoints':dbs.MinimumPoints}).Save()
-	dbs.Close()
-
 # --------- Labelling related ----------
 
 
@@ -673,22 +660,19 @@ def LabelAllClusters(pMap):
 	baseNT = vv.Dataset.GetNumberTableEnabled().SelectColumnsById(geneList)
 	InitDominantGenes()
 	dKeys.Clear()
-	if IsMainMap(pMap): vv.GuiManager.RememberCurrentMap()
+	if IsMainMap(pMap): 
+		vv.GuiManager.RememberCurrentMap()
 	ResetMap(pMap)
 	bList = [b for b in pMap.BodyListEnabled() if not b.Hidden]	
-	for B in GroupByType(bList):
+	groupList = GroupByType(bList)
+	for B in groupList:
 		nt = baseNT.SelectRowsByIdView([b.Id for b in B])
 		b = cs.MeanPoint(B)
 		b.Name = MakeLabel(nt, geneList)
 		b.ShowName = True
 		pMap.RedrawAll()
-
 	MergeNullClusters(pMap, bList)
-
-	info = InfoFromStr(pMap.Description)
-	info['LV'] = thresholdLevel
-	info['DG'] = dKeys.ToString()	
-	pMap.Description = InfoToStr(info)
+	MapInfo(pMap).Add({'LV':thresholdLevel, 'DG':dKeys.ToString()}).Save()
 
 def UnifyTwoMaps(mpA, mpB):
 	global dKeys

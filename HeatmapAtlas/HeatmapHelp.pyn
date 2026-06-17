@@ -110,9 +110,9 @@ def SaveSortedHeatmap(hm):
 	ii.Filled = True
 	ii.IsEllipse = False
 	ii.Opacity = 0.75
-	ii.LabelStyle = 3
-	ii.IconHeight = 30
-	ii.IconWidth = 50
+	ii.LabelStyle = 2
+	ii.IconHeight = 25
+	ii.IconWidth = 55
 	ii.Script = "LoadSortedHeatmap()"	
 	at.RedrawItem(ii)
 
