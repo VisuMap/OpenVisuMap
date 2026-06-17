@@ -3,6 +3,55 @@
 #
 vv.Import('Common.pyn')
 
+def ToClusterMap(mp, spList):
+	G = {}
+	for b in mp.BodyList:
+		if b.Type not in G: 
+			G[b.Type] = []
+		G[b.Type].append(b)
+	cList = list(G.values())
+	cList.sort(key=lambda g:-len(g))
+	cbList = []
+	for k, g in enumerate(cList):
+		b = g[0].Clone()
+		b.Id = 'g'+str(k)
+		b.Name = '|'.join([b.Id for b in g])
+		c = csHM.MeanPosition( New.BodyList(g))
+		b.X, b.Y, b.Z = c.Item1, c.Item2, c.Item3
+		cbList.append(b)
+	cMp = New.MapSnapshot2(cbList, mp.MapLayout)
+	cMp.GlyphSize = 2.0
+	cMp.GlyphOpacity = 0.75
+	cMp.Show()
+
+	idxmap = New.IntArray(0)
+	id2Cidx = {}
+	for k, g in enumerate(cList):
+		for b in g:
+			id2Cidx[b.Id] = k
+	for k, sp in enumerate(spList):
+		idxmap.Add( id2Cidx[sp.Id] )
+	return cMp, idxmap, len(cList)
+
+def ConvertToClusters(hm):
+	cellMap, geneMap = hm.Tag
+	nt = hm.GetNumberTable()
+	cellCP, cellIdxMap, rows = ToClusterMap(cellMap, nt.RowSpecList)
+	geneCP, geneIdxMap, columns = ToClusterMap(geneMap, nt.ColumnSpecList)
+
+	ntC = csHM.CollapseNumberTable(nt, rows, columns, cellIdxMap, geneIdxMap)
+	for row in range(ntC.Rows): 
+		ntC.RowSpecList[row].Id = cellCP.BodyList[row].Id
+	for col in range(ntC.Columns): 
+		ntC.ColumnSpecList[col].Id = geneCP.BodyList[col].Id
+	hmC = ntC.ShowHeatMap()
+	
+	LayoutMaps(hmC, cellCP, geneCP)
+	hmC.Tag = [cellCP, geneCP]
+	cellCP.Tag = hmC
+	geneCP.Tag = hmC
+	hmC.OnClose('CloseSortedHeatmap(pp)')
+
 def UpdateMeanView(bv):
 	hm = pp.Tag
 	nt =  hm.GetSelectedNumberTable()
@@ -54,11 +103,13 @@ def LoadSortedHeatmap():
 		if mpItem is not None:
 			cellMap = mpItem.Open()
 			cellMap.Tag = hm
+			CopyColoring2Heatmap(cellMap)
 	if info.Has('GeneMpId'):
 		mpItem = atlas.FindItemById(info.GeneMpId)
 		if mpItem is not None:
 			geneMap = mpItem.Open()
 			geneMap.Tag = hm
+			CopyColoring2Heatmap(geneMap)
 	hm.Tag = [cellMap, geneMap]
 	LayoutMaps(hm, hm.Tag[0], hm.Tag[1])
 	hm.OnClose('CloseSortedHeatmap(pp)')
@@ -88,7 +139,7 @@ def CheckForm(frm):
 	return frm
 
 def SaveSortedHeatmap(hm):
-	nt = pp.GetNumberTable()
+	nt = hm.GetNumberTable()
 	info = MapInfo()
 	info.Set('DsName', vv.Dataset.Name)
 	info.Set('Rows', nt.Rows)
@@ -478,5 +529,35 @@ csHM = New.CsObject('''
 			sum += colMean[i] * colMean[i];
 		bv.UpperLimit = 3* Math.Sqrt(sum/n);
 		bv.LowerLimit = 0;		
+	}
+
+	public Tuple<double, double, double> MeanPosition(List<IBody> bList) {
+		if (bList.Count == 0)
+			return Tuple.Create(0.0, 0.0, 0.0);
+		double x = 0;
+		double y = 0;
+		double z = 0;
+	    foreach(var b in bList) {
+			x += b.X;
+			y += b.Y;
+			z += b.Z;
+		}
+		x /= bList.Count;
+		y /= bList.Count;
+		z /= bList.Count;
+		return Tuple.Create(x, y, z);
+	}
+
+	public INumberTable CollapseNumberTable(INumberTable nt, int rows, int columns, List<int> rowIdxMap, List<int> columnIdxMap) {
+		INumberTable ntC = New.NumberTable(rows, columns);
+		double[][] M = (double[][]) nt.Matrix;
+		double[][] MC = (double[][]) ntC.Matrix;
+		for(int row=0; row<nt.Rows; row++)
+		for(int col=0; col<nt.Columns; col++){
+			int rowC = rowIdxMap[row];
+			int colC = columnIdxMap[col];
+			MC[rowC][colC] += M[row][col];
+		}
+		return ntC;
 	}
 ''')

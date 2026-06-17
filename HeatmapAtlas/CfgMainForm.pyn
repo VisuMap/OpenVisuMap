@@ -1,3 +1,10 @@
+#MenuLabels Info
+vv.Import('Common.pyn')
+match vv.EventSource.Item:
+	case 'Info':
+		ShowInfo(pp)
+
+'''
 #MenuLabels Info Monitor LabelAll EmbedSelected ShowData 3D-Expression ShowGraph ShowGeneTable ShowSuperCluster
 vv.Import('GeneMonitor.pyn')
 thresholdLevel = 1.0
@@ -21,3 +28,4 @@ match vv.EventSource.Item:
 	case 'Info':
 		ShowInfo(pp)
 
+'''

@@ -1,4 +1,4 @@
-#MenuLabels D-Sorting D-Embedding D-Clustering ActiveGenes ActiveCells SaveHeatmap ShowMean Info
+#MenuLabels D-Sorting D-Embedding D-Clustering ActiveGenes ActiveCells SaveHeatmap ShowMean Info  ToClusters
 vv.Import('HeatmapHelp.pyn')
 
 ctrPressed = vv.ModifierKeys.ControlPressed
@@ -24,6 +24,9 @@ def HeatMapMain(menu):
 			ShowHeatmapMean(pp)
 		case 'Info':
 			ShowInfo(pp)
+		case 'ToClusters':
+			ConvertToClusters(pp)
+			
 
 HeatMapMain(vv.EventSource.Item)
 

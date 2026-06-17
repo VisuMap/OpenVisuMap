@@ -11,6 +11,7 @@ thresholdLevel = 1.0
 
 cs = New.CsObject('''
 public IBody MeanPoint(IList<IBody> bList){
+	// Find the mean point among a list.
 	if (bList.Count == 0) 
 		return null;
 	double x = 0;
@@ -664,8 +665,7 @@ def LabelAllClusters(pMap):
 		vv.GuiManager.RememberCurrentMap()
 	ResetMap(pMap)
 	bList = [b for b in pMap.BodyListEnabled() if not b.Hidden]	
-	groupList = GroupByType(bList)
-	for B in groupList:
+	for B in GroupByType(bList):
 		nt = baseNT.SelectRowsByIdView([b.Id for b in B])
 		b = cs.MeanPoint(B)
 		b.Name = MakeLabel(nt, geneList)
