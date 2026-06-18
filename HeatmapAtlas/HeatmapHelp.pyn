@@ -3,7 +3,16 @@
 #
 vv.Import('Common.pyn')
 
-def ToClusterMap(mp, spList):
+def GroupIdx2Id(k, isCellMap):
+	ccList = 'abcdefghijklmnopqrstuvwxyz'
+	gcList = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	N = 26
+	if k < N:
+		return ccList[k] if isCellMap else gcList[k]
+	else:
+		return ( ' ' if isCellMap else '.') + str(k)
+
+def ToClusterMap(mp, nt, isCellMap):
 	G = {}
 	for b in mp.BodyList:
 		if b.Type not in G: 
@@ -14,7 +23,7 @@ def ToClusterMap(mp, spList):
 	cbList = []
 	for k, g in enumerate(cList):
 		b = g[0].Clone()
-		b.Id = 'g'+str(k)
+		b.Id = GroupIdx2Id(k, isCellMap)
 		b.Name = '|'.join([b.Id for b in g])
 		c = csHM.MeanPosition( New.BodyList(g))
 		b.X, b.Y, b.Z = c.Item1, c.Item2, c.Item3
@@ -29,6 +38,7 @@ def ToClusterMap(mp, spList):
 	for k, g in enumerate(cList):
 		for b in g:
 			id2Cidx[b.Id] = k
+	spList = nt.RowSpecList if isCellMap else nt.ColumnSpecList
 	for k, sp in enumerate(spList):
 		idxmap.Add( id2Cidx[sp.Id] )
 	return cMp, idxmap, len(cList)
@@ -36,8 +46,8 @@ def ToClusterMap(mp, spList):
 def ConvertToClusters(hm):
 	cellMap, geneMap = hm.Tag
 	nt = hm.GetNumberTable()
-	cellCP, cellIdxMap, rows = ToClusterMap(cellMap, nt.RowSpecList)
-	geneCP, geneIdxMap, columns = ToClusterMap(geneMap, nt.ColumnSpecList)
+	cellCP, cellIdxMap, rows = ToClusterMap(cellMap, nt, True)
+	geneCP, geneIdxMap, columns = ToClusterMap(geneMap, nt, False)
 
 	ntC = csHM.CollapseNumberTable(nt, rows, columns, cellIdxMap, geneIdxMap)
 	for row in range(ntC.Rows): 
