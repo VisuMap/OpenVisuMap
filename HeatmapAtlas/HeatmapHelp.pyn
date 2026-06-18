@@ -19,7 +19,7 @@ def ToClusterMap(mp, spList):
 		c = csHM.MeanPosition( New.BodyList(g))
 		b.X, b.Y, b.Z = c.Item1, c.Item2, c.Item3
 		cbList.append(b)
-	cMp = New.MapSnapshot2(cbList, mp.MapLayout)
+	cMp = New.MapSnapshot2(cbList, mp.MapLayout.Clone())
 	cMp.GlyphSize = 2.0
 	cMp.GlyphOpacity = 0.75
 	cMp.Show()
@@ -51,6 +51,9 @@ def ConvertToClusters(hm):
 	cellCP.Tag = hmC
 	geneCP.Tag = hmC
 	hmC.OnClose('CloseSortedHeatmap(pp)')
+	MapInfo(cellCP).Set('MapType', 'Cell Clusters').Save()
+	MapInfo(geneCP).Set('MapType', 'Gene Clusters').Save()
+	MapInfo(hmC).Set('MapType', 'Cluster Heatmap').Save()
 
 def UpdateMeanView(bv):
 	hm = pp.Tag
@@ -87,15 +90,22 @@ def LoadSortedHeatmap():
 		if not vv.Folder.OpenDataset(dsName):
 			vv.Message('Cannot open dataset "' + dsName + '".')
 			vv.Return()
-	nt = vv.GetNumberTableView(False)
-	nt = nt.SelectRowsById2(rowIds)
-	nt = nt.SelectColumnsById2(colIds, 0)
-	hm = New.HeatMap(nt)
-	hm.SelectionMode = 2
-	hm.Width = int(info.WinWidth)
-	hm.Height = int(info.WinHeight)
+
+	if info.Has('MapType') and info.MapType=='Cluster Heatmap':
+		hm = tbItem.Open()
+		hm.Width = int(info.WinWidth)
+		hm.Height = int(info.WinHeight)
+	else:
+		nt = vv.GetNumberTableView(False)
+		nt = nt.SelectRowsById2(rowIds)
+		nt = nt.SelectColumnsById2(colIds, 0)
+		hm = New.HeatMap(nt)
+		hm.SelectionMode = 2
+		hm.Width = int(info.WinWidth)
+		hm.Height = int(info.WinHeight)
+		hm.Show2()
+
 	hm.Title = hmId + ": Sorted table; " + dsName + ": " + str(rows) + "x" + str(columns)
-	hm.Show2()
 
 	cellMap, geneMap = None, None
 	if info.Has('CellMpId'):
@@ -153,13 +163,18 @@ def SaveSortedHeatmap(hm):
 	at = atList[0] if len(atList)>0 else New.Atlas('HmAtlas').Show()
 	itemCount = len( [x for x in at.Items if x.ItemType == 'RectItem'] )
 
-	ii = at.NewRectItem()
+	hmInfo = MapInfo(hm)
+	if hmInfo.Has('MapType') and hmInfo.MapType == 'Cluster Heatmap':
+		ii = at.NewHeatMapItem(hm)
+		info.Set('MapType', 'Cluster Heatmap')
+	else:
+		ii = at.NewRectItem()
+		ii.FillColor = New.Color('Green')
+		ii.Filled = True
+		ii.IsEllipse = False
 	ii.Name = vv.Dataset.Name[:8]
 	ii.Top = 20*(itemCount % 15 + 1)
 	ii.Left = ii.Top
-	ii.FillColor = New.Color('Green')
-	ii.Filled = True
-	ii.IsEllipse = False
 	ii.Opacity = 0.75
 	ii.LabelStyle = 2
 	ii.IconHeight = 25
@@ -285,7 +300,13 @@ def CopyColoring2Heatmap(mp):
 		vv.Message('Wrong parent type')
 		return
 	nt = hm.GetNumberTable()
-	spList = nt.RowSpecList if info.MapType == 'Cell Map' else nt.ColumnSpecList	
+	match info.MapType:
+		case 'Cell Map'|'Cell Clusters':
+			spList = nt.RowSpecList
+		case 'Gene Map'|'Gene Clusters':
+			spList = nt.ColumnSpecList
+		case _:
+			return
 	for k, b in enumerate( mp.BodyList ):
 		spList[k].Type = b.Type
 	hm.Redraw()
