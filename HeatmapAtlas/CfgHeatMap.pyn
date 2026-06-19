@@ -6,10 +6,10 @@ ctrPressed = vv.ModifierKeys.ControlPressed
 def HeatMapMain(menu):
 	match menu:
 		case 'D-Sorting':
-			#DualSorting(pp,                                     pColumn=(25000, 2000, 0.05, 8.0, 1.0))
-			DualSorting(pp, pRow=(5000, 2000, 0.05, 2.0, 1.0),  pColumn=(25000, 2000, 0.05, 4.0, 1.0))
 			if ctrPressed:
-				HeatMapMain('D-Embedding')
+				DualSorting(pp, pRow=None, pColumn=(25000, 2000, 0.05, 8.0, 1.0))
+			else:
+				DualSorting(pp, pRow=(5000, 2000, 0.05, 2.0, 1.0),  pColumn=(25000, 2000, 0.05, 4.0, 1.0))
 		case 'D-Embedding':
 			DualEmbedding(pp, pRow=(5000, 2000, 0.05, 2.0, 1.0), pColumn=(15000, 2000, 0.05, 1.5, 1.0))
 		case 'D-Clustering':
