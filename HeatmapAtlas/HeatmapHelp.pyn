@@ -582,12 +582,25 @@ csHM = New.CsObject('''
 		INumberTable ntC = New.NumberTable(rows, columns);
 		double[][] M = (double[][]) nt.Matrix;
 		double[][] MC = (double[][]) ntC.Matrix;
+
 		for(int row=0; row<nt.Rows; row++)
 		for(int col=0; col<nt.Columns; col++){
 			int rowC = rowIdxMap[row];
 			int colC = columnIdxMap[col];
 			MC[rowC][colC] += M[row][col];
 		}
+
+		// Replace the values by their mean values of the clusters.
+		int[] rowW = new int[ntC.Rows];
+		foreach(int r in rowIdxMap) 
+			rowW[r] += 1;
+		int[] colW = new int[ntC.Columns];
+		foreach(int c in columnIdxMap)
+			colW[c] += 1;
+		for(int r=0; r<ntC.Rows; r++)
+		for(int c=0; c<ntC.Columns; c++)
+			MC[r][c] /= rowW[r]*colW[c];
+
 		return ntC;
 	}
 ''')

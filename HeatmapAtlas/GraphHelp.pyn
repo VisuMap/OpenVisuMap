@@ -39,7 +39,7 @@ def ShowClusterGraph(pMap, threshold=0.1):   # converted from ShowGraph()
 			members = []
 			R1, R2 = nt.Matrix[r1], nt.Matrix[r2]			
 			for col in range(nt.Columns):
-				if abs(R1[col] - R2[col]) > limit:
+				if R1[col] - R2[col] > limit:
 					members.append(mList[col])
 			if len(members) == 0:
 				continue

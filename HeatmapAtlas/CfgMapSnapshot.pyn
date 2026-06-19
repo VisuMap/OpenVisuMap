@@ -10,7 +10,7 @@ match vv.EventSource.Item:
 		# copy the cluster coloring to the linked heatmap's rows or columns depending on the map type.
 		CopyColoring2Heatmap(pp)
 	case 'ShowGraph':
-		ShowClusterGraph(pp, 0.5)
+		ShowClusterGraph(pp, 0.25)
 
 '''
 #MenuLabels Info Monitor ShowData ReEmbedding 3D-Expression ActiveCells LabelGenes LabelAll ShowGeneTable MatchMap \
