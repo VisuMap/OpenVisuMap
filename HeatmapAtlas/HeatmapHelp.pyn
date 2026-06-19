@@ -255,6 +255,9 @@ def DualSorting(hm, pRow=None, pColumn=None):
 	hm.DisableReorder = False
 	nt = hm.GetNumberTable()
 	info = MapInfo(hm)
+	hm.ColumnHeaderPalette = DFT_COLOR_PALETTE
+	hm.RowHeaderPalette = DFT_COLOR_PALETTE
+	hm.Redraw()
 
 	if pRow is not None:
 		hm.Title = 'Sorting Rows...'
@@ -292,7 +295,7 @@ def EmbeddingData(mds, D, epochs, ppl, initE, finalE):
 	mds.GlyphSize =0.75
 	mds.RefreshFreq = 50
 	mds.Repeats = 1
-	mds.GlyphSet = "36 Clusters|||||"
+	mds.GlyphSet = DFT_GLYPHSET
 	mds.MaxLoops = epochs
 	mds.PerplexityRatio = ppl
 	mds.InitialExaggeration = initE
@@ -344,8 +347,6 @@ def DualEmbedding(hm, pRow=None, pColumn=None):
 	mds = New.MdsCluster().Show()
 	hm.Tag = [None, None]
 	if pRow is not None:
-		hm.RowHeaderPalette = "36 Clusters"
-		hm.Redraw()
 		hm.Title = 'Creating cell embedding...'
 		maxFeatures, epochs, ppl, initE, finalE = pRow
 		D = SelectFeatures(nt, maxFeatures)
@@ -353,8 +354,6 @@ def DualEmbedding(hm, pRow=None, pColumn=None):
 		info = MapInfo().Set('EmbRow', str(pRow))
 		LinkToHeatMap(mp, hm, True, info)
 	if pColumn is not None:
-		hm.ColumnHeaderPalette = "36 Clusters"
-		hm.Redraw()
 		hm.Title = 'Creating gene embedding...';
 		maxFeatures, epochs, ppl, initE, finalE = pColumn
 		D = SelectFeatures(nt.Transpose2(), maxFeatures)

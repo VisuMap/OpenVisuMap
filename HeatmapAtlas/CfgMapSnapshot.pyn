@@ -1,3 +1,15 @@
+#MenuLabels Info 'Capture Coloring'
+vv.Import('Common.pyn')
+vv.Import('HeatmapHelp.pyn')
+
+match vv.EventSource.Item:
+	case 'Info':
+		ShowInfo(pp)
+	case 'Capture Coloring':  
+		# copy the cluster coloring to the linked heatmap's rows or columns depending on the map type.
+		CopyColoring2Heatmap(pp)
+
+'''
 #MenuLabels Info Monitor ShowData ReEmbedding 3D-Expression ActiveCells LabelGenes LabelAll ShowGeneTable MatchMap \
 # ShowSuperCluster ShowGraph "Capture Coloring"
 vv.Import('GeneMonitor.pyn')
@@ -30,4 +42,4 @@ match vv.EventSource.Item:
 	case 'Capture Coloring':  
 		# copy the cluster coloring to the linked heatmap's rows or columns depending on the map type.
 		CopyColoring2Heatmap(pp)
-		
+'''	

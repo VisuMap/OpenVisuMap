@@ -1,6 +1,9 @@
 # Common.pyn
 # General purpose classes and functions
 #
+DFT_GLYPHSET = '36 Clusters||||||'
+DFT_COLOR_PALETTE = '36 Clusters'
+
 class MapInfo():
 	def __init__(self, inits = None):
 		self._form_ = None
