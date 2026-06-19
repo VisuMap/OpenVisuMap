@@ -49,11 +49,7 @@ def ConvertToClusters(hm):
 	cellCP, cellIdxMap, rows = ToClusterMap(cellMap, nt, True)
 	geneCP, geneIdxMap, columns = ToClusterMap(geneMap, nt, False)
 
-	ntC = csHM.CollapseNumberTable(nt, rows, columns, cellIdxMap, geneIdxMap)
-	for row in range(ntC.Rows): 
-		ntC.RowSpecList[row].Id = cellCP.BodyList[row].Id
-	for col in range(ntC.Columns): 
-		ntC.ColumnSpecList[col].Id = geneCP.BodyList[col].Id
+	ntC = csHM.CollapseNumberTable(nt, rows, columns, cellIdxMap, geneIdxMap, cellCP, geneCP)
 	hmC = ntC.ShowHeatMap()
 	
 	LayoutMaps(hmC, cellCP, geneCP)
@@ -578,7 +574,8 @@ csHM = New.CsObject('''
 		return Tuple.Create(x, y, z);
 	}
 
-	public INumberTable CollapseNumberTable(INumberTable nt, int rows, int columns, List<int> rowIdxMap, List<int> columnIdxMap) {
+	public INumberTable CollapseNumberTable(INumberTable nt, int rows, int columns, 
+			List<int> rowIdxMap, List<int> columnIdxMap, IMapSnapshot cellCP, IMapSnapshot geneCP) {
 		INumberTable ntC = New.NumberTable(rows, columns);
 		double[][] M = (double[][]) nt.Matrix;
 		double[][] MC = (double[][]) ntC.Matrix;
@@ -589,6 +586,11 @@ csHM = New.CsObject('''
 			int colC = columnIdxMap[col];
 			MC[rowC][colC] += M[row][col];
 		}
+
+		for(int row=0; row<ntC.Rows; row++)
+			ntC.RowSpecList[row].Id = cellCP.BodyList[row].Id;
+		for(int col=0; col<ntC.Columns; col++)
+			ntC.ColumnSpecList[col].Id = geneCP.BodyList[col].Id;
 
 		// Replace the values by their mean values of the clusters.
 		int[] rowW = new int[ntC.Rows];

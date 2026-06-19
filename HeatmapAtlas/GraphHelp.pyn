@@ -5,11 +5,14 @@ def ShowClusterGraph(pMap, threshold=0.1):   # converted from ShowGraph()
 	if not info.Has('MapType') or ( (info.MapType != 'Gene Clusters') and (info.MapType != 'Cell Clusters') ):
 		vv.Message('In valid map type!')
 		return
+	isCellCluster = info.MapType == 'Cell Clusters'
 
 	# Add cluster nodes
 	pw, ph = int(pMap.MapLayout.Width), int(pMap.MapLayout.Height)
+	#bgclr = '#000064' if isCellCluster else '#006464'
+	bgclr = 'lightgray'
 	g = Network(directed=True, width=f'{pw}px', height=f'{ph}px', 
-		bgcolor='lightgray', font_color='black')
+		bgcolor=bgclr, font_color='black')
 	g.options.interaction.dragNodes = False
 	#g.options.configure.enabled = True
 	#g.options.configure.showButton = True
@@ -18,7 +21,7 @@ def ShowClusterGraph(pMap, threshold=0.1):   # converted from ShowGraph()
 	cSize = {b.Type:(b.Name.count('|')+1) for b in cList}
 	L = len(cList)
 	totalCount = sum( cSize.values() )
-	clr = '#FE0000' if info.MapType == 'Cell Clusters' else '#00D200'
+	clr = '#00D200' if isCellCluster else '#006464' 
 	for k, b in enumerate(cList):
 		sz = 50*math.sqrt(5.0*cSize[b.Type]/totalCount)
 		sz = min(50, max(10, sz))
@@ -41,6 +44,7 @@ def ShowClusterGraph(pMap, threshold=0.1):   # converted from ShowGraph()
 			for col in range(nt.Columns):
 				if R1[col] - R2[col] > limit:
 					members.append(mList[col])
+			members = members[:5]
 			if len(members) == 0:
 				continue
 			edgeName = ''.join(members)
