@@ -1,3 +1,4 @@
+import math
 from pyvis.network import Network
 
 def ShowClusterGraph(pMap, threshold=0.1):   # converted from ShowGraph()
@@ -15,20 +16,23 @@ def ShowClusterGraph(pMap, threshold=0.1):   # converted from ShowGraph()
 		bgcolor=bgclr, font_color='black')
 	g.options.interaction.dragNodes = False
 	#g.options.configure.enabled = True
-	#g.options.configure.showButton = True
+	#g.options.configure.showButton = True	
 	g.options.edges.smooth.enabled = False
+	
 	cList = list(pMap.BodyList)
 	cSize = {b.Type:(b.Name.count('|')+1) for b in cList}
 	L = len(cList)
 	totalCount = sum( cSize.values() )
 	clr = '#00D200' if isCellCluster else '#006464' 
+	
 	for k, b in enumerate(cList):
 		sz = 50*math.sqrt(5.0*cSize[b.Type]/totalCount)
 		sz = min(50, max(10, sz))
-		#g.add_node(k, label=b.Id, x=b.X, y=b.Y, shape='ellipse', color=clr, borderWidth=0.5)
 		g.add_node(k, x=b.X, y=b.Y, color=clr, size=sz, borderWidth=0.5)
 		g.add_node(k+L, x=b.X, y=b.Y, label=b.Id, shape='text')
-
+	for nd in g.nodes:
+		nd['font'] = {'size':16, 'face':'Curier New', 'color':"#F8F6F6"}
+	
 	# Add edges between clusters
 	nt = pMap.Tag.GetNumberTable()
 	if info.MapType == 'Gene Clusters':
@@ -49,6 +53,8 @@ def ShowClusterGraph(pMap, threshold=0.1):   # converted from ShowGraph()
 				continue
 			edgeName = ''.join(members)
 			g.add_edge(r1, r2, label=edgeName, color='red', width=0.125, arrowStrikethrough=False)
+	for e in g.edges:
+		e['font'] = {'size':12, 'face':'Monoid', 'color':"#250871"}
 
 	g.options.edges.smooth = {'enabled': True, 'type': 'cubicBezier'}
 	g.toggle_physics(False)

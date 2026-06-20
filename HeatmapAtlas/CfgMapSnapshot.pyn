@@ -1,48 +1,14 @@
 #MenuLabels Info 'Capture Coloring' ShowGraph
 vv.Import('Common.pyn')
-vv.Import('HeatmapHelp.pyn')
-vv.Import('GraphHelp.pyn')
+
 
 match vv.EventSource.Item:
 	case 'Info':
 		ShowInfo(pp)
 	case 'Capture Coloring':  
 		# copy the cluster coloring to the linked heatmap's rows or columns depending on the map type.
+		vv.Import('HeatmapHelp.pyn')
 		CopyColoring2Heatmap(pp)
 	case 'ShowGraph':
+		vv.Import('GraphHelp.pyn')
 		ShowClusterGraph(pp, 0.25)
-
-'''
-#MenuLabels Info Monitor ShowData ReEmbedding 3D-Expression ActiveCells LabelGenes LabelAll ShowGeneTable MatchMap \
-# ShowSuperCluster ShowGraph "Capture Coloring"
-vv.Import('GeneMonitor.pyn')
-thresholdLevel = 1.0
-match vv.EventSource.Item:
-	case 'Monitor':
-		MonitorMap(pp)
-	case 'ShowData':
-		ShowData(pp)
-	case 'ReEmbedding':
-		ReEmbedding(pp)
-	case '3D-Expression':
-		ShowExpress3D(pp)
-	case 'ActiveCells':
-		ShowActiveCells(pp)
-	case 'LabelGenes':
-		LabelGenes(pp)
-	case 'LabelAll':
-		LabelAllClusters(pp)
-	case 'ShowGeneTable':
-		ShowLegend(pp)
-	case 'MatchMap':
-		Unify2Maps(pp)
-	case 'ShowSuperCluster':
-		ShowSuperClusters(pp)
-	case 'ShowGraph':
-		ShowGraph(pp, showEdges=True, showPilotes=False)
-	case 'Info':
-		ShowInfo(pp)
-	case 'Capture Coloring':  
-		# copy the cluster coloring to the linked heatmap's rows or columns depending on the map type.
-		CopyColoring2Heatmap(pp)
-'''	
