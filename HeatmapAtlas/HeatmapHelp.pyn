@@ -129,6 +129,7 @@ def LoadSortedHeatmap():
 	hm.Tag = [cellMap, geneMap]
 	LayoutMaps(hm, hm.Tag[0], hm.Tag[1])
 	hm.OnClose('CloseSortedHeatmap(pp)')
+	MapInfo(hm).Add({'atName':atlas.AtlasName,'atItem':tbItem.Id, 'dsName':dsName}).Save()
 
 def CloseSortedHeatmap(hm):
 	if hm.Tag is None:
@@ -138,6 +139,17 @@ def CloseSortedHeatmap(hm):
 	for mp in hm.Tag:
 		if mp is not None:
 			mp.Close()
+	info = MapInfo(hm)
+	if info.Has('atName') and info.Has('atItem'):
+		atList = [x for x in vv.FindFormList("Atlas") if x.AtlasName==info.atName]
+		if len(atList) > 0:
+			atItem = atList[0].FindItemById(info.atItem)
+			if atItem != None:
+				info = MapInfo( str(atItem.Tag) )
+				nt = hm.GetNumberTable()
+				info.Set('RowIds', '|'.join([rs.Id for rs in nt.RowSpecList]))
+				info.Set('ColumnIds', '|'.join([cs.Id for cs in nt.ColumnSpecList]))
+				atItem.Tag = info.Str
 
 def LayoutMaps(hm, cellMap, geneMap):
 	sz = 600
@@ -225,9 +237,11 @@ def SelectFeatures(nt, featureCount):
 	columns = nt.Columns
 	return nt.SelectColumns([(col*997)%columns  for col in range(featureCount)])
 
-def SortTable(D, epochs, ppl, initE, finalE):
-	D.Centralize() # needed only for cosine metric.
-	tsne = New.TsneSorter(D, "Correlation.Cosine Distance")
+def SortTable(D, epochs, ppl, initE, finalE, mtr="Correlation.Cosine Distance"):
+	if mtr == "Correlation.Cosine Distance":
+		D = D.Clone()
+		D.Centralize() # needed only for cosine metric.
+	tsne = New.TsneSorter(D, mtr)
 	tsne.MaxLoops = epochs
 	tsne.InitExaggeration = initE
 	tsne.FinalExaggeration = finalE
@@ -261,7 +275,9 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		hm.RandomizeRows()
 		maxFeatures, epochs, ppl, initE, finalE = pRow
 		D = SelectFeatures(nt, maxFeatures)
-		SortTable(D, epochs, ppl, initE, finalE)
+		#mtr="Correlation.Cosine Distance"
+		mtr = "EuclideanMetric"
+		SortTable(D, epochs, ppl, initE, finalE, mtr)
 		info.Set('SrtRow', str(pRow))
 	if pColumn is not None:
 		hm.Title = 'Sorting Columns...';
@@ -269,7 +285,9 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		hm.RandomizeColumns();
 		maxFeatures, epochs, ppl, initE, finalE = pColumn
 		D = SelectFeatures(nt.Transpose2(), maxFeatures)
-		SortTable(D, epochs, ppl, initE, finalE)		
+		#mtr="Correlation.Cosine Distance"
+		mtr = "EuclideanMetric"
+		SortTable(D, epochs, ppl, initE, finalE, mtr)		
 		info.Set('SrtColumn', str(pRow))
 
 	hm.Title = 'Sorted'
@@ -316,8 +334,9 @@ def CopyColoring2Heatmap(mp):
 			spList = nt.ColumnSpecList
 		case _:
 			return
-	for k, b in enumerate( mp.BodyList ):
-		spList[k].Type = b.Type
+	id2body = {b.Id:b for b in mp.BodyList}
+	for sp in spList:
+		sp.Type = id2body[sp.Id].Type
 	hm.Redraw()
 	
 def LinkToHeatMap(mp, hm, isCellMap, info):

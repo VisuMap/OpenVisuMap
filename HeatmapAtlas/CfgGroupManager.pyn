@@ -1,3 +1,4 @@
+'''
 #MenuLabels EmbedGroups ShowData FeatureMap
 vv.Import('GeneMonitor.pyn')
 match vv.EventSource.Item:
@@ -11,3 +12,4 @@ match vv.EventSource.Item:
 		ShowData0( list(vv.SelectedItems) )
 	case 'FeatureMap':
 		CreateFeatureMap(pp)
+'''

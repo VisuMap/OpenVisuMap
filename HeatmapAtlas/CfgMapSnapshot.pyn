@@ -1,13 +1,12 @@
 #MenuLabels Info 'Capture Coloring' ShowGraph
 vv.Import('Common.pyn')
-
+vv.Import('HeatmapHelp.pyn')
 
 match vv.EventSource.Item:
 	case 'Info':
 		ShowInfo(pp)
 	case 'Capture Coloring':  
 		# copy the cluster coloring to the linked heatmap's rows or columns depending on the map type.
-		vv.Import('HeatmapHelp.pyn')
 		CopyColoring2Heatmap(pp)
 	case 'ShowGraph':
 		vv.Import('GraphHelp.pyn')
