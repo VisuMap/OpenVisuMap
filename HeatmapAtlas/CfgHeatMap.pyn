@@ -1,4 +1,4 @@
-#MenuLabels S-Active-Genes D-Sorting D-Embedding D-Clustering ActiveGenes ActiveCells SaveHeatmap ShowMean Info  ToClusters
+#MenuLabels S-Active-Genes D-Sorting D-Embedding D-Clustering ActiveGenes ActiveCells Save ShowMean Info  ToClusters
 vv.Import('HeatmapHelp.pyn')
 
 ctrPressed = vv.ModifierKeys.ControlPressed
@@ -11,8 +11,10 @@ def HeatMapMain(menu):
 			cIdxList = [ c for c in range(cm.Count) if cm[c].Value > 0.02 ]
 			nt.SelectColumns(cIdxList).ShowHeatMap()
 		case 'D-Sorting':
-			#DualSorting(pp, pRow=None, pColumn=(25000, 2000, 0.05, 4.0, 1.0))
-			DualSorting(pp, pRow=(5000, 2000, 0.05, 2.0, 1.0),  pColumn=(25000, 2000, 0.05, 4.0, 1.0))
+			#DualSorting(pp, pRow=None,                          pColumn=(25000, 2000, 0.05, 4.0, 1.0))
+			DualSorting(pp, pRow=(5000, 2000, 0.05, 4.0, 1.0),  pColumn=(25000, 2000, 0.05, 4.0, 1.0))
+			if ctrPressed:
+				HeatMapMain('D-Embedding')
 		case 'D-Embedding':
 			DualEmbedding(pp, pRow=(5000, 2000, 0.05, 2.0, 1.0), pColumn=(15000, 2000, 0.05, 1.5, 1.0))
 		case 'D-Clustering':
@@ -21,7 +23,7 @@ def HeatMapMain(menu):
 			ShowActiveGenes(pp)
 		case 'ActiveCells':
 			ShowActiveCells(pp)
-		case 'SaveHeatmap':
+		case 'Save':  # Save the heatmap and associated cell/gene maps.
 			SaveSortedHeatmap(pp)
 		case 'ShowMean':
 			ShowHeatmapMean(pp)

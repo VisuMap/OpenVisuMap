@@ -190,13 +190,13 @@ def SaveSortedHeatmap(hm):
 		ii.FillColor = New.Color('Green')
 		ii.Filled = True
 		ii.IsEllipse = False
-	ii.Name = vv.Dataset.Name[:8]
+	ii.Name = vv.Dataset.Name
 	ii.Top = 20*(itemCount % 15 + 1)
 	ii.Left = ii.Top
 	ii.Opacity = 0.75
 	ii.LabelStyle = 2
 	ii.IconHeight = 25
-	ii.IconWidth = 55
+	ii.IconWidth = 75
 	ii.Script = "LoadSortedHeatmap()"	
 	at.RedrawItem(ii)
 
@@ -238,9 +238,6 @@ def SelectFeatures(nt, featureCount):
 	return nt.SelectColumns([(col*997)%columns  for col in range(featureCount)])
 
 def SortTable(D, epochs, ppl, initE, finalE, mtr="Correlation.Cosine Distance"):
-	if mtr == "Correlation.Cosine Distance":
-		D = D.Clone()
-		D.Centralize() # needed only for cosine metric.
 	tsne = New.TsneSorter(D, mtr)
 	tsne.MaxLoops = epochs
 	tsne.InitExaggeration = initE
@@ -250,6 +247,8 @@ def SortTable(D, epochs, ppl, initE, finalE, mtr="Correlation.Cosine Distance"):
 	tsne.StagedTraining = False
 	tsne.Repeats = 1
 	tsne.Broadcasting = True
+	tsne.ColorPalette = DFT_COLOR_PALETTE
+	
 	tsne.Show().Start()
 	if math.isnan( tsne.ItemList[0].Value ):
 		raise Exception("Training degraded!\nPlease try with smaller initial exaggeration.")
@@ -269,14 +268,15 @@ def DualSorting(hm, pRow=None, pColumn=None):
 	hm.RowHeaderPalette = DFT_COLOR_PALETTE
 	hm.Redraw()
 
+	mtr="Correlation.Cosine Distance"
+	#mtr = "EuclideanMetric"
+
 	if pRow is not None:
 		hm.Title = 'Sorting Rows...'
 		hm.SelectionMode = 0
 		hm.RandomizeRows()
 		maxFeatures, epochs, ppl, initE, finalE = pRow
 		D = SelectFeatures(nt, maxFeatures)
-		#mtr="Correlation.Cosine Distance"
-		mtr = "EuclideanMetric"
 		SortTable(D, epochs, ppl, initE, finalE, mtr)
 		info.Set('SrtRow', str(pRow))
 	if pColumn is not None:
@@ -285,8 +285,8 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		hm.RandomizeColumns();
 		maxFeatures, epochs, ppl, initE, finalE = pColumn
 		D = SelectFeatures(nt.Transpose2(), maxFeatures)
-		#mtr="Correlation.Cosine Distance"
-		mtr = "EuclideanMetric"
+		if mtr == "Correlation.Cosine Distance":
+			D.Centralize() # needed only for cosine metric.
 		SortTable(D, epochs, ppl, initE, finalE, mtr)		
 		info.Set('SrtColumn', str(pRow))
 
@@ -300,7 +300,6 @@ def EmbeddingData(mds, D, epochs, ppl, initE, finalE):
 	mds.MdsAlgorithm = 2;
 	mds.SetTrainingData(D);
 	mds.Is3D = False;
-	#mds.Metric = "EuclideanMetric"
 	mds.Metric = "Correlation.Cosine Distance"
 	mds.AutoClustering = False
 	mds.AutoNormalizing = False

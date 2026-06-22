@@ -31,7 +31,7 @@ def ShowClusterGraph(pMap, threshold=0.1):   # converted from ShowGraph()
 		g.add_node(k, x=b.X, y=b.Y, color=clr, size=sz, borderWidth=0.5)
 		g.add_node(k+L, x=b.X, y=b.Y, label=b.Id, shape='text')
 	for nd in g.nodes:
-		nd['font'] = {'size':16, 'face':'Curier New', 'color':"#F8F6F6"}
+		nd['font'] = {'size':16, 'face':'MS Sans Serif', 'color':"#F8F6F6"}
 	
 	# Add edges between clusters
 	nt = pMap.Tag.GetNumberTable()
@@ -54,7 +54,7 @@ def ShowClusterGraph(pMap, threshold=0.1):   # converted from ShowGraph()
 			edgeName = ''.join(members)
 			g.add_edge(r1, r2, label=edgeName, color='red', width=0.125, arrowStrikethrough=False)
 	for e in g.edges:
-		e['font'] = {'size':12, 'face':'Monoid', 'color':"#250871"}
+		e['font'] = {'size':12, 'face':'MS Sans Serif', 'color':"#250871"}
 
 	g.options.edges.smooth = {'enabled': True, 'type': 'cubicBezier'}
 	g.toggle_physics(False)
