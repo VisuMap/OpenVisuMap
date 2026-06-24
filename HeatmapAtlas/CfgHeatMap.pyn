@@ -8,7 +8,7 @@ def HeatMapMain(menu):
 		case 'S-Active-Genes':
 			nt = pp.GetNumberTable()
 			cm = nt.ColumnMean()
-			cIdxList = [ c for c in range(cm.Count) if cm[c].Value > 0.02 ]
+			cIdxList = [ c for c in range(cm.Count) if cm[c].Value > 0.1]
 			nt.SelectColumns(cIdxList).ShowHeatMap()
 		case 'D-Sorting':
 			#DualSorting(pp, pRow=None,                         pColumn=(25000, 2000, 0.05, 4.0, 1.0))

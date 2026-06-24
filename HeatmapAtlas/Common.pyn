@@ -3,6 +3,7 @@
 #
 DFT_GLYPHSET = '36 Clusters||||||'
 DFT_COLOR_PALETTE = '36 Clusters'
+DFT_METRIC = 'Correlation.Cosine Distance'
 
 class MapInfo():
 	def __init__(self, inits = None):

@@ -230,7 +230,7 @@ def SaveSortedHeatmap(hm):
 	ii.Tag = info.Str
 	at.BringToFront([ii])
 	at.GroupItems(itemList)
-
+		
 def SelectFeatures(nt, featureCount):
 	if featureCount >= nt.Columns:
 		return nt.Clone()
@@ -268,8 +268,7 @@ def DualSorting(hm, pRow=None, pColumn=None):
 	hm.RowHeaderPalette = DFT_COLOR_PALETTE
 	hm.Redraw()
 
-	#mtr = "EuclideanMetric"
-	mtr="Correlation.Cosine Distance"
+	mtr=DFT_METRIC
 
 	if pRow is not None:
 		hm.Title = 'Sorting Rows...'
@@ -285,10 +284,12 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		hm.RandomizeColumns();
 		maxFeatures, epochs, ppl, initE, finalE = pColumn
 		D = SelectFeatures(nt.Transpose2(), maxFeatures)
-		# large number of zero gene/column vectors will messup the
-		# the cosine metric. We do Centralization to reduce such effects.
-		if mtr == "Correlation.Cosine Distance": 
-			D.Centralize() 
+		# large number of zero gene/column vectors often messes up the
+		# the cosine metric, so this function ends up with NaN values.
+        # We do Centralization to reduce such effects. Another better way
+        # is to remove those zero alike columns, through the  S-Active-Genes menu.
+		#if mtr == "Correlation.Cosine Distance": 
+		#	D.Centralize() 
 		SortTable(D, epochs, ppl, initE, finalE, mtr)		
 		info.Set('SrtColumn', str(pRow))
 
@@ -302,7 +303,7 @@ def EmbeddingData(mds, D, epochs, ppl, initE, finalE):
 	mds.MdsAlgorithm = 2;
 	mds.SetTrainingData(D);
 	mds.Is3D = False;
-	mds.Metric = "Correlation.Cosine Distance"
+	mds.Metric = DFT_METRIC
 	mds.AutoClustering = False
 	mds.AutoNormalizing = False
 	mds.StagedTraining = False
