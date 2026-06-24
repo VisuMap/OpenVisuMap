@@ -1,7 +1,7 @@
 import math
 from pyvis.network import Network
 
-def ShowClusterGraph(pMap, threshold=0.1):   # converted from ShowGraph()
+def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True):   # converted from ShowGraph()
 	info = MapInfo(pMap)
 	if not info.Has('MapType') or ( (info.MapType != 'Gene Clusters') and (info.MapType != 'Cell Clusters') ):
 		vv.Message('In valid map type!')
@@ -21,11 +21,23 @@ def ShowClusterGraph(pMap, threshold=0.1):   # converted from ShowGraph()
 	ndColor = '#00D200' if isCellCluster else '#006464' 
 	egColor = 'red'
 	
-	cList = list(pMap.BodyList)
-	cSize = {b.Type:(b.Name.count('|')+1) for b in cList}
+	hm = pMap.Tag
+	nt = hm.GetNumberTable()
+	M = nt.Matrix
+	cList = list(pMap.BodyList)	
 	L = len(cList)
-	totalCount = sum( cSize.values() )
-	cRadius = [50*math.sqrt(5.0*cSize[b.Type]/totalCount) for b in cList]
+
+	if radiusByActivity:
+		cCount = {b.Type:(b.Name.count('|')+1) for b in cList}
+		totalCount = sum( cCount.values() )
+		cRadius = [100*math.sqrt(cCount[b.Type]/totalCount) for b in cList]
+	else:
+		if isCellCluster:
+			cActivity = [sum(list(R)) for R in M]
+		else:
+			cActivity = [ sum([R[col] for R in M]) for col in range(L)]
+		totalActivity = sum(cActivity)
+		cRadius = [50*math.sqrt(cActivity[k]/totalActivity) for k in range(L)]
 
 	for k, b in enumerate(cList):
 		sz = min(50, max(10, cRadius[k]))
@@ -35,7 +47,6 @@ def ShowClusterGraph(pMap, threshold=0.1):   # converted from ShowGraph()
 		nd['font'] = {'size':16, 'face':'MS Sans Serif', 'color':"#F8F6F6"}
 	
 	# Add edges between clusters
-	nt = pMap.Tag.GetNumberTable()
 	if info.MapType == 'Gene Clusters':
 		nt = nt.Transpose2()
 	limit = threshold * nt.MaximumValue()

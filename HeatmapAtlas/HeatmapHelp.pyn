@@ -109,8 +109,10 @@ def LoadSortedHeatmap():
 		hm.SelectionMode = 2
 		hm.Width = int(info.WinWidth)
 		hm.Height = int(info.WinHeight)
+		MapInfo(hm).Set('MapType', 'Linked Heatmap').Save()
 		hm.Show2()
 
+	hm.ReadOnly = True
 	hm.Title = hmId + ": Sorted table; " + dsName + ": " + str(rows) + "x" + str(columns)
 
 	cellMap, geneMap = None, None

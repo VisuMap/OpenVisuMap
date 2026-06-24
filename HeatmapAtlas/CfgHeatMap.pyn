@@ -10,9 +10,11 @@ def HeatMapMain(menu):
 			cm = nt.ColumnMean()
 			cIdxList = [ c for c in range(cm.Count) if cm[c].Value > 0.1]
 			nt.SelectColumns(cIdxList).ShowHeatMap()
+			MapInfo(pp).Set('MapType', 'Active Heatmap').Save()
 		case 'D-Sorting':
 			#DualSorting(pp, pRow=None,                         pColumn=(25000, 2000, 0.05, 4.0, 1.0))
 			DualSorting(pp, pRow=(5000, 2000, 0.05, 4.0, 1.0),  pColumn=(25000, 2000, 0.05, 4.0, 1.0))
+			MapInfo(pp).Set('MapType', 'Sorted Heatmap').Save()
 			if ctrPressed:
 				HeatMapMain('D-Embedding')
 		case 'D-Embedding':

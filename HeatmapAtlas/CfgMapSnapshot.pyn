@@ -12,4 +12,4 @@ match vv.EventSource.Item:
 		vv.Import('GraphHelp.pyn')
 		info = MapInfo(pp)
 		cntThr = 0.175 if info.MapType=='Cell Clusters' else 0.15
-		ShowClusterGraph(pp, cntThr)
+		ShowClusterGraph(pp, cntThr, True)
