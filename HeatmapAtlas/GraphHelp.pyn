@@ -11,14 +11,15 @@ def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True):   # converte
 	# Add cluster nodes
 	pw, ph = int(pMap.MapLayout.Width), int(pMap.MapLayout.Height)
 	#bgclr = '#000064' if isCellCluster else '#006464'
-	bgclr = 'lightgray'
+	bgclr = 'white'
 	g = Network(directed=True, width=f'{pw}px', height=f'{ph}px', 
 		bgcolor=bgclr, font_color='black')
 	g.options.interaction.dragNodes = False
 	#g.options.configure.enabled = True
 	#g.options.configure.showButton = True	
-	g.options.edges.smooth.enabled = False
-	ndColor = '#00D200' if isCellCluster else '#006464' 
+	g.options.edges.smooth.enabled = True
+	ndColor = '#00A000' if isCellCluster else '#006464' 
+	ndShape = 'circle' if isCellCluster else 'box'
 	egColor = 'red'
 	
 	hm = pMap.Tag
@@ -41,13 +42,13 @@ def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True):   # converte
 		cRadius = [cCount[b.Type]/totalCount for b in cList]
 		cRadius = [100*math.sqrt(x) for x in cRadius]
 
-	for k, b in enumerate(cList):
-		sz = min(40, max(10, cRadius[k]))
-		g.add_node(k, x=b.X, y=b.Y, color=ndColor, size=sz, borderWidth=0.5)
-		g.add_node(k+L, x=b.X, y=b.Y, label=b.Id, shape='text')
-	for nd in g.nodes:
-		nd['font'] = {'size':16, 'face':'MS Sans Serif', 'color':"#F8F6F6"}
 	
+	for k, b in enumerate(cList):
+		ndSz = min(40, max(10, cRadius[k]))
+		g.add_node(k, x=b.X, y=b.Y, color=ndColor, size=ndSz, shape=ndShape, label=' '+b.Id)
+	for nd in g.nodes:
+		nd['font'] = {'size':12, 'face':'MS Sans Serif', 'color':'white'}
+
 	# Add edges between clusters
 	if info.MapType == 'Gene Clusters':
 		nt = nt.Transpose2()
@@ -68,7 +69,7 @@ def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True):   # converte
 			edgeName = ''.join(members)
 			g.add_edge(r1, r2, label=edgeName, color=egColor, width=0.125, arrowStrikethrough=False)
 	for e in g.edges:
-		e['font'] = {'size':12, 'face':'MS Sans Serif', 'color':"#250871"}
+		e['font'] = {'size':10, 'face':'MS Sans Serif', 'color':"#250871"}
 
 	g.options.edges.smooth = {'enabled': True, 'type': 'cubicBezier'}
 	g.toggle_physics(False)
