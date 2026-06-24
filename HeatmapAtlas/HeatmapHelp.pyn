@@ -56,10 +56,9 @@ def ConvertToClusters(hm):
 	hmC.Tag = [cellCP, geneCP]
 	cellCP.Tag = hmC
 	geneCP.Tag = hmC
-	hmC.OnClose('CloseSortedHeatmap(pp)')
 	MapInfo(cellCP).Set('MapType', 'Cell Clusters').Save()
 	MapInfo(geneCP).Set('MapType', 'Gene Clusters').Save()
-	MapInfo(hmC).Set('MapType', 'Cluster Heatmap').Save()
+	MapInfo().Set('MapType', 'Cluster Heatmap').Save(hmC)
 
 def UpdateMeanView(bv):
 	hm = pp.Tag
