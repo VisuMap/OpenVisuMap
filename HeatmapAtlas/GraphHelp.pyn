@@ -18,17 +18,18 @@ def ShowClusterGraph(pMap, threshold=0.1):   # converted from ShowGraph()
 	#g.options.configure.enabled = True
 	#g.options.configure.showButton = True	
 	g.options.edges.smooth.enabled = False
+	ndColor = '#00D200' if isCellCluster else '#006464' 
+	egColor = 'red'
 	
 	cList = list(pMap.BodyList)
 	cSize = {b.Type:(b.Name.count('|')+1) for b in cList}
 	L = len(cList)
 	totalCount = sum( cSize.values() )
-	clr = '#00D200' if isCellCluster else '#006464' 
-	
+	cRadius = [50*math.sqrt(5.0*cSize[b.Type]/totalCount) for b in cList]
+
 	for k, b in enumerate(cList):
-		sz = 50*math.sqrt(5.0*cSize[b.Type]/totalCount)
-		sz = min(50, max(10, sz))
-		g.add_node(k, x=b.X, y=b.Y, color=clr, size=sz, borderWidth=0.5)
+		sz = min(50, max(10, cRadius[k]))
+		g.add_node(k, x=b.X, y=b.Y, color=ndColor, size=sz, borderWidth=0.5)
 		g.add_node(k+L, x=b.X, y=b.Y, label=b.Id, shape='text')
 	for nd in g.nodes:
 		nd['font'] = {'size':16, 'face':'MS Sans Serif', 'color':"#F8F6F6"}
@@ -46,13 +47,13 @@ def ShowClusterGraph(pMap, threshold=0.1):   # converted from ShowGraph()
 			members = []
 			R1, R2 = nt.Matrix[r1], nt.Matrix[r2]			
 			for col in range(nt.Columns):
-				if R1[col] - R2[col] > limit:
+				if R2[col] - R1[col] > limit:
 					members.append(mList[col])
 			members = members[:5]
 			if len(members) == 0:
 				continue
 			edgeName = ''.join(members)
-			g.add_edge(r1, r2, label=edgeName, color='red', width=0.125, arrowStrikethrough=False)
+			g.add_edge(r1, r2, label=edgeName, color=egColor, width=0.125, arrowStrikethrough=False)
 	for e in g.edges:
 		e['font'] = {'size':12, 'face':'MS Sans Serif', 'color':"#250871"}
 
