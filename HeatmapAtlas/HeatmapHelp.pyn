@@ -54,6 +54,7 @@ def ConvertToClusters(hm):
 	
 	LayoutMaps(hmC, cellCP, geneCP)
 	hmC.Tag = [cellCP, geneCP]
+	hmC.OnClose('pp.Tag[0].Close();pp.Tag[1].Close()')
 	cellCP.Tag = hmC
 	geneCP.Tag = hmC
 	MapInfo(cellCP).Set('MapType', 'Cell Clusters').Save()
@@ -108,6 +109,10 @@ def LoadSortedHeatmap():
 		hm.SelectionMode = 2
 		hm.Width = int(info.WinWidth)
 		hm.Height = int(info.WinHeight)
+		hm.ColorHigh = New.Color('Red')
+		hm.ColorMiddle = New.Color('Yellow')
+		hm.ColorLow = New.Color('DarkGreen')
+		hm.SpectrumType = 3
 		MapInfo(hm).Set('MapType', 'Linked Heatmap').Save()
 		hm.Show2()
 

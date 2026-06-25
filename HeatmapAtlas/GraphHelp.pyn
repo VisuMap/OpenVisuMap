@@ -1,14 +1,22 @@
 import math
 from pyvis.network import Network
 
-def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True):   # converted from ShowGraph()
+def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True, mnR=8.0, mxR=30.0):   # converted from ShowGraph()
 	info = MapInfo(pMap)
 	if not info.Has('MapType') or ( (info.MapType != 'Gene Clusters') and (info.MapType != 'Cell Clusters') ):
 		vv.Message('In valid map type!')
 		return
 	isCellCluster = info.MapType == 'Cell Clusters'
 
+	hm = pMap.Tag
+	nt = hm.GetNumberTable()
+	M = nt.Matrix
+	cList = list(pMap.BodyList)	
+	L = len(cList)
+
+	#
 	# Add cluster nodes
+	#
 	pw, ph = int(pMap.MapLayout.Width), int(pMap.MapLayout.Height)
 	#bgclr = '#000064' if isCellCluster else '#006464'
 	bgclr = 'white'
@@ -17,27 +25,16 @@ def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True):   # converte
 	g.options.interaction.dragNodes = False
 	#g.options.configure.enabled = True
 	#g.options.configure.showButton = True	
-	g.options.edges.smooth.enabled = True
 	ndColor = "#0F0F50" if isCellCluster else '#006464' 
 	egColor = 'red'
 	
-	hm = pMap.Tag
-	nt = hm.GetNumberTable()
-	M = nt.Matrix
-	cList = list(pMap.BodyList)	
-	L = len(cList)
-
 	if radiusByActivity:
-		if isCellCluster:
-			cRadius = [sum(R) for R in M]
-		else:
-			cRadius = [sum([R[col] for R in M]) for col in range(L)]
+		cRadius = [sum(R) for R in M]   if isCellCluster else   [x.Value for x in nt.ColumnMean()]
 		cRadius = [x*x for x in cRadius]
 	else:
 		cRadius = [b.Name.count('|')+1.0 for b in cList]
 		cRadius = [math.sqrt(x) for x in cRadius]
 	minRadius = min(cRadius)
-	mnR, mxR = 8.0, 30.0
 	cRadius = [cRadius[k]/minRadius for k in range(L)]
 	cRadius = [min(mxR, mnR*x) for x in cRadius]
 	
@@ -46,7 +43,9 @@ def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True):   # converte
 		g.add_node(k, x=b.X, y=b.Y, color=ndColor, size=ndSize, shape='dot')
 		g.add_node(k+L, x=b.X, y=b.Y, label=b.Id, shape='text')
 
+	#
 	# Add edges between clusters
+	#
 	if info.MapType == 'Gene Clusters':
 		nt = nt.Transpose2()
 	limit = threshold * nt.MaximumValue()
@@ -60,17 +59,19 @@ def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True):   # converte
 			for col in range(nt.Columns):
 				if R2[col] - R1[col] > limit:
 					members.append(mList[col])
-			members = members[:5]
-			if len(members) == 0:
+			if len(members) == 0: 
 				continue
+			members = members[:5]
 			edgeName = ''.join(members)
-			g.add_edge(r1, r2, label=edgeName, color=egColor, width=0.125, arrowStrikethrough=False)
+			edgeWidth = 0.5*len(members)
+			g.add_edge(r1, r2, label=edgeName, color=egColor, width=edgeWidth,  arrowStrikethrough=True)
 
+	#---------------------------------------------------------------------------
 	for nd in g.nodes:
 		nd['font'] = {'size':12, 'face':'MS Sans Serif', 'color':'white'}
 	for e in g.edges:
 		e['font'] = {'size':10, 'face':'MS Sans Serif', 'color':"#250871"}
 
-	g.options.edges.smooth = {'enabled': True, 'type': 'cubicBezier'}
+	g.options.edges.smooth = {'enabled': True, 'type': 'cubicBezier', 'roundness':0.75}
 	g.toggle_physics(False)
 	g.show('AtlasClusterGraph.html', notebook=False)

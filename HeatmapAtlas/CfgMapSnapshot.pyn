@@ -10,6 +10,7 @@ match vv.EventSource.Item:
 		CopyColoring2Heatmap(pp)
 	case 'ShowGraph':
 		vv.Import('GraphHelp.pyn')
-		info = MapInfo(pp)
-		cntThr = 0.175 if info.MapType=='Cell Clusters' else 0.15
-		ShowClusterGraph(pp, cntThr, True)
+		if MapInfo(pp).MapType == 'Cell Clusters':
+			ShowClusterGraph(pp, threshold=0.175, mnR=2.0, mxR=10)
+		else:
+			ShowClusterGraph(pp, threshold=0.15, mnR=8, mxR=30 )
