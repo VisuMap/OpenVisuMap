@@ -18,8 +18,7 @@ def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True):   # converte
 	#g.options.configure.enabled = True
 	#g.options.configure.showButton = True	
 	g.options.edges.smooth.enabled = True
-	ndColor = '#00A000' if isCellCluster else '#006464' 
-	ndShape = 'circle' if isCellCluster else 'box'
+	ndColor = "#0F0F50" if isCellCluster else '#006464' 
 	egColor = 'red'
 	
 	hm = pMap.Tag
@@ -30,24 +29,22 @@ def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True):   # converte
 
 	if radiusByActivity:
 		if isCellCluster:
-			cActivity = [sum(list(R)) for R in M]
+			cRadius = [sum(R) for R in M]
 		else:
-			cActivity = [ sum([R[col] for R in M]) for col in range(L)]
-		totalActivity = min(cActivity)
-		cRadius = [cActivity[k]/totalActivity for k in range(L)]
-		cRadius = [6*x*x for x in cRadius]
+			cRadius = [sum([R[col] for R in M]) for col in range(L)]
+		cRadius = [x*x for x in cRadius]
 	else:
-		cCount = {b.Type:(b.Name.count('|')+1) for b in cList}
-		totalCount = sum( cCount.values() )
-		cRadius = [cCount[b.Type]/totalCount for b in cList]
-		cRadius = [100*math.sqrt(x) for x in cRadius]
-
+		cRadius = [b.Name.count('|')+1.0 for b in cList]
+		cRadius = [math.sqrt(x) for x in cRadius]
+	minRadius = min(cRadius)
+	mnR, mxR = 8.0, 30.0
+	cRadius = [cRadius[k]/minRadius for k in range(L)]
+	cRadius = [min(mxR, mnR*x) for x in cRadius]
 	
 	for k, b in enumerate(cList):
-		ndSz = min(40, max(10, cRadius[k]))
-		g.add_node(k, x=b.X, y=b.Y, color=ndColor, size=ndSz, shape=ndShape, label=' '+b.Id)
-	for nd in g.nodes:
-		nd['font'] = {'size':12, 'face':'MS Sans Serif', 'color':'white'}
+		ndSize = cRadius[k]
+		g.add_node(k, x=b.X, y=b.Y, color=ndColor, size=ndSize, shape='dot')
+		g.add_node(k+L, x=b.X, y=b.Y, label=b.Id, shape='text')
 
 	# Add edges between clusters
 	if info.MapType == 'Gene Clusters':
@@ -68,6 +65,9 @@ def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True):   # converte
 				continue
 			edgeName = ''.join(members)
 			g.add_edge(r1, r2, label=edgeName, color=egColor, width=0.125, arrowStrikethrough=False)
+
+	for nd in g.nodes:
+		nd['font'] = {'size':12, 'face':'MS Sans Serif', 'color':'white'}
 	for e in g.edges:
 		e['font'] = {'size':10, 'face':'MS Sans Serif', 'color':"#250871"}
 
