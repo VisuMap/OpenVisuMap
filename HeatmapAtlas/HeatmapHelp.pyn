@@ -167,7 +167,7 @@ def CheckForm(frm):
 		return None
 	return frm
 
-def SaveSortedHeatmap(hm):
+def SaveSortedHeatmap(hm, captureColoring=False):
 	nt = hm.GetNumberTable()
 	info = MapInfo()
 	info.Set('DsName', vv.Dataset.Name)
@@ -231,6 +231,12 @@ def SaveSortedHeatmap(hm):
 	ii.Tag = info.Str
 	at.BringToFront([ii])
 	at.GroupItems(itemList)
+
+	if captureColoring:
+		if cellMap is not None:
+			cellMap.ClickMenu('Utilities/Capture Map')
+		if geneMap is not None:
+			geneMap.ClickMenu('Utilities/Capture Attribute Clustering')			
 		
 def SelectFeatures(nt, featureCount):
 	if featureCount >= nt.Columns:
