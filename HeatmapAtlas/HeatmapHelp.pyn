@@ -10,7 +10,7 @@ def GroupIdx2Id(k, isCellMap):
 	if k < N:
 		return ccList[k] if isCellMap else gcList[k]
 	else:
-		return ( ' ' if isCellMap else '.') + str(k)
+		return (' ' if isCellMap else '.') + str(k-26)
 
 def ToClusterMap(mp, nt, isCellMap):
 	G = {}

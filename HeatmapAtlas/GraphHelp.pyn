@@ -1,10 +1,18 @@
 import math
 from pyvis.network import Network
 
-def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True, mnR=8.0, mxR=30.0):   # converted from ShowGraph()
+def CompressString(sList):
+	L = len(sList)
+	if L > 5:
+		sList.insert(5, '\n')
+	if L > 2:
+		sList.insert(2, '\n')
+	return ''.join(sList)
+
+def ShowClusterGraph(pMap, threshold=1.0, radiusByActivity = True, mnR=10.0, mxR=30.0):   # converted from ShowGraph()
 	info = MapInfo(pMap)
 	if not info.Has('MapType') or ( (info.MapType != 'Gene Clusters') and (info.MapType != 'Cell Clusters') ):
-		vv.Message('In valid map type!')
+		vv.Message('In valid map type: The current map is not a cluster map!')
 		return
 	isCellCluster = info.MapType == 'Cell Clusters'
 
@@ -13,6 +21,9 @@ def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True, mnR=8.0, mxR=
 	M = nt.Matrix
 	cList = list(pMap.BodyList)	
 	L = len(cList)
+	sum2 = sum([sum(vv.Math.Mult(R, R)) for R in M])
+	mean2 = math.sqrt(sum2/(nt.Rows*nt.Columns))
+	threshold *= mean2
 
 	#
 	# Add cluster nodes
@@ -29,7 +40,7 @@ def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True, mnR=8.0, mxR=
 	egColor = 'red'
 	
 	if radiusByActivity:
-		cRadius = [sum(R) for R in M]   if isCellCluster else   [x.Value for x in nt.ColumnMean()]
+		cRadius = [vv.Math.Average(R) for R in M] if isCellCluster else vv.Math.ColumnMean(nt.Matrix)
 		cRadius = [x*x for x in cRadius]
 	else:
 		cRadius = [b.Name.count('|')+1.0 for b in cList]
@@ -40,8 +51,14 @@ def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True, mnR=8.0, mxR=
 	
 	for k, b in enumerate(cList):
 		ndSize = cRadius[k]
+		if isCellCluster:
+			ndName = CompressString([nt.ColumnSpecList[col].Id for col in range(nt.Columns) if M[k][col]>threshold])
+			#ndName = b.Id
+		else:
+			#ndName = ''.join([nt.RowSpecList[row].Id for row in range(nt.Rows) if M[row][k]>threshold])
+			ndName = b.Id
 		g.add_node(k, x=b.X, y=b.Y, color=ndColor, size=ndSize, shape='dot')
-		g.add_node(k+L, x=b.X, y=b.Y, label=b.Id, shape='text')
+		g.add_node(k+L, x=b.X, y=b.Y, label=ndName, shape='text')
 
 	#
 	# Add edges between clusters
@@ -61,8 +78,8 @@ def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True, mnR=8.0, mxR=
 					members.append(mList[col])
 			if len(members) == 0: 
 				continue
-			members = members[:5]
-			edgeName = ''.join(members)
+			members = members[:7]
+			edgeName = CompressString(members)
 			edgeWidth = 0.5*len(members)
 			g.add_edge(r1, r2, label=edgeName, color=egColor, width=edgeWidth,  arrowStrikethrough=True)
 
@@ -70,7 +87,7 @@ def ShowClusterGraph(pMap, threshold=0.1, radiusByActivity = True, mnR=8.0, mxR=
 	for nd in g.nodes:
 		nd['font'] = {'size':12, 'face':'MS Sans Serif', 'color':'white'}
 	for e in g.edges:
-		e['font'] = {'size':10, 'face':'MS Sans Serif', 'color':"#250871"}
+		e['font'] = {'size':12, 'face':'MS Sans Serif', 'color':"#250871"}
 
 	g.options.edges.smooth = {'enabled': True, 'type': 'cubicBezier', 'roundness':0.75}
 	g.toggle_physics(False)

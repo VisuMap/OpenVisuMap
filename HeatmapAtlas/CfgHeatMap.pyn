@@ -9,14 +9,14 @@ def HeatMapMain(menu):
 			nt = pp.GetNumberTable()
 			cm = nt.ColumnMean()
 			cIdxList = [ c for c in range(cm.Count) if cm[c].Value > 0.1]
-			if len(cIdx) == 0:
+			if len(cIdxList) == 0:
 				vv.Message('No columns/genes with target expression found!')
 				return
 			hm = nt.SelectColumns(cIdxList).ShowHeatMap()
 			MapInfo(hm).Set('MapType', 'Active Heatmap').Save()
 		case 'D-Sorting':
 			#DualSorting(pp, pRow=None,                         pColumn=(25000, 2000, 0.05, 4.0, 1.0))
-			DualSorting(pp, pRow=(5000, 2000, 0.05, 4.0, 1.0),  pColumn=(25000, 2000, 0.05, 4.0, 1.0))
+			DualSorting(pp, pRow=(5000, 2000, 0.05, 8.0, 1.0),  pColumn=(25000, 2000, 0.05, 8.0, 1.0))
 			MapInfo(pp).Set('MapType', 'Sorted Heatmap').Save()
 			if ctrPressed:
 				HeatMapMain('D-Embedding')
