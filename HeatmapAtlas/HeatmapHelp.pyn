@@ -51,12 +51,16 @@ def ConvertToClusters(hm):
 
 	ntC = csHM.CollapseNumberTable(nt, rows, columns, cellIdxMap, geneIdxMap, cellCP, geneCP)
 	hmC = ntC.ShowHeatMap()
-	
-	LayoutMaps(hmC, cellCP, geneCP)
+
+	hmC.ReadOnly = True
+	hmC.HeadStyle = 2
+	hmC.LabelWidth = 125
 	hmC.Tag = [cellCP, geneCP]
 	hmC.OnClose('pp.Tag[0].Close();pp.Tag[1].Close()')
+
 	cellCP.Tag = hmC
 	geneCP.Tag = hmC
+	LayoutMaps(hmC, cellCP, geneCP)
 	MapInfo(cellCP).Set('MapType', 'Cell Clusters').Save()
 	MapInfo(geneCP).Set('MapType', 'Gene Clusters').Save()
 	MapInfo().Set('MapType', 'Cluster Heatmap').Save(hmC)
@@ -113,6 +117,8 @@ def LoadSortedHeatmap():
 		hm.ColorMiddle = New.Color('Yellow')
 		hm.ColorLow = New.Color('DarkGreen')
 		hm.SpectrumType = 3
+		hm.HeadStyle = 1
+		hm.ReadOnly = True
 		MapInfo(hm).Set('MapType', 'Linked Heatmap').Save()
 		hm.Show2()
 
@@ -260,6 +266,10 @@ def SortTable(D, epochs, ppl, initE, finalE, mtr="Correlation.Cosine Distance"):
 	tsne.Repeats = 1
 	tsne.Broadcasting = True
 	tsne.ColorPalette = DFT_COLOR_PALETTE
+	tsne.ShowDensity = True
+	tsne.ShowDensitySelected = False
+	tsne.AutoClustering = False
+	tsne.DimmingFactor = 0.5
 	
 	tsne.Show().Start()
 	if math.isnan( tsne.ItemList[0].Value ):
@@ -280,14 +290,13 @@ def DualSorting(hm, pRow=None, pColumn=None):
 	hm.RowHeaderPalette = DFT_COLOR_PALETTE
 	hm.Redraw()
 
-	mtr=DFT_METRIC
-
 	if pRow is not None:
 		hm.Title = 'Sorting Rows...'
 		hm.SelectionMode = 0
 		hm.RandomizeRows()
 		maxFeatures, epochs, ppl, initE, finalE = pRow
 		D = SelectFeatures(nt, maxFeatures)
+		mtr='Correlation.Cosine Distance'		
 		SortTable(D, epochs, ppl, initE, finalE, mtr)
 		info.Set('SrtRow', str(pRow))
 	if pColumn is not None:
@@ -296,6 +305,7 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		hm.RandomizeColumns();
 		maxFeatures, epochs, ppl, initE, finalE = pColumn
 		D = SelectFeatures(nt.Transpose2(), maxFeatures)
+		mtr='Correlation.Cosine Distance'		
 		# large number of zero gene/column vectors often messes up the
 		# the cosine metric, so this function ends up with NaN values.
         # We do Centralization to reduce such effects. Another better way
@@ -311,11 +321,11 @@ def DualSorting(hm, pRow=None, pColumn=None):
 	nt = None
 	D = None
 
-def EmbeddingData(mds, D, epochs, ppl, initE, finalE):
+def EmbeddingData(mds, D, epochs, ppl, initE, finalE, metric):
 	mds.MdsAlgorithm = 2;
 	mds.SetTrainingData(D);
 	mds.Is3D = False;
-	mds.Metric = DFT_METRIC
+	mds.Metric = metric
 	mds.AutoClustering = False
 	mds.AutoNormalizing = False
 	mds.StagedTraining = False
@@ -379,15 +389,17 @@ def DualEmbedding(hm, pRow=None, pColumn=None):
 		hm.Title = 'Creating cell embedding...'
 		maxFeatures, epochs, ppl, initE, finalE = pRow
 		D = SelectFeatures(nt, maxFeatures)
-		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE)
-		info = MapInfo().Set('EmbRow', str(pRow))
+		mtr = 'Correlation.Cosine Distance'
+		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE, mtr)
+		info = MapInfo().Add({'EmbRow':str(pRow), 'Metric':mtr})
 		LinkToHeatMap(mp, hm, True, info)
 	if pColumn is not None:
 		hm.Title = 'Creating gene embedding...';
 		maxFeatures, epochs, ppl, initE, finalE = pColumn
 		D = SelectFeatures(nt.Transpose2(), maxFeatures)
-		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE)
-		info = MapInfo().Set('EmbRow', str(pRow))
+		mtr = 'EuclideanMetric'
+		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE, mtr)
+		info = MapInfo().Add({'EmbRow':str(pColumn), 'Metric':mtr})
 		LinkToHeatMap(mp, hm, False, info)
 	hm.OnClose('CloseSortedHeatmap(pp)')
 	mds.Close()

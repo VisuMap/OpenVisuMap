@@ -11,6 +11,6 @@ match vv.EventSource.Item:
 	case 'ShowGraph':
 		vv.Import('GraphHelp.pyn')
 		if MapInfo(pp).MapType == 'Cell Clusters':
-			ShowClusterGraph(pp, threshold=0.75, mnR=10, mxR=30)
+			ShowClusterGraph(pp, threshold=0.25, mnR=15, mxR=40)
 		else:
-			ShowClusterGraph(pp, threshold=1.0, mnR=10, mxR=30 )
+			ShowClusterGraph(pp, threshold=0.25, mnR=10, mxR=30 )
