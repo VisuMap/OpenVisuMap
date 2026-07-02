@@ -33,24 +33,20 @@ def ToClusterMap(mp, nt, isCellMap):
 	cMp.GlyphSize = 2.0
 	cMp.GlyphOpacity = 0.75
 	cMp.Show()
-
-	idxmap = New.IntArray(0)
-	id2Cidx = {}
-	for k, g in enumerate(cList):
-		for b in g:
-			id2Cidx[b.Id] = k
-	spList = nt.RowSpecList if isCellMap else nt.ColumnSpecList
-	for k, sp in enumerate(spList):
-		idxmap.Add( id2Cidx[sp.Id] )
-	return cMp, idxmap, len(cList)
+	return cMp
 
 def ConvertToClusters(hm):
 	cellMap, geneMap = hm.Tag
 	nt = hm.GetNumberTable()
-	cellCP, cellIdxMap, rows = ToClusterMap(cellMap, nt, True)
-	geneCP, geneIdxMap, columns = ToClusterMap(geneMap, nt, False)
+	cellCP = ToClusterMap(cellMap, nt, True)
+	geneCP = ToClusterMap(geneMap, nt, False)
 
-	ntC = csHM.CollapseNumberTable(nt, rows, columns, cellIdxMap, geneIdxMap, cellCP, geneCP)
+	ntC = nt.GroupRows(0).GroupColumns(0)
+	for row in range(ntC.Rows):
+		ntC.RowSpecList[row].Id = cellCP.BodyList[row].Id;
+	for col in range(ntC.Columns):
+		ntC.ColumnSpecList[col].Id = geneCP.BodyList[col].Id;
+ 
 	hmC = ntC.ShowHeatMap()
 
 	hmC.ReadOnly = True
@@ -618,37 +614,5 @@ csHM = New.CsObject('''
 		y /= bList.Count;
 		z /= bList.Count;
 		return Tuple.Create(x, y, z);
-	}
-
-	public INumberTable CollapseNumberTable(INumberTable nt, int rows, int columns, 
-			List<int> rowIdxMap, List<int> columnIdxMap, IMapSnapshot cellCP, IMapSnapshot geneCP) {
-		INumberTable ntC = New.NumberTable(rows, columns);
-
-		double[][] M = (double[][]) nt.Matrix;
-		double[][] MC = (double[][]) ntC.Matrix;
-		for(int row=0; row<nt.Rows; row++)
-		for(int col=0; col<nt.Columns; col++){
-			int rowC = rowIdxMap[row];
-			int colC = columnIdxMap[col];
-			MC[rowC][colC] += M[row][col];
-		}
-
-		for(int row=0; row<ntC.Rows; row++)
-			ntC.RowSpecList[row].Id = cellCP.BodyList[row].Id;
-		for(int col=0; col<ntC.Columns; col++)
-			ntC.ColumnSpecList[col].Id = geneCP.BodyList[col].Id;
-
-		// Replace the values by their mean values of the clusters.
-		int[] rowW = new int[ntC.Rows];
-		foreach(int r in rowIdxMap) 
-			rowW[r]++;
-		int[] colW = new int[ntC.Columns];
-		foreach(int c in columnIdxMap) 
-			colW[c]++;
-		for(int r=0; r<ntC.Rows; r++)
-		for(int c=0; c<ntC.Columns; c++)
-			MC[r][c] /= rowW[r]*colW[c];
-
-		return ntC;
 	}
 ''')
