@@ -24,6 +24,7 @@ def ToClusterMap(mp, nt, isCellMap):
 	for k, g in enumerate(cList):
 		b = g[0].Clone()
 		b.Id = GroupIdx2Id(k, isCellMap)
+		b.ShowId = True
 		b.Name = '|'.join([b.Id for b in g])
 		c = csHM.MeanPosition( New.BodyList(g))
 		b.X, b.Y, b.Z = c.Item1, c.Item2, c.Item3
@@ -622,9 +623,9 @@ csHM = New.CsObject('''
 	public INumberTable CollapseNumberTable(INumberTable nt, int rows, int columns, 
 			List<int> rowIdxMap, List<int> columnIdxMap, IMapSnapshot cellCP, IMapSnapshot geneCP) {
 		INumberTable ntC = New.NumberTable(rows, columns);
+
 		double[][] M = (double[][]) nt.Matrix;
 		double[][] MC = (double[][]) ntC.Matrix;
-
 		for(int row=0; row<nt.Rows; row++)
 		for(int col=0; col<nt.Columns; col++){
 			int rowC = rowIdxMap[row];
@@ -640,10 +641,10 @@ csHM = New.CsObject('''
 		// Replace the values by their mean values of the clusters.
 		int[] rowW = new int[ntC.Rows];
 		foreach(int r in rowIdxMap) 
-			rowW[r] += 1;
+			rowW[r]++;
 		int[] colW = new int[ntC.Columns];
-		foreach(int c in columnIdxMap)
-			colW[c] += 1;
+		foreach(int c in columnIdxMap) 
+			colW[c]++;
 		for(int r=0; r<ntC.Rows; r++)
 		for(int c=0; c<ntC.Columns; c++)
 			MC[r][c] /= rowW[r]*colW[c];
