@@ -30,8 +30,8 @@ def ToClusterMap(mp, nt, isCellMap):
 		b.X, b.Y, b.Z = c.Item1, c.Item2, c.Item3
 		cbList.append(b)
 	cMp = New.MapSnapshot2(cbList, mp.MapLayout.Clone())
-	cMp.GlyphSize = 2.0
-	cMp.GlyphOpacity = 0.75
+	cMp.GlyphSize = 0.4
+	cMp.GlyphOpacity = 0.9
 	cMp.Show()
 	return cMp
 
@@ -50,8 +50,10 @@ def ConvertToClusters(hm):
 	hmC = ntC.ShowHeatMap()
 
 	hmC.ReadOnly = True
-	hmC.HeadStyle = 2
-	hmC.LabelWidth = 125
+	hmC.HeadStyle = 1
+	hmC.LabelWidth = 100
+	hmC.AutoScaling = True
+	hmC.SpectrumType = 1
 	hmC.Tag = [cellCP, geneCP]
 	hmC.OnClose('pp.Tag[0].Close();pp.Tag[1].Close()')
 
@@ -110,12 +112,14 @@ def LoadSortedHeatmap():
 		hm.SelectionMode = 2
 		hm.Width = int(info.WinWidth)
 		hm.Height = int(info.WinHeight)
-		hm.ColorHigh = New.Color('Red')
-		hm.ColorMiddle = New.Color('Yellow')
-		hm.ColorLow = New.Color('DarkGreen')
+		hm.ColorHigh = New.Color('White')
+		hm.ColorMiddle = New.Color(32,32,32)
+		hm.ColorLow = New.Color('Black')
+		hm.AutoScaling = True
 		hm.SpectrumType = 3
 		hm.HeadStyle = 1
 		hm.ReadOnly = True
+		hm.SparseRendering = False
 		MapInfo(hm).Set('MapType', 'Linked Heatmap').Save()
 		hm.Show2()
 
@@ -163,11 +167,25 @@ def CloseSortedHeatmap(hm):
 def LayoutMaps(hm, cellMap, geneMap):
 	sz = 600
 	hm.TheForm.SetBounds(1000, 700, sz, sz)
+	'''
 	if cellMap is not None:
 		cellMap.TheForm.SetBounds(hm.TheForm.Left - sz + 15, hm.TheForm.Top, sz, sz)
 		cellMap.Title = "Cell Map"
 	if geneMap is not None:
 		geneMap.TheForm.SetBounds(hm.TheForm.Left, hm.TheForm.Top - sz + 8, sz, sz)
+		geneMap.Title = "Gene Map"
+	'''
+	if cellMap is not None:
+		cellMap.ClickMenu('Transform Map/Reset View')
+		cellMap.ResizeClient(-1, hm.TheForm.ClientSize.Height)
+		cellMap.Top = hm.Top
+		cellMap.Left = hm.Left - cellMap.Width + 15
+		cellMap.Title = "Cell Map"
+	if geneMap is not None:
+		geneMap.ClickMenu('Transform Map/Reset View')
+		geneMap.ResizeClient(hm.TheForm.ClientSize.Width, -1)
+		geneMap.Top = hm.Top - geneMap.Height + 8
+		geneMap.Left = hm.Left
 		geneMap.Title = "Gene Map"
 
 def CheckForm(frm):
@@ -295,7 +313,7 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		D = SelectFeatures(nt, maxFeatures)
 		mtr='Correlation.Cosine Distance'		
 		SortTable(D, epochs, ppl, initE, finalE, mtr)
-		info.Set('SrtRow', str(pRow))
+		info.Add({'SrtRow':str(pRow), 'Metric':mtr})
 	if pColumn is not None:
 		hm.Title = 'Sorting Columns...';
 		hm.SelectionMode = 1;
@@ -310,7 +328,7 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		#if mtr == "Correlation.Cosine Distance": 
 		#	D.Centralize() 
 		SortTable(D, epochs, ppl, initE, finalE, mtr)		
-		info.Set('SrtColumn', str(pRow))
+		info.Add({'SrtColumn':str(pRow), 'Metric':mtr})
 
 	hm.Title = 'Sorted'
 	hm.DisableReorder = True

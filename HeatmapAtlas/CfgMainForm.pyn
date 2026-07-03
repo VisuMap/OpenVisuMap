@@ -5,27 +5,29 @@ match vv.EventSource.Item:
 		ShowInfo(pp)
 
 '''
-#MenuLabels Info Monitor LabelAll EmbedSelected ShowData 3D-Expression ShowGraph ShowGeneTable ShowSuperCluster
-vv.Import('GeneMonitor.pyn')
-thresholdLevel = 1.0
-match vv.EventSource.Item:
-	case 'EmbedSelected':
-		EmbedGenes(vv.SelectedItems, epochs=2000, EX=4, ex=1.0, PP=0.05, repeats=1)
-	case 'Monitor':
-		MonitorMap(vv.Map)
-	case 'LabelAll':
-		LabelAllClusters(vv.Map)
-	case 'ShowData':
-		ShowData(vv.Map)
-	case '3D-Expression':
-		ShowExpress3D(vv.Map)
-	case 'ShowGraph':
-		ShowGraph(vv.Map, showEdges=True, showPilotes=False)
-	case 'ShowGeneTable':
-		ShowLegend(pp.Map)
-	case 'ShowSuperCluster':
-		ShowSuperClusters(pp.Map)
-	case 'Info':
-		ShowInfo(pp)
+Typical steps to explore an scRNA ( single cell RNA expression ) file:
 
+1. Download a scRNA file, for instance a H5AD file from the site: 
+		https://cellxgene.cziscience.com/datasets
+
+2. Import the file from into VisuMap via the main menu 'Import H5AD': the main table
+   for the scRNA data will be displayed in a heatmap view. Other items like UMAP, categories
+   info can be ignored by closing their views.
+
+3. Clean the dataset: Remove all columns with lower expressions via the menu Atlas>S-Active-Genes of
+   the heatmap context menu. This operation will select a subset of columns (e.g. genes) and display
+   it in a separate heatmap. Typically 5K to 10K genes will be selected. We can then close then close
+   the initial heatmap, and save the heatmap in a VisuMap dataset via the 'Save Data As...' menu.
+   We do more cleaning ups here manually before saving the data.
+
+4. Load the newly created dataset and open heatmap view for the whole dataset; then call the service
+   'D-Sorting', 'D-Embedding' and 'D-Clustering' successively. The last dual clustering operation 
+   usually does not work well, we need adjusting the clustering manually on the cell-map and gene-map.
+
+5. Call the service 'Save' to save the processed data together as a group item in the atlas named HmAtlas.
+
+6. Still from the heatmap: call the menu 'ToCluster' to create a heatmap, a cell map and a gene map 
+   for the newly created clusters. From the cluster cell map and cluster gene map we can call
+   the menu 'ShowGraph' to show the clusters in a graph in separate HTML view.
+   
 '''
