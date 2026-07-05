@@ -1,4 +1,4 @@
-#MenuLabels Info 'Capture Coloring' ShowGraph
+#MenuLabels Info 'Capture Coloring' ShowGraph F-Maps
 vv.Import('Common.pyn')
 vv.Import('HeatmapHelp.pyn')
 
@@ -14,3 +14,6 @@ match vv.EventSource.Item:
 			ShowClusterGraph(pp, threshold=0.5, mnR=15, mxR=40)
 		else:
 			ShowClusterGraph(pp, threshold=0.5, mnR=10, mxR=30 )
+	case 'F-Maps':
+		CreateFeatureMaps(pp)
+

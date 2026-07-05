@@ -12,6 +12,25 @@ def GroupIdx2Id(k, isCellMap):
 	else:
 		return (' ' if isCellMap else '.') + str(k-26)
 
+def CreateFeatureMaps(mp):
+	if MapInfo(mp).MapType != 'Gene Map':
+		vv.Message('Operation only supported by gene-maps')
+		return
+	gList = {}
+	for t, id in [(b.Type, b.Id) for b in mp.BodyList if b.Type != 0]:
+		if t not in gList: gList[t] = []
+		gList[t].append(id)
+	tsne = New.TsneMap().Show()
+	for t, G in gList.items():
+		K = len(G)
+		vv.Dataset.AddMap(f'F{t}.{K}')
+		mp.SelectedItems = G
+		mp.Title = f'Creating map for {K} features...'
+		tsne.RunWithFeatures(G)
+		if not tsne.Completed:
+			break
+	tsne.Close()
+
 def ToClusterMap(mp, nt, isCellMap):
 	G = {}
 	for b in mp.BodyList:
@@ -112,15 +131,8 @@ def LoadSortedHeatmap():
 		hm.SelectionMode = 2
 		hm.Width = int(info.WinWidth)
 		hm.Height = int(info.WinHeight)
-		hm.ColorHigh = New.Color('White')
-		hm.ColorMiddle = New.Color(32,32,32)
-		hm.ColorLow = New.Color('Black')
-		hm.AutoScaling = True
-		hm.SpectrumType = 3
-		hm.HeadStyle = 1
-		hm.ReadOnly = True
-		hm.SparseRendering = False
 		MapInfo(hm).Set('MapType', 'Linked Heatmap').Save()
+		ConfigHeatmap(hm)
 		hm.Show2()
 
 	hm.ReadOnly = True
@@ -143,6 +155,20 @@ def LoadSortedHeatmap():
 	LayoutMaps(hm, hm.Tag[0], hm.Tag[1])
 	hm.OnClose('CloseSortedHeatmap(pp)')
 	MapInfo(hm).Add({'atName':atlas.AtlasName,'atItem':tbItem.Id, 'dsName':dsName}).Save()
+
+def ConfigHeatmap(hm):
+	hm.ColorHigh = New.Color('White')
+	hm.ColorMiddle = New.Color(32,32,32)
+	hm.ColorLow = New.Color('Black')
+	hm.AutoScaling = True
+	hm.SpectrumType = 3
+	hm.HeadStyle = 1
+	hm.ReadOnly = True
+	hm.SparseRendering = False
+	hm.ColumnHeaderPalette = DFT_COLOR_PALETTE
+	hm.RowHeaderPalette = DFT_COLOR_PALETTE
+
+
 
 def CloseSortedHeatmap(hm):
 	if hm.Tag is None:
@@ -242,6 +268,8 @@ def SaveSortedHeatmap(hm, captureColoring=False):
 		mp.IconHeight = 30
 		mp.Script = "pass"
 		info.Set('CellMpId', mp.Id)
+		mp.Tag = MapInfo(cellMap.Description).Add(
+			{'DsName':vv.Dataset.Name, 'DtItem':ii.Id, 'Rows':cellMap.BodyList.Count}).Str
 		itemList.append(mp)
 		at.RedrawItem(mp, False)
 	if geneMap is not None:
@@ -251,6 +279,8 @@ def SaveSortedHeatmap(hm, captureColoring=False):
 		mp.IconWidth = 30
 		mp.IconHeight = 30
 		mp.Script = "pass"
+		mp.Tag = MapInfo(geneMap.Description).Add(
+			{'DsName':vv.Dataset.Name, 'DtItem,':ii.Id, 'Rows':geneMap.BodyList.Count}).Str
 		itemList.append(mp)
 		info.Set('GeneMpId', mp.Id)
 		at.RedrawItem(mp, False)
@@ -344,8 +374,8 @@ def EmbeddingData(mds, D, epochs, ppl, initE, finalE, metric):
 	mds.AutoClustering = False
 	mds.AutoNormalizing = False
 	mds.StagedTraining = False
-	mds.GlyphOpacity = 0.2
-	mds.GlyphSize =0.75
+	mds.GlyphOpacity = 0.5
+	mds.GlyphSize =0.5
 	mds.RefreshFreq = 50
 	mds.Repeats = 1
 	mds.GlyphSet = DFT_GLYPHSET
