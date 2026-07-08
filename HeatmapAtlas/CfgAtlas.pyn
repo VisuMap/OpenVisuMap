@@ -14,3 +14,19 @@ match vv.EventSource.Item:
 	case 'LabelMaps':
 		LabelAtlasMaps(pp, selected)
 
+def AllGeneGroups():
+	hmList = [item for item in pp.Items if item.ItemType == 'RectItem']
+	idList = [MapInfo(hm.Tag).GeneMpId for hm in hmList]
+	G = []
+	for id in idList:
+		item = pp.FindItemById(id)
+		mp = item.Open()
+		gList = {}
+		for t, id in [(b.Type, b.Id) for b in mp.BodyList if b.Type != 0]:
+			if t not in gList: gList[t] = []
+			gList[t].append(id)
+		mp.Close()
+		G.extend(gList.values())
+	return G
+
+#G = AllGeneGroups()

@@ -157,10 +157,12 @@ def LoadSortedHeatmap():
 	MapInfo(hm).Add({'atName':atlas.AtlasName,'atItem':tbItem.Id, 'dsName':dsName}).Save()
 
 def ConfigHeatmap(hm):
-	hm.ColorHigh = New.Color('White')
-	hm.ColorMiddle = New.Color(32,32,32)
-	hm.ColorLow = New.Color('Black')
-	hm.AutoScaling = True
+	hm.AutoScaling = False
+	hm.ColorHigh = New.Color('Black')
+	hm.ColorMiddle = New.Color('Silver')
+	hm.ColorLow = New.Color('White')
+	hm.RangeHigh = 0.25
+	hm.RangeLow =0.0
 	hm.SpectrumType = 3
 	hm.HeadStyle = 1
 	hm.ReadOnly = True
@@ -192,15 +194,7 @@ def CloseSortedHeatmap(hm):
 
 def LayoutMaps(hm, cellMap, geneMap):
 	sz = 600
-	hm.TheForm.SetBounds(1000, 700, sz, sz)
-	'''
-	if cellMap is not None:
-		cellMap.TheForm.SetBounds(hm.TheForm.Left - sz + 15, hm.TheForm.Top, sz, sz)
-		cellMap.Title = "Cell Map"
-	if geneMap is not None:
-		geneMap.TheForm.SetBounds(hm.TheForm.Left, hm.TheForm.Top - sz + 8, sz, sz)
-		geneMap.Title = "Gene Map"
-	'''
+	hm.TheForm.SetBounds(1500, 750, sz, sz)
 	if cellMap is not None:
 		cellMap.ClickMenu('Transform Map/Reset View')
 		cellMap.ResizeClient(-1, hm.TheForm.ClientSize.Height)
@@ -341,7 +335,8 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		hm.RandomizeRows()
 		maxFeatures, epochs, ppl, initE, finalE = pRow
 		D = SelectFeatures(nt, maxFeatures)
-		mtr='Correlation.Cosine Distance'		
+		mtr='Correlation.Cosine Distance'
+		#mtr='EuclideanMetric'	
 		SortTable(D, epochs, ppl, initE, finalE, mtr)
 		info.Add({'SrtRow':str(pRow), 'Metric':mtr})
 	if pColumn is not None:
@@ -351,12 +346,6 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		maxFeatures, epochs, ppl, initE, finalE = pColumn
 		D = SelectFeatures(nt.Transpose2(), maxFeatures)
 		mtr='Correlation.Cosine Distance'		
-		# large number of zero gene/column vectors often messes up the
-		# the cosine metric, so this function ends up with NaN values.
-        # We do Centralization to reduce such effects. Another better way
-        # is to remove those zero alike columns, through the  S-Active-Genes menu.
-		#if mtr == "Correlation.Cosine Distance": 
-		#	D.Centralize() 
 		SortTable(D, epochs, ppl, initE, finalE, mtr)		
 		info.Add({'SrtColumn':str(pRow), 'Metric':mtr})
 
