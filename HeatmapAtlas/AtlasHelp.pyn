@@ -45,7 +45,7 @@ def PromptOpenDirectory():
 def ShowHeatmap(nt, fileName):
 	hm = New.HeatMap(nt).Show()
 	hm.CentralizeColorSpectrum()
-	hm.Description = 'Data imported from: ' + fileName
+	hm.Description = f'DataSrc:{fileName};DataDim:{nt.Rows}x{nt.Columns}'
 	hm.Title = 'Data Source: ' + fileName
 	return hm
 

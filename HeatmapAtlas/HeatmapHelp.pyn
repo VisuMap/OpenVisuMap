@@ -336,9 +336,8 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		maxFeatures, epochs, ppl, initE, finalE = pRow
 		D = SelectFeatures(nt, maxFeatures)
 		mtr='Correlation.Cosine Distance'
-		#mtr='EuclideanMetric'	
 		SortTable(D, epochs, ppl, initE, finalE, mtr)
-		info.Add({'SrtRow':str(pRow), 'Metric':mtr})
+		info.Add({'SrtRow':str(pRow), 'SrtRowMtr':mtr})
 	if pColumn is not None:
 		hm.Title = 'Sorting Columns...';
 		hm.SelectionMode = 1;
@@ -347,11 +346,11 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		D = SelectFeatures(nt.Transpose2(), maxFeatures)
 		mtr='Correlation.Cosine Distance'		
 		SortTable(D, epochs, ppl, initE, finalE, mtr)		
-		info.Add({'SrtColumn':str(pRow), 'Metric':mtr})
+		info.Add({'SrtColumn':str(pRow), 'SrtColumnMtr':mtr})
 
 	hm.Title = 'Sorted'
 	hm.DisableReorder = True
-	info.Save()
+	info.Add({'MapType':'Sorted Heatmap'}).Save()
 	nt = None
 	D = None
 
