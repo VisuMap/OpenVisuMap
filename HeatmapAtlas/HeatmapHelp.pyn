@@ -169,8 +169,7 @@ def ConfigHeatmap(hm):
 	hm.SparseRendering = False
 	hm.ColumnHeaderPalette = DFT_COLOR_PALETTE
 	hm.RowHeaderPalette = DFT_COLOR_PALETTE
-
-
+	hm.Redraw()
 
 def CloseSortedHeatmap(hm):
 	if hm.Tag is None:
@@ -325,9 +324,7 @@ def DualSorting(hm, pRow=None, pColumn=None):
 	hm.DisableReorder = False
 	nt = hm.GetNumberTable()
 	info = MapInfo(hm)
-	hm.ColumnHeaderPalette = DFT_COLOR_PALETTE
-	hm.RowHeaderPalette = DFT_COLOR_PALETTE
-	hm.Redraw()
+	ConfigHeatmap(hm)
 
 	if pRow is not None:
 		hm.Title = 'Sorting Rows...'
@@ -395,22 +392,22 @@ def CopyColoring2Heatmap(mp):
 	for sp in spList:
 		sp.Type = id2body[sp.Id].Type
 	hm.Redraw()
-	
-def LinkToHeatMap(mp, hm, isCellMap, info):
-	hmSZ = hm.Width
+def LinkToHeatMap(mp, hm, isCellMap):
 	if isCellMap:
-		mp.TheForm.SetBounds(hm.TheForm.Left - hmSZ + 15, hm.TheForm.Top, hmSZ, hmSZ)
+		mp.ResizeClient(-1, hm.TheForm.ClientSize.Height)
+		mp.Top = hm.Top
+		mp.Left = hm.Left - mp.Width + 15
 		mp.BackgroundColor = New.Color(0, 0, 64)
+		mp.Title = 'Cell Map'
 		hm.Tag[0] = mp
 	else:
-		mp.TheForm.SetBounds(hm.TheForm.Left, hm.TheForm.Top - hmSZ + 8, hmSZ, hmSZ);
+		mp.ResizeClient(hm.TheForm.ClientSize.Width, -1)
+		mp.Top = hm.Top - mp.Height + 8
+		mp.Left = hm.Left
 		mp.BackgroundColor = New.Color(0, 64, 64);
+		mp.Title = 'Gene Map'
 		hm.Tag[1] = mp
 	mp.Refresh()
-	mp.Title = "Cell Map" if isCellMap else "Gene Map"
-	mpType = 'Cell Map' if isCellMap else 'Gene Map'
-	info.Set('MapType', mpType)
-	mp.Description = info.Str
 	mp.Tag = hm
 
 def DualEmbedding(hm, pRow=None, pColumn=None):
@@ -424,16 +421,16 @@ def DualEmbedding(hm, pRow=None, pColumn=None):
 		D = SelectFeatures(nt, maxFeatures)
 		mtr = 'Correlation.Cosine Distance'
 		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE, mtr)
-		info = MapInfo().Add({'EmbRow':str(pRow), 'Metric':mtr})
-		LinkToHeatMap(mp, hm, True, info)
+		MapInfo({'EmbRow':str(pRow), 'Metric':mtr, 'MapType':'Cell Map'}).Save(mp)
+		LinkToHeatMap(mp, hm, True)
 	if pColumn is not None:
 		hm.Title = 'Creating gene embedding...';
 		maxFeatures, epochs, ppl, initE, finalE = pColumn
 		D = SelectFeatures(nt.Transpose2(), maxFeatures)
 		mtr = 'EuclideanMetric'
 		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE, mtr)
-		info = MapInfo().Add({'EmbRow':str(pColumn), 'Metric':mtr})
-		LinkToHeatMap(mp, hm, False, info)
+		MapInfo({'EmbRow':str(pColumn), 'Metric':mtr, 'MapType':'Gene Map'}).Save(mp)
+		LinkToHeatMap(mp, hm, False)
 	hm.OnClose('CloseSortedHeatmap(pp)')
 	mds.Close()
 
