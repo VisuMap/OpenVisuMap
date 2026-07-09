@@ -29,4 +29,30 @@ def AllGeneGroups():
 		G.extend(gList.values())
 	return G
 
-#G = AllGeneGroups()
+def ToGeneMaps(G):
+	tsne = New.TsneMap()
+	tsne.MaxLoops = 2000
+	tsne.PerplexityRatio = 0.05
+	tsne.InitialExaggeration = 4.0
+	tsne.FinalExaggeration = 1.0
+	tsne.Show()
+	atlas = New.Atlas('FeatureMaps').Open()
+	for g in G:
+		tsne.RunWithFeatures(g)
+		mp = New.MapSnapshot().Show()
+		mpItem = atlas.NewSnapshotItem(mp)
+		mpItem.Tag = mp.Description
+		mp.Close()
+	atlas.Redraw()
+
+'''
+G = AllGeneGroups()
+cIdList = New.StringArray( list(set([x for g in G for x in g])) )
+nt = New.NumberTable(cIdList).AddRows(len(G))
+for row, g in enumerate(G):
+	rs = nt.RowSpecList[row]
+	rs.Id, rs.Name = 'G'+str(row), ''
+	for col in nt.IndexOfColumns(g):
+		nt.Matrix[row][col] = 1.0
+nt.ShowHeatMap()
+'''
