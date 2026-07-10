@@ -1,41 +1,50 @@
-#MenuLabels <Import> SetLabels ResetMaps LabelMaps
-vv.Import('GeneMonitor.pyn')
+#MenuLabels AllGeneGroups
+vv.Import('HeatmapHelp.pyn')
 
-thresholdLevel = 1.0
-selected = pp.GetSelectedItems()
+def AtlasMain(menu):
+	match menu:
+		case 'AllGeneGroups':
+			AllGeneGroups(pp)
 
-match vv.EventSource.Item:
-	case '<Import>':
-		vv.Import('HeatmapHelp.pyn')
-	case 'SetLabels':
-		SetAtlasItemName(pp, selected)
-	case 'ResetMaps':		
-		ResetAtlasMaps(pp, selected, 1000, 700, gSize=0.35, gOpacity=0.5, hiddenSize=7, reset=True)
-	case 'LabelMaps':
-		LabelAtlasMaps(pp, selected)
 
-def AllGeneGroups():
-	hmList = [item for item in pp.Items if item.ItemType == 'RectItem']
-	idList = [MapInfo(hm.Tag).GeneMpId for hm in hmList]
-	G = []
+#--------------------------------------------------------------------------------------
+
+def AllGeneGroups(atlas):  
+	mpItems = [item for item in atlas.Items if item.ItemType == 'SnapshotItem']
+	idList = [item.Id for item in mpItems if MapInfo(item.Tag).MapType == 'Gene Map']
+	cntG, G = [], []
 	for id in idList:
-		item = pp.FindItemById(id)
-		mp = item.Open()
+		bList = vv.AtlasManager.ReadBodyList(atlas.AtlasName, id)
 		gList = {}
-		for t, id in [(b.Type, b.Id) for b in mp.BodyList if b.Type != 0]:
-			if t not in gList: gList[t] = []
+		for t, id in [(b.Type, b.Id) for b in bList if b.Type != 0]:
+			if t not in gList: 
+				gList[t] = []
 			gList[t].append(id)
-		mp.Close()
-		G.append(gList.values())
-	return G
+		cntG.append(len(gList.values()))
+		G.extend(gList.values())
+	cIdList = New.StringArray( list(set([x for g in G for x in g])) )
+	nt = New.NumberTable(cIdList).AddRows(sum(cntG))
+	rowIdx = 0
+	for ty, nS in enumerate(cntG):
+		for k in range(nS):
+			nt.RowSpecList[rowIdx].Type = ty
+			rowIdx += 1
+	for row, g in enumerate(G):
+		rs = nt.RowSpecList[row]
+		rs.Id, rs.Name = 'G'+str(row), ''
+		for col in nt.IndexOfColumns(g):
+			nt.Matrix[row][col] = 1.0
+	hm = nt.ShowHeatMap()
+	hm.DisableReorder = False
+	tsort = New.TsneSorter(nt.Transpose2(), 'EuclideanMetric')
+	tsort.PerplexityRatio = 0.25
+	tsort.InitExaggeration = 4.0
+	tsort.FinalExaggeration = 1.0
+	tsort.ReadOnly = True
+	tsort.Show().Reset().Start().Close()
 
 def ToGeneMaps(G):
-	tsne = New.TsneMap()
-	tsne.MaxLoops = 2000
-	tsne.PerplexityRatio = 0.05
-	tsne.InitialExaggeration = 4.0
-	tsne.FinalExaggeration = 1.0
-	tsne.Show()
+	tsne = New.TsneMap(2000, 0.05, 4.0, 1.0).Show()
 	atlas = New.Atlas('FeatureMaps').Open()
 	for g in G:
 		tsne.RunWithFeatures(g)
@@ -45,21 +54,16 @@ def ToGeneMaps(G):
 		mp.Close()
 	atlas.Redraw()
 
+
+AtlasMain(vv.EventSource.Item)	
+
 '''
-G = AllGeneGroups()
-G0 = [g for S in G for g in S]
-cIdList = New.StringArray( list(set([x for g in G0 for x in g])) )
-cntS = [len(S) for S in G]
-nt = New.NumberTable(cIdList).AddRows(sum(cntS))
-rowIdx = 0
-for ty, nS in enumerate(cntS):
-	for k in range(nS):
-		nt.RowSpecList[rowIdx].Type = ty
-		rowIdx += 1
-for row, g in enumerate(G0):
-	rs = nt.RowSpecList[row]
-	rs.Id, rs.Name = 'G'+str(row), ''
-	for col in nt.IndexOfColumns(g):
-		nt.Matrix[row][col] = 1.0
-nt.ShowHeatMap()
+
+for hm in [x for x in pp.Items if x.ItemType == 'RectItem']:
+	info = MapInfo(hm.Tag)
+	pp.FindItemById(info.CellMpId).Tag = 'MapType:Cell Map'
+	pp.FindItemById(info.GeneMpId).Tag = 'MapType:Gene Map'
+
+
+
 '''

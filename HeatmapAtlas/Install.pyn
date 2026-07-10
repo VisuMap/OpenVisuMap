@@ -4,9 +4,7 @@ def InstallMain():
 	icon = vv.CurrentScriptDirectory + "\\MenuIcon.png"
 
 	for (label, script, view, img) in [
-		("Merge DS", "!vv.Import('AtlasHelp.js');ConcatDatasets(SelectedDs(), 5000, None)", "Atlas", None),
-		("Variation Tracing", "VariationTracing.pyn", "MainForm", None),
-		("Merge Maps", "CascadingTsne.pyn", "Atlas", None)]:
+		("Variation Tracing", "VariationTracing.pyn", "MainForm", None)]:
 		mgr.SetCustomMenu("Atlas/" + label, True, script, view, img)
 
 	for (label, img, script) in [
