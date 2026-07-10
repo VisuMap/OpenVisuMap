@@ -26,7 +26,7 @@ def AllGeneGroups():
 			if t not in gList: gList[t] = []
 			gList[t].append(id)
 		mp.Close()
-		G.extend(gList.values())
+		G.append(gList.values())
 	return G
 
 def ToGeneMaps(G):
@@ -47,9 +47,16 @@ def ToGeneMaps(G):
 
 '''
 G = AllGeneGroups()
-cIdList = New.StringArray( list(set([x for g in G for x in g])) )
-nt = New.NumberTable(cIdList).AddRows(len(G))
-for row, g in enumerate(G):
+G0 = [g for S in G for g in S]
+cIdList = New.StringArray( list(set([x for g in G0 for x in g])) )
+cntS = [len(S) for S in G]
+nt = New.NumberTable(cIdList).AddRows(sum(cntS))
+rowIdx = 0
+for ty, nS in enumerate(cntS):
+	for k in range(nS):
+		nt.RowSpecList[rowIdx].Type = ty
+		rowIdx += 1
+for row, g in enumerate(G0):
 	rs = nt.RowSpecList[row]
 	rs.Id, rs.Name = 'G'+str(row), ''
 	for col in nt.IndexOfColumns(g):
