@@ -1,8 +1,8 @@
 #MenuLabels AllGeneGroups
-vv.Import('HeatmapHelp.pyn')
-
 def AtlasMain(menu):
 	match menu:
+		case '<Import>':
+			vv.Import('HeatmapHelp.pyn')		
 		case 'AllGeneGroups':
 			AllGeneGroups(pp)
 

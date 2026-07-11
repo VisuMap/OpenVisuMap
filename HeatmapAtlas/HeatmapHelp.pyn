@@ -20,7 +20,7 @@ def CreateFeatureMaps(mp):
 	for t, id in [(b.Type, b.Id) for b in mp.BodyList if b.Type != 0]:
 		if t not in gList: gList[t] = []
 		gList[t].append(id)
-	tsne = New.TsneMap().Show()
+	tsne = New.TsneMap(2000, 0.05, 4.0, 1.0).Show()
 	for t, G in gList.items():
 		K = len(G)
 		vv.Dataset.AddMap(f'F{t}.{K}')
@@ -429,7 +429,7 @@ def DualEmbedding(hm, pRow=None, pColumn=None):
 		D = SelectFeatures(nt.Transpose2(), maxFeatures)
 		mtr = 'EuclideanMetric'
 		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE, mtr)
-		MapInfo({'EmbRow':str(pColumn), 'Metric':mtr, 'MapType':'Gene Map'}).Save(mp)
+		MapInfo({'EmbColumn':str(pColumn), 'Metric':mtr, 'MapType':'Gene Map'}).Save(mp)
 		LinkToHeatMap(mp, hm, False)
 	hm.OnClose('CloseSortedHeatmap(pp)')
 	mds.Close()

@@ -9,10 +9,12 @@ def HeatMapMain(menu):
 			nt = pp.GetNumberTable()
 			cm = [x.Value for x in nt.ColumnMean()]
 			mnV, mxV = min(cm), max(cm)
-			threshold = mnV + (mxV-mnV)*0.0125
-			cList = [ k for k in range(nt.Columns) if cm[k] > threshold]
+			threshold = mnV + (mxV-mnV)*0.005
+			cList = [k for k in range(nt.Columns) if cm[k]>threshold]
 			hm = nt.SelectColumns(cList).ShowHeatMap()
-			MapInfo(hm).Set('MapType', 'Active Heatmap').Save()
+			info = MapInfo(hm)
+			info.Add({'MapType':'Active Heatmap', 'Threshold':threshold})
+			info.Save()
 		case 'D-Sorting':
 			#DualSorting(pp, pRow=(25000, 2000, 0.05, 4.0, 1.0))
 			#DualSorting(pp, pRow=None,                         pColumn=(25000, 2000, 0.05, 4.0, 1.0))
