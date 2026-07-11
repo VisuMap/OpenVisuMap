@@ -42,10 +42,11 @@ def PromptOpenDirectory():
 		preDirPath = fd.SelectedPath
 	return fd.SelectedPath
 
-def ShowHeatmap(nt, fileName):
+def ShowHeatmap(nt, fileName, info=None):
 	hm = New.HeatMap(nt).Show()
 	hm.CentralizeColorSpectrum()
-	hm.Description = f'DataSrc:{fileName};DataDim:{nt.Rows}x{nt.Columns}'
+	if info is not None:
+		hm.Description = info.Str
 	hm.Title = 'Data Source: ' + fileName
 	return hm
 
