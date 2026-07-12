@@ -4,12 +4,12 @@ def AtlasMain(menu):
 		case '<Import>':
 			vv.Import('HeatmapHelp.pyn')		
 		case 'AllGeneGroups':
-			AllGeneGroups(pp)
+			AllGeneGroups(pp, tP=(2000,0.05,4.0,1.0))
 
 
 #--------------------------------------------------------------------------------------
 
-def AllGeneGroups(atlas):  
+def AllGeneGroups(atlas, tP=(2000,0.05,4.0,1.0) ):  
 	mpItems = [item for item in atlas.Items if item.ItemType == 'SnapshotItem']
 	idList = [item.Id for item in mpItems if MapInfo(item.Tag).MapType == 'Gene Map']
 	cntG, G = [], []
@@ -36,12 +36,21 @@ def AllGeneGroups(atlas):
 			nt.Matrix[row][col] = 1.0
 	hm = nt.ShowHeatMap()
 	hm.DisableReorder = False
-	tsort = New.TsneSorter(nt.Transpose2(), 'EuclideanMetric')
-	tsort.PerplexityRatio = 0.25
-	tsort.InitExaggeration = 4.0
-	tsort.FinalExaggeration = 1.0
+	hm.ReadOnly = True
+	hm.AutoScaling = False
+	hm.ColorLow = New.Color('Black')
+	hm.ColorMiddle = New.Color('Silver')
+	hm.ColorHigh = New.Color('White')
+	mtr = 'EuclideanMetric'
+
+	tsort = New.TsneSorter(nt.Transpose2(), mtr)
+	tsort.MaxLoops = tP[0]
+	tsort.PerplexityRatio = tP[1]
+	tsort.InitExaggeration = tP[2]
+	tsort.FinalExaggeration = tP[3]
 	tsort.ReadOnly = True
 	tsort.Show().Reset().Start().Close()
+	MapInfo({'MapType':'All Gene-Groups', 'tSNE':str(tP), 'Metric':mtr}).Save(hm)
 
 def ToGeneMaps(G):
 	tsne = New.TsneMap(2000, 0.05, 4.0, 1.0).Show()
