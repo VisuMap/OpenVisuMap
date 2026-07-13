@@ -31,6 +31,17 @@ def CreateFeatureMaps(mp):
 			break
 	tsne.Close()
 
+def SelectActiveGenes(hm, thresholdRatio):
+	nt = hm.GetNumberTable()
+	cm = [x.Value for x in nt.ColumnMean()]
+	mnV, mxV = min(cm), max(cm)
+	threshold = mnV + (mxV-mnV)*thresholdRatio
+	cList = [k for k in range(nt.Columns) if cm[k]>threshold]
+	hm = nt.SelectColumns(cList).ShowHeatMap()
+	info = MapInfo(hm)
+	info.Add({'MapType':'Active Heatmap', 'Threshold':thresholdRatio})
+	info.Save()
+
 def ToClusterMap(mp, nt, isCellMap):
 	G = {}
 	for b in mp.BodyList:

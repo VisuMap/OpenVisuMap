@@ -1,30 +1,20 @@
-#MenuLabels S-Active-Genes D-Sorting D-Embedding D-Clustering ActiveGenes ActiveCells Save ShowMean Info  ToClusters
+#MenuLabels ActiveGenes D-Sorting D-Embedding D-Clustering ActiveGenes ActiveCells Save ShowMean Info  ToClusters
 vv.Import('HeatmapHelp.pyn')
 
 ctrPressed = vv.ModifierKeys.ControlPressed
 
 def HeatMapMain(menu):
 	match menu:
-		case 'S-Active-Genes':
-			nt = pp.GetNumberTable()
-			cm = [x.Value for x in nt.ColumnMean()]
-			mnV, mxV = min(cm), max(cm)
-			threshold = mnV + (mxV-mnV)*0.005
-			cList = [k for k in range(nt.Columns) if cm[k]>threshold]
-			hm = nt.SelectColumns(cList).ShowHeatMap()
-			info = MapInfo(hm)
-			info.Add({'MapType':'Active Heatmap', 'Threshold':threshold})
-			info.Save()
+		case 'ActiveGenes':
+			SelectActiveGenes(pp, thresholdRatio=0.005)
 		case 'D-Sorting':
-			#DualSorting(pp, pRow=(25000, 2000, 0.05, 4.0, 1.0))
-			#DualSorting(pp, pRow=None,                         pColumn=(25000, 2000, 0.05, 4.0, 1.0))
-			DualSorting(pp, pRow=(5000, 2000, 0.05, 4.0, 1.0),  pColumn=(25000, 4000, 0.05, 4.0, 1.0))
+			A, B = (5000, 2000, 0.05, 4.0, 1.0), (25000, 4000, 0.05, 4.0, 1.0)
+			DualSorting(pp, pRow=A, pColumn=B)
 			if ctrPressed:
 				HeatMapMain('D-Embedding')
 		case 'D-Embedding':
-			#DualEmbedding(pp,                                   pColumn=(15000, 4000, 0.025, 2.0, 1.0))
-			#DualEmbedding(pp, pRow=(5000, 2000, 0.05, 4.0, 1.0))
-			DualEmbedding(pp, pRow=(5000, 2000, 0.05, 4.0, 1.0), pColumn=(15000, 4000, 0.05, 2.5, 1.1))
+			A, B = (5000, 2000, 0.05, 4.0, 1.0), (15000, 4000, 0.05, 2.5, 1.1)
+			DualEmbedding(pp, pRow=A, pColumn=B)
 		case 'D-Clustering':
 			DualClustering(pp, pRow=(0, 40, 15, 1.25, 20), pColumn=(0, 40, 15, 1.5, 5) )
 		case 'ActiveGenes':
