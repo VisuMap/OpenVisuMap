@@ -169,9 +169,11 @@ class MapInfo():
 				fs = f.split(':', 1)
 				if len(fs) == 2:
 					dic[fs[0].strip()] = fs[1].strip()
-	def Save(self):
-		if self._form_ is not None:
-			self._form_.Description = self.Str
+	def Save(self, form=None):
+		if form is None:
+			form = self._form_
+		if form is not None:
+			form.Description = self.Str
 		return self
 
 def ShowInfo(pp):

@@ -1,4 +1,5 @@
 #MenuLabels AllGeneGroups Info
+
 def AtlasMain(menu):
 	match menu:
 		case '<Import>':
@@ -45,7 +46,7 @@ def AllGeneGroups(atlas, tP=(2000,0.05,4.0,1.0) ):
 	hm.ColorMiddle = New.Color('Silver')
 	hm.ColorHigh = New.Color('White')
 	mtr = 'EuclideanMetric'
-	hm.Description = MapInfo({'MapType':'All Gene-Groups', 'tSNE':str(tP), 'Metric':mtr}).Str
+	MapInfo({'MapType':'All Gene-Groups', 'tSNE':str(tP), 'Metric':mtr}).Save(hm)
 
 	tsort = New.TsneSorter(nt.Transpose2(), mtr)
 	tsort.MaxLoops = tP[0]
@@ -66,16 +67,7 @@ def ToGeneMaps(G):
 		mp.Close()
 	atlas.Redraw()
 
+#--------------------------------------------------------------------------------------
 
 AtlasMain(vv.EventSource.Item)	
 
-'''
-
-for hm in [x for x in pp.Items if x.ItemType == 'RectItem']:
-	info = MapInfo(hm.Tag)
-	pp.FindItemById(info.CellMpId).Tag = 'MapType:Cell Map'
-	pp.FindItemById(info.GeneMpId).Tag = 'MapType:Gene Map'
-
-
-
-'''
