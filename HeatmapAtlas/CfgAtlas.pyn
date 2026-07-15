@@ -13,9 +13,11 @@ def AtlasMain(menu):
 
 def AllGeneGroups(atlas, tP=(2000,0.05,4.0,1.0) ):  
 	idList = []
-	for x in atlas.Items:
-		if x.ItemType == 'SnapshotItem' and (x.Tag is not None) and MapInfo(x.Tag).MapType == 'Gene Map':
-			idList.append(x.Id)
+	dsName = []
+	for x in [x for x in atlas.Items if x.ItemType == 'RectItem']:
+		info = MapInfo(x.Tag)
+		idList.append(info.GeneMpId)
+		dsName.append(info.DsName)
 	cntG, G = [], []
 	for id in idList:
 		bList = vv.AtlasManager.ReadBodyList(atlas.AtlasName, id)
@@ -31,11 +33,12 @@ def AllGeneGroups(atlas, tP=(2000,0.05,4.0,1.0) ):
 	rowIdx = 0
 	for ty, nS in enumerate(cntG):
 		for k in range(nS):
-			nt.RowSpecList[rowIdx].Type = ty
+			rs = nt.RowSpecList[rowIdx]
+			rs.Type, rs.Name = ty, dsName[ty]
 			rowIdx += 1
 	for row, g in enumerate(G):
 		rs = nt.RowSpecList[row]
-		rs.Id, rs.Name = 'G'+str(row), ''
+		rs.Id = 'G'+str(row)
 		for col in nt.IndexOfColumns(g):
 			nt.Matrix[row][col] = 1.0
 	hm = nt.ShowHeatMap()
