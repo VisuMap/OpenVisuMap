@@ -298,11 +298,16 @@ def SaveSortedHeatmap(hm, captureColoring=False):
 		if geneMap is not None:
 			geneMap.ClickMenu('Utilities/Capture Attribute Clustering')			
 		
-def SelectFeatures(nt, featureCount):
+def SelectFeatures(nt, featureCount, minMean=0):
 	if featureCount >= nt.Columns:
 		return nt.Clone()
-	columns = nt.Columns
-	return nt.SelectColumns([(col*997)%columns  for col in range(featureCount)])
+	if minMean > 0:
+		cm = nt.ColumnMean()
+		cIdxList = [ col for col in range(nt.Columns) if cm[col].Value > minMean ]
+		columns = len(cIdxList)
+		return nt.SelectColumns([cIdxList[(col*997)%columns]  for col in range(featureCount)])
+	else:
+		return nt.SelectColumns([(col*997)%nt.Columns  for col in range(featureCount)])
 
 def SortTable(D, epochs, ppl, initE, finalE, mtr="Correlation.Cosine Distance"):
 	tsne = New.TsneSorter(D, mtr)
@@ -342,7 +347,7 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		hm.SelectionMode = 0
 		hm.RandomizeRows()
 		maxFeatures, epochs, ppl, initE, finalE = pRow
-		D = SelectFeatures(nt, maxFeatures)
+		D = SelectFeatures(nt, maxFeatures, 0.15)
 		mtr='Correlation.Cosine Distance'
 		SortTable(D, epochs, ppl, initE, finalE, mtr)
 		info.Add({'SrtRow':str(pRow), 'SrtRowMtr':mtr})
@@ -365,8 +370,9 @@ def DualSorting(hm, pRow=None, pColumn=None):
 def EmbeddingData(mds, D, epochs, ppl, initE, finalE, metric):
 	mds.MdsAlgorithm = 2;
 	mds.SetTrainingData(D);
-	mds.Is3D = False;
+	mds.Is3D = False
 	mds.Metric = metric
+	mds.AutoScalingTsne = False
 	mds.AutoClustering = False
 	mds.AutoNormalizing = False
 	mds.StagedTraining = False
@@ -426,13 +432,14 @@ def DualEmbedding(hm, pRow=None, pColumn=None):
 	nt = hm.GetNumberTable();
 	mds = New.MdsCluster().Show()
 	hm.Tag = [None, None]
+	info = MapInfo(hm)
 	if pRow is not None:
 		hm.Title = 'Creating cell embedding...'
 		maxFeatures, epochs, ppl, initE, finalE = pRow
-		D = SelectFeatures(nt, maxFeatures)
+		D = SelectFeatures(nt, maxFeatures, 0.15)
 		mtr = 'Correlation.Cosine Distance'
-		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE, mtr)
-		MapInfo({'EmbRow':str(pRow), 'Metric':mtr, 'MapType':'Cell Map'}).Save(mp)
+		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE, mtr)		
+		info.Add({'EmbRow':str(pRow), 'Metric':mtr, 'MapType':'Cell Map'}).Save(mp)
 		LinkToHeatMap(mp, hm, True)
 	if pColumn is not None:
 		hm.Title = 'Creating gene embedding...';
@@ -440,7 +447,7 @@ def DualEmbedding(hm, pRow=None, pColumn=None):
 		D = SelectFeatures(nt.Transpose2(), maxFeatures)
 		mtr = 'EuclideanMetric'
 		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE, mtr)
-		MapInfo({'EmbColumn':str(pColumn), 'Metric':mtr, 'MapType':'Gene Map'}).Save(mp)
+		info.Add({'EmbColumn':str(pColumn), 'Metric':mtr, 'MapType':'Gene Map'}).Save(mp)
 		LinkToHeatMap(mp, hm, False)
 	hm.OnClose('CloseSortedHeatmap(pp)')
 	mds.Close()

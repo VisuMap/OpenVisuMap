@@ -1,4 +1,4 @@
-#MenuLabels AllGeneGroups Info
+#MenuLabels <Import> AllGeneGroups Info
 
 def AtlasMain(menu):
 	match menu:

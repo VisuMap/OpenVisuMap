@@ -123,11 +123,18 @@ def ImportH5AD():
 			cs.Id = uf.LookupName(str(id))
 			if cs.Id.startswith('mt-'):
 				cs.Group = 1
+	geneNames = []
 	if hasattr(f.var, 'Gene'):
-		geneNames = list(f.var['Gene'])
-		if len(geneNames) == nt.Columns:
-			for k, cs in enumerate(nt.ColumnSpecList):
-				cs.Name = geneNames[k]
+		geneNames = list(f.var.Gene)
+	elif hasattr(f.var, 'feature_name'):
+		geneNames = list(f.var.feature_name)
+	if len(geneNames) == nt.Columns:
+		for k, cs in enumerate(nt.ColumnSpecList):
+			cs.Name = geneNames[k].upper()
+	if len(geneNames) == nt.Columns:
+		for k, cs in enumerate(nt.ColumnSpecList):
+			cs.Name = geneNames[k].upper()
+
 	info = MapInfo({'DataSrc':fileName, 'DataDim':f'{nt.Rows}x{nt.Columns}'})
 	if hasattr(f.uns, 'organism'):
 		info.Set('Organism', f.uns['organism'])
