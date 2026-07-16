@@ -549,6 +549,22 @@ def ShowActiveCells(hm):
 	FlushMarkers(geneMap, cellMap, sp)
 
 csHM = New.CsObject('''
+	public void AppendTable(INumberTable srcD, INumberTable dstD){
+		int row = dstD.Rows;
+		dstD.AddRows(srcD.Rows);
+		for(int srcCol=0; srcCol<srcD.Columns; srcCol++){
+			int col = dstD.IndexOfColumn(srcD.ColumnSpecList[srcCol].Id);
+			for(int srcRow=0; srcRow<srcD.Rows; srcRow++)
+				dstD.Matrix[row+srcRow][col] = srcD.Matrix[srcRow][srcCol];
+		}
+		for(int srcRow=0; srcRow<srcD.Rows; srcRow++) {
+			var rsDst = dstD.RowSpecList[row+srcRow];
+			var rsSrc = srcD.RowSpecList[srcRow];
+			rsDst.Type = rsSrc.Type;
+			rsDst.Name = rsSrc.Name;
+		}
+	}
+
 	public void ShowActiveGenes(IList<string> selectedItems, IHeatMap hm, IForm map) {
 		if ( (selectedItems==null) || (selectedItems.Count==0) )
 			return;

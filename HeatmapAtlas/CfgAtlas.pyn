@@ -1,4 +1,4 @@
-#MenuLabels <Import> AllGeneGroups Info
+#MenuLabels <Import> AllGeneGroups Info FeatureMaps
 
 def AtlasMain(menu):
 	match menu:
@@ -6,10 +6,31 @@ def AtlasMain(menu):
 			vv.Import('HeatmapHelp.pyn')		
 		case 'AllGeneGroups':
 			AllGeneGroups(pp, tP=(2000,0.05,4.0,1.0))
+		case 'FeatureMaps':
+			AllFeatureMaps(pp)
 		case 'Info':
 			ShowInfo(pp)
 
 #--------------------------------------------------------------------------------------
+def AllFeatureMaps(atlas):  
+	mpList, dsNames, geneList = [], [], []
+	for x in atlas.Items:
+		if x.ItemType == 'RectItem':
+			info = MapInfo(x.Tag)
+			mpList.append(info.GeneMpId)
+			dsNames.append(info.DsName)
+	for id in mpList:
+		bList = vv.AtlasManager.ReadBodyList(atlas.AtlasName, id)
+		geneList.extend( [b.Id for b in bList if b.Type>0] )
+	geneList = New.StringArray( list(set(geneList)) )
+	nt = New.NumberTable(geneList)
+	for ds in dsNames:
+		vv.Title = f'Processing {ds} of {len(dsNames)}...'
+		dt = vv.Folder.ReadDataset(ds).GetNumberTableView()
+		dt = dt.SelectColumnsById(geneList).GroupRows(1)
+		csHM.AppendTable(dt, nt)
+	nt.ShowHeatMap()
+
 
 def AllGeneGroups(atlas, tP=(2000,0.05,4.0,1.0) ):  
 	idList = []
@@ -28,8 +49,9 @@ def AllGeneGroups(atlas, tP=(2000,0.05,4.0,1.0) ):
 			gList[t].append(id)
 		cntG.append(len(gList.values()))
 		G.extend(gList.values())
-	cIdList = New.StringArray( list(set([x for g in G for x in g])) )
-	nt = New.NumberTable(cIdList).AddRows(sum(cntG))
+
+	geneList = New.StringArray( list(set([x for g in G for x in g])) )
+	nt = New.NumberTable(geneList).AddRows(sum(cntG))
 	rowIdx = 0
 	for ty, nS in enumerate(cntG):
 		for k in range(nS):
@@ -41,6 +63,7 @@ def AllGeneGroups(atlas, tP=(2000,0.05,4.0,1.0) ):
 		rs.Id = 'G'+str(row)
 		for col in nt.IndexOfColumns(g):
 			nt.Matrix[row][col] = 1.0
+
 	hm = nt.ShowHeatMap()
 	hm.DisableReorder = False
 	hm.ReadOnly = True
