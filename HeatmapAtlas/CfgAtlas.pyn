@@ -12,33 +12,41 @@ def AtlasMain(menu):
 			ShowInfo(pp)
 
 #--------------------------------------------------------------------------------------
-def AllFeatureMaps(atlas):  
-	mpList, dsNames, geneList = [], [], []
-	for x in atlas.Items:
-		if x.ItemType == 'RectItem':
-			info = MapInfo(x.Tag)
-			mpList.append(info.GeneMpId)
-			dsNames.append(info.DsName)
+def GetGeneInfo(atlas):
+	items = atlas.SelectedItems if atlas.SelectedItems.Count > 0 else atlas.Items
+	idList = []
+	dsNames = []
+	for x in [x for x in items if x.ItemType == 'RectItem']:
+		info = MapInfo(x.Tag)
+		idList.append(info.GeneMpId)
+		dsNames.append(info.DsName)
+	return idList, dsNames
+
+def AllFeatureMaps(atlas): 
+	mpList, dsNames = GetGeneInfo(atlas)
+	geneList = []
 	for id in mpList:
 		bList = vv.AtlasManager.ReadBodyList(atlas.AtlasName, id)
 		geneList.extend( [b.Id for b in bList if b.Type>0] )
 	geneList = New.StringArray( list(set(geneList)) )
 	nt = New.NumberTable(geneList)
-	for ds in dsNames:
-		vv.Title = f'Processing {ds} of {len(dsNames)}...'
+	for k, ds in enumerate(dsNames):
+		vv.Title = f'Processing {ds} of {len(dsNames)} ...'
 		dt = vv.Folder.ReadDataset(ds).GetNumberTableView()
-		dt = dt.SelectColumnsById(geneList).GroupRows(1)
+		dt = dt.SelectColumnsById(geneList).GroupRows(0)
+		for rs in dt.RowSpecList:
+			rs.Name = ds + '.' + str(rs.Type)
+			rs.Type = k
 		csHM.AppendTable(dt, nt)
-	nt.ShowHeatMap()
-
+	hm = New.HeatMap(nt)
+	hm.ShowGrid = False
+	hm.ReadOnly = True
+	hm.AutoScaling = True
+	hm.SpectrumType = 5
+	hm.Show()
 
 def AllGeneGroups(atlas, tP=(2000,0.05,4.0,1.0) ):  
-	idList = []
-	dsName = []
-	for x in [x for x in atlas.Items if x.ItemType == 'RectItem']:
-		info = MapInfo(x.Tag)
-		idList.append(info.GeneMpId)
-		dsName.append(info.DsName)
+	idList, dsNames = GetGeneInfo(atlas)
 	cntG, G = [], []
 	for id in idList:
 		bList = vv.AtlasManager.ReadBodyList(atlas.AtlasName, id)
@@ -56,7 +64,7 @@ def AllGeneGroups(atlas, tP=(2000,0.05,4.0,1.0) ):
 	for ty, nS in enumerate(cntG):
 		for k in range(nS):
 			rs = nt.RowSpecList[rowIdx]
-			rs.Type, rs.Name = ty, dsName[ty]
+			rs.Type, rs.Name = ty, dsNames[ty]
 			rowIdx += 1
 	for row, g in enumerate(G):
 		rs = nt.RowSpecList[row]
