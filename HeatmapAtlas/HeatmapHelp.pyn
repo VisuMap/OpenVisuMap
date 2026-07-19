@@ -24,8 +24,9 @@ def CreateFeatureMaps(mp):
 	for t, G in gList.items():
 		K = len(G)
 		vv.Dataset.AddMap(f'F{t}.{K}')
-		mp.SelectedItems = G
-		mp.Title = f'Creating map for {K} features...'
+		if mp.TheForm.IsDisposed:
+			mp.SelectedItems = G
+			mp.Title = f'Creating map for {K} features...'
 		tsne.RunWithFeatures(G)
 		if not tsne.Completed:
 			break
@@ -33,6 +34,9 @@ def CreateFeatureMaps(mp):
 
 def SelectActiveGenes(hm, thresholdRatio):
 	nt = hm.GetNumberTable()
+	if nt.MaximumValue() > 15:
+		vv.Message('The data is likely not normalized by log1-transformation')
+		return
 	cm = [x.Value for x in nt.ColumnMean()]
 	mnV, mxV = min(cm), max(cm)
 	threshold = mnV + (mxV-mnV)*thresholdRatio
