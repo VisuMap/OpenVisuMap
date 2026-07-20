@@ -12,15 +12,20 @@ def GroupIdx2Id(k, isCellMap):
 	else:
 		return (' ' if isCellMap else '.') + str(k-26)
 
-def CreateFeatureMaps(mp):
-	if MapInfo(mp).MapType != 'Gene Map':
+def CreateFeatureMaps(mp, tp=(2000, 0.05, 4.0, 1.0)):
+	if mp.Name == 'MainForm':
+		gcList = [(cs.Type, cs.Id) for cs in vv.Dataset.ColumnSpecList if cs.Type != 0]
+	elif MapInfo(mp).MapType == 'Gene Map':
+		gcList = [(b.Type, b.Id) for b in mp.BodyList if b.Type != 0]
+	else:
 		vv.Message('Operation only supported by gene-maps')
 		return
 	gList = {}
-	for t, id in [(b.Type, b.Id) for b in mp.BodyList if b.Type != 0]:
+	for t, id in gcList:
 		if t not in gList: gList[t] = []
 		gList[t].append(id)
-	tsne = New.TsneMap(2000, 0.05, 4.0, 1.0).Show()
+	epochs, ppl, initExag, finalExag = tp
+	tsne = New.TsneMap(epochs, ppl, initExag, finalExag).Show()
 	for t, G in gList.items():
 		K = len(G)
 		vv.Dataset.AddMap(f'F{t}.{K}')

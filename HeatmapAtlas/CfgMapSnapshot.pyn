@@ -15,5 +15,5 @@ match vv.EventSource.Item:
 		else:
 			ShowClusterGraph(pp, threshold=0.5, mnR=10, mxR=30 )
 	case 'F-Maps':
-		CreateFeatureMaps(pp)
+		CreateFeatureMaps(pp, tp=(2000, 0.05, 4.0, 1.0))
 

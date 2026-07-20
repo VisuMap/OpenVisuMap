@@ -1,8 +1,10 @@
-#MenuLabels Info
+#MenuLabels F-Maps, Info
 vv.Import('Common.pyn')
 match vv.EventSource.Item:
 	case 'Info':
 		ShowInfo(pp)
+	case 'F-Maps': # create a map for each feature/column type (except type 0).
+		CreateFeatureMaps(pp, tp=(3000, 0.1, 6.0, 1.0))
 
 '''
 Typical steps to explore an scRNA ( single cell RNA expression ) file:
