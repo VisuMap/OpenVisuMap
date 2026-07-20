@@ -24,9 +24,9 @@ def CreateFeatureMaps(mp):
 	for t, G in gList.items():
 		K = len(G)
 		vv.Dataset.AddMap(f'F{t}.{K}')
-		if mp.TheForm.IsDisposed:
+		if IsOpenView(mp):
 			mp.SelectedItems = G
-			mp.Title = f'Creating map for {K} features...'
+		vv.Title = f'Creating map for {K} features...'
 		tsne.RunWithFeatures(G)
 		if not tsne.Completed:
 			break
@@ -222,11 +222,6 @@ def LayoutMaps(hm, cellMap, geneMap):
 		geneMap.Left = hm.Left
 		geneMap.Title = "Gene Map"
 
-def CheckForm(frm):
-	if frm is None or frm.TheForm.IsDisposed:
-		return None
-	return frm
-
 def SaveSortedHeatmap(hm, captureColoring=False):
 	nt = hm.GetNumberTable()
 	info = MapInfo()
@@ -264,8 +259,8 @@ def SaveSortedHeatmap(hm, captureColoring=False):
 	cellMap, geneMap = None, None
 	if type(hm.Tag) is list and len(hm.Tag) == 2:
 		cellMap, geneMap = hm.Tag
-	cellMap = CheckForm(cellMap)
-	geneMap = CheckForm(geneMap)	
+	if not IsOpenView(cellMap): cellMap = None
+	if not IsOpenView(geneMap): geneMap = None
 
 	itemList = [ ii ]
 	if cellMap is not None:
@@ -413,6 +408,7 @@ def CopyColoring2Heatmap(mp):
 	for sp in spList:
 		sp.Type = id2body[sp.Id].Type
 	hm.Redraw()
+
 def LinkToHeatMap(mp, hm, isCellMap):
 	if isCellMap:
 		mp.ResizeClient(-1, hm.TheForm.ClientSize.Height)

@@ -31,13 +31,13 @@ def AllFeatureMaps(atlas):
 	geneList = New.StringArray( list(set(geneList)) )
 	nt = New.NumberTable(geneList)
 	for k, ds in enumerate(dsNames):
-		vv.Title = f'Processing {ds} of {len(dsNames)} ...'
-		dt = vv.Folder.ReadDataset(ds).GetNumberTableView()
-		dt = dt.SelectColumnsById(geneList).GroupRows(0)
+		vv.Title = f'Processing {ds}: {k}-th of {len(dsNames)} ...'
+		dt = vv.Folder.ReadDataset(ds).GetNumberTableView().SelectColumnsById(geneList).GroupRows(0)
 		for rs in dt.RowSpecList:
 			rs.Name = ds + '.' + str(rs.Type)
 			rs.Type = k
 		csHM.AppendTable(dt, nt)
+		dt.Clear()
 	hm = New.HeatMap(nt)
 	hm.ShowGrid = False
 	hm.ReadOnly = True

@@ -61,3 +61,7 @@ def ShowInfo(pView):
 	info = MapInfo(desc)
 	winTitle = pView.Name + ': ' + pView.Title
 	New.TextPanel(winTitle, info.Text).Show()
+
+def IsOpenView(frm):
+	return (frm is not None) and (frm.TheForm is not None) and (not frm.TheForm.IsDisposed)
+
