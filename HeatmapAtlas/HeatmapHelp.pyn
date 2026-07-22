@@ -26,7 +26,8 @@ def CreateFeatureMaps(mp, tp=(2000, 0.05, 4.0, 1.0)):
 		gList[t].append(id)
 	epochs, ppl, initExag, finalExag = tp
 	tsne = New.TsneMap(epochs, ppl, initExag, finalExag).Show()
-	for t, G in gList.items():
+	for t in sorted(gList):
+		G = gList[t]
 		K = len(G)
 		vv.Dataset.AddMap(f'F{t}.{K}')
 		if IsOpenView(mp):
