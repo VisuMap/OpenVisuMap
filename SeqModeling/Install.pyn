@@ -8,8 +8,8 @@ if vv.ScriptDirectories.find( vv.CurrentScriptDirectory ) < 0:
 #The Atlas form need to access the function ResetAtlas() from SeqVis.pyn. The following
 #statment makes that function available. It has been replaced by MenuLabels <Import> for atlas form.
 #vv.InstallPlugin('SeqVisInit', '@vv.Import("SeqVis.pyn")')
-
+icon = vv.CurrentScriptDirectory + "\\MenuIcon.png"
 for pf in os.listdir(vv.CurrentScriptDirectory):
 	if pf.endswith('.pyn') and pf.startswith('Cfg'):  
 		fpath = vv.CurrentScriptDirectory + '\\' + pf
-		vv.GuiManager.SetCustomMenu('SeqVis/*', True, fpath, pf[3:-4], None)
+		vv.GuiManager.SetCustomMenu('SeqVis/*', True, fpath, pf[3:-4], icon)
