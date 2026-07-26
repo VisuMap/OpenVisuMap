@@ -3,6 +3,33 @@
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
+'''
+Purpose of this package: 
+	Facilitating exploration of 2D/3D structure of protein polypetides.
+Basic steps to use this package:
+ 0. Create an empty VisuMap data folder, and save it to a directory via the menu Save>Save To Directory.
+ 1. Download a list of protein ids from the site: https://www.rcsb.org/search. If the list is 
+	shorten than 2500, we can directly click on the button "Downlad All/Selected Files" to
+	open the page that display all protein ids.
+	To obtain a list larger than 2500 ids, click on button "Tabular Reports"; then in the field
+	"Select Report" choose the "Entry IDs"; then click on the button "Display IDs", a list of chain ids
+	will be displayed. We can then copy this list into the clipboard and continues with the following stmts
+	to import then into VisuMap. 
+ 2. Save the id list of step 1 into a python string variable with ',' as separator. Assume this variable
+	is named sList, then, import these PDB structure info into VisuMap via the command:
+		ImportPDBList(sList, '<Dataset-Name>', 'Brief description')
+	This statment will download all the CIF files for those proteins, and unpack them into polypeptide chains.
+	The CIF files and chains will be cached into the data folder created in step 0. This statement will
+	create a dataset named 'P-Info' that contains one row for each CIF file; and create new dataset file
+	with one row for each polypetide chain.
+ 3. Load the chain dataset created in step 2, then create t-SNE map for these chains via the context menu 
+	SeqVis/P-Map.
+ 4. Click on the menu SeqVis/P-2D to project the 3D structure into 2D plan (with tSNE) and store them in an
+	atlas object. The atlas contains all chains in hidden state, to see their 2D map, just select subset with
+	delayed mouse-up releasing, ca. 1 sec delay.
+	
+ 
+'''
 
 def MainMain(menuKey):
 	global ctrPressed

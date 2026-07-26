@@ -565,7 +565,7 @@ def CleanupAllCache():
 
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'Isomerases', 'Enzyme Classification')
+ImportPDBList(sList, 'All', '')
 
 CleanupAllCache()
 
@@ -576,4 +576,8 @@ ds = vv.Folder.ReadDataset("P-Info")
 pList = [b.Id for b in ds.BodyList]
 ShowPepCounts(pList)
 
+import os
+idList = [f[0:-4] for f in os.listdir('D:/PDB/SeqVis/CifCache')]
+sList = ','.join(idList)
+print(len(sList))
 '''
