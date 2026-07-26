@@ -1,5 +1,5 @@
 set ZipFile=SeqModeling.zip
 del %ZipFile%
-zip %ZipFile%  *.pyn TestData.xvm SeqModeling.cs SeqModeling.dll
+zip %ZipFile%  *.pyn TestData.xvm SeqModeling.cs SeqModeling.dll MenuIcon.png
 
 copy %ZipFile% ..\..\VisuMapWeb\images
