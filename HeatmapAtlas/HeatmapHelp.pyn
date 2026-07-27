@@ -1,6 +1,7 @@
 # HeatmapHelp.pyn
 # Functions used by Heatmap view
 #
+import math
 vv.Import('Common.pyn')
 
 def GroupIdx2Id(k, isCellMap):
@@ -48,6 +49,13 @@ def SelectActiveGenes(hm, thresholdRatio):
 	threshold = mnV + (mxV-mnV)*thresholdRatio
 	cList = [k for k in range(nt.Columns) if cm[k]>threshold]
 	hm = nt.SelectColumns(cList).ShowHeatMap()
+	ConfigHeatmap(hm)
+	hm.SelectionMode = 0
+	hm.ClickMenu('Select/All Data')
+	hm.ClickMenu('Utilities/Sort Columns on Row')
+	hm.SelectionMode = 1
+	hm.ClickMenu('Select/All Data')
+	hm.ClickMenu('Utilities/Sort Rows on Column')
 	info = MapInfo(hm)
 	info.Add({'MapType':'Active Heatmap', 'Threshold':thresholdRatio})
 	info.Save()

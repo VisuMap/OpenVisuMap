@@ -1,4 +1,5 @@
 #MenuLabels <Import> AllGeneGroups Info FeatureMaps
+import time, math
 
 def AtlasMain(menu):
 	match menu:
