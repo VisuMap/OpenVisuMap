@@ -31,5 +31,13 @@ Typical steps to explore an scRNA ( single cell RNA expression ) file:
 6. Still from the heatmap: call the menu 'ToCluster' to create a heatmap, a cell map and a gene map 
    for the newly created clusters. From the cluster cell map and cluster gene map we can call
    the menu 'ShowGraph' to show the clusters in a graph in separate HTML view.
-   
+
+for nm in vv.Folder.DatasetNameList:
+	ds = vv.Folder.OpenDataset(nm)
+	if ds is not None and ds.NumberPrecision != 'g6':
+		ds.NumberPrecision = 'g6'
+		vv.Dataset.ForceTableChanged()
+		ds.Save()
+
+
 '''

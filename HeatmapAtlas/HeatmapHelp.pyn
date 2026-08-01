@@ -48,9 +48,7 @@ def SelectActiveGenes(hm, thresholdRatio):
 	mnV, mxV = min(cm), max(cm)
 	threshold = mnV + (mxV-mnV)*thresholdRatio
 	cList = [k for k in range(nt.Columns) if cm[k]>threshold]
-	hm.Close()
 	hm = nt.SelectColumns(cList).ShowHeatMap()
-	nt.Clear()
 	ConfigHeatmap(hm)
 	hm.SelectionMode = 0
 	hm.ClickMenu('Select/All Data')

@@ -15,25 +15,47 @@ def AtlasMain(menu):
 #--------------------------------------------------------------------------------------
 def GetGeneInfo(atlas):
 	items = atlas.SelectedItems if atlas.SelectedItems.Count > 0 else atlas.Items
-	idList = []
-	dsNames = []
+	cellIdList, geneMapList, dsNames = [], [], []
 	for x in [x for x in items if x.ItemType == 'RectItem']:
 		info = MapInfo(x.Tag)
-		idList.append(info.GeneMpId)
+		cellIdList.append(info.RowIds.split('|'))
+		geneMapList.append(info.GeneMpId)
 		dsNames.append(info.DsName)
-	return idList, dsNames
+	return cellIdList, geneMapList, dsNames
+
+'''
+def CreateFeaturList():
+	fList = {}
+	atlas = pp
+	for x in [x for x in atlas.Items if x.ItemType == 'RectItem']:
+		info = MapInfo(x.Tag)
+		dsName = info.DsName
+		bList = vv.AtlasManager.ReadBodyList(atlas.AtlasName, info.GeneMpId)	
+		for b in bList:
+			if b.Type == 0: continue			
+			fName = dsName + str(b.Type)
+			if fName not in fList:
+				fList[fName] = []
+			fList[fName].append(b.Id)
+	for f, fs in fList.items(): 
+		vv.GroupManager.SetGroupLabels(f, fs)
+
+'''
 
 def AllFeatureMaps(atlas): 
-	mpList, dsNames = GetGeneInfo(atlas)
+	cellIdList, geneMapList, dsNames = GetGeneInfo(atlas)
 	geneList = []
-	for id in mpList:
+	for id in geneMapList:
 		bList = vv.AtlasManager.ReadBodyList(atlas.AtlasName, id)
 		geneList.extend( [b.Id for b in bList if b.Type>0] )
 	geneList = New.StringArray( list(set(geneList)) )
 	nt = New.NumberTable(geneList)
 	for k, ds in enumerate(dsNames):
 		vv.Title = f'Processing {ds}: {k}-th of {len(dsNames)} ...'
-		dt = vv.Folder.ReadDataset(ds).GetNumberTableView().SelectColumnsById(geneList).GroupRows(0)
+		dt = vv.Folder.ReadDataset(ds).GetNumberTableView()
+		dt = dt.SelectRowsByIdView(cellIdList[k])
+		#print(ds, dt.Rows, dt.Columns)
+		dt = dt.SelectColumnsById(geneList).GroupRows(0)
 		for rs in dt.RowSpecList:
 			rs.Name = ds + '.' + str(rs.Type)
 			rs.Type = k

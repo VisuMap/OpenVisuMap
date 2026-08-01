@@ -1,6 +1,26 @@
-#MenuLabels Info 'Capture Coloring' ShowGraph F-Maps
+#MenuLabels <Init> Info 'Capture Coloring' ShowGraph F-Maps
 vv.Import('Common.pyn')
 vv.Import('HeatmapHelp.pyn')
+
+def ColorNewSet(map):
+	from collections import Counter
+	selected = map.SelectedBodies
+	if selected.Count == 0:
+		print('No data selected')
+		return
+	maxType = max([b.Type for b in map.BodyList])
+	sTypes = [b.Type for b in selected]
+	tyCount = Counter(sTypes)
+	if len(tyCount) == 1:
+		for b in selected:
+			b.Type = maxType + 1
+	else:
+		mxTy = max(tyCount, key=tyCount.get)
+		for b in selected:
+			b.Type = mxTy
+	map.SelectedItems = None
+	map.RedrawBodiesType()
+
 
 match vv.EventSource.Item:
 	case 'Info':
@@ -16,4 +36,8 @@ match vv.EventSource.Item:
 			ShowClusterGraph(pp, threshold=0.5, mnR=10, mxR=30 )
 	case 'F-Maps':
 		CreateFeatureMaps(pp, tp=(2000, 0.05, 4.0, 1.0))
+	case '<Init>':
+		pp.OnKeyPress('a', 'ColorNewSet(pp)')
+
+
 
