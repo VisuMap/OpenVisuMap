@@ -11,7 +11,7 @@ def ColorNewSet(map):
 	maxType = max([b.Type for b in map.BodyList])
 	sTypes = [b.Type for b in selected]
 	tyCount = Counter(sTypes)
-	if len(tyCount) == 1:
+	if (0 in tyCount) and (tyCount[0]/len(selected) > 0.9):
 		for b in selected:
 			b.Type = maxType + 1
 	else:
