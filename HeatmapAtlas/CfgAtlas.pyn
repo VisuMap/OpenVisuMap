@@ -37,8 +37,21 @@ def CreateFeaturList():
 			if fName not in fList:
 				fList[fName] = []
 			fList[fName].append(b.Id)
+	return fList
+
+fList = CreateFeaturList()
+for n in range(5):
 	for f, fs in fList.items(): 
-		vv.GroupManager.SetGroupLabels(f, fs)
+		pp.SelectedItems = fs
+		pp.Title = 'Feature Cluster: ' + f
+		vv.Wait(2000)
+
+for x in pp.Items:
+	info = MapInfo(x.Tag)
+	if info.Has('MapType') and info.MapType == 'Gene Map':
+		mp = x.Open()
+		for b in mp.BodyList: b.Type = 0
+		mp.RedrawBodiesType()
 
 '''
 

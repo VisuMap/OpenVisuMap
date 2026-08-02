@@ -205,9 +205,14 @@ def CloseSortedHeatmap(hm):
 		return
 	if not isinstance(hm.Tag, list):
 		return 
-	for mp in hm.Tag:
-		if mp is not None:
-			mp.Close()
+	[cellMap, geneMap] = hm.Tag
+	captureClustering = vv.ModifierKeys.ControlPressed
+	if cellMap is not None:
+		if captureClustering: cellMap.ClickMenu('Utilities/Capture Map')
+		cellMap.Close()
+	if geneMap is not None:
+		if captureClustering: geneMap.ClickMenu('Utilities/Capture Attribute Clustering')
+		geneMap.Close()	
 	info = MapInfo(hm)
 	if info.Has('atName') and info.Has('atItem'):
 		atList = [x for x in vv.FindFormList("Atlas") if x.AtlasName==info.atName]
