@@ -23,7 +23,7 @@ def GetGeneInfo(atlas):
 		dsNames.append(info.DsName)
 	return cellIdList, geneMapList, dsNames
 
-'''
+
 def CreateFeaturList():
 	fList = {}
 	atlas = pp
@@ -39,9 +39,10 @@ def CreateFeaturList():
 			fList[fName].append(b.Id)
 	return fList
 
+'''
 fList = CreateFeaturList()
 for n in range(5):
-	for f, fs in fList.items(): 
+	for f, fs in fList.items():
 		pp.SelectedItems = fs
 		pp.Title = 'Feature Cluster: ' + f
 		vv.Wait(2000)
@@ -67,8 +68,14 @@ def AllFeatureMaps(atlas):
 		vv.Title = f'Processing {ds}: {k}-th of {len(dsNames)} ...'
 		dt = vv.Folder.ReadDataset(ds).GetNumberTableView()
 		dt = dt.SelectRowsByIdView(cellIdList[k])
-		#print(ds, dt.Rows, dt.Columns)
-		dt = dt.SelectColumnsById(geneList).GroupRows(0)
+		dt = dt.SelectColumnsById(geneList)
+		dt = dt.GroupRows(0)
+
+		# Remove nois rows which have type larger or equal then 200
+		noNoise = [n for n in range(dt.Rows) if dt.RowSpecList[n].Type<200]
+		if len(noNoise) < dt.Rows:
+			dt = dt.SelectRows(noNoise)
+
 		for rs in dt.RowSpecList:
 			rs.Name = ds + '.' + str(rs.Type)
 			rs.Type = k
