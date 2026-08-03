@@ -24,10 +24,12 @@ def GetGeneInfo(atlas):
 	return cellIdList, geneMapList, dsNames
 
 
-def CreateFeaturList():
+def CreateFeaturList(atlas):
 	fList = {}
-	atlas = pp
-	for x in [x for x in atlas.Items if x.ItemType == 'RectItem']:
+	selected = atlas.SelectedItems
+	if selected.Count == 0: 
+		selected = atlas.Items
+	for x in [x for x in selected if x.ItemType == 'RectItem']:
 		info = MapInfo(x.Tag)
 		dsName = info.DsName
 		bList = vv.AtlasManager.ReadBodyList(atlas.AtlasName, info.GeneMpId)	
@@ -40,12 +42,12 @@ def CreateFeaturList():
 	return fList
 
 '''
-fList = CreateFeaturList()
+fList = CreateFeaturList(pp)
 for n in range(5):
 	for f, fs in fList.items():
 		pp.SelectedItems = fs
 		pp.Title = 'Feature Cluster: ' + f
-		vv.Wait(2000)
+		vv.Wait(1000)
 
 for x in pp.Items:
 	info = MapInfo(x.Tag)
@@ -54,6 +56,16 @@ for x in pp.Items:
 		for b in mp.BodyList: b.Type = 0
 		mp.RedrawBodiesType()
 
+gMaps = []
+for x in pp.Items:
+	info = MapInfo(x.Tag)
+	if info.Has('MapType') and info.MapType == 'Gene Map':
+		x.IconWidth *= 2
+		x.IconHeight *= 2
+	else:
+		x.IsHidden = True
+pp.Redraw()
+
 '''
 
 def AllFeatureMaps(atlas): 
@@ -61,6 +73,9 @@ def AllFeatureMaps(atlas):
 	geneList = []
 	for id in geneMapList:
 		bList = vv.AtlasManager.ReadBodyList(atlas.AtlasName, id)
+		if bList == None:
+			vv.Message(f'Cannot load map {id}')
+			vv.Return()
 		geneList.extend( [b.Id for b in bList if b.Type>0] )
 	geneList = New.StringArray( list(set(geneList)) )
 	nt = New.NumberTable(geneList)

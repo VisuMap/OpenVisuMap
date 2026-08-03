@@ -64,7 +64,7 @@ def ColorNewSet(map):
 	from collections import Counter
 	selected = map.SelectedBodies
 	if selected.Count == 0:
-		print('No data selected')
+		vv.Message('No data selected')
 		return
 	maxType = max([b.Type for b in map.BodyList])
 	sTypes = [b.Type for b in selected]
