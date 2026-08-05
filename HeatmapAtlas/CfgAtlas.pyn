@@ -72,7 +72,7 @@ def AllFeatureMaps(atlas):
 	cellIdList, geneMapList, dsNames = GetGeneInfo(atlas)
 	geneList = []
 	for id in geneMapList:
-		bList = vv.AtlasManager.ReadBodyList(atlas.AtlasName, id)
+		bList = atlas.FindItemById(id).ReadBodyList()
 		if bList == None:
 			vv.Message(f'Cannot load map {id}')
 			vv.Return()
