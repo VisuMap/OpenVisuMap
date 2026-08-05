@@ -342,6 +342,9 @@ def SelectFeatures(nt, featureCount, minMean=0, pcaCount=0):
 		cm = nt.ColumnMean()
 		cIdxList = [ col for col in range(nt.Columns) if cm[col].Value > minMean ]
 		columns = len(cIdxList)
+		if columns == 0:
+			vv.Message('No columns found with required minimal mean value')
+			vv.Return()
 		nt = nt.SelectColumns([cIdxList[(col*997)%columns]  for col in range(featureCount)])
 	else:
 		nt = nt.SelectColumns([(col*997)%nt.Columns  for col in range(featureCount)])
@@ -377,8 +380,7 @@ def SortTable(D, epochs, ppl, initE, finalE, mtr="Correlation.Cosine Distance"):
 def DualSorting(hm, pRow=None, pColumn=None):
 	if (pRow is None) and (pColumn is None):
 		return
-	hm.DisableReorder = False
-	nt = hm.GetNumberTable()
+	hm.DisableReorder = False	
 	info = MapInfo(hm)
 	ConfigHeatmap(hm)
 
@@ -386,6 +388,7 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		hm.Title = 'Sorting Rows...'
 		hm.SelectionMode = 0
 		hm.RandomizeRows()
+		nt = hm.GetNumberTable()
 		maxFeatures, epochs, ppl, initE, finalE = pRow
 		D = SelectFeatures(nt, maxFeatures, minMean=0.15, pcaCount=50)
 		mtr='Correlation.Cosine Distance'
@@ -395,6 +398,7 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		hm.Title = 'Sorting Columns...';
 		hm.SelectionMode = 1;
 		hm.RandomizeColumns();
+		nt = hm.GetNumberTable()
 		maxFeatures, epochs, ppl, initE, finalE = pColumn
 		D = SelectFeatures(nt.Transpose2(), maxFeatures, minMean=0, pcaCount=50)
 		mtr='Correlation.Cosine Distance'		
