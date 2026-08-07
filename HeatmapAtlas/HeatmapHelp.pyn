@@ -60,24 +60,28 @@ def SelectActiveGenes(hm, thresholdRatio):
 	info.Add({'MapType':'Active Heatmap', 'Threshold':thresholdRatio})
 	info.Save()
 
+# Set the selected data to the next free color/cluster index; set the data a noise if 'z' 
+# has been pressed.
 def ColorNewSet(map):
 	from collections import Counter
 	selected = map.SelectedBodies
 	if selected.Count == 0:
 		vv.Message('No data selected')
 		return
-	maxType = max([b.Type for b in map.BodyList])
-	sTypes = [b.Type for b in selected]
-	tyCount = Counter(sTypes)
-	if (0 in tyCount) and (tyCount[0]/len(selected) > 0.9):
+	if vv.EventSource.Item == 'z':
 		for b in selected:
-			b.Type = maxType + 1
-	else:
-		mxTy = max(tyCount, key=tyCount.get)
-		for b in selected:
-			b.Type = mxTy
+			b.Type = 200
+			b.Hidden = True
+	else:		
+		typeCount = Counter([b.Type for b in selected])
+		if (0 in typeCount) and (typeCount[0]/len(selected) > 0.9):
+			newType = max([b.Type for b in map.BodyList]) + 1
+		else:
+			newType = max(typeCount, key=typeCount.get)
+		for b in selected: 
+			b.Type = newType
 	map.SelectedItems = None
-	map.RedrawBodiesType()
+	map.RedrawBodies()
 
 def ToClusterMap(mp, nt, isCellMap):
 	G = {}
