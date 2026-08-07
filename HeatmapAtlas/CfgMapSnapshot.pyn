@@ -2,7 +2,6 @@
 vv.Import('Common.pyn')
 vv.Import('HeatmapHelp.pyn')
 
-
 match vv.EventSource.Item:
 	case 'Info':
 		ShowInfo(pp)
@@ -19,6 +18,7 @@ match vv.EventSource.Item:
 		CreateFeatureMaps(pp, tp=(2000, 0.05, 4.0, 1.0))
 	case '<Init>':
 		pp.OnKeyPress('a', 'ColorNewSet(pp)')
+		
 
 
 
