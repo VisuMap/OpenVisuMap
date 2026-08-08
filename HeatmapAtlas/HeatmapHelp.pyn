@@ -72,6 +72,10 @@ def ColorNewSet(map):
 		for b in selected:
 			b.Type = 200
 			b.Hidden = True
+	elif selected.Count == map.BodyListEnabled().Count:
+		for b in pp.BodyList:
+			b.Hidden = False
+			b.Type = 0
 	else:		
 		typeCount = Counter([b.Type for b in selected])
 		if (0 in typeCount) and (typeCount[0]/len(selected) > 0.9):
@@ -355,6 +359,7 @@ def SelectColumnFeatures(nt, featureCount, minMean=0, pcaCount=0):
 
 def SelectRowFeatures(nt, featureCount, pcaCount=0):
 	nt = nt.SelectRows([(row*997)%nt.Rows for row in range(featureCount)])
+	vv.ForceGarbageCollection()
 	nt = nt.Transpose2()
 	if pcaCount != 0:
 		nt = nt.DoPcaReduction(pcaCount)
@@ -367,7 +372,7 @@ def SortTable(D, epochs, ppl, initE, finalE, mtr="Correlation.Cosine Distance"):
 	tsne.InitExaggeration = initE
 	tsne.FinalExaggeration = finalE
 	tsne.PerplexityRatio = ppl
-	tsne.RefreshFreq = 50
+	tsne.RefreshFreq = 250
 	tsne.StagedTraining = False
 	tsne.Repeats = 1
 	tsne.Broadcasting = True
@@ -404,9 +409,10 @@ def DualSorting(hm, pRow=None, pColumn=None):
 		SortTable(D, epochs, ppl, initE, finalE, mtr)
 		info.Add({'SrtRow':str(pRow), 'SrtRowMtr':mtr})
 	if pColumn is not None:
-		hm.Title = 'Sorting Columns...';
-		hm.SelectionMode = 1;
-		hm.RandomizeColumns();
+		hm.Title = 'Sorting Columns...'
+		hm.SelectionMode = 1
+		vv.ForceGarbageCollection()
+		hm.RandomizeColumns()
 		nt = hm.GetNumberTable()
 		maxFeatures, epochs, ppl, initE, finalE = pColumn
 		D = SelectRowFeatures(nt, maxFeatures, pcaCount=35)
