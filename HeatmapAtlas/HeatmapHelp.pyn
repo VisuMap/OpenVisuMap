@@ -345,7 +345,7 @@ def SaveSortedHeatmap(hm, captureColoring=False):
 		
 def SelectColumnFeatures(nt, featureCount, minMean=0, pcaCount=0):
 	if featureCount >= nt.Columns:
-		return nt.Clone()
+		return nt.DoPcaReduction(pcaCount) if pcaCount > 0 else nt.Clone()
 	cm = nt.ColumnMean()
 	cIdxList = [ col for col in range(nt.Columns) if cm[col].Value > minMean ]
 	columns = len(cIdxList)
@@ -353,7 +353,7 @@ def SelectColumnFeatures(nt, featureCount, minMean=0, pcaCount=0):
 		vv.Message('No columns found with required minimal mean value')
 		vv.Return()
 	nt = nt.SelectColumns([cIdxList[(col*997)%columns]  for col in range(featureCount)])
-	if pcaCount != 0:
+	if pcaCount > 0:
 		nt = nt.DoPcaReduction(pcaCount)
 	return nt
 
