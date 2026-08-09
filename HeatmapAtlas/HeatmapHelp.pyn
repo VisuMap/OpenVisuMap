@@ -69,19 +69,22 @@ def ColorNewSet(map):
 		vv.Message('No data selected')
 		return
 	if vv.EventSource.Item == 'z':
+		for b in map.BodyList:
+			if b.Hidden:
+				b.Type = 200
 		for b in selected:
 			b.Type = 200
-			b.Hidden = True
+			b.Hidden = True		
 	elif selected.Count == map.BodyListEnabled().Count:
 		for b in pp.BodyList:
 			b.Hidden = False
 			b.Type = 0
 	else:		
-		typeCount = Counter([b.Type for b in selected])
-		if (0 in typeCount) and (typeCount[0]/len(selected) > 0.9):
+		tCnt = Counter([b.Type for b in selected])
+		if ((0 in tCnt) and (tCnt[0]/len(selected) > 0.9)) or (len(tCnt) == 1):
 			newType = max([b.Type for b in map.BodyList]) + 1
 		else:
-			newType = max(typeCount, key=typeCount.get)
+			newType = max(tCnt, key=tCnt.get)
 		for b in selected: 
 			b.Type = newType
 	map.SelectedItems = None
