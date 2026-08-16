@@ -355,7 +355,7 @@ def SelectColumnFeatures(nt, featureCount, minMean=0, pcaCount=0):
 	if columns == 0:
 		vv.Message('No columns found with required minimal mean value')
 		vv.Return()
-	nt = nt.SelectColumns([cIdxList[(col*997)%columns]  for col in range(featureCount)])
+	nt = nt.SelectColumns([cIdxList[(col*997)%columns]  for col in range(columns)])
 	if pcaCount > 0:
 		nt = nt.DoPcaReduction(pcaCount)
 	return nt
@@ -499,10 +499,11 @@ def DualEmbedding(hm, pRow=None, pColumn=None):
 	if pRow is not None:
 		hm.Title = 'Creating cell embedding...'
 		maxFeatures, epochs, ppl, initE, finalE = pRow
-		D = SelectColumnFeatures(nt, maxFeatures, minMean=0.5, pcaCount=0)
+		minMean = 0.5
+		D = SelectColumnFeatures(nt, maxFeatures, minMean=minMean, pcaCount=0)
 		mtr = 'Correlation.Cosine Distance'
 		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE, mtr)		
-		info.Add({'EmbRow':str(pRow), 'Metric':mtr, 'MapType':'Cell Map'}).Save(mp)
+		info.Add({'EmbRow':str(pRow), 'Metric':mtr, 'MapType':'Cell Map', 'MinMean':minMean, 'Columns':D.Columns}).Save(mp)
 		LinkToHeatMap(mp, hm, True)
 	if pColumn is not None:
 		hm.Title = 'Creating gene embedding...';
