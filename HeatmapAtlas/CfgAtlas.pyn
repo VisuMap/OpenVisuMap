@@ -110,9 +110,9 @@ def AllFeatureMaps(atlas):
 	
 
 def AllGeneGroups(atlas, tP=(2000,0.05,4.0,1.0) ):  
-	idList, dsNames = GetGeneInfo(atlas)
+	_, gMapList, dsNames = GetGeneInfo(atlas)
 	cntG, G = [], []
-	for id in idList:
+	for id in gMapList:
 		bList = vv.AtlasManager.ReadBodyList(atlas.AtlasName, id)
 		gList = {}
 		for t, id in [(b.Type, b.Id) for b in bList if b.Type != 0]:
