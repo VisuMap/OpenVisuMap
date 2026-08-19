@@ -1,14 +1,14 @@
-#MenuLabels <Import> Info FeatureMaps 'Show Genes' AllGeneGroups
+#MenuLabels <Import> Info MergeGeneMaps 'Show Genes' CellGroups
 import time, math
 
 def AtlasMain(menu):
 	match menu:
 		case '<Import>':
 			vv.Import('HeatmapHelp.pyn')		
-		case 'AllGeneGroups':
-			AllGeneGroups(pp, tP=(2000,0.05,4.0,1.0))
-		case 'FeatureMaps':
-			AllFeatureMaps(pp)
+		case 'CellGroups':
+			CellGroups(pp, tP=(4000, 0.15, 4.0, 1.0, 25))
+		case 'MergeGeneMaps':
+			MergeGeneMaps(pp)
 		case 'Info':
 			ShowInfo(pp)
 		case 'Show Genes':
@@ -62,7 +62,7 @@ for n in range(5):
 		vv.Wait(1000)
 '''
 
-def AllFeatureMaps(atlas): 
+def MergeGeneMaps(atlas): 
 	cellIdList, geneMapList, dsNames = GetGeneInfo(atlas)
 	geneList = []
 	for id in geneMapList:
@@ -103,7 +103,7 @@ def AllFeatureMaps(atlas):
 	MapInfo(hm.Tag[1]).Add({'DsList':dsList, 'MapType':'Active Gene Map'}).Save()
 	
 
-def AllGeneGroups(atlas, tP=(2000,0.05,4.0,1.0) ):  
+def CellGroups(atlas, tP=(2000,0.05,4.0,1.0, 0) ):  
 	_, gMapList, dsNames = GetGeneInfo(atlas)
 	cntG, G = [], []
 	for id in gMapList:
@@ -142,7 +142,23 @@ def AllGeneGroups(atlas, tP=(2000,0.05,4.0,1.0) ):
 	#mtr = 'Correlation.Cosine Distance'
 	MapInfo({'MapType':'All Gene-Groups', 'tSNE':str(tP), 'Metric':mtr}).Save(hm)
 	for i in [0, 1]:
-		D = nt if i==0 else nt.Transpose2()
+		D = nt.Clone()
+		if i == 0:
+			# break the symmetry between cells of cell-groups.
+			w = [x.Value for x in D.RowMean()]
+			for row, R in enumerate(D.Matrix):
+				for col in range(len(R)):
+					R[col] *= w[row]
+		else:
+			# break the symmetry between genes of gene-clusters.
+			w = [x.Value for x in D.ColumnMean()]
+			for row, R in enumerate(D.Matrix):
+				for col in range(len(R)):
+					R[col] *= w[col]
+		if i == 1:
+			D = D.Transpose2()
+		if tP[4] > 0:
+			D = D.DoPcaReduction(tP[4])
 		tsort = New.TsneSorter(D, mtr) 
 		tsort.MaxLoops = tP[0]
 		tsort.PerplexityRatio = tP[1]
