@@ -1,4 +1,4 @@
-#MenuLabels <Import> AllGeneGroups Info FeatureMaps
+#MenuLabels <Import> Info FeatureMaps 'Show Genes' AllGeneGroups
 import time, math
 
 def AtlasMain(menu):
@@ -11,6 +11,18 @@ def AtlasMain(menu):
 			AllFeatureMaps(pp)
 		case 'Info':
 			ShowInfo(pp)
+		case 'Show Genes':
+			for x in [r for r in pp.SelectedItems if r.ItemType == 'RectItem']:
+				x.IconHeight = 20
+				x.IconWidth = 150
+				f = MapInfo(x.Tag)
+				cMap, gMap = pp.FindItemById(f.CellMpId), pp.FindItemById(f.GeneMpId)
+				cMap.IsHidden = True
+				gMap.IconWidth = 150
+				gMap.IconHeight = 150
+				gMap.Left = x.Left
+				gMap.Top = x.Top + 19
+			pp.Redraw()
 
 #--------------------------------------------------------------------------------------
 def GetGeneInfo(atlas):
@@ -48,24 +60,6 @@ for n in range(5):
 		pp.SelectedItems = fs
 		pp.Title = 'Feature Cluster: ' + f
 		vv.Wait(1000)
-
-for x in pp.Items:
-	info = MapInfo(x.Tag)
-	if info.Has('MapType') and info.MapType == 'Gene Map':
-		mp = x.Open()
-		for b in mp.BodyList: b.Type = 0
-		mp.RedrawBodiesType()
-
-gMaps = []
-for x in pp.Items:
-	info = MapInfo(x.Tag)
-	if info.Has('MapType') and info.MapType == 'Gene Map':
-		x.IconWidth *= 2
-		x.IconHeight *= 2
-	else:
-		x.IsHidden = True
-pp.Redraw()
-
 '''
 
 def AllFeatureMaps(atlas): 
@@ -145,15 +139,18 @@ def AllGeneGroups(atlas, tP=(2000,0.05,4.0,1.0) ):
 	hm.ColorHigh = New.Color('White')
 	hm.ShowGrid = False
 	mtr = 'EuclideanMetric'
+	#mtr = 'Correlation.Cosine Distance'
 	MapInfo({'MapType':'All Gene-Groups', 'tSNE':str(tP), 'Metric':mtr}).Save(hm)
-
-	tsort = New.TsneSorter(nt.Transpose2(), mtr)
-	tsort.MaxLoops = tP[0]
-	tsort.PerplexityRatio = tP[1]
-	tsort.InitExaggeration = tP[2]
-	tsort.FinalExaggeration = tP[3]
-	tsort.ReadOnly = True
-	tsort.Show().Reset().Start().Close()
+	for i in [0, 1]:
+		D = nt if i==0 else nt.Transpose2()
+		tsort = New.TsneSorter(D, mtr) 
+		tsort.MaxLoops = tP[0]
+		tsort.PerplexityRatio = tP[1]
+		tsort.InitExaggeration = tP[2]
+		tsort.FinalExaggeration = tP[3]
+		tsort.ReadOnly = True
+		tsort.Show().Reset().Start().Close()
+	hm.DisableReorder = True
 
 def ToGeneMaps(G):
 	tsne = New.TsneMap(2000, 0.05, 4.0, 1.0).Show()

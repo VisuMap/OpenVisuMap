@@ -300,8 +300,8 @@ def SaveSortedHeatmap(hm, captureColoring=False):
 	ii.Left = ii.Top
 	ii.Opacity = 0.75
 	ii.LabelStyle = 2
-	ii.IconHeight = 25
-	ii.IconWidth = 75
+	ii.IconHeight = 15
+	ii.IconWidth = 80
 	ii.Script = "LoadSortedHeatmap()"	
 	at.RedrawItem(ii)
 
@@ -314,8 +314,8 @@ def SaveSortedHeatmap(hm, captureColoring=False):
 	itemList = [ ii ]
 	if cellMap is not None:
 		mp = at.NewSnapshotItem(cellMap)
-		mp.Top = ii.Top + 5
-		mp.Left = ii.Left + 5
+		mp.Top = ii.Top + 4
+		mp.Left = ii.Left + 4
 		mp.IconWidth = 30
 		mp.IconHeight = 30
 		mp.Script = "pass"
@@ -326,8 +326,8 @@ def SaveSortedHeatmap(hm, captureColoring=False):
 		at.RedrawItem(mp, False)
 	if geneMap is not None:
 		mp = at.NewSnapshotItem(geneMap)
-		mp.Top = ii.Top + 10
-		mp.Left = ii.Left + 10
+		mp.Top = ii.Top + 8
+		mp.Left = ii.Left + 8
 		mp.IconWidth = 30
 		mp.IconHeight = 30
 		mp.Script = "pass"
