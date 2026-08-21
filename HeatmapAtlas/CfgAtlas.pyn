@@ -1,4 +1,4 @@
-#MenuLabels <Import> Info MergeGeneMaps 'Show Genes' CellGroups
+#MenuLabels <Import> Info MergeGeneMaps CellGroups Gene-View Cell-View
 import time, math
 
 def AtlasMain(menu):
@@ -11,17 +11,18 @@ def AtlasMain(menu):
 			MergeGeneMaps(pp)
 		case 'Info':
 			ShowInfo(pp)
-		case 'Show Genes':
+		case 'Gene-View'|'Cell-View':
 			for x in [r for r in pp.SelectedItems if r.ItemType == 'RectItem']:
-				x.IconHeight = 20
-				x.IconWidth = 150
+				x.IconHeight, x.IconWidth = 20, 150
 				f = MapInfo(x.Tag)
 				cMap, gMap = pp.FindItemById(f.CellMpId), pp.FindItemById(f.GeneMpId)
+				if menu == 'Cell-View':
+					cMap, gMap = gMap, cMap
 				cMap.IsHidden = True
-				gMap.IconWidth = 150
-				gMap.IconHeight = 150
-				gMap.Left = x.Left
-				gMap.Top = x.Top + 19
+				cMap.Left, cMap.Top = x.Left, x.Top
+				gMap.IsHidden = False
+				gMap.IconWidth, gMap.IconHeight = 150, 150
+				gMap.Left, gMap.Top = x.Left, x.Top+19
 			pp.Redraw()
 
 #--------------------------------------------------------------------------------------
@@ -76,20 +77,24 @@ def MergeGeneMaps(atlas):
 	for k, ds in enumerate(dsNames):
 		vv.Title = f'Processing {ds}: {k}-th of {len(dsNames)} ...'
 		dt = vv.Folder.ReadDataset(ds).GetNumberTableView()
+		vv.Sleep()
 		dt = dt.SelectRowsByIdView(cellIdList[k])
 		dt = dt.SelectColumnsById(geneList)
+		vv.Sleep()
 		dt = dt.GroupRows(0)
 
 		# Remove nois rows which have type larger or equal then 200
 		noNoise = [n for n in range(dt.Rows) if dt.RowSpecList[n].Type<200]
 		if len(noNoise) < dt.Rows:
 			dt = dt.SelectRows(noNoise)
+		vv.Sleep()
 
 		for rs in dt.RowSpecList:
 			rs.Name = ds + '.' + str(rs.Type)
 			rs.Type = k
 		csHM.AppendTable(dt, nt)
 		dt.Clear()
+		vv.Sleep()
 	hm = New.HeatMap(nt)
 	hm.ShowGrid = False
 	hm.ReadOnly = True
@@ -145,16 +150,18 @@ def CellGroups(atlas, tP=(2000,0.05,4.0,1.0, 0) ):
 		D = nt.Clone()
 		if i == 0:
 			# break the symmetry between cells of cell-groups.
-			w = [x.Value for x in D.RowMean()]
+			wR = [x.Value*x.Value for x in D.RowMean()]
 			for row, R in enumerate(D.Matrix):
 				for col in range(len(R)):
-					R[col] *= w[row]
+					if R[col] != 0:
+						R[col] = wR[row]
 		else:
 			# break the symmetry between genes of gene-clusters.
-			w = [x.Value for x in D.ColumnMean()]
+			wC = [x.Value*x.Value for x in D.ColumnMean()]
 			for row, R in enumerate(D.Matrix):
 				for col in range(len(R)):
-					R[col] *= w[col]
+					if R[col] != 0:
+						R[col] = wC[col]
 		if i == 1:
 			D = D.Transpose2()
 		if tP[4] > 0:
