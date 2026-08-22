@@ -77,24 +77,24 @@ def MergeGeneMaps(atlas):
 	for k, ds in enumerate(dsNames):
 		vv.Title = f'Processing {ds}: {k}-th of {len(dsNames)} ...'
 		dt = vv.Folder.ReadDataset(ds).GetNumberTableView()
-		vv.Sleep()
+		vv.Sleep(0)
 		dt = dt.SelectRowsByIdView(cellIdList[k])
 		dt = dt.SelectColumnsById(geneList)
-		vv.Sleep()
+		vv.Sleep(0)
 		dt = dt.GroupRows(0)
 
 		# Remove nois rows which have type larger or equal then 200
 		noNoise = [n for n in range(dt.Rows) if dt.RowSpecList[n].Type<200]
 		if len(noNoise) < dt.Rows:
 			dt = dt.SelectRows(noNoise)
-		vv.Sleep()
+		vv.Sleep(0)
 
 		for rs in dt.RowSpecList:
 			rs.Name = ds + '.' + str(rs.Type)
 			rs.Type = k
 		csHM.AppendTable(dt, nt)
 		dt.Clear()
-		vv.Sleep()
+		vv.Sleep(0)
 	hm = New.HeatMap(nt)
 	hm.ShowGrid = False
 	hm.ReadOnly = True
