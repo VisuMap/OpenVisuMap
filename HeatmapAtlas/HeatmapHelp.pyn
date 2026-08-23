@@ -337,10 +337,11 @@ def SaveSortedHeatmap(hm, captureColoring=False):
 		itemList.append(mp)
 		info.Set('GeneMpId', mp.Id)
 		at.RedrawItem(mp, False)
+
 	ii.Tag = info.Str
 	at.BringToFront([ii])
 	at.GroupItems(itemList)
-	New.Atlas().SelectedItems = itemList
+	at.SelectedItems = itemList
 
 	if captureColoring:
 		if cellMap is not None:
@@ -437,6 +438,7 @@ def EmbeddingData(mds, D, epochs, ppl, initE, finalE, metric):
 	mds.Is3D = False
 	mds.Metric = metric
 	mds.AutoScalingTsne = False
+	mds.GlyphScale = 10
 	mds.AutoClustering = False
 	mds.AutoNormalizing = False
 	mds.StagedTraining = False
