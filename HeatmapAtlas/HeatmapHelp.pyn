@@ -295,53 +295,56 @@ def SaveSortedHeatmap(hm, captureColoring=False):
 		ii.FillColor = New.Color('Green')
 		ii.Filled = True
 		ii.IsEllipse = False
-	SZ = 60
 	ii.Name = vv.Dataset.Name
 	ii.Top = 20*(itemCount % 15 + 1)
 	ii.Left = ii.Top
 	ii.Opacity = 0.75
 	ii.LabelStyle = 2
-	ii.IconHeight = 15
-	ii.IconWidth = 2*SZ + 2
 	ii.Script = "LoadSortedHeatmap()"	
-	at.RedrawItem(ii)
 
 	cellMap, geneMap = None, None
 	if type(hm.Tag) is list and len(hm.Tag) == 2:
 		cellMap, geneMap = hm.Tag
-	if not IsOpenView(cellMap): cellMap = None
-	if not IsOpenView(geneMap): geneMap = None
-
-	itemList = [ ii ]
+	if not IsOpenView(cellMap): 
+		cellMap = None
+	if not IsOpenView(geneMap): 
+		geneMap = None
+	
+	cItem, gItem = None, None
 	if cellMap is not None:
-		mp = at.NewSnapshotItem(cellMap)
-		mp.Top = ii.Top + ii.IconHeight + 1
-		mp.Left = ii.Left + 1
-		mp.IconWidth = SZ
-		mp.IconHeight = SZ
-		mp.Script = "pass"
-		info.Set('CellMpId', mp.Id)
-		mp.Tag = MapInfo(cellMap.Description).Add(
+		cItem = at.NewSnapshotItem(cellMap)
+		cItem.Script = "pass"
+		info.Set('CellMpId', cItem.Id)
+		cItem.Tag = MapInfo(cellMap.Description).Add(
 			{'DsName':vv.Dataset.Name, 'DtItem':ii.Id, 'Rows':cellMap.BodyList.Count}).Str
-		itemList.append(mp)
-		at.RedrawItem(mp, False)
 	if geneMap is not None:
-		mp = at.NewSnapshotItem(geneMap)
-		mp.IconWidth = SZ
-		mp.IconHeight = SZ
-		mp.Top = ii.Top + ii.IconHeight + 1
-		mp.Left = ii.Left + mp.IconWidth + 2
-		mp.Script = "pass"
-		mp.Tag = MapInfo(geneMap.Description).Add(
+		gItem = at.NewSnapshotItem(geneMap)
+		gItem.Script = "pass"
+		gItem.Tag = MapInfo(geneMap.Description).Add(
 			{'DsName':vv.Dataset.Name, 'DtItem,':ii.Id, 'Rows':geneMap.BodyList.Count}).Str
-		itemList.append(mp)
-		info.Set('GeneMpId', mp.Id)
-		at.RedrawItem(mp, False)
-
+		info.Set('GeneMpId', gItem.Id)
 	ii.Tag = info.Str
-	at.BringToFront([ii])
-	at.GroupItems(itemList)
-	at.SelectedItems = itemList
+
+	SZ = 60
+	ii.IconHeight = 15
+	ii.IconWidth = 2*SZ + 2
+	group = [ii]
+	if cItem is not None:
+		cItem.Top = ii.Top + ii.IconHeight + 1
+		cItem.Left = ii.Left + 1
+		cItem.IconWidth = SZ
+		cItem.IconHeight = SZ
+		group.append(cItem)
+	if gItem is not None:
+		gItem.IconWidth = SZ
+		gItem.IconHeight = SZ
+		gItem.Top = ii.Top + ii.IconHeight + 1
+		gItem.Left = ii.Left + gItem.IconWidth + 2
+		group.append(gItem)
+
+	at.RedrawItemList(group, False)
+	at.GroupItems(group)
+	at.SelectedItems = group
 
 	if captureColoring:
 		if cellMap is not None:
