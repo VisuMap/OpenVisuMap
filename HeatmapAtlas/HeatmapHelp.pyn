@@ -42,8 +42,11 @@ def CreateFeatureMaps(mp, tp=(2000, 0.05, 4.0, 1.0)):
 def SelectActiveGenes(hm, thresholdRatio):
 	nt = hm.GetNumberTable()
 	if nt.MaximumValue() > 15:
-		vv.Message('The data is likely not normalized by log1-transformation')
-		return
+		ret = vv.PromptMessage('Data not normalized! Apply log1-transformation?', 'OK')
+		if ret == 'OK':
+			hm.ClickMenu('Miscellaneous/Log-Transform Table')
+		else:
+			return
 	cm = [x.Value for x in nt.ColumnMean()]
 	mnV, mxV = min(cm), max(cm)
 	threshold = mnV + (mxV-mnV)*thresholdRatio
@@ -59,6 +62,13 @@ def SelectActiveGenes(hm, thresholdRatio):
 	info = MapInfo(hm)
 	info.Add({'MapType':'Active Heatmap', 'Threshold':thresholdRatio})
 	info.Save()
+	dsName = vv.PromptMessage('Save to dataset? Dataset Name:', 'DsName')
+	if dsName is not None:
+		dsInfo = MapInfo({'DataSrc':info.DataSrc, 'FilterThreshold':threshold})
+		hm.GetNumberTable().SaveAsDataset(dsName, dsInfo.Str)
+		hm.Close()
+		vv.Folder.OpenDataset(dsName)
+
 
 # Set the selected data to the next free color/cluster index; set the data a noise if 'z' 
 # has been pressed.
@@ -325,23 +335,9 @@ def SaveSortedHeatmap(hm, captureColoring=False):
 		info.Set('GeneMpId', gItem.Id)
 	ii.Tag = info.Str
 
-	SZ = 60
-	ii.IconHeight = 15
-	ii.IconWidth = 2*SZ + 2
-	group = [ii]
-	if cItem is not None:
-		cItem.Top = ii.Top + ii.IconHeight + 1
-		cItem.Left = ii.Left + 1
-		cItem.IconWidth = SZ
-		cItem.IconHeight = SZ
-		group.append(cItem)
-	if gItem is not None:
-		gItem.IconWidth = SZ
-		gItem.IconHeight = SZ
-		gItem.Top = ii.Top + ii.IconHeight + 1
-		gItem.Left = ii.Left + gItem.IconWidth + 2
-		group.append(gItem)
-
+	CfgDualItems('Full-View', ii, cItem, gItem)
+	group = [ii, cItem, gItem]
+	group = [x for x in group if x is not None]   # remove None elements in group.
 	at.RedrawItemList(group, False)
 	at.GroupItems(group)
 	at.SelectedItems = group
@@ -350,7 +346,36 @@ def SaveSortedHeatmap(hm, captureColoring=False):
 		if cellMap is not None:
 			cellMap.ClickMenu('Utilities/Capture Map')
 		if geneMap is not None:
-			geneMap.ClickMenu('Utilities/Capture Attribute Clustering')			
+			geneMap.ClickMenu('Utilities/Capture Attribute Clustering')		
+
+def CfgDualItems(view, hm, cItem, gItem, SZ=75):
+	if view == 'Full-View':
+		hm.IconHeight = 15
+		hm.IconWidth = 2*SZ + 2
+		if cItem is not None:
+			cItem.Top = hm.Top + hm.IconHeight + 1
+			cItem.Left = hm.Left + 1
+			cItem.IconWidth = SZ
+			cItem.IconHeight = SZ
+			cItem.IsHidden = False
+		if gItem is not None:
+			gItem.IconWidth = SZ
+			gItem.IconHeight = SZ
+			gItem.Top = hm.Top + hm.IconHeight + 1
+			gItem.Left = hm.Left + gItem.IconWidth + 2
+			gItem.IsHidden = False
+	else:
+		hm.IconWidth, hm.IconHeight = 2*SZ, 20
+		if view == 'Cell-View':
+			cItem, gItem = gItem, cItem
+		cItem.IsHidden = True
+		cItem.Left, cItem.Top = hm.Left, hm.Top
+		gItem.IsHidden = False
+		gItem.IconWidth, gItem.IconHeight = 2*SZ, 2*SZ
+		gItem.Left, gItem.Top = hm.Left, hm.Top+19
+
+
+
 		
 def SelectColumnFeatures(nt, featureCount, minMean=0, pcaCount=0):
 	if featureCount >= nt.Columns:
@@ -501,6 +526,7 @@ def DualEmbedding(hm, pRow=None, pColumn=None):
 	hm.TheForm.SetBounds(1000, 700, 600, 600)
 	nt = hm.GetNumberTable();
 	mds = New.MdsCluster().Show()
+	mds.OnKeyPress('az', 'ColorNewSet(pp)')
 	hm.Tag = [None, None]
 	info = MapInfo(hm)
 	if pRow is not None:

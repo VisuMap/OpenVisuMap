@@ -59,6 +59,8 @@ class MapInfo():
 def ShowInfo(pView):
 	desc = pView.Map.Description if pView.Name == 'MainForm' else pView.Description
 	info = MapInfo(desc)
+	if pView.Name == 'MainForm':
+		info.ParseStr(vv.Dataset.Description)
 	winTitle = pView.Name + ': ' + pView.Title
 	New.TextPanel(winTitle, info.Text).Show()
 
