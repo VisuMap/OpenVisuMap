@@ -32,6 +32,7 @@ Typical steps to explore an scRNA ( single cell RNA expression ) file:
    for the newly created clusters. From the cluster cell map and cluster gene map we can call
    the menu 'ShowGraph' to show the clusters in a graph in separate HTML view.
 
+
 for nm in vv.Folder.DatasetNameList:
 	ds = vv.Folder.OpenDataset(nm)
 	if ds is not None and ds.NumberPrecision != 'g6':
@@ -39,5 +40,10 @@ for nm in vv.Folder.DatasetNameList:
 		vv.Dataset.ForceTableChanged()
 		ds.Save()
 
+vv.Import('HeatmapHelp.pyn')
+dsList = list(vv.Folder.DatasetNameList)
+for ds in dsList[14:]:
+	vv.Folder.OpenDataset(ds)
+	CreateFeatureMaps(vv, tp=(2000, 0.05, 4.0, 1.0))
 
 '''

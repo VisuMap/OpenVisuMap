@@ -27,6 +27,8 @@ def CreateFeatureMaps(mp, tp=(2000, 0.05, 4.0, 1.0)):
 		gList[t].append(id)
 	epochs, ppl, initExag, finalExag = tp
 	tsne = New.TsneMap(epochs, ppl, initExag, finalExag).Show()
+	tsne.RefreshFreq = 100
+	tsne.Repeats = 1
 	for t in sorted(gList):
 		G = gList[t]
 		K = len(G)
@@ -36,7 +38,7 @@ def CreateFeatureMaps(mp, tp=(2000, 0.05, 4.0, 1.0)):
 		vv.Title = f'Creating map for {K} features...'
 		tsne.RunWithFeatures(G)
 		if not tsne.Completed:
-			break
+			vv.Return()
 	tsne.Close()
 
 def SelectActiveGenes(hm, thresholdRatio):
@@ -177,6 +179,13 @@ def LoadSortedHeatmap():
 	atlas = tbItem.Atlas
 	hmId = tbItem.Id if (tbItem.Name == "") else tbItem.Name
 	info = MapInfo(tbItem.Tag)
+
+	if vv.ModifierKeys.AltPressed:
+		cMp = atlas.FindItemById(info.CellMpId).Open()
+		gMp = atlas.FindItemById(info.GeneMpId).Open()
+		cMp.Left, cMp.Top = 50, 150
+		gMp.Left, gMp.Top = cMp.Left + cMp.Width - 15, 150
+		return
 
 	dsName = info.DsName
 	rows = int(info.Rows)

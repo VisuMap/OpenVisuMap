@@ -2,6 +2,7 @@
 import time, math
 
 def AtlasMain(menu):
+	ctrPressed = vv.ModifierKeys.ControlPressed
 	match menu:
 		case '<Import>':
 			vv.Import('HeatmapHelp.pyn')		
@@ -16,8 +17,12 @@ def AtlasMain(menu):
 				f = MapInfo(x.Tag)
 				if f.Has('CellMpId') and f.Has('GeneMpId'):
 					cMap, gMap = pp.FindItemById(f.CellMpId), pp.FindItemById(f.GeneMpId)
-					CfgDualItems(menu, x, cMap, gMap)					
+					CfgDualItems(menu, x, cMap, gMap, SZ=120)
 			pp.Redraw()
+			if ctrPressed:
+				pp.ArrangeItems(True, 14, 4)
+				pp.Refresh()
+			pp.DataChanged = True
 
 #--------------------------------------------------------------------------------------
 def GetGeneInfo(atlas):
@@ -55,6 +60,14 @@ for n in range(5):
 		pp.SelectedItems = fs
 		pp.Title = 'Feature Cluster: ' + f
 		vv.Wait(1000)
+
+gList = []
+for x in [r for r in pp.SelectedItems if r.ItemType == 'RectItem']:
+	f = MapInfo(x.Tag)
+	gList.append(pp.FindItemById(f.GeneMpId))
+for g in gList:
+	g.Open().Close()
+
 '''
 
 def MergeGeneMaps(atlas): 
