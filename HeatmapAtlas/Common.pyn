@@ -56,6 +56,40 @@ class MapInfo():
 			form.Description = self.Str
 		return self
 
+class TsneMds():
+	def __init__(self, epochs=2000, ppl=0.05, initExag=4.0, finalExag=1.0, mtr='EuclidianMetric'):
+		mds = New.MdsCluster()
+		self.mds = mds
+		mds.Metric = mtr
+		self.Config(epochs, ppl, initExag, finalExag)
+		mds.RefreshFreq = 50
+		mds.MdsAlgorithm = 2
+		mds.Is3D = False
+		mds.AutoScalingTsne = False
+		mds.GlyphScale = 10
+		mds.AutoClustering = False
+		mds.AutoNormalizing = False
+		mds.StagedTraining = False
+		mds.GlyphOpacity = 0.5
+		mds.GlyphSize =0.5
+		mds.Repeats = 1
+		mds.GlyphSet = DFT_GLYPHSET
+		mds.Show()
+	def __del__(self):
+		self.mds.Close()
+	def Config(self, epochs=2000, ppl=0.05, initExag=4.0, finalExag=1.0):
+		self.mds.PerplexityRatio = ppl
+		self.mds.InitialExaggeration = initExag
+		self.mds.FinalExaggeration = finalExag
+		self.mds.MaxLoops = epochs
+	def Fit(self, D):
+		self.mds.SetTrainingData(D);
+		self.mds.Reset().Start()
+		if self.mds.LoopsTsne != self.mds.MaxLoops:
+			vv.GuiManager.StopFlag = True
+			vv.Return()
+		return self.mds.Show2DView().NormalizeView()
+
 def ShowInfo(pView):
 	desc = pView.Map.Description if pView.Name == 'MainForm' else pView.Description
 	info = MapInfo(desc)

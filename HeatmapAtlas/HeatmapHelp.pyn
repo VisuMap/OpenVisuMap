@@ -469,31 +469,6 @@ def DualSorting(hm, pRow=None, pColumn=None):
 	nt = None
 	D = None
 
-def EmbeddingData(mds, D, epochs, ppl, initE, finalE, metric):
-	mds.MdsAlgorithm = 2;
-	mds.SetTrainingData(D);
-	mds.Is3D = False
-	mds.Metric = metric
-	mds.AutoScalingTsne = False
-	mds.GlyphScale = 10
-	mds.AutoClustering = False
-	mds.AutoNormalizing = False
-	mds.StagedTraining = False
-	mds.GlyphOpacity = 0.5
-	mds.GlyphSize =0.5
-	mds.RefreshFreq = 50
-	mds.Repeats = 1
-	mds.GlyphSet = DFT_GLYPHSET
-	mds.MaxLoops = epochs
-	mds.PerplexityRatio = ppl
-	mds.InitialExaggeration = initE
-	mds.FinalExaggeration = finalE
-	mds.Reset().Start()
-	if mds.LoopsTsne != mds.MaxLoops:
-		vv.GuiManager.StopFlag = True
-		vv.Return()
-	return mds.Show2DView().NormalizeView()
-
 def CopyColoring2Heatmap(mp):
 	hm = mp.Tag
 	info = MapInfo(mp)
@@ -537,29 +512,30 @@ def LinkToHeatMap(hm, cellMap, geneMap):
 def DualEmbedding(hm, pRow=None, pColumn=None):
 	hm.TheForm.SetBounds(1000, 700, 600, 600)
 	nt = hm.GetNumberTable();
-	mds = New.MdsCluster().Show()
-	mds.OnKeyPress('az', 'ColorNewSet(pp)')
+	mds = TsneMds()
+	mds.mds.OnKeyPress('az', 'ColorNewSet(pp)')
 	hm.Tag = [None, None]
 	info = MapInfo(hm)
 	if pRow is not None:
 		hm.Title = 'Creating cell embedding...'
 		maxFeatures, epochs, ppl, initE, finalE = pRow
 		minMean = 0.5
+		mds.mds.Metric = 'Correlation.Cosine Distance'
+		mds.Config(epochs, ppl, initE, finalE)
 		D = SelectColumnFeatures(nt, maxFeatures, minMean=minMean, pcaCount=0)
-		mtr = 'Correlation.Cosine Distance'
-		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE, mtr)		
-		info.Add({'EmbRow':str(pRow), 'Metric':mtr, 'MapType':'Cell Map', 'MinMean':minMean, 'Columns':D.Columns}).Save(mp)
+		mp = mds.Fit(D)
+		info.Add({'EmbRow':str(pRow), 'Metric':mds.mds.Metric, 'MapType':'Cell Map', 'MinMean':minMean, 'Columns':D.Columns}).Save(mp)
 		LinkToHeatMap(hm, mp, None)
 	if pColumn is not None:
 		hm.Title = 'Creating gene embedding...';
 		maxFeatures, epochs, ppl, initE, finalE = pColumn
+		mds.mds.Metric = 'EuclideanMetric'
+		mds.Config(epochs, ppl, initE, finalE)
 		D = SelectRowFeatures(nt, maxFeatures, pcaCount=0)
-		mtr = 'EuclideanMetric'
-		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE, mtr)
-		info.Add({'EmbColumn':str(pColumn), 'Metric':mtr, 'MapType':'Gene Map'}).Save(mp)
+		mp = mds.Fit(D)
+		info.Add({'EmbColumn':str(pColumn), 'Metric':mds.mds.Metric, 'MapType':'Gene Map'}).Save(mp)
 		LinkToHeatMap(hm, None, mp)
 	hm.OnClose('CloseSortedHeatmap(pp)')
-	mds.Close()
 
 def DoClustering(map, hm, pSettings):
 	alg, minSize, minPoint, epsilon, dbMinPoint = pSettings
