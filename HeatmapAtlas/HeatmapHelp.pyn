@@ -513,23 +513,26 @@ def CopyColoring2Heatmap(mp):
 		sp.Type = id2body[sp.Id].Type
 	hm.Redraw()
 
-def LinkToHeatMap(mp, hm, isCellMap):
-	if isCellMap:
-		mp.ResizeClient(-1, hm.TheForm.ClientSize.Height)
-		mp.Top = hm.Top
-		mp.Left = hm.Left - mp.Width + 15
-		mp.BackgroundColor = New.Color(0, 0, 64)
-		mp.Title = 'Cell Map'
-		hm.Tag[0] = mp
-	else:
-		mp.ResizeClient(hm.TheForm.ClientSize.Width, -1)
-		mp.Top = hm.Top - mp.Height + 8
-		mp.Left = hm.Left
-		mp.BackgroundColor = New.Color(0, 64, 64);
-		mp.Title = 'Gene Map'
-		hm.Tag[1] = mp
-	mp.Refresh()
-	mp.Tag = hm
+def LinkToHeatMap(hm, cellMap, geneMap):
+	if hm.Tag is None: hm.Tag = [None, None]
+	if cellMap is not None:
+		cellMap.ResizeClient(-1, hm.TheForm.ClientSize.Height)
+		cellMap.Top = hm.Top
+		cellMap.Left = hm.Left - cellMap.Width + 15
+		cellMap.BackgroundColor = New.Color(0, 0, 64)
+		cellMap.Title = 'Cell Map'
+		hm.Tag[0] = cellMap
+		cellMap.Refresh()
+		cellMap.Tag = hm
+	if geneMap is not None:
+		geneMap.ResizeClient(hm.TheForm.ClientSize.Width, -1)
+		geneMap.Top = hm.Top - geneMap.Height + 8
+		geneMap.Left = hm.Left
+		geneMap.BackgroundColor = New.Color(0, 64, 64);
+		geneMap.Title = 'Gene Map'
+		hm.Tag[1] = geneMap
+		geneMap.Refresh()
+		geneMap.Tag = hm
 
 def DualEmbedding(hm, pRow=None, pColumn=None):
 	hm.TheForm.SetBounds(1000, 700, 600, 600)
@@ -546,7 +549,7 @@ def DualEmbedding(hm, pRow=None, pColumn=None):
 		mtr = 'Correlation.Cosine Distance'
 		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE, mtr)		
 		info.Add({'EmbRow':str(pRow), 'Metric':mtr, 'MapType':'Cell Map', 'MinMean':minMean, 'Columns':D.Columns}).Save(mp)
-		LinkToHeatMap(mp, hm, True)
+		LinkToHeatMap(hm, mp, None)
 	if pColumn is not None:
 		hm.Title = 'Creating gene embedding...';
 		maxFeatures, epochs, ppl, initE, finalE = pColumn
@@ -554,7 +557,7 @@ def DualEmbedding(hm, pRow=None, pColumn=None):
 		mtr = 'EuclideanMetric'
 		mp = EmbeddingData(mds, D, epochs, ppl, initE, finalE, mtr)
 		info.Add({'EmbColumn':str(pColumn), 'Metric':mtr, 'MapType':'Gene Map'}).Save(mp)
-		LinkToHeatMap(mp, hm, False)
+		LinkToHeatMap(hm, None, mp)
 	hm.OnClose('CloseSortedHeatmap(pp)')
 	mds.Close()
 
