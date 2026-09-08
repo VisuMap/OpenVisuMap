@@ -6,7 +6,7 @@ from os.path import exists
 def PdbCacheFile(pId):
 	if len(pId)<4:
 		raise Exception(f'Invalid protein ID: {pId}')
-	return f'{PDB_CACHE}/{pId[:4]}.cif'
+	return f'{GetPDB_CACHE()}/{pId[:4]}.cif'
 
 def ChainCacheDir():
 	dsd = vv.Dataset.Description
@@ -14,7 +14,7 @@ def ChainCacheDir():
 		dsd = dsd.replace(';', ':')
 		return dsd.split(':')[1]
 	else:
-		return CHAIN_CACHE
+		return GetCHAIN_CACHE()
 
 # get cache file path for a poliptide chain.
 def ChainCacheFile(chId):
@@ -304,7 +304,7 @@ def LoadAllChains(pList=None):
 		vv.Message('Current dataset has invalid format: pid;repeats;seq;len;chainName')
 		return
 	if pList == None:
-		pList = [f[:4] for f in os.listdir(PDB_CACHE) if f.endswith('.cif')]	
+		pList = [f[:4] for f in os.listdir(GetPDB_CACHE()) if f.endswith('.cif')]	
 	chCount = 0
 	pTable = New.FreeTable()
 	pTable.AddColumn('Chains', True)
@@ -440,10 +440,10 @@ def ImportPDBList(sList, dsName, dsDescription=''):
 	import os.path
 	if not os.path.isdir(vv.Folder.FolderFileName):
 		raise Exception("The current data folder is not saved as directory!")
-	if not exists(PDB_CACHE): 
-		os.mkdir(PDB_CACHE)
-	if not exists(CHAIN_CACHE): 
-		os.mkdir(CHAIN_CACHE)
+	if not exists(GetPDB_CACHE()): 
+		os.mkdir(GetPDB_CACHE())
+	if not exists(GetCHAIN_CACHE()): 
+		os.mkdir(GetCHAIN_CACHE())
 
 	pList = sList.upper().split(',')
 	pList = PreloadPDB(pList)
@@ -511,11 +511,11 @@ def RemoveAllChainCache(only_rd_chains=False):
 	pSet = set([p[:4] for p in pList])
 	print(f'Removing {len(pSet)} files')
 	fList = []
-	for f in os.listdir(CHAIN_CACHE):
+	for f in os.listdir(GetCHAIN_CACHE()):
 		if f[:4] in pSet:
 			fList.append(f)
 	for f in fList:
-		os.remove(f'{CHAIN_CACHE}/{f}')
+		os.remove(f'{GetCHAIN_CACHE()}/{f}')
 
 #
 # remove unused cif and pmc files from the cache:
@@ -532,7 +532,7 @@ def CleanupAllCache():
 	print(f'Total chains: {len(pSet)}')
 	
 	cifSet = set()
-	os.chdir(PDB_CACHE)
+	os.chdir(GetPDB_CACHE())
 	for f in os.listdir('.'):
 		if f[:4].upper() not in pSet:
 			cifSet.add(f)
@@ -541,7 +541,7 @@ def CleanupAllCache():
 		os.remove(f)
 	
 	pmcSet = set()
-	os.chdir(CHAIN_CACHE)
+	os.chdir(GetCHAIN_CACHE())
 	for f in os.listdir('.'):
 		if f[:4].upper() not in pSet:
 			pmcSet.add(f)

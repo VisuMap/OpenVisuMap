@@ -20,6 +20,11 @@ ALPHA_DIAM = 5.4    # the average diameter of alpha hex.
 HELIX_TRANSLATION = 1.5   # translation per residue alone helix direction
 vv.RightHanded3D = True
 
+def GetPDB_CACHE(): 
+	return vv.Folder.FolderFileName + '\\CifCache'
+def GetCHAIN_CACHE():
+	return vv.Folder.FolderFileName + '\\ChCache'
+
 # --------------------------  embedded C# --------------------------------------------------------------------
 
 def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling'):
@@ -288,19 +293,6 @@ class FastTsne():
 		return self.tsne.Fit(nt)
 
 #-------------------- functions ----------------------------------------------------
-		
-def LoadCacheDef():
-	global PDB_CACHE
-	global CHAIN_CACHE
-	fdInfo = MapInfo(vv.Folder.Description)
-	if fdInfo.Has('CifCache'):
-		PDB_CACHE = fdInfo.CifCache
-		CHAIN_CACHE = fdInfo.ChainCache
-	else:
-		PDB_CACHE = vv.Folder.FolderFileName + '\\CifCache'
-		CHAIN_CACHE = vv.Folder.FolderFileName + '\\ChCache'
-	vv.EventManager.RemoveAllHandles(vv)
-	vv.EventManager.OnFolderLoaded('LoadCacheDef()',vv)
 
 def AssertSeqMap(pMap):
 	info = MapInfo(pMap.Description)
@@ -590,6 +582,8 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 		ma.Show()
 		MatchProteinMap(ma)
 		ma.Description = info.Str
+		New.Atlas(atlasName).AtlasName
+		vv.Message(f'Updated atlas {ma.AtlasName}')
 		del mapStore
 
 

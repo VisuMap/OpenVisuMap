@@ -54,7 +54,6 @@ def MainMain(menuKey):
 		case '<Import>':  # called when executing the <Import> label
 			if 'cs' not in globals(): 
 				cs = LoadSeqModeling()			
-				LoadCacheDef()			
 		case 'P-Map':
 			ppl_ = round(2000.0/len(pList), 4)
 			ppl_ = np.clip(ppl_, 0.01, 0.2)
