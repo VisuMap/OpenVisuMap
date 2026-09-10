@@ -1,4 +1,4 @@
-#MenuLabels <Import> P-Map P-2D C0 DBSCAN ChmX RCSB CIF Align Info SM SMx \
+#MenuLabels <Import> P-Map P-2D C0 C1 C2 C3 C4 DBSCAN BC ChmX RCSB CIF Align Info SM SMx \
 # P-S2 S2 UF bSp RMD TM Twt 3D 3Ds 3Dx 2D Lvt LD Sib P-Seq TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -28,7 +28,6 @@ Basic steps to use this package:
 	atlas object. The atlas contains all chains in hidden state, to see their 2D map, just select subset with
 	delayed mouse-up releasing, ca. 1 sec delay.
 	
- 
 '''
 
 def MainMain(menuKey):
@@ -78,8 +77,8 @@ def MainMain(menuKey):
 		case 'P-2D':
 			tP_ = (2000, 6, 0.25,     0.2, 6.0, 1.0)
 			CreateProteinMaps(pList, samplingDist=0.5, maxItems=20000, atlasName=atlasName, tP=tP_)
-		case 'C0':
-			ColorChainMap(0)
+		case 'C0'|'C1'|'C2'|'C3'|'C4':
+			ColorChainMap(ord(menuKey[1]) - ord('0'))
 		case 'DBSCAN':
 			ColorChainMap(5)
 		case 'BC':
@@ -104,8 +103,13 @@ def MainMain(menuKey):
 			vv.FocusEventEnabled = True
 			vv.EventManager.OnItemFocused('ShowSiblings()')
 		case 'TT':
-			aaGroups = GetAAGroup(9)
-			ShowSeqTwist(pId, xyzSet=aaGroups)
+			bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
+			idxList = cs.FragmentChain(bList, 14)
+			for t, idxPair in enumerate(idxList):
+				for n in range(idxPair.Item1, idxPair.Item2): 
+					bList[n].Type = t
+			mp = ShowBodyList(bList)
+			mp.Title = f'Subchains: {len(idxList)}'
 		case _:
 			DoSimpleMenues(menuKey, pId, pList)
 
@@ -115,11 +119,11 @@ def DoSimpleMenues(menuKey, pId, pList):
 	match menuKey:
 		case 'ChmX': 
 			ShowChimeraX(pId)
-		case 'RCSB':  
+		case 'RCSB':  # show the 3D model on RCSB site.
 			ShowWeb(pId)
-		case 'CIF': 
+		case 'CIF': # show the CIF file of a complex.
 			OpenCifFile(pId)
-		case 'Align':
+		case 'Align':  # align the DNA seq of two selected chain.
 			AlignSeqPair(pList)
 		case 'SM':
 			SmoothenComplex(pId, singleChain=True)
