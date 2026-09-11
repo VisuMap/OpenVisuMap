@@ -103,27 +103,31 @@ def MainMain(menuKey):
 			vv.FocusEventEnabled = True
 			vv.EventManager.OnItemFocused('ShowSiblings()')
 		case 'TT':
+			ws = 14
 			tm = GetFourier(waveCount=16, waveLen=512)
 			rowList = cs.FourierTransFragment()
 			for pId in pList:
 				bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
-				idxList = cs.FragmentChain(bList, 14)
+				cs.SmoothenSeq(bList, ws)
+				idxList = cs.FragmentChain(bList, ws)
 				rowSec = cs.FourierTransFragment(bList, idxList, tm)
 				rowList.AddRange( rowSec )
 			nt = New.NumberTable( rowList.ToArray() )
 			mds = NewMds(nt, epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=50, 
 				glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphSize=1.0, glyphOpacity=1.0)
-			RunMds(mds, repeats=0)
-		
+			RunMds(mds, repeats=0)	
+			
 			'''
 			bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
-			idxList = cs.FragmentChain(bList, 14)
+			cs.SmoothenSeq(bList, ws)
+			idxList = cs.FragmentChain(bList, ws)
 			for t, idxPair in enumerate(idxList):
 				for n in range(idxPair.Item1, idxPair.Item2): 
 					bList[n].Type = t
 			mp = ShowBodyList(bList)
 			mp.Title = f'Subchains: {len(idxList)}'
 			'''
+
 		case _:
 			DoSimpleMenues(menuKey, pId, pList)
 

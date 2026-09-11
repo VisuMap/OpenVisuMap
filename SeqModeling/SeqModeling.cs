@@ -857,18 +857,17 @@ namespace VisuMap {
 
         public List<Tuple<int, int>> FragmentChain(List<IBody> bList, int winSize) {
             List<Tuple<int, int>> idxList = new List<Tuple<int, int>>();
-            var B = bList.CloneDeep();
-            SmoothenSeq(B, winSize);
+            SmoothenSeq(bList, winSize);
             int i0 = 0;
-            IBody b0 = B[0];
+            IBody b0 = bList[0];
             double chLen = 0.0;
-            for(int k=1; k<B.Count; k++) {
-                double d2 = B[k].DistanceSquared(b0);
+            for(int k=1; k<bList.Count; k++) {
+                double d2 = bList[k].DistanceSquared(b0);
                 if (d2 < chLen) {
                     idxList.Add( Tuple.Create(i0, k-1) );
                     i0 = k - 1;
-                    b0 = B[i0];
-                    chLen = B[k].DistanceSquared(b0);
+                    b0 = bList[i0];
+                    chLen = bList[k].DistanceSquared(b0);
                 } else
                     chLen = d2;
             }
