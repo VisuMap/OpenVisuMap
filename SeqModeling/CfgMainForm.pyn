@@ -84,9 +84,12 @@ def MainMain(menuKey):
 		case 'BC':
 			BroadcastMapCfg()
 		case 'LD':
-			pIds = vv.PromptMessage('Protein ID: ', '????')
+			pIds = vv.PromptMessage('Protein ID (or @<DsName>): ', '????')
 			if pIds != None:
-				ImportPDBList(pIds, 'Monthly')
+				if pIds[0] == '@':
+					ImportPDBList(vv.GuiManager.GetClipboard(), pIds[1:])
+				else:
+					ImportPDBList(pIds, 'Monthly')
 		case '3D':
 			if atlasName: 
 				atlasName += '-3D'
@@ -106,16 +109,23 @@ def MainMain(menuKey):
 			ws = 14
 			tm = GetFourier(waveCount=16, waveLen=512)
 			rowList = cs.FourierTransFragment()
+			rsList = []
 			for pId in pList:
 				bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
 				cs.SmoothenSeq(bList, ws)
 				idxList = cs.FragmentChain(bList, ws)
 				rowSec = cs.FourierTransFragment(bList, idxList, tm)
 				rowList.AddRange( rowSec )
+				for p in idxList: 
+					rsList.append( (pId, p.Item1, p.Item2) )
 			nt = New.NumberTable( rowList.ToArray() )
 			mds = NewMds(nt, epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=50, 
 				glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphSize=1.0, glyphOpacity=1.0)
-			RunMds(mds, repeats=0)	
+			mp = RunMds(mds, repeats=1)
+			mds.Close()
+			for k, b in enumerate(mp.BodyList):
+				b.Id, i0, i1 = rsList[k]
+				b.Name = str(i0) + '-' + str(i1)
 			
 			'''
 			bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
