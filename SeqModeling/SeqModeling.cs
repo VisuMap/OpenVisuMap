@@ -157,7 +157,7 @@ namespace VisuMap {
 
             // Since the helix AA's position have less flactuation, we try to give them large weight
             // in the pca-normalization steps.
-            double[] weights = nt.RowSpecList.Select(s => s.Name.EndsWith("h") ? 5.0 : 1.0).ToArray();
+            double[] weights = nt.RowSpecList.Select(s => ((s.Name!=null) && s.Name.EndsWith("h")) ? 5.0 : 1.0).ToArray();
             for (int row = 1; row < rows; row++)
                 weights[row] = 0.25 * weights[row] + 0.75 * weights[row - 1];
             for (int row = 0; row < rows; row++) 
@@ -875,11 +875,31 @@ namespace VisuMap {
             return idxList;
         }
 
-        public void FourierTrans(INumberTable tm, INumberTable dt, double[] R) {
+        public List<double[]> FourierTransFragment(List<IBody> bList=null, List<Tuple<int, int>> idxList=null, INumberTable tm=null) {
+            List<double[]> rowList = new List<double[]>();
+            if (bList == null) return rowList;
+            foreach( var p in idxList) {
+                INumberTable nt = New.NumberTable(p.Item2 - p.Item1 + 1, 3);
+                for(int row=p.Item1; row<=p.Item2; row++) {
+                    IBody b = bList[row];
+                    double[] Row = (double[])nt.Matrix[row - p.Item1];
+                    Row[0] = b.X;
+                    Row[1] = b.Y;
+                    Row[2] = b.Z;
+                }
+                PcaNormalizePositive( nt );
+                rowList.Add(FourierTrans(tm, nt));
+            }
+            return rowList;
+        }
+
+        public double[] FourierTrans(INumberTable tm, INumberTable dt, double[] R = null) {
             // DO matrix multiplication dt * tm where dt and tm are 
             // both column-set potentially with different number of rows.
-            double[][] dtM = dt.Matrix as double[][];
+            double[][] dtM = dt.Matrix as double[][];  //The coordinates of the point sequences: Each row for a point.
             double[][] tmM = tm.Matrix as double[][];
+            if (R == null)
+                R = new double[tm.Columns * dt.Columns];
             int L = dtM.Length;
             int Columns1 = dtM[0].Length;
             int Columns2 = tmM[0].Length;
@@ -894,6 +914,7 @@ namespace VisuMap {
                     R[c1 * Columns2 + c2] = v;
                 }
             });
+            return R;
         }
 
         public void RowDifferentiation(INumberTable dt) {
