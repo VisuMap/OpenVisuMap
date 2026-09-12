@@ -116,16 +116,13 @@ def MainMain(menuKey):
 				idxList = cs.FragmentChain(bList, ws)
 				rowSec = cs.FourierTransFragment(bList, idxList, tm)
 				rowList.AddRange( rowSec )
-				for p in idxList: 
-					rsList.append( (pId, p.Item1, p.Item2) )
+				rsList.extend([f'{pId}:{p.Item1}:{p.Item2}' for p in idxList ])
 			nt = New.NumberTable( rowList.ToArray() )
+			for k, rs in enumerate(nt.RowSpecList):
+				rs.Name = rsList[k]
 			mds = NewMds(nt, epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=50, 
 				glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphSize=1.0, glyphOpacity=1.0)
-			mp = RunMds(mds, repeats=1)
-			mds.Close()
-			for k, b in enumerate(mp.BodyList):
-				b.Id, i0, i1 = rsList[k]
-				b.Name = str(i0) + '-' + str(i1)
+			RunMds(mds, repeats=0)
 			
 			'''
 			bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
