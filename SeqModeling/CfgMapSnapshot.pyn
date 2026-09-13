@@ -1,4 +1,4 @@
-#MenuLabels ShowData Scanning info Smoothen Seq Open Web ChmX 3D 3Dx HideIPO MarkHelix MarkBeta vsSz 'RNA/DNA' Align PID S2
+#MenuLabels ShowData Scanning info Smoothen Seq Open Web ChmX 3D 3Dx HideIPO MarkHelix MarkBeta vsSz 'RNA/DNA' Align PID S2 TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -57,6 +57,9 @@ match vv.EventSource.Item:
 		SphereView(MapInfo(pp.Description).pId, unfolding = False)
 	case 'vsSz':
 		VisChainSize(4 if vv.ModifierKeys.ControlPressed else 2)
+	case 'TT':
+		ShowSubChains()
+
 
 
 

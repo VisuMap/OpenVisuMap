@@ -107,36 +107,49 @@ def MainMain(menuKey):
 			vv.EventManager.OnItemFocused('ShowSiblings()')
 		case 'TT':
 			ws = 14
-			tm = GetFourier(waveCount=16, waveLen=512)
+			tm = GetFourier(waveCount=16, waveLen=256)
 			rowList = cs.FourierTransFragment()
 			rsList = []
 			for pId in pList:
 				bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
 				cs.SmoothenSeq(bList, ws)
 				idxList = cs.FragmentChain(bList, ws)
+				idxList = MergePairs(idxList)
 				rowSec = cs.FourierTransFragment(bList, idxList, tm)
 				rowList.AddRange( rowSec )
-				rsList.extend([f'{pId}:{p.Item1}:{p.Item2}' for p in idxList ])
+				rsList.extend([f'{pId}:{idxList[k]}:{idxList[k+1]}' for k in range(0, idxList.Count, 2) ])
 			nt = New.NumberTable( rowList.ToArray() )
 			for k, rs in enumerate(nt.RowSpecList):
 				rs.Name = rsList[k]
-			mds = NewMds(nt, epochs=3000, initExag=6.0, finalExag=1.0, ppl=0.1, repeats=0, refreshFreq=50, 
-				glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphSize=1.0, glyphOpacity=1.0)
+			mds = NewMds(nt, epochs=1000, initExag=8.0, ppl=0.05, 
+				glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphOpacity=0.25)
 			RunMds(mds, repeats=0)
-			
+
 			'''
 			bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
 			cs.SmoothenSeq(bList, ws)
 			idxList = cs.FragmentChain(bList, ws)
-			for t, idxPair in enumerate(idxList):
-				for n in range(idxPair.Item1, idxPair.Item2): 
-					bList[n].Type = t
+			for k in range(0, idxList.Count, 2):
+				for n in range(idxList[k], idxList[k+1]): 
+					bList[n].Type = k//2
 			mp = ShowBodyList(bList)
-			mp.Title = f'Subchains: {len(idxList)}'
+			mp.Title = f'Subchains: {len(idxList)//2}'
 			'''
-
 		case _:
 			DoSimpleMenues(menuKey, pId, pList)
+
+#Merge neighboring sub-chains.
+def MergePairs(idxList):
+	L = len(idxList)
+	newList = New.IntArray()
+	for k in range(0, L-2, 4):
+		newList.Add(idxList[k])
+		newList.Add(idxList[k+3])
+	if L//4 != 0:
+		newList.Add(idxList[L-2])
+		newList.Add(idxList[L-1])
+	return newList
+
 
 def DoSimpleMenues(menuKey, pId, pList):
 	global ctrPressed

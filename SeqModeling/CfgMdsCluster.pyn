@@ -1,12 +1,39 @@
-#MenuLabels P-Seq PID, Info
+#MenuLabels P-Seq PID, Info, TT
 vv.Import('SeqVis.pyn')
 
-match vv.EventSource.Item:
-	case 'P-Seq':
-		ShowAASeq(pp)
-	case 'PID':
-		SelectPID()
-	case 'Info':
-		ShowInfo(pp)
+def ShowSubChains():
+	global mpChainList
+	if 'mpChainList' in globals():
+		for mp in mpChainList:
+			mp.Close()
+	chList = {}
+	mpChainList = []
+	for b in pp.SelectedBodies:
+		vs = b.Name.split(':')
+		id, i0, i1 = vs[0], int(vs[1]), int(vs[2])
+		if id in chList:
+			ch = chList[id]
+		else:
+			ch = LoadChain(id)
+			ch = Interpolate(ch, 8)
+			chList[id] = ch
+		subCh = ch.GetRange(i0, i1-i0)
+		mp = ShowBodyList(subCh)
+		mp.Title = b.Name
+		mpChainList.append(mp)
+	vv.GuiManager.TileAllWindows(mpChainList, False)
 
+
+def MdsMain(label):
+	match label:
+		case 'P-Seq':
+			ShowAASeq(pp)
+		case 'PID':
+			SelectPID()
+		case 'Info':
+			ShowInfo(pp)
+		case 'TT':
+			ShowSubChains()
+
+MdsMain(vv.EventSource.Item)
 

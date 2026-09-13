@@ -855,8 +855,8 @@ namespace VisuMap {
             return nt;
         }
 
-        public List<Tuple<int, int>> FragmentChain(List<IBody> bList, int winSize) {
-            List<Tuple<int, int>> idxList = new List<Tuple<int, int>>();
+        public List<int> FragmentChain(List<IBody> bList, int winSize) {
+            List<int> idxList = new List<int>();
             SmoothenSeq(bList, winSize);
             int i0 = 0;
             IBody b0 = bList[0];
@@ -864,7 +864,8 @@ namespace VisuMap {
             for(int k=1; k<bList.Count; k++) {
                 double d2 = bList[k].DistanceSquared(b0);
                 if (d2 < chLen) {
-                    idxList.Add( Tuple.Create(i0, k-1) );
+                    idxList.Add(i0);
+                    idxList.Add(k-1);
                     i0 = k - 1;
                     b0 = bList[i0];
                     chLen = bList[k].DistanceSquared(b0);
@@ -874,14 +875,17 @@ namespace VisuMap {
             return idxList;
         }
 
-        public List<double[]> FourierTransFragment(List<IBody> bList=null, List<Tuple<int, int>> idxList=null, INumberTable tm=null) {
+        public List<double[]> FourierTransFragment(List<IBody> bList=null, List<int> idxList=null, INumberTable tm=null) {
             List<double[]> rowList = new List<double[]>();
-            if (bList == null) return rowList;
-            foreach( var p in idxList) {
-                INumberTable nt = New.NumberTable(p.Item2 - p.Item1 + 1, 3);
-                for(int row=p.Item1; row<=p.Item2; row++) {
+            if (bList == null)
+                return rowList;
+            for(int k=0; k<idxList.Count; k+=2) {
+                int p = idxList[k];
+                int q = idxList[k+1];
+                INumberTable nt = New.NumberTable(q - p + 1, 3);
+                for(int row=p; row<=q; row++) {
                     IBody b = bList[row];
-                    double[] Row = (double[])nt.Matrix[row - p.Item1];
+                    double[] Row = (double[])nt.Matrix[row - p];
                     Row[0] = b.X;
                     Row[1] = b.Y;
                     Row[2] = b.Z;
