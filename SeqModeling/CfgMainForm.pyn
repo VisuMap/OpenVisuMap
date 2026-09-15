@@ -1,5 +1,5 @@
 #MenuLabels <Import> P-Map P-2D C0 C1 C2 C3 C4 DBSCAN BC ChmX RCSB CIF Align Info SM SMx \
-# P-S2 S2 UF bSp RMD TM Twt 3D 3Ds 3Dx 2D Lvt LD Sib P-Seq TT
+# P-S2 S2 UF bSp RMD TM Twt 3D 3Ds 3Dx 2D Lvt LD Sib P-Seq ScMp TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -105,8 +105,10 @@ def MainMain(menuKey):
 		case 'Sib':
 			vv.FocusEventEnabled = True
 			vv.EventManager.OnItemFocused('ShowSiblings()')
-		case 'TT':
+		case 'ScMp':
 			CreateSubChainMap(pp, pList)
+		case 'TT':
+			pass
 		case _:
 			DoSimpleMenues(menuKey, pId, pList)
 

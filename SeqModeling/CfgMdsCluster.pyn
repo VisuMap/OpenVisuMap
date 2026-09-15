@@ -1,4 +1,4 @@
-#MenuLabels P-Seq PID, Info, TT
+#MenuLabels P-Seq PID, Info, ShSc ScMp
 vv.Import('SeqVis.pyn')
 
 def ShowSubChains():
@@ -21,6 +21,7 @@ def ShowSubChains():
 		mp = ShowBodyList(subCh)
 		mp.Title = b.Name
 		mpChainList.append(mp)
+	mpChainList[0].ResizeClient(400, -1)
 	vv.GuiManager.TileAllWindows(mpChainList, False)
 
 def SubChainMap():
@@ -67,8 +68,11 @@ def MdsMain(label):
 			SelectPID()
 		case 'Info':
 			ShowInfo(pp)
-		case 'TT':
+		case 'ShSc':
 			ShowSubChains()
+		case 'ScMp':
+			SubChainMap()
+
 
 MdsMain(vv.EventSource.Item)
 
