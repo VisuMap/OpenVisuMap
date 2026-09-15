@@ -887,24 +887,25 @@ namespace VisuMap {
         }
 
         public List<double[]> FourierTransFragment(List<IBody> bList=null, List<int> idxList=null, INumberTable tm=null) {
-            List<double[]> rowList = new List<double[]>();
             if (bList == null)
-                return rowList;
-            for(int k=0; k<idxList.Count; k+=2) {
-                int p = idxList[k];
-                int q = idxList[k+1];
+                return new List<double[]>();
+            int L = idxList.Count / 2;
+            double[][] rowList = new double[L][];
+            MT.Loop(0, L, k => {
+                int p = idxList[2*k];
+                int q = idxList[2*k + 1];
                 INumberTable nt = New.NumberTable(q - p + 1, 3);
-                for(int row=p; row<=q; row++) {
+                for (int row = p; row <= q; row++) {
                     IBody b = bList[row];
                     double[] Row = (double[])nt.Matrix[row - p];
                     Row[0] = b.X;
                     Row[1] = b.Y;
                     Row[2] = b.Z;
                 }
-                PcaNormalizePositive( nt );
-                rowList.Add(FourierTrans(tm, nt));
-            }
-            return rowList;
+                PcaNormalizePositive(nt);
+                rowList[k] = FourierTrans(tm, nt);
+            });
+            return rowList.ToList();
         }
 
         public double[] FourierTrans(INumberTable tm, INumberTable dt, double[] R = null) {
