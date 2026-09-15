@@ -779,7 +779,7 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0', intp=8):
 
 #-----------------------------------------------------------------------------
 
-def NewMds(nt=None, epochs=1000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, staged=False, zoomFactor=10.0, info=None,
+def NewMds(nt=None, epochs=1000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, staged=False, zoomFactor=10.0,
 		repeats=1, metric='EuclideanMetric', glyphSet=None, glyphSize=0.5, glyphOpacity=1.0, refreshFreq=50, glyphScale=10.0):
 	vv.Map.HiddenGlyphSize = 2
 	vv.Map.HiddenGlyphColor = New.Color('Yellow')
@@ -805,21 +805,18 @@ def NewMds(nt=None, epochs=1000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0
 	mds.MapZoomFactor = zoomFactor
 	mds.GlyphScale = glyphScale
 	mds.GlyphSet = vv.Map.GlyphType if glyphSet==None else glyphSet
-	if info:
-		info.SetMds(mds)
-		mds.Description = info.Str
-	else:
-		mds.Description = ''	
+	mds.Description = ''	
 	return mds
 
 def RunMds(mds, repeats=1, info=None, nt=None):
 	if nt:	
 		mds.SetTrainingData(nt)
 	mds.Repeats = repeats
-	if info:
-		info.DDM = mds.DataDim
-		info.SetMds(mds)
-		mds.Description = info.Str
+	if info == None:
+		info = MapInfo()
+	info.DDM = mds.DataDim
+	info.SetMds(mds)
+	mds.Description = info.Str
 	mds.Reset().Start()
 	if not mds.Completed:
 		if mds.GlyphSpan < 0.01:
@@ -834,12 +831,12 @@ def RunMds(mds, repeats=1, info=None, nt=None):
 			mds.PerplexityRatio *= 2.0
 		if not mds.Completed:
 			raise Exception("MDS aborted")
-	if info:
-		info.GlyphSpan = f'{mds.GlyphSpan:.2f}'
-		mds.Description = info.Str
+	info.GlyphSpan = f'{mds.GlyphSpan:.2f}'
+	mds.Description = info.Str
 	if repeats == 1:
 		mds.SelectedItems = None
 		snMap = mds.ShowSnapshot()
+		snMap.Description = info.Str
 		return snMap
 	return mds
 
@@ -948,11 +945,11 @@ def Create2DMap0(bList, info, stretch, winSize, tP):
 	nt = cs.AugmentLinear(bList, stretch)
 	info.Add({'stretch': stretch, 'winSz':winSize})
 	epochs, ppl, initExag, finalExag = tP
-	mds = NewMds(nt, initExag=initExag, finalExag=finalExag, epochs=epochs, ppl=ppl, info=info)
+	mds = NewMds(nt, initExag=initExag, finalExag=finalExag, epochs=epochs, ppl=ppl)
 	mds.GlyphSize = 0.75
 	mds.GlyphSet = SeqMap_GLYPHSET
-	#RunMds(mds, repeats=0, info=info).NormalizeView()
-	RunMds(mds, repeats=1, info=info).NormalizeView(); mds.Close()	
+	RunMds(mds, repeats=1, info=info).NormalizeView(); 
+	mds.Close()	
 	return vv.LastView
 
 def Create2DMap(pId, aP, tP):
