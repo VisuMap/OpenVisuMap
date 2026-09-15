@@ -112,36 +112,6 @@ def MainMain(menuKey):
 		case _:
 			DoSimpleMenues(menuKey, pId, pList)
 
-def CreateSubChainMap(map, pList):
-	ws, waveCount, waveLen = 14, 16, 256
-
-	tm = GetFourier(waveCount=waveCount, waveLen=waveLen)
-	rowList = cs.FourierTransFragment()
-	rsList = []
-	for pId in pList:
-		bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
-		idxList = cs.FragmentChain(bList, ws)
-		rowSec = cs.FourierTransFragment(bList, idxList, tm)
-		rowList.AddRange( rowSec )
-		rsList.extend([f'{pId}:{idxList[k]}:{idxList[k+1]}' for k in range(0, idxList.Count, 2) ])
-	nt = New.NumberTable( rowList.ToArray() )
-	for k, rs in enumerate(nt.RowSpecList):
-		rs.Name = rsList[k]
-	mds = NewMds(nt, epochs=1000, initExag=8.0, ppl=0.1, 
-		glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphOpacity=0.25)
-	info = MapInfo({'FT':str( (ws, waveCount, waveLen) )})
-	RunMds(mds, info=info, repeats=1)
-
-	'''
-	bList = Interpolate(LoadChain(pList[0]), 8, hidIntp=True)
-	idxList = cs.FragmentChain(bList, ws)
-	for k in range(0, idxList.Count, 2):
-		for n in range(idxList[k], idxList[k+1]): 
-			bList[n].Type = k//2
-	mp = ShowBodyList(bList)
-	mp.Title = f'Subchains: {len(idxList)//2}'	
-	'''
-
 def DoSimpleMenues(menuKey, pId, pList):
 	global ctrPressed
 	# ChmX RCSB CIF Align SM SMx P-S2 S2 UF bSp RMD 3Ds 3Dx Twt Info
