@@ -872,7 +872,18 @@ namespace VisuMap {
                 } else
                     chLen = d2;
             }
-            return idxList;
+            // merging neighboring fragments
+            List<int> idxList2 = new List<int>();
+            int L = idxList.Count;
+            for (int k = 0; k < L-2; k += 4) {
+                idxList2.Add(idxList[k]);
+                idxList2.Add(idxList[k+3]);
+            }
+            if ( L%4 != 0) {
+                idxList2.Add(L-2);
+                idxList2.Add(L-1);
+            }
+            return idxList2;
         }
 
         public List<double[]> FourierTransFragment(List<IBody> bList=null, List<int> idxList=null, INumberTable tm=null) {

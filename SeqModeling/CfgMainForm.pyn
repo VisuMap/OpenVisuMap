@@ -106,52 +106,39 @@ def MainMain(menuKey):
 			vv.FocusEventEnabled = True
 			vv.EventManager.OnItemFocused('ShowSiblings()')
 		case 'TT':
-			ws, waveCount, waveLen = 14, 16, 256
-			tm = GetFourier(waveCount=waveCount, waveLen=waveLen)
-			rowList = cs.FourierTransFragment()
-			rsList = []
-			for pId in pList:
-				bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
-				cs.SmoothenSeq(bList, ws)
-				idxList = cs.FragmentChain(bList, ws)
-				idxList = MergePairs(idxList)
-				rowSec = cs.FourierTransFragment(bList, idxList, tm)
-				rowList.AddRange( rowSec )
-				rsList.extend([f'{pId}:{idxList[k]}:{idxList[k+1]}' for k in range(0, idxList.Count, 2) ])
-			nt = New.NumberTable( rowList.ToArray() )
-			for k, rs in enumerate(nt.RowSpecList):
-				rs.Name = rsList[k]
-			mds = NewMds(nt, epochs=1000, initExag=8.0, ppl=0.01, 
-				glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphOpacity=0.25)
-			info = MapInfo({'FT':str( (ws, waveCount, waveLen) )})
-			for x in [0.01, 0.05, 0.1]:
-				mds.PerplexityRatio = x
-				RunMds(mds, info=info, repeats=1)
-			'''
-			bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
-			cs.SmoothenSeq(bList, ws)
-			idxList = cs.FragmentChain(bList, ws)
-			for k in range(0, idxList.Count, 2):
-				for n in range(idxList[k], idxList[k+1]): 
-					bList[n].Type = k//2
-			mp = ShowBodyList(bList)
-			mp.Title = f'Subchains: {len(idxList)//2}'
-			'''
+			CreateSubChainMap(pp, pList)
 		case _:
 			DoSimpleMenues(menuKey, pId, pList)
 
-#Merge neighboring sub-chains.
-def MergePairs(idxList):
-	L = len(idxList)
-	newList = New.IntArray()
-	for k in range(0, L-2, 4):
-		newList.Add(idxList[k])
-		newList.Add(idxList[k+3])
-	if L//4 != 0:
-		newList.Add(idxList[L-2])
-		newList.Add(idxList[L-1])
-	return newList
+def CreateSubChainMap(map, pList):
+	ws, waveCount, waveLen = 14, 16, 256
 
+	tm = GetFourier(waveCount=waveCount, waveLen=waveLen)
+	rowList = cs.FourierTransFragment()
+	rsList = []
+	for pId in pList:
+		bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
+		idxList = cs.FragmentChain(bList, ws)
+		rowSec = cs.FourierTransFragment(bList, idxList, tm)
+		rowList.AddRange( rowSec )
+		rsList.extend([f'{pId}:{idxList[k]}:{idxList[k+1]}' for k in range(0, idxList.Count, 2) ])
+	nt = New.NumberTable( rowList.ToArray() )
+	for k, rs in enumerate(nt.RowSpecList):
+		rs.Name = rsList[k]
+	mds = NewMds(nt, epochs=1000, initExag=8.0, ppl=0.1, 
+		glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphOpacity=0.25)
+	info = MapInfo({'FT':str( (ws, waveCount, waveLen) )})
+	RunMds(mds, info=info, repeats=1)
+
+	'''
+	bList = Interpolate(LoadChain(pList[0]), 8, hidIntp=True)
+	idxList = cs.FragmentChain(bList, ws)
+	for k in range(0, idxList.Count, 2):
+		for n in range(idxList[k], idxList[k+1]): 
+			bList[n].Type = k//2
+	mp = ShowBodyList(bList)
+	mp.Title = f'Subchains: {len(idxList)//2}'	
+	'''
 
 def DoSimpleMenues(menuKey, pId, pList):
 	global ctrPressed
