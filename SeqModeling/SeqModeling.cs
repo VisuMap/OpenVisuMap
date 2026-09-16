@@ -872,6 +872,7 @@ namespace VisuMap {
                 } else
                     chLen = d2;
             }
+
             // merging neighboring fragments
             List<int> idxList2 = new List<int>();
             int L = idxList.Count;
@@ -880,8 +881,8 @@ namespace VisuMap {
                 idxList2.Add(idxList[k+3]);
             }
             if ( L%4 != 0) {
-                idxList2.Add(L-2);
-                idxList2.Add(L-1);
+                idxList2.Add(idxList[L - 2]);
+                idxList2.Add(idxList[L - 1]);
             }
             return idxList2;
         }
