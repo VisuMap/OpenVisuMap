@@ -823,9 +823,7 @@ def RunMds(mds, repeats=1, info=None, nt=None):
 			print('Repeating with reduced exaggeration...')
 			mds.InitialExaggeration /= 2.0
 			mds.PerplexityRatio /= 2.0
-			if info:
-				info.InitE = mds.InitialExaggeration
-				info.PP = mds.PerplexityRatio
+			info.SetMds(mds)
 			mds.Reset().Start()
 			mds.InitialExaggeration *= 2.0
 			mds.PerplexityRatio *= 2.0
@@ -1505,11 +1503,10 @@ def CreateSubChainMap(map, pList):
 	nt = New.NumberTable( rowList.ToArray() )
 	for k, rs in enumerate(nt.RowSpecList):
 		rs.Name = rsList[k]
-	mds = NewMds(nt, epochs=1000, initExag=8.0, ppl=0.1, 
+	mds = NewMds(nt, epochs=1000, initExag=6.0, ppl=0.1,
 		glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphOpacity=0.5, glyphSize=1.5)
-	info = MapInfo({'FT':str( (ws, waveCount, waveLen) )})
-	RunMds(mds, info=info, repeats=1)
-
+	info = MapInfo({'FT':str((ws, waveCount, waveLen)), 'MapType':'SubChains', 'DsName':vv.Dataset.Name})
+	RunMds(mds, info=info, repeats=0)
 	'''
 	bList = Interpolate(LoadChain(pList[0]), 8, hidIntp=True)
 	idxList = cs.FragmentChain(bList, ws)
