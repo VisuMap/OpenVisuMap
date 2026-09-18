@@ -1,66 +1,74 @@
-#MenuLabels ShowData Scanning Info Smoothen Seq Open Web ChmX 3D 3Dx HideIPO MarkHelix MarkBeta vsSz 'RNA/DNA' Align PID S2 ShSc ScMp
+#MenuLabels ShowData Scanning Info Smoothen Seq Open Web ChmX 3D 3Dx HideIPO MarkHelix MarkBeta \
+# vsSz 'RNA/DNA' Align PID S2 ShSc ScMp TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
-match vv.EventSource.Item:
-	case 'ShowData':
-		AssertSeqMap(pp)
-		ShowMapData(pp)
-	case 'Scanning':
-		Scanning(pp, stride=50, stepSize=2, broadcasting=vv.ModifierKeys.ControlPressed)
-	case 'Seq':
-		ShowAASeq(pp)
-	case 'Info':
-		ShowInfo(pp)
-	case 'Smoothen':
-		cs.MovingWindowMean(pp.BodyList, 3)
-		pp.RedrawBodies()		
-	case 'RNA/DNA':
-		pp.SelectedItems = [b.Id for b in pp.BodyList if (b.Name[0] == 'r') or (b.Name[0] == 'd') ]
-	case 'Web':
-		pId = MapInfo(pp.Description).pId
-		ShowWeb(pId)
-	case 'ChmX':
-		pId = MapInfo(pp.Description).pId
-		ShowChimeraX(pId)
-	case '3D':
-		info = MapInfo(pp.Description)				
-		if info.Has('pId'):
-			pId = info.pId
-			chainNames = info.Get('CNs').split('|') if info.Has('CNs') else None
-		else:
-			pId = pp.SelectedItems[0]
-			chainNames = GetChainName(pId)
-		ShowPDB(pId, intp=8, includeHA=False, chainNames=chainNames) 
-	case '3Dx':
-		info = MapInfo(pp.Description)				
-		if info.Has('pId'):
-			pId = info.pId
-			ShowPDB(pId, intp=8, includeHA=False, chainNames=None) 
-		else:
-			for pId in list( pp.SelectedItems )[:5]:
-				ShowPDB(pId, intp=8, includeHA=False) 
-	case 'HideIPO':
-		HideInterpolates()
-		pp.HiddenBodySize = 1
-	case 'MarkHelix':
-		ShowHelix()
-	case 'MarkBeta':
-		ShowBetaSheet()
-	case 'Open':
-		OpenCifFile(MapInfo(pp.Description).pId)
-	case 'Align':
-		AlignSeqPair(pp)
-	case 'PID':
-		SelectPID()
-	case 'S2':
-		SphereView(MapInfo(pp.Description).pId, unfolding = False)
-	case 'vsSz':
-		VisChainSize(4 if vv.ModifierKeys.ControlPressed else 2)
-	case 'ShSc':
-		ShowSubChains()
-	case 'ScMp':
-		SubChainMap()
+def MainMapSnapshot(label):
+	match(label):
+		case 'ShowData':
+			AssertSeqMap(pp)
+			ShowMapData(pp)
+		case 'Scanning':
+			Scanning(pp, stride=50, stepSize=2, broadcasting=vv.ModifierKeys.ControlPressed)
+		case 'Seq':
+			ShowAASeq(pp)
+		case 'Info':
+			ShowInfo(pp)
+		case 'Smoothen':
+			cs.MovingWindowMean(pp.BodyList, 3)
+			pp.RedrawBodies()		
+		case 'RNA/DNA':
+			pp.SelectedItems = [b.Id for b in pp.BodyList if (b.Name[0] == 'r') or (b.Name[0] == 'd') ]
+		case 'Web':
+			pId = MapInfo(pp.Description).pId
+			ShowWeb(pId)
+		case 'ChmX':
+			pId = MapInfo(pp.Description).pId
+			ShowChimeraX(pId)
+		case '3D':
+			info = MapInfo(pp.Description)				
+			if info.Has('pId'):
+				pId = info.pId
+				chainNames = info.Get('CNs').split('|') if info.Has('CNs') else None
+			else:
+				pId = pp.SelectedItems[0]
+				chainNames = GetChainName(pId)
+			ShowPDB(pId, intp=8, includeHA=False, chainNames=chainNames) 
+		case '3Dx':
+			info = MapInfo(pp.Description)				
+			if info.Has('pId'):
+				pId = info.pId
+				ShowPDB(pId, intp=8, includeHA=False, chainNames=None) 
+			else:
+				for pId in list( pp.SelectedItems )[:5]:
+					ShowPDB(pId, intp=8, includeHA=False) 
+		case 'HideIPO':
+			HideInterpolates()
+			pp.HiddenBodySize = 1
+		case 'MarkHelix':
+			ShowHelix()
+		case 'MarkBeta':
+			ShowBetaSheet()
+		case 'Open':
+			OpenCifFile(MapInfo(pp.Description).pId)
+		case 'Align':
+			AlignSeqPair(pp)
+		case 'PID':
+			SelectPID()
+		case 'S2':
+			SphereView(MapInfo(pp.Description).pId, unfolding = False)
+		case 'vsSz':
+			VisChainSize(4 if vv.ModifierKeys.ControlPressed else 2)
+		case 'ShSc':
+			ShowSubChains()
+		case 'ScMp':
+			SubChainMap()
+		case 'TT':
+			pp.GlyphOpacity = 0.002
+			pp.GlyphSize = 1.5
+			vv.EventManager.OnItemsSelected('ss.ExpandSubChains(pp)', pp)
+
+MainMapSnapshot(vv.EventSource.Item)
 
 
 

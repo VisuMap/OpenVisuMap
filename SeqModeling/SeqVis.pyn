@@ -46,6 +46,11 @@ def LoadSeqModeling(seqdll = 'SeqModeling.dll', className = 'VisuMap.SeqModeling
 
 ss = New.CsObject('''
 
+public void ExpandSubChains(IMapSnapshot map) {
+	var chains = vv.SelectedItems.ToHashSet();
+	map.SelectedItems = map.BodyList.Where(b=>chains.Contains(b.Name.Split(':')[0])).Select(b=>b.Id).ToList();
+}
+
 public void SwapHiddenBodies(List<IBody> bsList) {
     foreach(var b in bsList)
 		b.Hidden = !b.Hidden;
