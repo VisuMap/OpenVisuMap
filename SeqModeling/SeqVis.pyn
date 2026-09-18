@@ -154,7 +154,8 @@ class MapInfo():
 		return self
 	def SetMds(self, mds):
 		self.Add({'Epochs':mds.MaxLoops, 'Is3D':mds.Is3D, 'InitE':mds.InitialExaggeration, 
-			'FinalE':mds.ExaggerationFinal, 'PP':mds.PerplexityRatio})
+			'FinalE':mds.ExaggerationFinal, 'PP':mds.PerplexityRatio, 'EpochTime':mds.EpochTime, 
+			'MapSpan':mds.GlyphSpan, 'TrainingTime':mds.TrainingTime})
 		return self		
 	@property
 	def Str(self):
@@ -811,11 +812,10 @@ def NewMds(nt=None, epochs=1000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0
 def RunMds(mds, repeats=1, info=None, nt=None):
 	if nt:	
 		mds.SetTrainingData(nt)
-	mds.Repeats = repeats
-	if info == None:
+	mds.Repeats = repeats	 
+	if info is None:
 		info = MapInfo()
 	info.DDM = mds.DataDim
-	info.SetMds(mds)
 	mds.Description = info.Str
 	mds.Reset().Start()
 	if not mds.Completed:
@@ -823,12 +823,12 @@ def RunMds(mds, repeats=1, info=None, nt=None):
 			print('Repeating with reduced exaggeration...')
 			mds.InitialExaggeration /= 2.0
 			mds.PerplexityRatio /= 2.0
-			info.SetMds(mds)
 			mds.Reset().Start()
 			mds.InitialExaggeration *= 2.0
 			mds.PerplexityRatio *= 2.0
 		if not mds.Completed:
 			raise Exception("MDS aborted")
+	info.SetMds(mds)
 	info.GlyphSpan = f'{mds.GlyphSpan:.2f}'
 	mds.Description = info.Str
 	if repeats == 1:
@@ -1506,7 +1506,8 @@ def CreateSubChainMap(map, pList):
 	mds = NewMds(nt, epochs=1000, initExag=6.0, ppl=0.1,
 		glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphOpacity=0.5, glyphSize=1.5)
 	info = MapInfo({'FT':str((ws, waveCount, waveLen)), 'MapType':'SubChains', 'DsName':vv.Dataset.Name})
-	RunMds(mds, info=info, repeats=0)
+	RunMds(mds, info=info, repeats=1)
+	mds.Close()
 	'''
 	bList = Interpolate(LoadChain(pList[0]), 8, hidIntp=True)
 	idxList = cs.FragmentChain(bList, ws)

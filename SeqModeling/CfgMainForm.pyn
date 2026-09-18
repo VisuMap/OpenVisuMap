@@ -204,8 +204,9 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 MainMain(vv.EventSource.Item)
 
 '''
-dxList = list(range(vv.Folder.DatasetCount))
-DoDatasetList(dxList[3:-1], mpIdx=0, createPMap=True, createAtlas=True)
+for dn in list(vv.Folder.DatasetNameList)[2:]:
+	vv.Folder.OpenDataset(dn)
+	MainMain('ScMp')
 
 
 -----------------
