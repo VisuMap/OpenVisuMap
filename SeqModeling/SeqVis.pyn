@@ -224,13 +224,12 @@ class AtlasMapStore():
 	def __init__(self, atName, clearAtlas=True):
 		self.atlas = New.Atlas(atName)
 		self.atlas.EventEnabled = True
-		self.atlas.OnItemsSelected = "ResetAtlas()"
 		self.atlas.HiddenItemSize = 3
 		self.hideItems = False
 		self.rawMap = None
 		if clearAtlas:
 			self.atlas.Clear()
-	def AddMap(self, viewName):
+	def AddMap(self, viewName, iconWidth=150):
 		fmList = vv.FindFormList(viewName)
 		if fmList.Count > 0:
 			fm = fmList[fmList.Count - 1]
@@ -240,6 +239,8 @@ class AtlasMapStore():
 				item.Id = item.Name = info.pId
 			item.IsHidden = self.hideItems
 			item.CacheImage = True
+			item.IconWidth = iconWidth
+			item.IconHeight = 0
 			return fm
 		else:
 			return None
@@ -534,6 +535,7 @@ def CreateProteinMaps(pList, samplingDist, maxItems, atlasName, tP):
 		mapStore = AtlasMapStore(atlasName)
 		if L > 1000:
 			mapStore.hideItems = True
+		mapStore.atlas.OnItemsSelected = "ResetAtlas()"
 	else:
 		mapStore = None
 	t0 = time.time()
@@ -1510,7 +1512,8 @@ def CreateSubChainMap(map, pList):
 	mds = NewMds(nt, epochs=1000, initExag=6.0, ppl=0.1,
 		glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphOpacity=0.5, glyphSize=1.5)
 	info = MapInfo({'FT':str((ws, waveCount, waveLen)), 'MapType':'SubChains', 'DsName':vv.Dataset.Name})
-	RunMds(mds, info=info, repeats=1)
+	#RunMds(mds, info=info, repeats=0)
+	RunMds(mds, info=info, repeats=1).NormalizeView()
 	mds.Close()
 	'''
 	bList = Interpolate(LoadChain(pList[0]), 8, hidIntp=True)

@@ -208,7 +208,7 @@ ams = AtlasMapStore('SubChainMap', True)
 for dn in list(vv.Folder.DatasetNameList)[2:]:
 	vv.Folder.OpenDataset(dn)
 	MainMain('ScMp')
-	ams.AddMap('MapSnapshot').Close()
+	ams.AddMap('MapSnapshot', iconWidth=300).Close()
 del ams
 
 -----------------
