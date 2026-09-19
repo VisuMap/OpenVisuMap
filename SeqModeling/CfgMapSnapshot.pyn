@@ -67,6 +67,7 @@ def MainMapSnapshot(label):
 			pp.GlyphOpacity = 0.002
 			pp.GlyphSize = 1.5
 			vv.EventManager.OnItemsSelected('ss.ExpandSubChains(pp)', pp)
+			pp.Redraw()
 
 MainMapSnapshot(vv.EventSource.Item)
 

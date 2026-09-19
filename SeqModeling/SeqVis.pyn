@@ -234,10 +234,10 @@ class AtlasMapStore():
 		fmList = vv.FindFormList(viewName)
 		if fmList.Count > 0:
 			fm = fmList[fmList.Count - 1]
-			info = MapInfo(fm.Description)
 			item = self.atlas.CaptureItem(fm)
-			item.Name = info.pId
-			item.Id = item.Name
+			info = MapInfo(fm.Description)
+			if info.Has('pId'):
+				item.Id = item.Name = info.pId
 			item.IsHidden = self.hideItems
 			item.CacheImage = True
 			return fm
@@ -1495,7 +1495,6 @@ def SubChainMap():
 
 def CreateSubChainMap(map, pList):
 	ws, waveCount, waveLen = 14, 16, 256
-
 	tm = GetFourier(waveCount=waveCount, waveLen=waveLen)
 	rowList = cs.FourierTransFragment()
 	rsList = []
@@ -1507,7 +1506,7 @@ def CreateSubChainMap(map, pList):
 		rsList.extend([f'{pId}:{idxList[k]}:{idxList[k+1]}' for k in range(0, idxList.Count, 2) ])
 	nt = New.NumberTable( rowList.ToArray() )
 	for k, rs in enumerate(nt.RowSpecList):
-		rs.Name = rsList[k]
+		rs.Id = rs.Name = rsList[k]
 	mds = NewMds(nt, epochs=1000, initExag=6.0, ppl=0.1,
 		glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphOpacity=0.5, glyphSize=1.5)
 	info = MapInfo({'FT':str((ws, waveCount, waveLen)), 'MapType':'SubChains', 'DsName':vv.Dataset.Name})
