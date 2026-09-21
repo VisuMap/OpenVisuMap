@@ -1,5 +1,5 @@
 #MenuLabels ShowData Scanning Info Smoothen Seq Open Web ChmX 3D 3Dx HideIPO MarkHelix MarkBeta \
-# vsSz 'RNA/DNA' Align PID S2 ShSc ScMp TT
+# vsSz 'RNA/DNA' Align PID S2 ShSc ScMp  LnSc 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -63,13 +63,13 @@ def MainMapSnapshot(label):
 			ShowSubChains()
 		case 'ScMp':
 			SubChainMap()
-		case 'TT':
+		case 'LnSc':
 			vv.EventManager.OnItemsSelected('LinkSubChainMap(pp)', pp)
 
 # link a sub-chain map to the main map.
 def LinkSubChainMap(mp):
 	if vv.EventSource.Form.Name == 'MapSnapshot':
-		vv.Map.SelectedItems = [b.Id.split(':')[0] for b in mp.SelectedBodies]
+		vv.Map.SelectedItems = [b.Name.split(':')[0] for b in mp.SelectedBodies]
 	else:  # assuming that the selection is done in the main form.
 		ss.ExpandSubChains(mp)
 		

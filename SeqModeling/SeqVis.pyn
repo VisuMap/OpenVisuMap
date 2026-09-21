@@ -1473,7 +1473,7 @@ def SubChainMap():
 	tm = GetFourier(waveCount=16, waveLen=512)
 	rowList = cs.FourierTransFragment()
 	rowIdList = []
-	rsList = []
+	nameList, typeList = [], []
 	for chId in subChains.keys():
 		bList = Interpolate(LoadChain(chId), 8, hidIntp=True)
 		cs.SmoothenSeq(bList, ws)
@@ -1486,30 +1486,40 @@ def SubChainMap():
 		rowSec = cs.FourierTransFragment(bList, idxList, tm)
 		rowList.AddRange( rowSec )
 		rowIdList.extend( rIds )
-		rsList.extend([f'{chId}:{idxList[k]}:{idxList[k+1]}' for k in range(0, idxList.Count, 2) ])
+		nameList.extend([f'{chId}:{idxList[k]}:{idxList[k+1]}' for k in range(0, idxList.Count, 2) ])
+		typeList.extend([bList[0].Type for k in range(idxList.Count//2)])
 	nt = New.NumberTable( rowList.ToArray() )
 	for k, rs in enumerate(nt.RowSpecList):
 		rs.Id = rowIdList[k]
-		rs.Name = rsList[k]
+		rs.Name = nameList[k]
+		rs.Type = typeList[k]
 	mds = NewMds(nt, epochs=1000, initExag=8.0, ppl=0.05, 
 		glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphOpacity=0.25)
 	RunMds(mds, repeats=0)
 
 def CreateSubChainMap(map, pList):
+	if map.Name != 'MainForm':
+		vv.Message('This operation is valid only for MainForm parent')
+		return
 	ws, waveCount, waveLen = 14, 16, 256
 	tm = GetFourier(waveCount=waveCount, waveLen=waveLen)
 	rowList = cs.FourierTransFragment()
-	rsList = []
+	nameList = []
+	typeList = []
 	for pId in pList:
 		bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
 		idxList = cs.FragmentChain(bList, ws)
 		rowSec = cs.FourierTransFragment(bList, idxList, tm)
 		rowList.AddRange( rowSec )
-		rsList.extend([f'{pId}:{idxList[k]}:{idxList[k+1]}' for k in range(0, idxList.Count, 2) ])
+		nameList.extend([f'{pId}:{idxList[k]}:{idxList[k+1]}' for k in range(0, idxList.Count, 2)])
+		subChType = vv.Dataset.BodyForId(pId).Type
+		typeList.extend([subChType for k in range(idxList.Count//2)])
 		vv.DoEvents()
 	nt = New.NumberTable( rowList.ToArray() )
 	for k, rs in enumerate(nt.RowSpecList):
-		rs.Id = rs.Name = rsList[k]
+		rs.Id = nameList[k].replace(':', '_')
+		rs.Name = nameList[k]
+		rs.Type = typeList[k]
 	mds = NewMds(nt, epochs=1000, initExag=6.0, ppl=0.1,
 		glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphOpacity=0.5, glyphSize=1.5)
 	info = MapInfo({'FT':str((ws, waveCount, waveLen)), 'MapType':'SubChains', 'DsName':vv.Dataset.Name})
