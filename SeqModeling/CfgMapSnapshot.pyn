@@ -64,10 +64,16 @@ def MainMapSnapshot(label):
 		case 'ScMp':
 			SubChainMap()
 		case 'TT':
-			pp.GlyphOpacity = 0.002
-			pp.GlyphSize = 1.5
-			vv.EventManager.OnItemsSelected('ss.ExpandSubChains(pp)', pp)
-			pp.Redraw()
+			vv.EventManager.OnItemsSelected('LinkSubChainMap(pp)', pp)
+
+# link a sub-chain map to the main map.
+def LinkSubChainMap(mp):
+	if vv.EventSource.Form.Name == 'MapSnapshot':
+		vv.Map.SelectedItems = [b.Id.split(':')[0] for b in mp.SelectedBodies]
+	else:  # assuming that the selection is done in the main form.
+		ss.ExpandSubChains(mp)
+		
+
 
 MainMapSnapshot(vv.EventSource.Item)
 

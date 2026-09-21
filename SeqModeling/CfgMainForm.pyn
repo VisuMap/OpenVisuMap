@@ -204,12 +204,14 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 MainMain(vv.EventSource.Item)
 
 '''
-ams = AtlasMapStore('SubChainMap', True)
-for dn in list(vv.Folder.DatasetNameList)[2:]:
-	vv.Folder.OpenDataset(dn)
-	MainMain('ScMp')
-	ams.AddMap('MapSnapshot', iconWidth=300).Close()
-del ams
+def SubChainLoop(atlasName):
+	atStore = AtlasMapStore(atlasName, True)
+	for dn in list(vv.Folder.DatasetNameList)[2:]:
+		vv.Folder.OpenDataset(dn)
+		MainMain('ScMp')
+		atStore.AddMap('MapSnapshot', iconWidth=500).Close()
+
+SubChainLoop('SubChainMap1')
 
 -----------------
 

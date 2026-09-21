@@ -565,7 +565,7 @@ def CleanupAllCache():
 
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'All', '')
+ImportPDBList(sList, 'Ribosome', '')
 
 CleanupAllCache()
 
