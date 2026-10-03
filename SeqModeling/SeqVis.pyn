@@ -59,13 +59,12 @@ public void SwapHiddenBodies(List<IBody> bsList) {
 public List<IBody> SetBodyType(List<IBody> bList, string pId=null, int bType=1) {
 	foreach(var b in bList){
 		if (pId == null) {
-			b.Type = (short)bType;
 			b.Disabled = false;
 			b.Hidden = false;
-		} else {
-			b.Id = pId ;
+		} else 
+			b.Id = pId;
+		if (bType >= 0)
 			b.Type = (short)bType;
-		}
 	}
 	return bList;
 }
@@ -1211,7 +1210,7 @@ def Merge3DList(pList):
 	info.pCnt = len(pList)
 	ShowBodyList(bs, gSize=1.0, gOpacity=0.75, info=info)
 
-def MergeChains(chainList, pList):
+def MergeChains(chainList, pList, keepType=False):
 	import statistics
 	bs = New.BodyList()
 	for k, bList in enumerate(chainList):
@@ -1222,7 +1221,8 @@ def MergeChains(chainList, pList):
 			zc = statistics.mean([b.Z for b in bList])
 		else:
 			cs.CenteringBodyList(bList, xc, yc, zc)
-		bList = ss.SetBodyType(bList, pId=pList[k], bType=k)
+		type = k if keepType==False else -1
+		bList = ss.SetBodyType(bList, pId=pList[k], bType=type)
 		bList[0].Type = SeqMap_HEAD
 		bList[bList.Count-1].Type = SeqMap_TAIL
 		bs.AddRange(bList)
@@ -1456,8 +1456,11 @@ def ShowSubChains():
 			ch = LoadChain(id)
 			ch = Interpolate(ch, 8)
 			chList[id] = ch
-		chainDict[b.Id] = ch.GetRange(i0, i1-i0)		
-	bs = MergeChains(chainDict.values(), list(chainDict.keys()))
+		ch = ch.GetRange(i0, i1-i0)
+		for bd in ch:
+			bd.Type = b.Type
+		chainDict[b.Id] = ch
+	bs = MergeChains(chainDict.values(), list(chainDict.keys()), keepType=True)
 	ShowBodyList(bs)
 
 def SubChainMap():
@@ -1471,7 +1474,7 @@ def SubChainMap():
 		subChains[chId].append( (b.Id, idx0, idx1) )	
 	ws = 14
 	tm = GetFourier(waveCount=16, waveLen=512)
-	rowList = cs.FourierTransFragment()
+	rowList = cs.FragmentFT()
 	rowIdList = []
 	nameList, typeList = [], []
 	for chId in subChains.keys():
@@ -1483,7 +1486,7 @@ def SubChainMap():
 			idxList.Add(v[1])
 			idxList.Add(v[2])
 			rIds.append(v[0])
-		rowSec = cs.FourierTransFragment(bList, idxList, tm)
+		rowSec = cs.FragmentFT(bList, idxList, tm)
 		rowList.AddRange( rowSec )
 		rowIdList.extend( rIds )
 		nameList.extend([f'{chId}:{idxList[k]}:{idxList[k+1]}' for k in range(0, idxList.Count, 2) ])

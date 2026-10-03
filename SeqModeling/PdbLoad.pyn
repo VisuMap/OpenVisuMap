@@ -458,8 +458,9 @@ def ImportPDBList(sList, dsName, dsDescription=''):
 		print(msg)
 		vv.Message(msg)
 	ds = vv.Dataset
-	if ds.Description != '': ds.Description += '; '
-	ds.Description += f'Dim:{ds.Rows}x{ds.Columns}'
+	info = MapInfo(ds.Description)
+	info.Set('Dim', f'{ds.Rows}x{ds.Columns}')
+	ds.Description = info.Str
 	ds.CommitChanges()
 	ColorChainMap()
 	vv.ClickMenu('Edit/Transform Map/Normalize Map')
@@ -565,7 +566,7 @@ def CleanupAllCache():
 
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'C-Elegans', '')
+ImportPDBList(sList, 'Yeast', 'Description:Scientific Name of the Source Organism = "Saccharomyces cerevisiae"')
 
 CleanupAllCache()
 
