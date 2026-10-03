@@ -887,7 +887,7 @@ namespace VisuMap {
             return idxList2;
         }
 
-        public List<double[]> FourierTransFragment(List<IBody> bList=null, List<int> idxList=null, INumberTable tm=null) {
+        public List<double[]> FragmentFT(List<IBody> bList=null, List<int> idxList=null, INumberTable tm=null) {
             if (bList == null)
                 return new List<double[]>();
             int L = idxList.Count / 2;

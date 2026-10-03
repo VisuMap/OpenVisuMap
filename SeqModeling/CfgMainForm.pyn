@@ -57,7 +57,7 @@ def MainMain(menuKey):
 			ppl_ = round(2000.0/len(pList), 4)
 			ppl_ = np.clip(ppl_, 0.01, 0.2)
 			def PM2(*args, **kwargs):
-				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 10, 0), is3D=False,
+				ProteinMap2(pList,vt,1000, save2Map=vt, filterP=(0.0, 10, 0), is3D=True,
 					gSize=1.0, justShDt=ctrPressed, *args,**kwargs)
 			#vcList = ['sFT', 'tFT', 'pFT', 'mwV']
 			vcList = ['mwV']
@@ -209,9 +209,10 @@ def SubChainLoop(atlasName):
 	for dn in list(vv.Folder.DatasetNameList)[2:]:
 		vv.Folder.OpenDataset(dn)
 		MainMain('ScMp')
-		atStore.AddMap('MapSnapshot', iconWidth=500).Close()
+		atStore.AddMap('MapSnapshot', iconWidth=350).Close()
 
 SubChainLoop('SubChainMap1')
+
 
 -----------------
 
