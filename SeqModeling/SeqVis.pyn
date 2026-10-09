@@ -880,16 +880,7 @@ def UpdateComplex(vs):
 	mp1.Redraw()
 	mp.Redraw()
 	vv.SelectedItems = [ 'WS.'+str(ws+i) for i in range(20) ]
-	ScalingMap(mp, vv.EventSource.Argument, ws, 40, 0.25)
-	ScalingMap(mp, vv.EventSource.Argument, ws, 100, 0.5)
-
-def ScalingMap(mp, oldWs, newWs, refWs, ratio):
-	if oldWs is None: return
-	oldWs = int(oldWs)
-	if oldWs < refWs and newWs >= refWs:
-		mp.ZoomByFactor(ratio)
-	elif oldWs >= refWs and newWs < refWs:
-		mp.ZoomByFactor(1.0/ratio)
+	mp.ScaleGated(2.5)
 
 def SmoothenComplex(pId, singleChain=False, intp=8):
 	global ctrPressed
@@ -922,8 +913,8 @@ def SmoothenComplex(pId, singleChain=False, intp=8):
 
 	w, h = 1000, 800
 	mp.Resize(100, 100, w, h)
-	mp1.Resize(mp.Left + w-12, 100, w, h)
-	vs.Resize(400, mp.Top+mp.Height-8, 1300, 100)
+	mp1.Resize(mp.Left + w-14, 100, w, h)
+	vs.Resize(400, mp.Top+mp.Height-6, 1300, 100)
 
 
 #-------------------------------------------------------------------
