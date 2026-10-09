@@ -124,7 +124,7 @@ def DoSimpleMenues(menuKey, pId, pList):
 		case 'Align':  # align the DNA seq of two selected chain.
 			AlignSeqPair(pList)
 		case 'SM':
-			SmoothenComplex(pId, singleChain=True)
+			SmoothenComplex(pId, singleChain=True, intp=32)
 		case 'SMx':
 			SmoothenComplex(pId, singleChain=False, intp=32)
 		case 'S2':
@@ -210,7 +210,7 @@ def SubChainLoop(atlasName):
 		MainMain('ScMp')
 		atStore.AddMap('MapSnapshot', iconWidth=350).Close()
 
-SubChainLoop('SubChainMap1')
+SubChainLoop('SubChainMap2')
 
 
 -----------------

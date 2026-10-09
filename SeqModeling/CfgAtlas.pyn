@@ -36,6 +36,11 @@ def AtlasMain(menuKey):
 			vv.GuiManager.TileAllWindows(mpList)
 		case '2Ds':
 			Merge2DList(pp)
+		case 'Info':
+			if pp.SelectedItems.Count>0:
+				ShowInfo( pp.SelectedItems[0].Load() )
+			else:
+				ShowInfo(pp)
 		case 'TT':		
 			ShowPDB(pId, intp=32, glyphSize=2.0,  includeHA=False, hidIntp=True, chainNames=GetChainName(pId))
 		case _:

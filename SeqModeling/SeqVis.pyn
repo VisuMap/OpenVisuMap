@@ -93,6 +93,14 @@ public void CopyToXYZ(List<IBody> bList1, List<IBody> bList2) {
 	}
 } 
 
+public void DiffBodyList(List<IBody> bList, List<IBody> meanList, List<IBody> tgtList) {
+	for(int k=0; k<bList.Count; k++) 
+		tgtList[k].SetXYZ(
+			bList[k].X - meanList[k].X, 
+			bList[k].Y - meanList[k].Y, 
+			bList[k].Z - meanList[k].Z);
+}
+
 public void HideInterpolation(List<IBody> bList) {
 	foreach(var b in bList)
 			b.Hidden = (b.Id[0] == 'i');
@@ -863,36 +871,60 @@ def ShowBodyList(bList, gSize=1.5, gOpacity=0.5, hSize=3, normalize=True, info=N
 	return mp
 
 def UpdateComplex(vs):
-	mp, bList = vs.Tag
-	if IsCreated(mp):
-		ws = int(vs.CurrentValue)
-		vs.CurrentValue = ws
-		ss.CopyToXYZ(bList, mp.BodyList)
-		cs.SmoothenSeq(mp.BodyList, ws)
-		mp.Redraw()
-		vv.SelectedItems = [ 'WS.'+str(ws+i) for i in range(20) ]
+	mp, mp1, bList = vs.Tag	
+	ws = int(vs.CurrentValue)
+	vs.CurrentValue = ws
+	ss.CopyToXYZ(bList, mp1.BodyList)
+	cs.SmoothenSeq(mp1.BodyList, ws)
+	ss.DiffBodyList(bList, mp1.BodyList, mp.BodyList)
+	mp1.Redraw()
+	mp.Redraw()
+	vv.SelectedItems = [ 'WS.'+str(ws+i) for i in range(20) ]
+	ScalingMap(mp, vv.EventSource.Argument, ws, 40, 0.25)
+	ScalingMap(mp, vv.EventSource.Argument, ws, 100, 0.5)
 
+def ScalingMap(mp, oldWs, newWs, refWs, ratio):
+	if oldWs is None: return
+	oldWs = int(oldWs)
+	if oldWs < refWs and newWs >= refWs:
+		mp.ZoomByFactor(ratio)
+	elif oldWs >= refWs and newWs < refWs:
+		mp.ZoomByFactor(1.0/ratio)
 
 def SmoothenComplex(pId, singleChain=False, intp=8):
+	global ctrPressed
 	if pId == None:
 		vv.Message('No polymer selected!')
 		return
 	chNames = GetChainName(pId) if singleChain else None
-	mp = ShowPDB(pId, intp=intp, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=True,
+
+	mp = ShowPDB(pId, intp=intp, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=False,
 		setChainId=False, typeByChainIdx=False, unifyId=False, chainNames=chNames)
+	mp1 = ShowPDB(pId, intp=intp, hidIntp=True, glyphSize=1.5, includeHA=False, matchPid=False,
+		setChainId=False, typeByChainIdx=False, unifyId=False, chainNames=chNames)
+
 	maxWS = cs.MaxChainLen(mp.BodyList)
 	vs = New.ValueSelector(0, maxWS, 14, 'UpdateComplex(pp)')
+	vs.Tag = mp, mp1, New.BodyListClone(mp.BodyList)
 	vs.Title = 'Moving Window Size'
 	vs.StepSize = 1
-	vs.Tag = mp, New.BodyListClone(mp.BodyList)
-	vs.OnClose('pp.Tag[0].Close()')
+	vs.OnClose('for i in [0,1]:pp.Tag[i].Close()')
 	vs.NumberFormat = 'f0'
-	vs.ResizeClient(1000, 100)
 	vs.ReadOnly = True
+	vs.MaxValue = 1500
 	vs.Show2()
 	UpdateComplex(vs)
+
 	mp.CentralizeView(False)
-	mp.ZoomByFactor(12.0)
+	mp.ZoomByFactor(8.0)
+	mp1.CentralizeView(False)
+	mp1.ZoomByFactor(12.0)
+
+	w, h = 1000, 800
+	mp.Resize(100, 100, w, h)
+	mp1.Resize(mp.Left + w-12, 100, w, h)
+	vs.Resize(400, mp.Top+mp.Height-8, 1300, 100)
+
 
 #-------------------------------------------------------------------
 
