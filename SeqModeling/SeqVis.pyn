@@ -199,6 +199,8 @@ def ShowInfo(pp):
 	info = MapInfo(desc)
 	winTitle = pp.Name + ': ' + pp.Title
 	New.TextPanel(winTitle, info.Text).Show()
+	if info.Has('pId'):
+		vv.SelectedItems = [info.pId]
 
 def ShowTwistMap(pId, maxWsRows=1024, winSz=800):
 	if pId == None:
@@ -895,14 +897,14 @@ def SmoothenComplex(pId, singleChain=False, intp=8):
 		setChainId=False, typeByChainIdx=False, unifyId=False, chainNames=chNames)
 
 	maxWS = cs.MaxChainLen(mp.BodyList)
-	vs = New.ValueSelector(0, maxWS, 14, 'UpdateComplex(pp)')
+	vs = New.ValueSelector(0, maxWS, 14*intp//8, 'UpdateComplex(pp)')
 	vs.Tag = mp, mp1, New.BodyListClone(mp.BodyList)
 	vs.Title = 'Moving Window Size'
-	vs.StepSize = 1
+	vs.StepSize = 2
 	vs.OnClose('for i in [0,1]:pp.Tag[i].Close()')
 	vs.NumberFormat = 'f0'
 	vs.ReadOnly = True
-	vs.MaxValue = 1500
+	vs.MaxValue = mp.BodyList.Count//2
 	vs.Show2()
 	UpdateComplex(vs)
 

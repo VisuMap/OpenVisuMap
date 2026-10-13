@@ -264,6 +264,7 @@ def LoadChains(pId):
 	try:
 		_, bList, _, pdbTitle = LoadCifData(pId)
 	except Exception as ex :
+		print('Exception from LoadChains():  ', ex)
 		return None, None, None
 
 	if (bList == None) or (len(bList) == 0):
@@ -304,7 +305,7 @@ def LoadAllChains(pList=None):
 		vv.Message('Current dataset has invalid format: pid;repeats;seq;len;chainName')
 		return
 	if pList == None:
-		pList = [f[:4] for f in os.listdir(GetPDB_CACHE()) if f.endswith('.cif')]	
+		pList = [f[:4] for f in os.listdir(GetPDB_CACHE()) if f.endswith('.cif')]
 	chCount = 0
 	pTable = New.FreeTable()
 	pTable.AddColumn('Chains', True)
@@ -447,7 +448,7 @@ def ImportPDBList(sList, dsName, dsDescription=''):
 
 	pList = sList.upper().split(',')
 	pList = PreloadPDB(pList)
-	InitDatabase(dsName, dsDescription)
+	InitDatabase(dsName, '')
 	infoTable, loaded, skipped = LoadAllChains(pList)
 	MergeTableToDataset(infoTable, "P-Info")
 	vv.Map.Randomize()
@@ -457,13 +458,12 @@ def ImportPDBList(sList, dsName, dsDescription=''):
 		msg = f'Skipped {len(skipped)} cif files: {skList}'
 		print(msg)
 		vv.Message(msg)
-	ds = vv.Dataset
-	info = MapInfo(ds.Description)
-	info.Set('Dim', f'{ds.Rows}x{ds.Columns}')
-	ds.Description = info.Str
-	ds.CommitChanges()
+	
+	vv.Dataset.Description = f'DataDsc:{dsDescription}'
+	vv.Dataset.CommitChanges()
 	ColorChainMap()
 	vv.ClickMenu('Edit/Transform Map/Normalize Map')
+	vv.Map.Description = vv.Dataset.Description
 		
 def ToChainList(pList):
 	pSet = set(pList)
@@ -566,7 +566,17 @@ def CleanupAllCache():
 
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-ImportPDBList(sList, 'Yeast', 'Description:Scientific Name of the Source Organism = "Saccharomyces cerevisiae"')
+QueryStr = """      Total Number of Polymer Instances (Chains) > 25
+      AND
+      Experimental Method (Broader Categories) = "EM"
+      AND
+            Refinement Resolution = [ 0.5 - 3.5 ]
+            AND
+            Scientific Name of the Source Organism = "Escherichia coli"
+"""
+ImportPDBList('10QM,11BQ', 'XXX', QueryStr)
+
+ImportPDBList(sList, 'E-Coli25Chains', QueryStr)
 
 CleanupAllCache()
 
