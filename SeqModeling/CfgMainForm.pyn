@@ -205,13 +205,14 @@ MainMain(vv.EventSource.Item)
 '''
 def SubChainLoop(atlasName):
 	atStore = AtlasMapStore(atlasName, True)
-	for dn in list(vv.Folder.DatasetNameList)[2:]:
+	dsList = list(vv.Folder.DatasetNameList)[2:]
+	for k, dn in enumerate(dsList):
+		print(f'{dn}: {k+1}-th out of {len(dsList)}') 
 		vv.Folder.OpenDataset(dn)
 		MainMain('ScMp')
 		atStore.AddMap('MapSnapshot', iconWidth=350).Close()
 
-SubChainLoop('SubChainMap2')
-
+SubChainLoop('SubChainMap6')
 
 -----------------
 

@@ -566,17 +566,19 @@ def CleanupAllCache():
 
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-QueryStr = """      Total Number of Polymer Instances (Chains) > 25
+QueryStr = """Structure Keywords HAS EXACT PHRASE "RIBOSOME"
+AND
+      Experimental Method = "ELECTRON MICROSCOPY"
       AND
-      Experimental Method (Broader Categories) = "EM"
+      Total Number of Polymer Instances (Chains) >= 50
       AND
-            Refinement Resolution = [ 0.5 - 3.5 ]
-            AND
+            Scientific Name of the Source Organism = "Homo sapiens"
+            OR
             Scientific Name of the Source Organism = "Escherichia coli"
+      AND
+      Parent Scientific Name (typically superkingdom or clade) = "Eukaryota"
 """
-ImportPDBList('10QM,11BQ', 'XXX', QueryStr)
-
-ImportPDBList(sList, 'E-Coli25Chains', QueryStr)
+ImportPDBList(sList, 'Ribosome50Chains', QueryStr)
 
 CleanupAllCache()
 
