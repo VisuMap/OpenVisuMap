@@ -876,12 +876,15 @@ namespace VisuMap {
             // merging neighboring fragments
             List<int> idxList2 = new List<int>();
             int L = idxList.Count;
-            for (int k = 0; k < L-2; k += 4) {
+            const int S = 4;  // merging S indexes into 2.
+            for (int k = 0; k < L - S + 1; k += S) {
                 idxList2.Add(idxList[k]);
-                idxList2.Add(idxList[k+3]);
+                idxList2.Add(idxList[k + S - 1]);
             }
-            if ( L%4 != 0) {
-                idxList2.Add(idxList[L - 2]);
+            // Merging the rest tail to a pair. 
+            int rst = L % S;
+            if (rst != 0) {
+                idxList2.Add(idxList[L - rst]);
                 idxList2.Add(idxList[L - 1]);
             }
             return idxList2;

@@ -50,7 +50,13 @@ def Map3DMain(menuKey):
 		case '<Init>':
 			SetupABC(pp)
 		case 'TT':
-			pass
+			ShowSelectedSeq()
+
+def ShowSelectedSeq():
+	selected = set(pp.SelectedBodies)
+	seq = [b.Name[0] for b in pp.BodyList if b in selected and b.Id[0] != 'i']
+	seq = ''.join(seq)
+	New.TextPanel('', seq).Show()
 
 def Tracing():
 	ob = New.Body()

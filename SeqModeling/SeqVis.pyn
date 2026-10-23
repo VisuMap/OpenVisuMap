@@ -879,10 +879,11 @@ def UpdateComplex(vs):
 	ss.CopyToXYZ(bList, mp1.BodyList)
 	cs.SmoothenSeq(mp1.BodyList, ws)
 	ss.DiffBodyList(bList, mp1.BodyList, mp.BodyList)
-	mp1.Redraw()
-	mp.Redraw()
-	vv.SelectedItems = [ 'WS.'+str(ws+i) for i in range(20) ]
-	mp.ScaleGated(2.5)
+	if IsCreated(mp1):
+		mp1.Redraw()
+	if IsCreated(mp):
+		mp.Redraw()
+		mp.ScaleGated(2.5)
 
 def SmoothenComplex(pId, singleChain=False, intp=8):
 	global ctrPressed
@@ -1238,6 +1239,7 @@ def Merge3DList(pList):
 def MergeChains(chainList, pList, keepType=False):
 	import statistics
 	bs = New.BodyList()
+	singleChain = len(chainList) == 1
 	for k, bList in enumerate(chainList):
 		bList = cs.PcaNormalizePositive(New.NumberTable(bList, 3)).ToBodyList()	
 		if k == 0:
@@ -1247,7 +1249,10 @@ def MergeChains(chainList, pList, keepType=False):
 		else:
 			cs.CenteringBodyList(bList, xc, yc, zc)
 		type = k if keepType==False else -1
-		bList = ss.SetBodyType(bList, pId=pList[k], bType=type)
+		if singleChain:
+			bList = ss.SetBodyType(bList, bType=type)
+		else:
+			bList = ss.SetBodyType(bList, pId=pList[k], bType=type)
 		bList[0].Type = SeqMap_HEAD
 		bList[bList.Count-1].Type = SeqMap_TAIL
 		bs.AddRange(bList)
