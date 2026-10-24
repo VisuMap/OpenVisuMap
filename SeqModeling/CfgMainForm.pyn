@@ -107,7 +107,7 @@ def MainMain(menuKey):
 		case 'ScMp':
 			CreateSubChainMap(pp, pList)
 		case 'TT':
-			pass
+			MarkAllHelix(pId)
 		case _:
 			DoSimpleMenues(menuKey, pId, pList)
 
@@ -158,6 +158,35 @@ def DoSimpleMenues(menuKey, pId, pList):
             #UnFoldProteinList(pList, includeHA=False, wholeComplex=False, samplingDist=0.0, iconWidth=50, tP=(2000,8,28, 0.15,4.0,1.0) )
 
 # ---------------------------------------------------------------------------------------
+def MarkAllHelix(pId):
+	bList = LoadChain(pId)
+	cs.MovingWindowMean(bList, 0)
+	vList = cs.TeterahedronVolume(bList)
+	bv = New.BarView(vList)
+	bv.BaseLineType = 0
+	bv.Description = f'pId:{pId}'
+	bv.Show()
+	hList=[]
+	hChain = None
+	for p in vList:
+		if p.Value>5.0 and p.Value<9.5:
+			if hChain == None:
+				hChain = [p.Id]
+			else:
+				hChain.append(p.Id)
+		else:
+			if hChain != None and len(hChain)>= 9:
+				hList.extend(hChain)
+			hChain = None
+	if hChain != None and len(hChain)>= 9:
+		hList.extend(hChain)
+	hSet = set(hList)
+	for b in bList:
+		if b.Id in hSet: 
+			b.Name += 'H'
+	mp = ShowBodyList(Interpolate(bList, 8))
+	mp.Description = f'pId:{pId}'
+	vv.SelectedItems = [b.Id for b in mp.BodyList if b.Name[-1]=='H']			
 
 def ShowSeqTwist(pId, maxWsRows=4096, winSz=500, xyzSet='' ):
 	if pId == None:
@@ -212,7 +241,7 @@ def SubChainLoop(atlasName):
 		MainMain('ScMp')
 		atStore.AddMap('MapSnapshot', iconWidth=350).Close()
 
-SubChainLoop('SubChainMap6')
+SubChainLoop('SubChainMap7')
 
 -----------------
 

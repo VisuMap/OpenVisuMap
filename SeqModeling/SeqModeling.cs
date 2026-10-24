@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Vector3 = SharpDX.Vector3;
 using Quaternion = SharpDX.Quaternion;
+using Matrix4 = SharpDX.Matrix;
 using MathNet.Numerics.Interpolation;
 using VisuMap.Clustering;
 using VisuMap.Script;
@@ -17,6 +18,7 @@ namespace VisuMap {
             this.vv = VisuMapImp.GetVisuMapImp();
             this.New = vv.New;
         }
+
 
         public List<IBody> LocalExpand(List<IBody> bList, double factor) {
             Dictionary<short, double[]> centers = new Dictionary<short, double[]>();
@@ -358,6 +360,24 @@ namespace VisuMap {
             nt.RowSpecList[1].Id = "TorsionB";
             CalculateTorsions(P, (double[])nt.Matrix[0], (double[])nt.Matrix[1]);
             return nt;
+        }
+
+        public List<IValueItem> TeterahedronVolume(List<IBody> bList) {
+            IValueItem[] vs = new IValueItem[bList.Count - 3];
+            MT.Loop(0, bList.Count - 3, k => {
+                IBody A = bList[k];
+                IBody B = bList[k + 1];
+                IBody C = bList[k + 2];
+                IBody D = bList[k + 3];
+                Matrix4 M = new Matrix4(
+                    (float)A.X, (float)A.Y, (float)A.Z, 1.0f,
+                    (float)B.X, (float)B.Y, (float)B.Z, 1.0f,
+                    (float)C.X, (float)C.Y, (float)C.Z, 1.0f,
+                    (float)D.X, (float)D.Y, (float)D.Z, 1.0f
+                    );
+                vs[k] = New.ValueItem(A.Id, A.Name, -M.Determinant() / 6.0, A.Type);
+            });
+            return vs.ToList();
         }
 
 

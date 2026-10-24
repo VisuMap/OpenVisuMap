@@ -1555,7 +1555,7 @@ def CreateSubChainMap(map, pList, is3D=False):
 		rs.Id = nameList[k].replace(':', '_')
 		rs.Name = nameList[k]
 		rs.Type = typeList[k]
-	mds = NewMds(nt, epochs=1000, initExag=6.0, ppl=0.1, is3D=is3D,
+	mds = NewMds(nt, epochs=1000, initExag=6.0, ppl=0.05, is3D=is3D,
 		glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphOpacity=0.25, glyphSize=0.4)
 	info = MapInfo({'FT':str((ws, waveCount, waveLen)), 'MapType':'SubChains', 'DsName':vv.Dataset.Name})
 	#RunMds(mds, info=info, repeats=0)

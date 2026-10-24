@@ -1,4 +1,4 @@
-#MenuLabels PID
+#MenuLabels Info
 match vv.EventSource.Item:
-	case 'PID': 
-		vv.SelectedItems = MapInfo(pp.Description).pId.split(',')
+	case 'Info':
+		ShowInfo(pp)
