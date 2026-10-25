@@ -364,18 +364,12 @@ namespace VisuMap {
 
         public List<IValueItem> TeterahedronVolume(List<IBody> bList) {
             IValueItem[] vs = new IValueItem[bList.Count - 3];
+            var P = bList.Select(b => b.ToV3()).ToArray();
             MT.Loop(0, bList.Count - 3, k => {
-                IBody A = bList[k];
-                IBody B = bList[k + 1];
-                IBody C = bList[k + 2];
-                IBody D = bList[k + 3];
-                Matrix4 M = new Matrix4(
-                    (float)A.X, (float)A.Y, (float)A.Z, 1.0f,
-                    (float)B.X, (float)B.Y, (float)B.Z, 1.0f,
-                    (float)C.X, (float)C.Y, (float)C.Z, 1.0f,
-                    (float)D.X, (float)D.Y, (float)D.Z, 1.0f
-                    );
-                vs[k] = New.ValueItem(A.Id, A.Name, -M.Determinant() / 6.0, A.Type);
+                Vector3 A = P[k + 1] - P[k];
+                Vector3 B = P[k + 2] - P[k];
+                Vector3 C = P[k + 3] - P[k];
+                vs[k] = New.ValueItem(bList[k], Vector3.Dot(A, Vector3.Cross(B, C)) / 6.0);
             });
             return vs.ToList();
         }
