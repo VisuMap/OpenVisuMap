@@ -797,7 +797,8 @@ def NewDataset(S, aaClusters, decay=1.0, augCfg='a|500|2.0|2.0', intp=8):
 #-----------------------------------------------------------------------------
 
 def NewMds(nt=None, epochs=1000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0.1, staged=False, zoomFactor=10.0,
-		repeats=1, metric='EuclideanMetric', glyphSet=None, glyphSize=0.5, glyphOpacity=1.0, refreshFreq=50, glyphScale=10.0):
+		repeats=1, metric='EuclideanMetric', glyphSet=None, glyphSize=0.5, winWidth=1200, winHeight=1200,
+		glyphOpacity=1.0, refreshFreq=50, glyphScale=10.0):
 	vv.Map.HiddenGlyphSize = 2
 	vv.Map.HiddenGlyphColor = New.Color('Yellow')
 	mds = New.MdsCluster(nt)
@@ -811,8 +812,8 @@ def NewMds(nt=None, epochs=1000, is3D=False, initExag=10.0, finalExag=1.0, ppl=0
 	mds.Metric = metric
 	mds.Repeats = repeats
 	mds.ReadOnly = True
-	mds.Width = 1200
-	mds.Height = 1200
+	mds.Width = winWidth
+	mds.Height = winHeight
 	mds.Is3D = is3D
 	mds.AutoNormalizing =True
 	mds.GlyphOpacity = glyphOpacity

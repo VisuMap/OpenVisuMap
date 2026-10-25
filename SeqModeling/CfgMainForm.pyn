@@ -160,32 +160,52 @@ def DoSimpleMenues(menuKey, pId, pList):
 # ---------------------------------------------------------------------------------------
 def MarkAllHelix(pId):
 	bList = LoadChain(pId)
-	cs.MovingWindowMean(bList, 0)
 	vList = cs.TeterahedronVolume(bList)
 	bv = New.BarView(vList)
 	bv.BaseLineType = 0
-	bv.Description = f'pId:{pId}'
 	bv.Show()
+
+	# Create mp
+	minV, maxV, minLen = 5.0, 9.5, 7
 	hList=[]    # helix index ranges.
 	hBegin = -1 # the begin index of the current helix.
-	minV, maxV, minLen = 5.0, 9.5, 7
 	for k, p in enumerate(vList):
 		if p.Value>minV and p.Value<maxV:
-			if hBegin < 0: 
-				hBegin = k
+			if hBegin < 0: hBegin = k
 		else:
 			if hBegin >= 0:
-				if k-hBegin >= minLen:
-					hList.append((hBegin, k))
+				if k-hBegin >= minLen: hList.append((hBegin, k))
 				hBegin = -1
 	if hBegin >= 0 and (vList.Count-hBegin) >= minLen:
 		hList.append((hBegin, vList.Count))
 	for i,j in hList:
-		for k in range(i, j):
-			bList[k].Name += 'H'
+		for k in range(i, j): bList[k].Name += 'H'
 	mp = ShowBodyList(Interpolate(bList, 8))
-	mp.Description = f'pId:{pId}'
-	vv.SelectedItems = [b.Id for b in mp.BodyList if b.Name[-1]=='H']			
+	cBody = None
+	for b in mp.BodyList:
+		if b.Id[0] == 'i':
+			b.Id = cBody.Id
+		else:
+			cBody = b
+
+	# Create mp2
+	mds = NewMds(New.NumberTable(mp.BodyList, 3), winHeight=800)
+	mds.GlyphSize = 0.5 * mp.GlyphSize
+	mds.GlyphOpacity = mp.GlyphOpacity
+	mds.GlyphSet = mp.GlyphSet
+	mp2 = RunMds(mds, repeats=1)
+	for k, b in enumerate(mp.BodyList):
+		mp2.BodyList[k].Id = b.Id
+	mds.Close()
+
+	# Link views together.
+	info = MapInfo({'pId':pId})
+	for fm in [bv, mp, mp2]: info.Save(fm)
+	bv.Tag = [mp, mp2]
+	bv.OnClose('for f in pp.Tag: f.Close()')
+	allHelix = [b.Id for b in mp.BodyList if b.Name[-1]=="H"]
+	bv.AddContextMenu('ShHelix', 'vv.SelectedItems = vv.EventSource.Item', allHelix)
+	bv.ClickMenu('ShHelix')
 
 def ShowSeqTwist(pId, maxWsRows=4096, winSz=500, xyzSet='' ):
 	if pId == None:
