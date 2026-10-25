@@ -166,24 +166,23 @@ def MarkAllHelix(pId):
 	bv.BaseLineType = 0
 	bv.Description = f'pId:{pId}'
 	bv.Show()
-	hList=[]
-	hChain = None
-	for p in vList:
-		if p.Value>5.0 and p.Value<9.5:
-			if hChain == None:
-				hChain = [p.Id]
-			else:
-				hChain.append(p.Id)
+	hList=[]    # helix index ranges.
+	hBegin = -1 # the begin index of the current helix.
+	minV, maxV, minLen = 5.0, 9.5, 7
+	for k, p in enumerate(vList):
+		if p.Value>minV and p.Value<maxV:
+			if hBegin < 0: 
+				hBegin = k
 		else:
-			if hChain != None and len(hChain)>= 9:
-				hList.extend(hChain)
-			hChain = None
-	if hChain != None and len(hChain)>= 9:
-		hList.extend(hChain)
-	hSet = set(hList)
-	for b in bList:
-		if b.Id in hSet: 
-			b.Name += 'H'
+			if hBegin >= 0:
+				if k-hBegin >= minLen:
+					hList.append((hBegin, k))
+				hBegin = -1
+	if hBegin >= 0 and (vList.Count-hBegin) >= minLen:
+		hList.append((hBegin, vList.Count))
+	for i,j in hList:
+		for k in range(i, j):
+			bList[k].Name += 'H'
 	mp = ShowBodyList(Interpolate(bList, 8))
 	mp.Description = f'pId:{pId}'
 	vv.SelectedItems = [b.Id for b in mp.BodyList if b.Name[-1]=='H']			
