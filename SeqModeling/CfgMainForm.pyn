@@ -166,32 +166,35 @@ def MarkAllHelix(pId):
 	bv.Show()
 
 	# Create mp
-	minV, maxV, minLen = 5.0, 9.5, 7
+	minV, minLen = 5.0, 7
 	hList=[]    # helix index ranges.
 	hBegin = -1 # the begin index of the current helix.
 	for k, p in enumerate(vList):
-		if p.Value>minV and p.Value<maxV:
-			if hBegin < 0: hBegin = k
+		if p.Value>minV:
+			if hBegin < 0:
+				hBegin = k
 		else:
 			if hBegin >= 0:
-				if k-hBegin >= minLen: hList.append((hBegin, k))
+				if k-hBegin >= minLen: 
+					hList.append((hBegin, k))
 				hBegin = -1
 	if hBegin >= 0 and (vList.Count-hBegin) >= minLen:
-		hList.append((hBegin, vList.Count))
+		hList.append((hBegin, vList.Count+3))
 	for i,j in hList:
-		for k in range(i, j): bList[k].Name += 'H'
-	mp = ShowBodyList(Interpolate(bList, 8))
-	cBody = None
+		for k in range(i, j): 
+			bList[k].Name += 'H'
+	mp = ShowBodyList(Interpolate(bList, 8), hSize=4, gOpacity=0.175)
+	hd = None
 	for b in mp.BodyList:
 		if b.Id[0] == 'i':
-			b.Id = cBody.Id
+			b.Id, b.Hidden = hd.Id, True
 		else:
-			cBody = b
+			hd = b
 
 	# Create mp2
 	mds = NewMds(New.NumberTable(mp.BodyList, 3), winHeight=800)
 	mds.GlyphSize = 0.5 * mp.GlyphSize
-	mds.GlyphOpacity = mp.GlyphOpacity
+	mds.GlyphOpacity = 4*mp.GlyphOpacity
 	mds.GlyphSet = mp.GlyphSet
 	mp2 = RunMds(mds, repeats=1)
 	for k, b in enumerate(mp.BodyList):
