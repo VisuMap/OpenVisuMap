@@ -164,9 +164,8 @@ def MarkAllHelix(pId):
 	#for k in range(vList.Count): vList[k].Value = bList[k].DistanceTo(bList[k+3])
 	bv = New.BarView(vList)
 	bv.BaseLineType = 0
+	bv.ColorPaletteName = '36 Clusters'
 	bv.Tag = []
-	bv.Show()
-
 
 	# Create mp
 	minV, minLen = 5.0, 7
@@ -186,6 +185,9 @@ def MarkAllHelix(pId):
 	for i,j in hList:
 		for k in range(i, j): 
 			bList[k].Name += 'H'
+			bList[k].Type = 4
+			if k < vList.Count:
+				vList[k].Group = 4
 	mp = ShowBodyList(Interpolate(bList, 8), hSize=4, gOpacity=0.4)
 	mp.HiddenBodyColor = New.Color('Teal')
 	hd = None
@@ -195,9 +197,9 @@ def MarkAllHelix(pId):
 		else:
 			hd = b
 	bv.Tag.append(mp)
+	bv.Show()
 
 	# Create mp2
-	'''
 	mds = NewMds(New.NumberTable(mp.BodyList, 3), ppl=0.25, winHeight=800, refreshFreq=150, epochs=2000)
 	mds.GlyphSize = 0.5 * mp.GlyphSize
 	mds.GlyphOpacity = 4*mp.GlyphOpacity
@@ -207,15 +209,11 @@ def MarkAllHelix(pId):
 		mp2.BodyList[k].Id = b.Id
 	mds.Close()
 	bv.Tag.append(mp2)
-	'''
 
 	# Link views together.
 	info = MapInfo({'pId':pId})
-	for fm in [bv, mp]: info.Save(fm)
+	for fm in [bv, mp, mp2]: info.Save(fm)
 	bv.OnClose('for f in pp.Tag: f.Close()')
-	allHelix = [b.Id for b in mp.BodyList if b.Name[-1]=="H"]
-	bv.AddContextMenu('SeqVis/ShHelix', 'vv.SelectedItems = vv.EventSource.Item', allHelix)
-	bv.ClickMenu('SeqVis/ShHelix')
 
 def ShowSeqTwist(pId, maxWsRows=4096, winSz=500, xyzSet='' ):
 	if pId == None:
