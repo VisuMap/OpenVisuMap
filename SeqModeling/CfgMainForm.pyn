@@ -1,5 +1,5 @@
 #MenuLabels <Import> P-Map P-2D C0 C1 C2 C3 C4 DBSCAN BC ChmX RCSB CIF Align Info SM SMx \
-# P-S2 S2 UF bSp RMD TM Twt 3D 3Ds 3Dx 2D Lvt LD Sib P-Seq ScMp TT
+# P-S2 S2 UF bSp RMD TM Twt 3D 3Ds 3Dx 2D Lvt LD Sib P-Seq ScMp Hx TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 vv.Import('SphericalProj.pyn')
@@ -106,8 +106,10 @@ def MainMain(menuKey):
 			vv.EventManager.OnItemFocused('ShowSiblings()')
 		case 'ScMp':
 			CreateSubChainMap(pp, pList)
-		case 'TT':
+		case 'Hx': # Mark all helixes
 			MarkAllHelix(pId)
+		case 'TT':
+			pass
 		case _:
 			DoSimpleMenues(menuKey, pId, pList)
 
@@ -158,17 +160,15 @@ def DoSimpleMenues(menuKey, pId, pList):
             #UnFoldProteinList(pList, includeHA=False, wholeComplex=False, samplingDist=0.0, iconWidth=50, tP=(2000,8,28, 0.15,4.0,1.0) )
 
 # ---------------------------------------------------------------------------------------
-def MarkAllHelix(pId):
-	bList = LoadChain(pId)
-	vList = cs.TeterahedronVolume(bList)
-	#for k in range(vList.Count): vList[k].Value = bList[k].DistanceTo(bList[k+3])
-	bv = New.BarView(vList)
-	bv.BaseLineType = 0
-	bv.ColorPaletteName = '36 Clusters'
-	bv.Tag = []
+def SetHiddenBodies(bList):
+	hd = None
+	for b in bList:
+		if b.Id[0] == 'i':
+			b.Id, b.Hidden = hd.Id, True
+		else:
+			hd = b
 
-	# Create mp
-	minV, minLen = 5.0, 7
+def GetHelixList(vList, minV, minLen):
 	hList=[]    # helix index ranges.
 	hBegin = -1 # the begin index of the current helix.
 	for k, p in enumerate(vList):
@@ -182,6 +182,22 @@ def MarkAllHelix(pId):
 				hBegin = -1
 	if hBegin >= 0 and (vList.Count-hBegin) >= minLen:
 		hList.append((hBegin, vList.Count+3))
+	return hList
+
+def MarkAllHelix(pId):
+	info = MapInfo({'pId':pId})
+	bList = LoadChain(pId)
+	vList = cs.TeterahedronVolume(bList)
+	#for k in range(vList.Count): vList[k].Value = bList[k].DistanceTo(bList[k+3])
+	bv = New.BarView(vList)
+	bv.BaseLineType = 0
+	bv.ColorPaletteName = '36 Clusters'
+	bv.HighlightColor = New.Color('Fuchsia')
+	info.Save(bv)
+	bv.Tag = []
+
+	# Create mp
+	hList = GetHelixList(vList, minV=5.0, minLen=6)
 	for i,j in hList:
 		for k in range(i, j): 
 			bList[k].Name += 'H'
@@ -190,16 +206,12 @@ def MarkAllHelix(pId):
 				vList[k].Group = 4
 	mp = ShowBodyList(Interpolate(bList, 8), hSize=4, gOpacity=0.4)
 	mp.HiddenBodyColor = New.Color('Teal')
-	hd = None
-	for b in mp.BodyList:
-		if b.Id[0] == 'i':
-			b.Id, b.Hidden = hd.Id, True
-		else:
-			hd = b
+	SetHiddenBodies(mp.BodyList)
 	bv.Tag.append(mp)
+	info.Save(bv)
 	bv.Show()
 
-	# Create mp2
+	# Create 2D map for mp.	
 	mds = NewMds(New.NumberTable(mp.BodyList, 3), ppl=0.25, winHeight=800, refreshFreq=150, epochs=2000)
 	mds.GlyphSize = 0.5 * mp.GlyphSize
 	mds.GlyphOpacity = 4*mp.GlyphOpacity
@@ -209,10 +221,8 @@ def MarkAllHelix(pId):
 		mp2.BodyList[k].Id = b.Id
 	mds.Close()
 	bv.Tag.append(mp2)
+	info.Save(mp2)
 
-	# Link views together.
-	info = MapInfo({'pId':pId})
-	for fm in [bv, mp, mp2]: info.Save(fm)
 	bv.OnClose('for f in pp.Tag: f.Close()')
 
 def ShowSeqTwist(pId, maxWsRows=4096, winSz=500, xyzSet='' ):
