@@ -170,11 +170,11 @@ def SetHiddenBodies(bList):
 			hd = b
 			b.Highlighted = (b.Name[-1] == 'H')
 
-def GetHelixList(vList, minV, minLen):
+def GetHelixList(vList, minV, maxV, minLen):
 	hList=[]    # helix index ranges.
 	hBegin = -1 # the begin index of the current helix.
 	for k, p in enumerate(vList):
-		if p.Value>minV:
+		if (p.Value>minV) and (p.Value<maxV):
 			if hBegin < 0:
 				hBegin = k
 		else:
@@ -199,14 +199,14 @@ def MarkAllHelix(pId):
 	bv.Tag = []
 
 	# Create mp
-	hList = GetHelixList(vList, minV=5.0, minLen=6)
+	hList = GetHelixList(vList, minV=5.75, maxV=11.0, minLen=6)
 	for i,j in hList:
 		for k in range(i, j): 
 			bList[k].Name += 'H'
 			bList[k].Type = 4
 			if k < vList.Count:
 				vList[k].Group = 4
-	mp = ShowBodyList(Interpolate(bList, 8), hSize=4, gOpacity=0.4)
+	mp = ShowBodyList(Interpolate(bList, 8), hSize=4, gOpacity=0.7, gSize=1.5)
 	mp.HiddenBodyColor = New.Color('Teal')
 	SetHiddenBodies(mp.BodyList)
 	mp.Redraw()	
@@ -216,7 +216,7 @@ def MarkAllHelix(pId):
 
 	# Create 2D map for mp.	
 	mds = NewMds(New.NumberTable(mp.BodyList, 3), ppl=0.25, winHeight=800, refreshFreq=150, epochs=2000)
-	mds.GlyphSize = 0.5 * mp.GlyphSize
+	mds.GlyphSize = 0.5*mp.GlyphSize
 	mds.GlyphOpacity = 4*mp.GlyphOpacity
 	mds.GlyphSet = mp.GlyphSet
 	mp2 = RunMds(mds, repeats=1)
