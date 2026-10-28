@@ -164,9 +164,11 @@ def SetHiddenBodies(bList):
 	hd = None
 	for b in bList:
 		if b.Id[0] == 'i':
-			b.Id, b.Hidden = hd.Id, True
+			b.Id = hd.Id
+			b.Hidden = (b.Name[-1] != 'H')
 		else:
 			hd = b
+			b.Highlighted = (b.Name[-1] == 'H')
 
 def GetHelixList(vList, minV, minLen):
 	hList=[]    # helix index ranges.
@@ -207,6 +209,7 @@ def MarkAllHelix(pId):
 	mp = ShowBodyList(Interpolate(bList, 8), hSize=4, gOpacity=0.4)
 	mp.HiddenBodyColor = New.Color('Teal')
 	SetHiddenBodies(mp.BodyList)
+	mp.Redraw()	
 	bv.Tag.append(mp)
 	info.Save(bv)
 	bv.Show()
