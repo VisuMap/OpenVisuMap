@@ -211,9 +211,33 @@ def MarkAllHelix(pId):
 	SetHiddenBodies(mp.BodyList)
 	mp.Redraw()	
 	bv.Tag.append(mp)
-	info.Save(bv)
+	info.Save(mp)
 	bv.Show()
+	
+	k = 0
+	pList = []
+	for i, j in hList:
+		if i-k > 6: pList.append((k, i))
+		k = j+1
+	if bList.Count-k>6: pList.append((k, bList.Count))
+	if len(pList) > 0:
+		bList2 = []
+		for idx, (i,j) in enumerate(pList):
+			subChain = Interpolate(bList.GetRange(i, j-i))
+			hd = None
+			for b in subChain: 
+				b.Type = idx
+				if b.Id[0] == 'i':
+					b.Id = hd.Id
+				else:
+					hd = b
+			cs.NormalizeChain(subChain, -1, False)
+			bList2.extend( subChain )
+		scMap = ShowBodyList(bList2, gOpacity=1.0, gSize=1.0)
+		bv.Tag.append(scMap)
+		info.Save(scMap)
 
+	'''
 	# Create 2D map for mp.	
 	mds = NewMds(New.NumberTable(mp.BodyList, 3), ppl=0.25, winHeight=800, refreshFreq=150, epochs=2000)
 	mds.GlyphSize = 0.5*mp.GlyphSize
@@ -225,6 +249,7 @@ def MarkAllHelix(pId):
 	mds.Close()
 	bv.Tag.append(mp2)
 	info.Save(mp2)
+	'''
 
 	bv.OnClose('for f in pp.Tag: f.Close()')
 
