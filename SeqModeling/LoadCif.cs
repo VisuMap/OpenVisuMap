@@ -77,7 +77,7 @@ namespace VisuMap {
         }
 
 
-        public List<IBody> LoadCif(string fileName, List<string> chainNames) {
+        public List<IBody> LoadCif(string fileName, List<string> chainNames=null) {
             List<IBody> bList = null;
             HashSet<int> betaSet = new HashSet<int>();
             HashSet<int> helixSet = new HashSet<int>();
