@@ -83,7 +83,10 @@ namespace VisuMap {
             HashSet<int> helixSet = new HashSet<int>();
             entityTable = null;
             using (TextReader tr = new StreamReader(fileName)) {
-                string L = tr.ReadLine();
+                string L;
+                do {
+                    L = tr.ReadLine();
+                } while (L[0] == '#');
                 if (!L.StartsWith("data_"))
                     return null;
                 while (true) {
