@@ -1,4 +1,4 @@
-#MenuLabels <Init> Scanning Smoothen Info 2D Seq HideIPO MarkHelix MarkBeta RnaChain Flipping Looping Tr S2 a b c TT
+#MenuLabels <Init> Scanning Smoothen Info 2D Seq HideIPO Helix Beta RnaChain Flipping Looping Tr S2 a b c TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -17,9 +17,9 @@ def Map3DMain(menuKey):
 			ShowAASeq(pp)
 		case 'HideIPO':
 			HideInterpolates()
-		case 'MarkHelix':
+		case 'Helix':
 			ShowHelix()
-		case 'MarkBeta':
+		case 'Beta':
 			ShowBetaSheet()
 		case 'RnaChain':
 			pp.SelectedItems = [b.Id for b in pp.BodyList if b.Name[0] == 'r']

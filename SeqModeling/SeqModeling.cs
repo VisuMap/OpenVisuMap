@@ -596,7 +596,7 @@ namespace VisuMap {
             int iN = (N - 1) * L + 1;
             List<IBody> bs = new List<IBody>();
             for (int n=0; n<(N-1); n++) {
-                Body b0 = bList[n] as Body;
+                Body b0 = bList[n].Clone() as Body;
                 bs.Add(b0);
                 int rsIdx = 0;
                 if ((b0.Id[0] == 'A') && (char.IsDigit(b0.Id[1])))
@@ -867,6 +867,24 @@ namespace VisuMap {
                 }
             });
             return nt;
+        }
+
+        public List<IValueItem> GetBend(List<IBody> bList, double angle) {
+            List<IValueItem> bendAngles = new List<IValueItem>();
+            const int winSize = 7 * 8;
+            bList = Interpolate3D(bList, 8, 0);
+            SmoothenSeq(bList, winSize);
+            bList = bList.Where(b => b.Id[0] != 'i').ToList();
+            Vector3[] vList = new Vector3[bList.Count - 1];
+            MT.Loop(0, vList.Length, k => {
+                vList[k] = bList[k + 1].ToV3() - bList[k].ToV3();
+                vList[k].Normalize();
+            });
+            for(int k=2; k<vList.Length-2; k++) {
+                double a = Math.Acos(Vector3.Dot(vList[k - 2], vList[k + 2]));
+                bendAngles.Add(New.ValueItem(bList[k], a));
+            }
+            return bendAngles;
         }
 
         public List<int> FragmentChain(List<IBody> bList, int winSize) {

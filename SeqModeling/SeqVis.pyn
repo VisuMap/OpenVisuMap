@@ -93,12 +93,12 @@ public void CopyToXYZ(List<IBody> bList1, List<IBody> bList2) {
 	}
 } 
 
-public void DiffBodyList(List<IBody> bList, List<IBody> meanList, List<IBody> tgtList) {
+public void DiffBodyList(List<IBody> bList, List<IBody> meanList, List<IBody> tgtList, double fct=1.0) {
 	for(int k=0; k<bList.Count; k++) 
 		tgtList[k].SetXYZ(
-			bList[k].X - meanList[k].X, 
-			bList[k].Y - meanList[k].Y, 
-			bList[k].Z - meanList[k].Z);
+			bList[k].X - fct*meanList[k].X, 
+			bList[k].Y - fct*meanList[k].Y, 
+			bList[k].Z - fct*meanList[k].Z);
 }
 
 public void HideInterpolation(List<IBody> bList) {
@@ -879,7 +879,7 @@ def UpdateComplex(vs):
 	vs.CurrentValue = ws
 	ss.CopyToXYZ(bList, mp1.BodyList)
 	cs.SmoothenSeq(mp1.BodyList, ws)
-	ss.DiffBodyList(bList, mp1.BodyList, mp.BodyList)
+	ss.DiffBodyList(bList, mp1.BodyList, mp.BodyList, 1.0)
 	if IsCreated(mp1):
 		mp1.Redraw()
 	if IsCreated(mp):
@@ -1352,7 +1352,15 @@ def ColorChainMap(szType=2):
 			dbs.MinimumPoints = 10			
 			dbs.Show()
 			dbs.Reset().Start()
-
+		case 6:
+			vs = New.NumberArray(bList.Count)
+			for k, b in enumerate(bList):
+				vList = cs.TeterahedronVolume(LoadChain(b.Id))
+				hList = GetHelixList(vList, minV=5.75, maxV=11.0, minLen=6)
+				vs[k] = sum([q-p for (p,q) in hList])/(vList.Count+1.0)
+			stepSize = max(list(vs))/64.0
+			for k, b in enumerate(bList):
+				b.Type = int(vs[k]/stepSize)			
 	if pp.Name == 'MainForm':
 		pp.Map.Redraw()
 	else:

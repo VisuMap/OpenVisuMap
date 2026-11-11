@@ -1,4 +1,4 @@
-#MenuLabels <Import> P-Map P-2D C0 C1 C2 C3 C4 DBSCAN BC ChmX RCSB CIF Align Info SM SMx \
+#MenuLabels <Import> P-Map P-2D C0 C1 C2 C3 C4 C5 C6 DBSCAN BC ChmX RCSB CIF Align Info SM SMx \
 # P-S2 S2 UF bSp RMD TM Twt 3D 3Ds 3Dx 2D Lvt LD Sib P-Seq ScMp Hx TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
@@ -76,7 +76,7 @@ def MainMain(menuKey):
 		case 'P-2D':
 			tP_ = (2000, 6, 0.25,     0.2, 6.0, 1.0)
 			CreateProteinMaps(pList, samplingDist=0.5, maxItems=20000, atlasName=atlasName, tP=tP_)
-		case 'C0'|'C1'|'C2'|'C3'|'C4':
+		case 'C0'|'C1'|'C2'|'C3'|'C4'|'C5'|'C6':
 			ColorChainMap(ord(menuKey[1]) - ord('0'))
 		case 'DBSCAN':
 			ColorChainMap(5)
@@ -109,7 +109,7 @@ def MainMain(menuKey):
 		case 'Hx': # Mark all helixes
 			MarkAllHelix(pId)
 		case 'TT':
-			pass
+			ShowBends(pId)
 		case _:
 			DoSimpleMenues(menuKey, pId, pList)
 
@@ -186,6 +186,18 @@ def GetHelixList(vList, minV, maxV, minLen):
 		hList.append((hBegin, vList.Count+3))
 	return hList
 
+def GetHelixList2(bList):
+	hList=[]    # helix index ranges.
+	hBegin = -1 # the begin index of the current helix.
+	for k, b in enumerate(bList):
+		if b.Name[-1] == 'h':
+			if hBegin < 0: hBegin = k			
+		else:
+			if hBegin >=0: hList.append( (hBegin, k) )
+			hBegin = -1
+	return hList
+			
+
 def MarkAllHelix(pId):
 	info = MapInfo({'pId':pId})
 	bList = LoadChain(pId)
@@ -200,6 +212,7 @@ def MarkAllHelix(pId):
 
 	# Create mp
 	hList = GetHelixList(vList, minV=5.75, maxV=11.0, minLen=6)
+	#hList = GetHelixList2(bList)
 	for i,j in hList:
 		for k in range(i, j): 
 			bList[k].Name += 'H'
@@ -212,7 +225,7 @@ def MarkAllHelix(pId):
 	mp.Redraw()	
 	bv.Tag.append(mp)
 	info.Save(mp)
-	bv.Show()
+	bv.NormalizeView().Show()
 	
 	k = 0
 	pList = []
@@ -293,6 +306,22 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 			if vv.GuiManager.StopFlag:
 				break
 		vv.Folder.Save()
+
+def ShowBends(pId):
+	info = MapInfo({'pId':pId})
+	bList = LoadChain(pId)
+	aList = cs.GetBend(bList, 0.0)
+	for p in aList:
+		p.Group = 16 if p.Value<100.0*math.pi/180.0 else 0
+	bv = New.BarView(aList).Show()
+	info.Save(bv)
+	bList = Interpolate(bList, 8, hidIntp=True)
+	cs.SmoothenSeq(bList, 10) # using smaller-than-8*7 winSize to show some Helix structure.
+	mp = ShowBodyList(bList)
+	info.Save(mp)
+	bv.Tag = [mp]
+	bv.OnClose('for f in pp.Tag: f.Close()')
+
 
 MainMain(vv.EventSource.Item)
 

@@ -6,7 +6,7 @@ from os.path import exists
 def PdbCacheFile(pId):
 	if len(pId)<4:
 		raise Exception(f'Invalid protein ID: {pId}')
-	return f'{GetPDB_CACHE()}/{pId[:4]}.cif'
+	return f'{GetPDB_CACHE()}\\{pId[:4]}.cif'
 
 def ChainCacheDir():
 	dsd = vv.Dataset.Description
@@ -206,10 +206,10 @@ def HideInterpolates():
 	pp.RedrawAll()
 
 def ShowHelix():
-	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.h')]
+	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.h') or b.Name.endswith('.hH')]
 
 def ShowBetaSheet():
-	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name.endswith('.b')]
+	vv.SelectedItems = [b.Id for b in pp.BodyList if b.Name[-1]=='b']
 
 
 def LoadChain(chId):
@@ -566,19 +566,24 @@ def CleanupAllCache():
 
 sList = vv.GuiManager.GetClipboard()
 print(len(sList.split(',')))
-QueryStr = """Structure Keywords HAS EXACT PHRASE "RIBOSOME"
-AND
-      Experimental Method = "ELECTRON MICROSCOPY"
+QueryStr = """Attributes
+            Lineage Identifier = "2"
+            AND
+            Annotation Type = "CATH"
       AND
-      Total Number of Polymer Instances (Chains) >= 50
-      AND
-            Scientific Name of the Source Organism = "Homo sapiens"
-            OR
-            Scientific Name of the Source Organism = "Escherichia coli"
-      AND
-      Parent Scientific Name (typically superkingdom or clade) = "Eukaryota"
+            Structure Determination Methodology = "experimental"
+            AND
+            Scientific Name of the Source Organism = "Mus musculus"
+            AND
+            Experimental Method = "X-RAY DIFFRACTION"
+            AND
+            Polymer Entity Type = "Protein"
+            AND
+            Refinement Resolution = [ 0.5 - 3.5 ]
+            AND
+            Release Date = [ 2000-01-01 - 2026-11-30 ]
 """
-ImportPDBList(sList, 'Ribosome50Chains', QueryStr)
+ImportPDBList(sList, 'CATH-Mainly-Beta', QueryStr)
 
 CleanupAllCache()
 
