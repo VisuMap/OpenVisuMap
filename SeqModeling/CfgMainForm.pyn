@@ -309,14 +309,19 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 
 def ShowBends(pId):
 	info = MapInfo({'pId':pId})
-	bList = LoadChain(pId)
-	aList = cs.GetBend(bList, 0.0)
+	intp = 8
+	bList = Interpolate(LoadChain(pId), intp=intp, hidIntp=True)
+	aList = cs.GetBendAngles(bList, intp=intp)
+	minAngle = 100.0*math.pi/180.0
+	minAngle *= 5.0/intp
 	for p in aList:
-		p.Group = 16 if p.Value<100.0*math.pi/180.0 else 0
+		p.Group = 16 if p.Value<minAngle else 0
+	aSet = set([p.Id for p in aList if p.Group==0])
 	bv = New.BarView(aList).Show()
 	info.Save(bv)
-	bList = Interpolate(bList, 8, hidIntp=True)
-	cs.SmoothenSeq(bList, 10) # using smaller-than-8*7 winSize to show some Helix structure.
+	for b in bList:
+		if b.Id in aSet:
+			b.Type = 172
 	mp = ShowBodyList(bList)
 	info.Save(mp)
 	bv.Tag = [mp]

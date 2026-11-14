@@ -1500,7 +1500,7 @@ def ShowSubChains():
 			bd.Type = b.Type
 		chainDict[b.Id] = ch
 	bs = MergeChains(chainDict.values(), list(chainDict.keys()), keepType=True)
-	ShowBodyList(bs)
+	ShowBodyList(bs, gSize=2.0, gOpacity=0.75)
 
 def SubChainMap():
 	subChains = {}
@@ -1550,7 +1550,8 @@ def CreateSubChainMap(map, pList, is3D=False):
 	typeList = []
 	for n, pId in enumerate(pList):
 		bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
-		idxList = cs.FragmentChain(bList, ws)
+		#idxList = cs.FragmentChain(bList, ws)
+		idxList = cs.BendChain(bList, 8)
 		rowSec = cs.FragmentFT(bList, idxList, tm)
 		rowList.AddRange( rowSec )
 		nameList.extend([f'{pId}:{idxList[k]}:{idxList[k+1]}' for k in range(0, idxList.Count, 2)])
