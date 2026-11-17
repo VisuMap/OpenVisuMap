@@ -869,6 +869,8 @@ namespace VisuMap {
             return nt;
         }
 
+        const int BEND_SZ = 3;
+
         public List<IValueItem> GetBendAngles(List<IBody> bList, int intp) {
             List<IValueItem> bendAngles = new List<IValueItem>();
             SmoothenSeq(bList, 7 * intp);
@@ -877,13 +879,50 @@ namespace VisuMap {
                 vList[k] = bList[k + 2].ToV3() - bList[k].ToV3();  // The tangent vector at k+1
                 vList[k].Normalize();
             });
-            int stepSize = 2*intp;
-            for(int k=0; k<vList.Length- stepSize; k++) {
-                double a = Math.Acos(Vector3.Dot(vList[k], vList[k + stepSize]));
-                bendAngles.Add(New.ValueItem(bList[k + stepSize/2], a));
+            int bendSize = BEND_SZ * intp;
+            for(int k=0; k<vList.Length- bendSize; k++) {
+                double a = Math.Acos(Vector3.Dot(vList[k], vList[k + bendSize]));
+                bendAngles.Add(New.ValueItem(bList[k + bendSize/2], a));
             }
             return bendAngles;
         }
+
+
+        public List<int> BendChain(List<IBody> bList, int intp) {
+            var bendAngles = GetBendAngles(bList, intp);
+            double minAngle = 100.0 * Math.PI / 180.0;
+            minAngle *= 5.0 / intp;
+            List<int> idxList = new List<int>() { 0 };
+            for (int i = 0; i < bendAngles.Count - 1; i++) {
+                var p = bendAngles[i];
+                if ((p.Value > minAngle) && (p.Id[0] != 'i')) {
+                    idxList.Add(i);
+                    idxList.Add(i + 1);
+                    i += 2 * BEND_SZ * intp;
+                }
+            }
+            idxList.Add(bendAngles.Count); // The last position of bList[].
+            return idxList;
+            
+            /*
+            // merging neighboring fragments
+            List<int> idxList2 = new List<int>();
+            int L = idxList.Count;
+            const int S = 4;  // merging S indexes into 2.
+            for (int k = 0; k < L - S + 1; k += S) {
+                idxList2.Add(idxList[k]);
+                idxList2.Add(idxList[k + S - 1]);
+            }
+            // Merging the rest tail to a pair. 
+            int rst = L % S;
+            if (rst != 0) {
+                idxList2.Add(idxList[L - rst]);
+                idxList2.Add(idxList[L - 1]);
+            }
+            return idxList2;
+            */
+        }
+
 
         public List<int> FragmentChain(List<IBody> bList, int winSize) {
             List<int> idxList = new List<int>();
@@ -919,42 +958,6 @@ namespace VisuMap {
             }
             return idxList2;
         }
-
-
-        public List<int> BendChain(List<IBody> bList, int intp) {
-            var bendAngles = GetBendAngles(bList, intp);
-            double minAngle = 100.0 * Math.PI / 180.0;
-            minAngle *= 5.0 / intp;
-            List<int> idxList = new List<int>() { 0 };
-            for(int i=0; i<bendAngles.Count-1; i++) {
-                var p = bendAngles[i];
-                if ( (p.Value > minAngle) && (p.Id[0] != 'i') ){
-                    idxList.Add(i);
-                    idxList.Add(i + 1);
-                    i += 5*intp;
-                }
-            }
-            idxList.Add(bendAngles.Count); // The last position of bList[].
-            return idxList;
-            /*
-            // merging neighboring fragments
-            List<int> idxList2 = new List<int>();
-            int L = idxList.Count;
-            const int S = 4;  // merging S indexes into 2.
-            for (int k = 0; k < L - S + 1; k += S) {
-                idxList2.Add(idxList[k]);
-                idxList2.Add(idxList[k + S - 1]);
-            }
-            // Merging the rest tail to a pair. 
-            int rst = L % S;
-            if (rst != 0) {
-                idxList2.Add(idxList[L - rst]);
-                idxList2.Add(idxList[L - 1]);
-            }
-            return idxList2;
-            */
-        }
-
 
         public List<double[]> FragmentFT(List<IBody> bList=null, List<int> idxList=null, INumberTable tm=null) {
             if (bList == null)

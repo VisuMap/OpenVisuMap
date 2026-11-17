@@ -1,12 +1,10 @@
-#MenuLabels P-Seq PID, Info, ShSc ScMp
+#MenuLabels P-Seq Info, ShSc ScMp
 vv.Import('SeqVis.pyn')
 
 def MdsMain(label):
 	match label:
 		case 'P-Seq':
 			ShowAASeq(pp)
-		case 'PID':
-			SelectPID()
 		case 'Info':
 			ShowInfo(pp)
 		case 'ShSc':

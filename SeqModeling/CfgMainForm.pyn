@@ -105,7 +105,7 @@ def MainMain(menuKey):
 			vv.FocusEventEnabled = True
 			vv.EventManager.OnItemFocused('ShowSiblings()')
 		case 'ScMp':
-			CreateSubChainMap(pp, pList, byBend=True, tP=(2000, 0.05, 10.0), repeats=2)
+			CreateSubChainMap(pp, pList, byBend=True, tP=(2000, 0.1, 6.0), repeats=1)
 		case 'Hx': # Mark all helixes
 			MarkAllHelix(pId)
 		case 'TT':

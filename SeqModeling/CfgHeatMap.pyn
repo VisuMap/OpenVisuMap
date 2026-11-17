@@ -1,11 +1,10 @@
-#MenuLabels <Init> Merge PID, Info UpDn LR TT a b c x
+#MenuLabels <Init> Merge Info UpDn LR TT a b c x
 vv.Import('SeqVis.pyn')
 
 def Map3DMain(menuKey):
 	match menuKey:
 		case 'Merge':
 			MergeCplChains()
-		case 'PID':
 			SelectPID()
 		case 'Info':
 			ShowInfo(pp)
