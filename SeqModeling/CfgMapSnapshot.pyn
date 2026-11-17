@@ -1,5 +1,5 @@
 #MenuLabels ShowData Scanning Info Smoothen Seq Open Web ChmX 3D 3Dx HideIPO MarkHelix MarkBeta \
-# vsSz 'RNA/DNA' Align PID S2 ShSc ScMp  LnSc 
+# vsSz 'RNA/DNA' Align S2 ShSc ScMp  LnSc 
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -53,8 +53,6 @@ def MainMapSnapshot(label):
 			OpenCifFile(MapInfo(pp.Description).pId)
 		case 'Align':
 			AlignSeqPair(pp)
-		case 'PID':
-			SelectPID()
 		case 'S2':
 			SphereView(MapInfo(pp.Description).pId, unfolding = False)
 		case 'vsSz':
@@ -62,7 +60,7 @@ def MainMapSnapshot(label):
 		case 'ShSc':
 			ShowSubChains()
 		case 'ScMp':
-			SubChainMap()
+			SubChainMap(pp.GetSelectedBodies())
 		case 'LnSc':
 			vv.EventManager.OnItemsSelected('LinkSubChainMap(pp)', pp)
 

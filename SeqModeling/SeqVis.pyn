@@ -1502,20 +1502,18 @@ def ShowSubChains():
 	bs = MergeChains(chainDict.values(), list(chainDict.keys()), keepType=True)
 	ShowBodyList(bs, gSize=2.0, gOpacity=0.75)
 
-def SubChainMap():
+def SubChainMap(pList, tP=(1000, 0.05, 8.0)):
 	subChains = {}
-	for b in pp.GetSelectedBodies():
+	for b in pList:
 		fs = b.Name.split(':')
-		chId = fs[0]
 		chId, idx0, idx1 = fs[0], int(fs[1]), int(fs[2])
 		if chId not in subChains:
 			subChains[chId] = []
 		subChains[chId].append( (b.Id, idx0, idx1) )	
-	ws = 14
-	tm = GetFourier(waveCount=16, waveLen=512)
-	rowList = cs.FragmentFT()
+	ws, waveCount, waveLen = 7, 16, 256
+	tm = GetFourier(waveCount=waveCount, waveLen=waveLen)
+	rowList, nameList, typeList = cs.FragmentFT(), [], []
 	rowIdList = []
-	nameList, typeList = [], []
 	for chId in subChains.keys():
 		bList = Interpolate(LoadChain(chId), 8, hidIntp=True)
 		cs.SmoothenSeq(bList, ws)
@@ -1535,23 +1533,21 @@ def SubChainMap():
 		rs.Id = rowIdList[k]
 		rs.Name = nameList[k]
 		rs.Type = typeList[k]
-	mds = NewMds(nt, epochs=1000, initExag=8.0, ppl=0.05, 
+	epochs, ppl, initE = tP
+	mds = NewMds(nt, epochs=epochs, initExag=initE, ppl=ppl,
 		glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphOpacity=0.25)
 	RunMds(mds, repeats=0)
 
-def CreateSubChainMap(map, pList, is3D=False):
+def CreateSubChainMap(map, pList, is3D=False, byBend=True, tP=(1000, 0.05, 6.0), repeats=1):
 	if map.Name != 'MainForm':
 		vv.Message('This operation is valid only for MainForm parent')
 		return
 	ws, waveCount, waveLen = 7, 16, 256
 	tm = GetFourier(waveCount=waveCount, waveLen=waveLen)
-	rowList = cs.FragmentFT()
-	nameList = []
-	typeList = []
+	rowList, nameList, typeList = cs.FragmentFT(), [], []
 	for n, pId in enumerate(pList):
 		bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
-		#idxList = cs.FragmentChain(bList, ws)
-		idxList = cs.BendChain(bList, 8)
+		idxList = cs.BendChain(bList, 8) if byBend else cs.FragmentChain(bList, ws)
 		rowSec = cs.FragmentFT(bList, idxList, tm)
 		rowList.AddRange( rowSec )
 		nameList.extend([f'{pId}:{idxList[k]}:{idxList[k+1]}' for k in range(0, idxList.Count, 2)])
@@ -1565,9 +1561,9 @@ def CreateSubChainMap(map, pList, is3D=False):
 		rs.Id = nameList[k].replace(':', '_')
 		rs.Name = nameList[k]
 		rs.Type = typeList[k]
-	mds = NewMds(nt, epochs=1000, initExag=6.0, ppl=0.05, is3D=is3D,
+	epochs, ppl, initE = tP
+	mds = NewMds(nt, epochs=epochs, initExag=initE, ppl=ppl, is3D=is3D,
 		glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphOpacity=0.25, glyphSize=0.4)
-	info = MapInfo({'FT':str((ws, waveCount, waveLen)), 'MapType':'SubChains', 'DsName':vv.Dataset.Name})
-	#RunMds(mds, info=info, repeats=0)
-	RunMds(mds, info=info, repeats=1).NormalizeView()
+	info = MapInfo({'FT':str((ws, waveCount, waveLen)), 'tP':tP, 'MapType':'SubChains', 'DsName':vv.Dataset.Name})
+	RunMds(mds, info=info, repeats=repeats)
 	mds.Close()

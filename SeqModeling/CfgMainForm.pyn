@@ -105,7 +105,7 @@ def MainMain(menuKey):
 			vv.FocusEventEnabled = True
 			vv.EventManager.OnItemFocused('ShowSiblings()')
 		case 'ScMp':
-			CreateSubChainMap(pp, pList)
+			CreateSubChainMap(pp, pList, byBend=True, tP=(2000, 0.05, 10.0), repeats=2)
 		case 'Hx': # Mark all helixes
 			MarkAllHelix(pId)
 		case 'TT':
@@ -312,12 +312,17 @@ def ShowBends(pId):
 	intp = 8
 	bList = Interpolate(LoadChain(pId), intp=intp, hidIntp=True)
 	aList = cs.GetBendAngles(bList, intp=intp)
-	minAngle = 100.0*math.pi/180.0
-	minAngle *= 5.0/intp
+	minAngle = (100.0*math.pi/180.0) * (5.0/intp)
 	for p in aList:
-		p.Group = 16 if p.Value<minAngle else 0
+		if (p.Value < minAngle) or (p.Id[0]=='i'):
+			p.Group = 16
+		else:
+			p.Group = 0
 	aSet = set([p.Id for p in aList if p.Group==0])
-	bv = New.BarView(aList).Show()
+	bv = New.BarView(aList)
+	bv.ReferenceType = 4
+	bv.ReferenceValue = minAngle
+	bv.Show()
 	info.Save(bv)
 	for b in bList:
 		if b.Id in aSet:
