@@ -249,21 +249,6 @@ def MarkAllHelix(pId):
 		scMap = ShowBodyList(bList2, gOpacity=1.0, gSize=1.0)
 		bv.Tag.append(scMap)
 		info.Save(scMap)
-
-	'''
-	# Create 2D map for mp.	
-	mds = NewMds(New.NumberTable(mp.BodyList, 3), ppl=0.25, winHeight=800, refreshFreq=150, epochs=2000)
-	mds.GlyphSize = 0.5*mp.GlyphSize
-	mds.GlyphOpacity = 4*mp.GlyphOpacity
-	mds.GlyphSet = mp.GlyphSet
-	mp2 = RunMds(mds, repeats=1)
-	for k, b in enumerate(mp.BodyList):
-		mp2.BodyList[k].Id = b.Id
-	mds.Close()
-	bv.Tag.append(mp2)
-	info.Save(mp2)
-	'''
-
 	bv.OnClose('for f in pp.Tag: f.Close()')
 
 def ShowSeqTwist(pId, maxWsRows=4096, winSz=500, xyzSet='' ):
@@ -311,8 +296,8 @@ def ShowBends(pId):
 	info = MapInfo({'pId':pId})
 	intp = 8
 	bList = Interpolate(LoadChain(pId), intp=intp, hidIntp=True)
-	aList = cs.GetBendAngles(bList, intp=intp)
-	minAngle = (100.0*math.pi/180.0) * (5.0/intp)
+	aList = cs.BendAngles(bList, intp=intp)
+	minAngle = 85.0*math.pi/180.0
 	for p in aList:
 		if (p.Value < minAngle) or (p.Id[0]=='i'):
 			p.Group = 16
@@ -333,21 +318,20 @@ def ShowBends(pId):
 	bv.OnClose('for f in pp.Tag: f.Close()')
 
 
-MainMain(vv.EventSource.Item)
-
-'''
 def SubChainLoop(atlasName):
 	atStore = AtlasMapStore(atlasName, True)
-	dsList = list(vv.Folder.DatasetNameList)[2:]
+	dsList = list(vv.Folder.DatasetNameList)[10:]
 	for k, dn in enumerate(dsList):
 		print(f'{dn}: {k+1}-th out of {len(dsList)}') 
 		vv.Folder.OpenDataset(dn)
 		MainMain('ScMp')
 		atStore.AddMap('MapSnapshot', iconWidth=350).Close()
 
-SubChainLoop('SubChainMap7')
+MainMain(vv.EventSource.Item)
 
------------------
+'''
+
+SubChainLoop('SubChainMap1')
 
 RemoveAllChainCache( only_rd_chains=False )
 

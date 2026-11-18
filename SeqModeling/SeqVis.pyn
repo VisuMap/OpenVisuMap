@@ -1533,9 +1533,10 @@ def CreateSubChainMap(map, pList, is3D=False, byBend=True, tP=(1000, 0.05, 6.0),
 	ws, waveCount, waveLen = 7, 16, 256
 	tm = GetFourier(waveCount=waveCount, waveLen=waveLen)
 	rowList, nameList, typeList = cs.FragmentFT(), [], []
+	minAngle = 85.0*math.pi/180
 	for n, pId in enumerate(pList):
 		bList = Interpolate(LoadChain(pId), 8, hidIntp=True)
-		idxList = cs.BendChain(bList, 8) if byBend else cs.FragmentChain(bList, ws)
+		idxList = cs.BendChain(bList, 8, minAngle) if byBend else cs.FragmentChain(bList, ws)
 		rowSec = cs.FragmentFT(bList, idxList, tm)
 		rowList.AddRange( rowSec )
 		nameList.extend([f'{pId}:{idxList[k]}:{idxList[k+1]}' for k in range(0, idxList.Count, 2)])
@@ -1552,6 +1553,6 @@ def CreateSubChainMap(map, pList, is3D=False, byBend=True, tP=(1000, 0.05, 6.0),
 	epochs, ppl, initE = tP
 	mds = NewMds(nt, epochs=epochs, initExag=initE, ppl=ppl, is3D=is3D,
 		glyphScale=5.0, glyphSet=PMap_GLYPHSET, glyphOpacity=0.25, glyphSize=0.4)
-	info = MapInfo({'FT':str((ws, waveCount, waveLen)), 'tP':tP, 'MapType':'SubChains', 'DsName':vv.Dataset.Name})
+	info = MapInfo({'FT':str((ws, waveCount, waveLen)), 'tP':tP, 'MapType':'SubChains', 'DsName':vv.Dataset.Name, 'minAngle':minAngle})
 	RunMds(mds, info=info, repeats=repeats)
 	mds.Close()

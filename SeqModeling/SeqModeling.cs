@@ -871,7 +871,7 @@ namespace VisuMap {
 
         const int BEND_SZ = 3;
 
-        public List<IValueItem> GetBendAngles(List<IBody> bList, int intp) {
+        public List<IValueItem> BendAngles(List<IBody> bList, int intp) {
             List<IValueItem> bendAngles = new List<IValueItem>();
             SmoothenSeq(bList, 7 * intp);
             Vector3[] vList = new Vector3[bList.Count - 2];
@@ -888,10 +888,8 @@ namespace VisuMap {
         }
 
 
-        public List<int> BendChain(List<IBody> bList, int intp) {
-            var bendAngles = GetBendAngles(bList, intp);
-            double minAngle = 100.0 * Math.PI / 180.0;
-            minAngle *= 5.0 / intp;
+        public List<int> BendChain(List<IBody> bList, int intp, double minAngle) {
+            var bendAngles = BendAngles(bList, intp);            
             List<int> idxList = new List<int>() { 0 };
             for (int i = 0; i < bendAngles.Count - 1; i++) {
                 var p = bendAngles[i];
