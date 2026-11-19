@@ -77,7 +77,7 @@ namespace VisuMap {
             }
         }
 
-        public List<IBody> NormalizeChain(List<IBody> bList, int chType = 1, bool hidIntp = false) {
+        public void NormalizeChain(List<IBody> bList, int chType = 1, bool hidIntp = false) {
             foreach (var b in bList) {
                 if (chType >= 0)
                     b.Type = (short)chType;
@@ -96,7 +96,6 @@ namespace VisuMap {
                 }
             }
             bList[bList.Count - 1].Type = SeqMap_TAIL;
-            return bList;
         }
      
 
@@ -595,13 +594,12 @@ namespace VisuMap {
             int N = bList.Count;
             int iN = (N - 1) * L + 1;
             List<IBody> bs = new List<IBody>();
-            for (int n=0; n<(N-1); n++) {
+            var rsId2Idx = new Dictionary<string, int>();
+            for (int n = 0; n < (N - 1); n++) {
                 Body b0 = bList[n].Clone() as Body;
                 bs.Add(b0);
-                int rsIdx = 0;
-                if ((b0.Id[0] == 'A') && (char.IsDigit(b0.Id[1])))
-                    rsIdx = int.Parse(b0.Id.Split('.')[0].Substring(1));
-                string secPrefix = "i" + chIdx + "." + rsIdx + ".";
+                string rsId = (b0.Id[0] == 'A') ? b0.Id.Split('.')[0].Substring(1) : "";
+                string secPrefix = "i" + chIdx + "." + rsId + ".";
                 for (int k=0; k<(L-1); k++) {
                     Body b = new Body(secPrefix + k, b0.Name, b0.Type);
                     b.Flags = b0.Flags;
@@ -1087,6 +1085,20 @@ namespace VisuMap {
                 varArray[k] = (P[k] - M[k]).LengthSquared();
             });
             return varArray;
+        }
+
+        public double[] LocalVariance(IList<IBody> bs, double gain) {
+            double[] varList = new double[bs.Count];
+            Vector3 M = bs[0].ToV3();
+            float p = (float)(1.0 - gain);
+            float q = (float)gain;
+            for(int k=0; k<bs.Count; k++) {
+                Vector3 V = bs[k].ToV3();
+                Vector3 newM = p * M + q * V;
+                varList[k] = Vector3.DistanceSquared(V, M);
+                M = newM;
+            }
+            return varList;
         }
 
 
