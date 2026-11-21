@@ -27,7 +27,7 @@ Basic steps to use this package:
  4. Click on the menu SeqVis/P-2D to project the 3D structure into 2D plan (with tSNE) and store them in an
 	atlas object. The atlas contains all chains in hidden state, to see their 2D map, just select subset with
 	delayed mouse-up releasing, ca. 1 sec delay.
-	
+
 '''
 
 def MainMain(menuKey):
@@ -297,17 +297,19 @@ def ShowBends(pId):
 	info = MapInfo({'pId':pId})
 	intp = 8
 	bList = Interpolate(LoadChain(pId), intp=intp, hidIntp=True)
+	for b in bList: 
+		b.Type = 3 if b.Id[0] == 'i' else 15
 	aList = cs.BendAngles(bList, intp=intp)
 	minAngle = 85.0*math.pi/180.0
 	for p in aList:
-		if (p.Value < minAngle) or (p.Id[0]=='i'):
-			p.Group = 16
-		else:
+		if (p.Value > minAngle) and (p.Id[0]!='i'):
 			p.Group = 0
 	aSet = set([p.Id for p in aList if p.Group==0])
 	bv = New.BarView(aList)
 	bv.ReferenceType = 4
 	bv.ReferenceValue = minAngle
+	bv.NormalizeView()
+	bv.ColorPaletteName = 'Red Green'
 	bv.Show()
 	info.Save(bv)
 	for b in bList:
@@ -327,30 +329,33 @@ def ShowLocalVariance(pId):
 	#cs.NormalizeChain(bList, -1, True)
 	bv = New.BarView(New.ValueItemList(bList))
 	bv.ReferenceType = 4
-	bv.ReferenceValue = 1500
 	bv.NormalizeView()
 	bv.ColorPaletteName = 'Red Green'
 	bv.Show()
+	cs.NormalizeChain(bList, -1, True)
 	mp = ShowBodyList(bList)
-	bv.Tag = [mp, bList, 0.001]
+	bv.Tag = [mp, bList, 0]
 	bv.OnClose('pp.Tag[0].Close()')
 	bv.OnMouseWheel('UpdateBarView(pp)')
-	vv.RunScript('UpdateBarView(pp)', bv, None, 1)
+	vv.RunScript('UpdateBarView(pp)', bv, None, 0)
 	info.Save(bv)
 	info.Save(mp)
 
 def UpdateBarView(bv):
-	mp, bList, fct = bv.Tag
-	fct *= 1.1 if vv.EventSource.Argument > 0 else 1/1.1
-	bv.Tag[2] = fct
-	#lv = cs.MovingWindowVariance(bList, winSize=140)
-	lv = cs.LocalVariance(bList, fct)
-	bv.Title = f'ExpFct: {fct:.6f}'
+	mp, bList, winSize = bv.Tag
+	arg = vv.EventSource.Argument
+	if arg == 0:
+		winSize = 7*50
+		bv.ReferenceValue = 40
+	else:
+		winSize += 7*arg
+	bv.Tag[2] = winSize
+	lv = cs.LocalVariance(bList, winSize)
 	for k in range(bList.Count):
 		bv.ItemList[k].Value = lv[k]
 	bv.Redraw()
-	vv.SelectedItems = [p.Id for p in bv.ItemList if p.Value > bv.ReferenceValue]
-	
+	vv.SelectedItems = [p.Id for p in bv.ItemList if p.Value >= bv.ReferenceValue ]
+	bv.Title = f'WinSize: {winSize}'
 
 def SubChainLoop(atlasName):
 	atStore = AtlasMapStore(atlasName, False)

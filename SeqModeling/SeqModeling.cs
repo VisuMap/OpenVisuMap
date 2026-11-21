@@ -1087,20 +1087,16 @@ namespace VisuMap {
             return varArray;
         }
 
-        public double[] LocalVariance(IList<IBody> bs, double gain) {
+        public double[] LocalVariance(IList<IBody> bs, int winSize) {
             double[] varList = new double[bs.Count];
-            Vector3 M = bs[0].ToV3();
-            float p = (float)(1.0 - gain);
-            float q = (float)gain;
-            for(int k=0; k<bs.Count; k++) {
-                Vector3 V = bs[k].ToV3();
-                Vector3 newM = p * M + q * V;
-                varList[k] = Vector3.DistanceSquared(V, M);
-                M = newM;
-            }
+            var P = bs.Select(b => b.ToV3()).ToArray();
+            var Q = MovingWindowMean0(P, 14);
+            var M = MovingWindowMean0(Q, winSize);
+            MT.Loop(winSize, varList.Length, k => {
+                varList[k-winSize] = Vector3.Distance(Q[k], M[k - winSize]);
+            });
             return varList;
         }
-
 
         public unsafe double NWDistance(string sA, string sB, short gapCost = 2, short matchCost = 0, short mismatchCost = 1) {
             int rows = sA.Length;
