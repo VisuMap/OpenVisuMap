@@ -55,7 +55,8 @@ def ShowSelectedSeq():
 	curId = ''
 	for k, b in enumerate(pp.SelectedBodies):
 		if b.Id != curId:
-			seq.append(b.Name[0])
+			if b.Id[0] == 'A':
+				seq.append(b.Name[0])
 			curId = b.Id
 	seq = ''.join(seq)
 	New.TextPanel('', seq).Show()

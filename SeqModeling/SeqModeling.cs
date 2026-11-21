@@ -1087,13 +1087,13 @@ namespace VisuMap {
             return varArray;
         }
 
-        public double[] LocalVariance(IList<IBody> bs, int winSize) {
+        public double[] LocalVariance(IList<IBody> bs, int winSize, int bridgeSize) {
             double[] varList = new double[bs.Count];
             var P = bs.Select(b => b.ToV3()).ToArray();
-            var Q = MovingWindowMean0(P, 14);
+            var Q = MovingWindowMean0(P, 7*8);  // 7 is the minimum size to strechen out helixes.
             var M = MovingWindowMean0(Q, winSize);
-            MT.Loop(winSize, varList.Length, k => {
-                varList[k-winSize] = Vector3.Distance(Q[k], M[k - winSize]);
+            MT.Loop(winSize, varList.Length-bridgeSize, k => {
+                varList[k] = Vector3.Distance(Q[k+bridgeSize], M[k - winSize]);
             });
             return varList;
         }
