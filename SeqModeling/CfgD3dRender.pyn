@@ -53,7 +53,9 @@ def Map3DMain(menuKey):
 def ShowSelectedSeq():
 	seq = []
 	curId = ''
-	for k, b in enumerate(pp.SelectedBodies):
+	setS = set(pp.SelectedBodies)
+	selected = [b for b in pp.BodyList if b in setS]  # selected preserves the order in pp.BodyList.
+	for k, b in enumerate(selected):
 		if b.Id != curId:
 			if b.Id[0] == 'A':
 				seq.append(b.Name[0])

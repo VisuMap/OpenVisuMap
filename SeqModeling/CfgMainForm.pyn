@@ -333,7 +333,7 @@ def ShowLocalVariance(pId):
 	bv.Show()
 	cs.NormalizeChain(bList, -1, True)
 	mp = ShowBodyList(bList)
-	bv.Tag = [mp, bList, 0, 0]
+	bv.Tag = [mp, bList, 0]
 	bv.OnClose('pp.Tag[0].Close()')
 	bv.OnMouseWheel('UpdateBarView(pp)')
 	vv.RunScript('UpdateBarView(pp)', bv, None, 0)
@@ -341,26 +341,22 @@ def ShowLocalVariance(pId):
 	info.Save(mp)
 
 def UpdateBarView(bv):
-	mp, bList, winSize, bridgeSize = bv.Tag
+	mp, bList, winSize = bv.Tag
 	INTP = 8
 	arg = vv.EventSource.Argument
 	if arg == 0:
-		winSize, bridgeSize = 50*INTP, 4*INTP
-		bv.ReferenceValue = 30
+		winSize = 16*INTP
+		bv.ReferenceValue = 42
 	else:
-		if vv.ModifierKeys.ControlPressed:
-			bridgeSize += arg*INTP
-		else:
-			winSize += arg*INTP
-		winSize, bridgeSize = max(0,winSize), max(0,bridgeSize)
-	bv.Tag[2:4] = [winSize, bridgeSize]
-
-	lv = cs.LocalVariance(bList, winSize, bridgeSize)
+		winSize += arg*INTP
+		winSize = max(0,winSize)
+	bv.Tag[2] = winSize
+	lv = cs.LocalVariance(bList, winSize)
 	for k in range(bList.Count):
 		bv.ItemList[k].Value = lv[k]
 	bv.Redraw()
 	vv.SelectedItems = [p.Id for p in bv.ItemList if p.Value >= bv.ReferenceValue ]
-	bv.Title = f'WinSize: {winSize}, BridgeSize:{bridgeSize}'
+	bv.Title = f'WinSize: {winSize}'
 
 def SubChainLoop(atlasName):
 	atStore = AtlasMapStore(atlasName, False)
