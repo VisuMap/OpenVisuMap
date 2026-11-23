@@ -1082,7 +1082,7 @@ namespace VisuMap {
                 return null;
             double[] varArray = (varBuffer == null) ? new double[bs.Count] : varBuffer;
             MT.Loop(0, varArray.Length, k => {
-                varArray[k] = (P[k] - M[k]).LengthSquared();
+                varArray[k] = Vector3.DistanceSquared(P[k], M[k]);
             });
             return varArray;
         }
@@ -1090,9 +1090,10 @@ namespace VisuMap {
         public double[] LocalVariance(IList<IBody> bs, int winSize) {
             double[] varList = new double[bs.Count];
             var P = bs.Select(b => b.ToV3()).ToArray();
-            var Q = MovingWindowMean0(P, 7*8);  // 7 is the minimum size to strechen out helixes.
+            const int INTP = 8;  // Interpolation of 8 is assumed.
+            var Q = MovingWindowMean0(P, (int)(1.8128*INTP));  // smoothen out the alpha helixes (non-informative.)
             var M = MovingWindowMean0(Q, winSize);
-            int ws = winSize;
+            int ws = 4*winSize;
             MT.Loop(0, varList.Length, k => {
                 int left = k - ws;
                 int right = k + ws;
@@ -1100,7 +1101,7 @@ namespace VisuMap {
                     left = -left;
                 if (right>=Q.Length)
                     right = 2 *Q.Length - right - 1;
-                varList[k] = Vector3.DistanceSquared(M[left], Q[right]);
+                varList[k] = Vector3.Distance(M[left], Q[right]);
             });
             return varList;
         }

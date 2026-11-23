@@ -345,7 +345,7 @@ def UpdateBarView(bv):
 	INTP = 8
 	arg = vv.EventSource.Argument
 	if arg == 0:
-		winSize = 16*INTP
+		winSize = 4*INTP
 		bv.ReferenceValue = 42
 	else:
 		winSize += arg*INTP
