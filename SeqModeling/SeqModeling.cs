@@ -1091,7 +1091,9 @@ namespace VisuMap {
             double[] varList = new double[bs.Count];
             var P = bs.Select(b => b.ToV3()).ToArray();
             const int INTP = 8;  // Interpolation of 8 is assumed.
-            var Q = MovingWindowMean0(P, (int)(1.8128*INTP));  // smoothen out the alpha helixes (non-informative.)
+            // smoothen out the alpha helixes (non-informative.) 1.8*2 = 3.6 is the number of polypeptides per turn.
+            // Moving window
+            var Q = MovingWindowMean0(P, (int)(1.8*INTP));  
             var M = MovingWindowMean0(Q, winSize);
             int ws = 4*winSize;
             MT.Loop(0, varList.Length, k => {

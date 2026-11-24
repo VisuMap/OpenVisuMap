@@ -7,7 +7,7 @@ def Map3DMain(menuKey):
 		case 'Scanning':
 			Scanning(pp, stepSize=2, broadcasting=vv.ModifierKeys.ControlPressed)
 		case 'Smoothen':
-			pp.Tag = [ New.BodyListClone(pp.BodyList), 0 ]
+			pp.Tag = [New.BodyListClone(pp.BodyList), 0]
 			pp.OnMouseWheel('Smoothen3DMap(pp)', runOnce=True)			
 		case '2D':
 			bList = New.BodyListClone(pp.BodyListEnabled())
@@ -52,7 +52,7 @@ def Map3DMain(menuKey):
 
 def Smoothen3DMap(mp):
 	bs, winSize = mp.Tag
-	winSize += vv.EventSource.Argument
+	winSize += vv.EventSource.Argument * abs(vv.EventSource.Argument)
 	winSize = max(0, winSize)
 	mp.Tag[1] = winSize
 	ss.CopyToXYZ(bs, mp.BodyList)
