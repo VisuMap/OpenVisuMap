@@ -7,8 +7,8 @@ def Map3DMain(menuKey):
 		case 'Scanning':
 			Scanning(pp, stepSize=2, broadcasting=vv.ModifierKeys.ControlPressed)
 		case 'Smoothen':
-			cs.MovingWindowMean(pp.BodyList, 3)
-			pp.Redraw()
+			pp.Tag = [ New.BodyListClone(pp.BodyList), 0 ]
+			pp.OnMouseWheel('Smoothen3DMap(pp)', runOnce=True)			
 		case '2D':
 			bList = New.BodyListClone(pp.BodyListEnabled())
 			info = MapInfo(pp.Description)
@@ -49,6 +49,16 @@ def Map3DMain(menuKey):
 			SetupABC(pp)
 		case 'TT':
 			ShowSelectedSeq()
+
+def Smoothen3DMap(mp):
+	bs, winSize = mp.Tag
+	winSize += vv.EventSource.Argument
+	winSize = max(0, winSize)
+	mp.Tag[1] = winSize
+	ss.CopyToXYZ(bs, mp.BodyList)
+	cs.MovingWindowMean(mp.BodyList, winSize)
+	mp.Redraw()
+	mp.Title = f'WinSize: {winSize}'
 
 def ShowSelectedSeq():
 	seq = []

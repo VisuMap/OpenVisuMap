@@ -335,8 +335,7 @@ def ShowLocalVariance(pId):
 	mp = ShowBodyList(bList)
 	bv.Tag = [mp, bList, 0]
 	bv.OnClose('pp.Tag[0].Close()')
-	bv.OnMouseWheel('UpdateBarView(pp)')
-	vv.RunScript('UpdateBarView(pp)', bv, None, 0)
+	bv.OnMouseWheel('UpdateBarView(pp)', runOnce=True)
 	info.Save(bv)
 	info.Save(mp)
 
