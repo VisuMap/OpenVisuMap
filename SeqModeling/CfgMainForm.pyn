@@ -110,7 +110,12 @@ def MainMain(menuKey):
 			MarkAllHelix(pId)
 		case 'TT':
 			#ShowBends(pId)
-			ShowLocalVariance(pId)
+			#ShowLocalVariance(pId)
+			bs = LoadChain(pId)
+			for n in range(10):
+				cs.MeanShift(bs, 9, 0.02, steps=25)
+				ShowBodyList( Interpolate(bs, intp=8, hidIntp=True) )
+			vv.GuiManager.TileAllWindows(None, keepSize=True)
 		case _:
 			DoSimpleMenues(menuKey, pId, pList)
 

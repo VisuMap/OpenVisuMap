@@ -1,4 +1,4 @@
-#MenuLabels <Init> Scanning Smoothen Info 2D Seq HideIPO Helix Beta RnaChain Flipping Looping Tr S2 a b c TT
+#MenuLabels <Init> Scanning SM Info 2D Seq HideIPO Helix Beta RnaChain Flipping Looping Tr S2 a b c TT
 vv.Import('SeqVis.pyn')
 vv.Import('PdbLoad.pyn')
 
@@ -6,9 +6,9 @@ def Map3DMain(menuKey):
 	match menuKey:
 		case 'Scanning':
 			Scanning(pp, stepSize=2, broadcasting=vv.ModifierKeys.ControlPressed)
-		case 'Smoothen':
+		case 'SM':
 			pp.Tag = [New.BodyListClone(pp.BodyList), 0]
-			pp.OnMouseWheel('Smoothen3DMap(pp)', runOnce=True)			
+			pp.OnMouseWheel('Smoothen3DMap()', runOnce=True)			
 		case '2D':
 			bList = New.BodyListClone(pp.BodyListEnabled())
 			info = MapInfo(pp.Description)
@@ -50,7 +50,8 @@ def Map3DMain(menuKey):
 		case 'TT':
 			ShowSelectedSeq()
 
-def Smoothen3DMap(mp):
+def Smoothen3DMap():
+	mp = pp
 	bs, winSize = mp.Tag
 	winSize += vv.EventSource.Argument * abs(vv.EventSource.Argument)
 	winSize = max(0, winSize)

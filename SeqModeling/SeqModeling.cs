@@ -1099,14 +1099,60 @@ namespace VisuMap {
             MT.Loop(0, varList.Length, k => {
                 int left = k - ws;
                 int right = k + ws;
-                if (left < 0)
+                if (left < 0) {
                     left = -left;
-                if (right>=Q.Length)
-                    right = 2 *Q.Length - right - 1;
+                    left = Math.Min(left, M.Length - 1);
+                }
+                if (right >= Q.Length) {
+                    right = 2 * Q.Length - right - 1;
+                    right = Math.Max(0, right);
+                }
                 varList[k] = Vector3.Distance(M[left], Q[right]);
             });
             return varList;
         }
+
+        static void MeanShift0(Vector3[] P, int winSize, Vector3[] M) {
+            if ((P == null) || (P.Length == 0) || (winSize < 0))
+                return;
+            int L = P.Length - 1;   // number bonds in the polipetides.  
+            winSize = Math.Min(L, winSize);
+            int WS = 2 * winSize + 1;
+            Vector3 S = WS * P[0];  // the sum of current initial moving-window [-winSize, +winSize]
+            float cf = (float)(1.0 / WS);
+
+            Vector3 xP(int i) {
+                return (i < 0) ? (2 * P[0] - P[-i]) :
+                       (i > L) ? (2 * P[L] - P[2 * L - i]) : P[i];
+            }
+            for (int k = 1; k < L; k++) {  // k is the index of window center.
+                S += xP(k + winSize) - xP(k - winSize - 1);
+                M[k] = cf * S;
+            }
+        }
+
+
+        public void MeanShift(List<IBody> bs, int winSize, float gain, int steps) {
+            int N = bs.Count;
+            Vector3[] P = bs.Select(b => b.ToV3()).ToArray();
+            Vector3[] M = new Vector3[N];
+            Vector3[] R = new Vector3[N];
+            M[0] = P[0];
+            M[N-1] = P[N-1];
+            float mom = 1 - gain;
+            while (steps-- > 0) {
+                MeanShift0(P, winSize, M);
+                MT.Loop(0, N, k => {
+                    R[k] = mom * P[k] + gain * M[k];
+                });
+                var h = P;
+                P = R;
+                R = h;
+            }
+            for (int k = 0; k < bs.Count; k++)
+                bs[k].SetXYZ(P[k]);
+        }
+
 
         public unsafe double NWDistance(string sA, string sB, short gapCost = 2, short matchCost = 0, short mismatchCost = 1) {
             int rows = sA.Length;
