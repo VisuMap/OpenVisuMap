@@ -310,6 +310,11 @@ class FastTsne():
 
 #-------------------- functions ----------------------------------------------------
 
+def CloseLinkedViews():
+	for f in pp.Tag:
+		if hasattr(f, 'Close'):
+			f.Close()
+
 def AssertSeqMap(pMap):
 	info = MapInfo(pMap.Description)
 	if info.Has('pId'):
@@ -490,7 +495,7 @@ def LocalVarianceTrans(pId, winSize=14, intp=8, addCtrl=True):
 		vs.StepSize = 1
 		vs.Tag = [bList, bv, mp]
 		vs.Show()
-		vs.OnClose('for vw in pp.Tag[1:]: vw.Close()')
+		vs.OnClose('CloseLinkedViews()')
 
 # t-SNE reduced data
 def MaxRows(ds, pList, intp):
@@ -903,7 +908,7 @@ def SmoothenComplex(pId, singleChain=False, intp=8):
 	vs.Tag = mp, mp1, New.BodyListClone(mp.BodyList)
 	vs.Title = 'Moving Window Size'
 	vs.StepSize = 2
-	vs.OnClose('for i in [0,1]:pp.Tag[i].Close()')
+	vs.OnClose('CloseLinkedViews()')
 	vs.NumberFormat = 'f0'
 	vs.ReadOnly = True
 	vs.MaxValue = mp.BodyList.Count//2

@@ -109,15 +109,33 @@ def MainMain(menuKey):
 		case 'Hx': # Mark all helixes
 			MarkAllHelix(pId)
 		case 'TT':
-			#ShowBends(pId)
-			#ShowLocalVariance(pId)
-			bs = LoadChain(pId)
-			for n in range(10):
-				cs.MeanShift(bs, 9, 0.02, steps=25)
-				ShowBodyList( Interpolate(bs, intp=8, hidIntp=True) )
-			vv.GuiManager.TileAllWindows(None, keepSize=True)
+			#ExploreBends(pId)
+			#ExploreLocalVariance(pId)
+			ExploreMeanShift(pId)
 		case _:
 			DoSimpleMenues(menuKey, pId, pList)
+
+
+def ExploreMeanShift(pId):
+	info = MapInfo({'pId':pId})
+	bs = LoadChain(pId)
+	#cs.SmoothenSeq(bs, winSize=9)
+	bList = Interpolate(bs, intp=8, hidIntp=True)
+	mp = ShowBodyList( bList, normalize=False, info=info)
+	mp.CentralizeView()
+	vp = New.ValueSelector(0, 1000, 9, 'UpdateMeanShift()')
+	vp.Tag = [bs, mp]
+	vp.StepSize = 5
+	vp.OnClose('CloseLinkedViews()')
+	vp.Show()
+
+def UpdateMeanShift():
+	vp = pp
+	bs, mp = vp.Tag
+	bList = New.BodyListClone(bs)
+	cs.MeanShift(bList, int(vp.CurrentValue), 0.1, 5)
+	bList2 = Interpolate(bList, intp=8, hidIntp=True)
+	mp.MoveBodiesTo(bList2, 10, 20, 0, 0)
 
 def DoSimpleMenues(menuKey, pId, pList):
 	global ctrPressed
@@ -255,7 +273,7 @@ def MarkAllHelix(pId):
 		scMap = ShowBodyList(bList2, gOpacity=1.0, gSize=1.0)
 		bv.Tag.append(scMap)
 		info.Save(scMap)
-	bv.OnClose('for f in pp.Tag: f.Close()')
+	bv.OnClose('CloseLinkedViews()')
 
 def ShowSeqTwist(pId, maxWsRows=4096, winSz=500, xyzSet='' ):
 	if pId == None:
@@ -298,7 +316,7 @@ def DoDatasetList(dxList, mpIdx=0, createPMap=True, createAtlas=False):
 				break
 		vv.Folder.Save()
 
-def ShowBends(pId):
+def ExploreBends(pId):
 	info = MapInfo({'pId':pId})
 	intp = 8
 	bList = Interpolate(LoadChain(pId), intp=intp, hidIntp=True)
@@ -310,38 +328,42 @@ def ShowBends(pId):
 		if (p.Value > minAngle) and (p.Id[0]!='i'):
 			p.Group = 0
 	aSet = set([p.Id for p in aList if p.Group==0])
-	bv = New.BarView(aList)
-	bv.ReferenceType = 4
+	bv = NewBarView(aList, info)
 	bv.ReferenceValue = minAngle
-	bv.NormalizeView()
-	bv.ColorPaletteName = 'Red Green'
-	bv.Show()
-	info.Save(bv)
 	for b in bList:
 		if b.Id in aSet:
 			b.Type = 172
 	mp = ShowBodyList(bList)
 	info.Save(mp)
 	bv.Tag = [mp]
-	bv.OnClose('for f in pp.Tag: f.Close()')
+	bv.OnClose('CloseLinkedViews()')
 
-def ShowLocalVariance(pId):
+def NewBarView(vList, info):
+	eType = type(vList[0]).__name__
+	if eType == 'IBody':
+		vList = New.ValueItemList(vList)
+	bv = New.BarView(vList)
+	bv.ReferenceType = 4
+	bv.ReferenceValue = 0
+	bv.NormalizeView()
+	bv.ColorPaletteName = 'Red Green'
+	bv.OnClose('CloseLinkedViews()')
+	info.Save(bv)
+	bv.Show()
+	return bv
+
+def ExploreLocalVariance(pId):
 	INTP = 8
 	info = MapInfo({'pId':pId, 'intp':INTP})
 	bList = Interpolate(LoadChain(pId), intp=INTP, hidIntp=True)
 	for b in bList: 
 		b.Type = 3 if b.Id[0] == 'i' else 15
-	bv = New.BarView(New.ValueItemList(bList))
-	bv.ReferenceType = 4
-	bv.NormalizeView()
-	bv.ColorPaletteName = 'Red Green'
-	bv.Show()
 	cs.NormalizeChain(bList, -1, True)
+	bv = NewBarView(bList, info)
 	mp = ShowBodyList(bList)
 	bv.Tag = [mp, bList, 0]
-	bv.OnClose('pp.Tag[0].Close()')
+
 	bv.OnMouseWheel('UpdateBarView()', runOnce=True)
-	info.Save(bv)
 	info.Save(mp)
 
 def UpdateBarView():
